@@ -9,3 +9,4 @@ dist
 .env*
 .next
 out
+tsconfig.tsbuildinfo

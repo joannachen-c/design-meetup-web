@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { AgentationDev } from "@/components/AgentationDev";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,7 +17,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   // hydrates, which otherwise reports a mismatch on every page load.
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        {process.env.NODE_ENV === "development" ? <AgentationDev /> : null}
+      </body>
     </html>
   );
 }

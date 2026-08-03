@@ -61,3 +61,19 @@ test("Vite entrypoints are removed", async () => {
     await assert.rejects(() => access(new URL(path, root)));
   }
 });
+
+test("Agentation loads only in development", async () => {
+  const pkg = JSON.parse(await read("package.json"));
+  assert.ok(pkg.devDependencies?.agentation);
+  assert.equal(pkg.dependencies?.agentation, undefined);
+
+  const agentationDev = await read("src/components/AgentationDev.tsx");
+  assert.match(agentationDev, /["']use client["']/);
+  assert.match(agentationDev, /import\(["']agentation["']\)/);
+  assert.match(agentationDev, /ssr:\s*false/);
+  assert.match(agentationDev, /http:\/\/localhost:4747/);
+
+  const layout = await read("app/layout.tsx");
+  assert.match(layout, /AgentationDev/);
+  assert.match(layout, /NODE_ENV\s*===\s*["']development["']/);
+});

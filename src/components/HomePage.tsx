@@ -277,15 +277,13 @@ export default function HomePage({
   initialEvents,
   initialError,
 }: HomePageProps) {
-  const [events, setEvents] = useState<MeetupEvent[]>(initialEvents);
+  const events = initialEvents;
   const [selectedIndex, setSelectedIndex] = useState(() =>
     initialEvents.length > 3 ? 3 : 0,
   );
   const [isWebsiteTeamVisible, setIsWebsiteTeamVisible] = useState(false);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(() =>
-    initialError ? "error" : "ready",
-  );
-  const [errorMessage, setErrorMessage] = useState<string | null>(initialError);
+  const status: "ready" | "error" = initialError ? "error" : "ready";
+  const errorMessage = initialError;
   const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const galleryRef = useRef<HTMLUListElement | null>(null);
   const detailPhotoRailRef = useRef<HTMLUListElement | null>(null);
@@ -592,7 +590,7 @@ export default function HomePage({
                 {String(events.length).padStart(2, "0")}
               </>
             ) : (
-              <span>{status === "loading" ? "Loading" : "Unavailable"}</span>
+              <span>Unavailable</span>
             )}
           </p>
           <div className="gallery-actions">
@@ -614,15 +612,6 @@ export default function HomePage({
             </IconButton>
           </div>
         </ScrollReveal>
-
-        {status === "loading" ? (
-          <div
-            className="gallery-status px-[clamp(20px,6vw,96px)] py-12 text-[0.92rem] text-[oklch(53%_0.025_250)]"
-            role="status"
-          >
-            Loading events from Supabase…
-          </div>
-        ) : null}
 
         {status === "error" ? (
           <div

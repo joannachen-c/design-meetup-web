@@ -1,6 +1,8 @@
 import HomePage from "@/components/HomePage";
 import { fetchPastEvents, type MeetupEvent } from "@/lib/supabase";
 
+export const revalidate = 300;
+
 export default async function Page() {
   let initialEvents: MeetupEvent[] = [];
   let initialError: string | null = null;

@@ -29,9 +29,10 @@ export function Link({
   ...props
 }: LinkProps) {
   const className = [
-    "text-medium cursor-pointer border-0 bg-transparent p-0 text-left text-base text-[oklch(53%_0.025_250)] no-underline",
-    "transition-colors duration-150 hover:text-[oklch(22%_0.025_250)]",
+    "text-medium cursor-pointer border-0 bg-transparent p-0 text-left text-base text-muted no-underline",
+    "transition-colors duration-150 hover:text-ink",
     "focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4",
+    "disabled:cursor-not-allowed disabled:hover:text-muted aria-disabled:cursor-not-allowed aria-disabled:hover:text-muted",
     providedClassName,
   ]
     .filter(Boolean)

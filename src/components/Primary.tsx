@@ -41,13 +41,13 @@ export function Primary({
   const className = [
     "text-medium relative inline-flex min-h-11 w-fit cursor-pointer items-center justify-start rounded-[10px] border-0 px-4 py-2.5 text-left text-base leading-[1.2] no-underline",
     "transition-[background-color,transform,opacity] duration-150 ease-out active:scale-[0.97]",
-    "focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[oklch(22%_0.025_250)]",
+    "focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ink",
     "disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:active:scale-100",
     variant === "ghost"
-      ? "bg-transparent text-gray-500 hover:bg-gray-100 disabled:hover:bg-transparent aria-disabled:hover:bg-transparent"
+      ? "bg-transparent text-gray-500 hover:bg-surface-muted active:bg-gray-200 disabled:hover:bg-transparent disabled:active:bg-transparent aria-disabled:hover:bg-transparent aria-disabled:active:bg-transparent"
       : variant === "primary"
-        ? "bg-accent-primary text-black hover:bg-[#e3e95f] disabled:hover:bg-accent-primary aria-disabled:hover:bg-accent-primary"
-        : "bg-[oklch(96.7%_0.003_264.542)] text-black hover:bg-gray-300 disabled:hover:bg-[oklch(96.7%_0.003_264.542)] aria-disabled:hover:bg-[oklch(96.7%_0.003_264.542)]",
+        ? "bg-accent-primary text-ink hover:bg-accent-hover disabled:hover:bg-accent-primary aria-disabled:hover:bg-accent-primary"
+        : "bg-surface-muted text-ink hover:bg-gray-300 disabled:hover:bg-surface-muted aria-disabled:hover:bg-surface-muted",
     variant === "secondary" && hasLeadingIcon ? "pl-[14px]" : "",
     variant === "secondary" && hasTrailingIcon ? "pr-[14px]" : "",
     fullWidth ? "w-full" : "",

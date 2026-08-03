@@ -42,7 +42,18 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Reset local Vercel metadata
+      # `vercel pull` reports bad auth OR wrong project IDs as the same
+      # "Could not retrieve Project Settings" message.
+      - name: Verify Vercel token
+        run: |
+          if ! vercel whoami --token="$VERCEL_TOKEN" > /dev/null 2>&1; then
+            echo "::error::VERCEL_TOKEN is invalid or expired. Create a new token at https://vercel.com/account/tokens and update it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Link Vercel project
         run: |
           rm -rf .vercel
           mkdir -p .vercel

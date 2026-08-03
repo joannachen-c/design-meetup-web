@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
-const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
 test("about section appears immediately before the partner section", () => {
   assert.match(
@@ -35,16 +35,29 @@ test("about section introduces the community and lists every team member", () =>
 test("about section follows the shared responsive layout conventions", () => {
   assert.match(
     app,
-    /about-section[^"]*px-\[clamp\(20px,6vw,96px\)\][^"]*py-\[120px\][^"]*max-\[820px\]:py-36/,
+    /about-section[^"]*px-\[clamp\(20px,6vw,96px\)\][^"]*py-\[120px\][^"]*max-\[820px\]:py-\[60px\]/,
   );
   assert.match(app, /className="about-grid"/);
   assert.match(
     css,
-    /\.about-grid\s*\{[^}]*grid-template-columns:\s*minmax\(280px,\s*0\.64fr\)\s+minmax\(0,\s*1\.36fr\)/s,
+    /\.about-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\)/s,
   );
+  assert.match(css, /\.about-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 4;/s);
+  assert.match(css, /\.about-image\s*\{[^}]*grid-column:\s*6\s*\/\s*span 7;/s);
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*\.about-grid\s*\{[^}]*grid-template-columns:\s*1fr/s,
+  );
+});
+
+test("mobile community photo has matching space above and below", () => {
+  assert.match(
+    css,
+    /@media \(max-width: 820px\)[\s\S]*\.about-image\s*\{[^}]*margin-top:\s*72px;/s,
+  );
+  assert.match(
+    app,
+    /about-offerings[^"]*mt-\[clamp\(72px,8vw,120px\)\]/,
   );
 });
 
@@ -118,7 +131,7 @@ test("community photo and four position labels sit outside the smaller polaroids
     app.match(/function TeamCard[\s\S]*?\n\}/)?.[0] ?? "",
     /member\.role/,
   );
-  assert.match(app, /team-polaroid[^"]*w-\[clamp\(108px,9vw,132px\)\]/);
+  assert.match(app, /team-polaroid[^"]*w-\[clamp\(116px,9vw,132px\)\]/);
 });
 
 test("polaroids use neutral frames and visibly clip rounded inner portraits", () => {
@@ -196,7 +209,7 @@ test("website team view is conditional, centered, and dims non-members", () => {
   );
   assert.match(
     app,
-    /useState\(false\)[\s\S]*team-filter-control[\s\S]*isWebsiteTeamVisible\s*\?\s*\(/,
+    /useState\(false\)[\s\S]*team-filter-control[\s\S]*id="website-team"[\s\S]*isWebsiteTeamVisible\s*\?\s*\(/,
   );
   assert.match(
     app,

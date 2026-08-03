@@ -24,7 +24,7 @@ export function Tooltip({ children, content }: TooltipProps) {
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
-          className="z-50 max-w-64 rounded-md bg-black px-2.5 py-1.5 text-sm leading-5 text-pretty text-white"
+          className="z-50 max-w-64 rounded-md bg-ink px-2.5 py-1.5 text-sm leading-5 text-pretty text-surface"
           sideOffset={8}
         >
           {content}

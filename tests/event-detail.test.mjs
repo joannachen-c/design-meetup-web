@@ -2,10 +2,18 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
-const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const header = await readFile(
+  new URL("../src/components/SiteHeader.tsx", import.meta.url),
+  "utf8",
+);
+const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 const primary = await readFile(
   new URL("../src/components/Primary.tsx", import.meta.url),
+  "utf8",
+);
+const iconButton = await readFile(
+  new URL("../src/components/IconButton.tsx", import.meta.url),
   "utf8",
 );
 
@@ -20,22 +28,27 @@ test("host names are split on supported separators and rendered as a list", () =
 });
 
 test("header uses the Design Meetup logo image inside the home link", async () => {
-  assert.match(app, hasClass("wordmark"));
-  assert.match(app, /aria-label="Design Meetup home"/);
-  assert.match(app, hasClass("wordmark-logo"));
-  assert.match(app, /src="\/design-meetup-logo\.png"/);
-  assert.match(app, /width=\{60\}/);
-  assert.match(app, /height=\{60\}/);
-  assert.match(app, /alt=""/);
+  assert.match(header, hasClass("wordmark"));
+  assert.match(header, /aria-label="Design Meetup home"/);
+  assert.match(header, hasClass("wordmark-logo"));
+  assert.match(header, /src="\/design-meetup-logo\.png"/);
+  assert.match(header, /width=\{60\}/);
+  assert.match(header, /height=\{60\}/);
+  assert.match(header, /alt=""/);
   assert.doesNotMatch(
-    app,
+    header,
     /className="[^"]*\bwordmark\b[^"]*"[^>]*>\s*Design Meetup\s*</,
   );
   assert.match(
     css,
-    /\.wordmark-logo\s*\{[^}]*width:\s*60px;[^}]*height:\s*auto;/s,
+    /\.wordmark\s*\{[^}]*display:\s*flex;[^}]*height:\s*60px;/s,
   );
-  assert.match(app, /wordmark-logo border-0 outline-none/);
+  assert.match(
+    css,
+    /\.wordmark-logo\s*\{[^}]*width:\s*auto;[^}]*height:\s*100%;/s,
+  );
+  assert.match(header, /wordmark-logo border-0 outline-none/);
+  assert.match(app, /import \{ SiteHeader \} from "\.\/SiteHeader"/);
   await access(new URL("../public/design-meetup-logo.png", import.meta.url));
 });
 
@@ -85,11 +98,19 @@ test("intro copy fills the remaining desktop grid columns", () => {
 
 test("gallery toolbar keeps only a normal-weight counter and borderless controls", () => {
   assert.doesNotMatch(app, /Scroll or use arrow keys/);
+  assert.match(
+    app,
+    /<p className="[^"]*\btext-sm\b[^"]*">\s*\{status === "ready"/,
+  );
+  assert.doesNotMatch(
+    app,
+    /<p className="[^"]*text-\[0\.7rem\][^"]*">\s*\{status === "ready"/,
+  );
   assert.match(app, hasClass("counter-current"));
   assert.match(app, /counter-current font-normal/);
-  assert.match(app, /bg-\[oklch\(96\.7%_0\.003_264\.542\)\]/);
-  assert.match(app, /hover:not-disabled:bg-gray-300/);
-  assert.match(app, /rounded-full border-0/);
+  assert.match(iconButton, /bg-surface-muted/);
+  assert.match(iconButton, /hover:not-disabled:bg-gray-300/);
+  assert.match(iconButton, /rounded-full border-0/);
   assert.match(app, /aria-label="Previous event"/);
   assert.match(app, /aria-label="Next event"/);
   assert.match(app, /stroke="currentColor"/);
@@ -99,7 +120,7 @@ test("event details render the selected event gallery images from Supabase", () 
   assert.match(app, /aria-labelledby="event-photos-title"/);
   assert.match(
     app,
-    /<h3[^>]*id="event-photos-title"[^>]*>\s*Event photos\s*<\/h3>/,
+    /<h3[^>]*id="event-photos-title"[^>]*>\s*Gallery\s*<\/h3>/,
   );
   assert.match(
     app,
@@ -115,7 +136,7 @@ test("event details render the selected event gallery images from Supabase", () 
 test("event photos use an accessible horizontally scrollable rail", () => {
   assert.match(
     app,
-    /className="[^"]*\bdetail-photo-list\b[^"]*\bw-screen\b[^"]*\btouch-pan-x\b[^"]*"[\s\S]*tabIndex=\{0\}[\s\S]*aria-label=\{`\$\{selectedEvent\.title\} event photos, horizontally scrollable`\}/,
+    /className="[^"]*\bdetail-photo-list\b[^"]*\btouch-pan-x\b[^"]*"[\s\S]*tabIndex=\{0\}[\s\S]*aria-label=\{`\$\{selectedEvent\.title\} gallery, horizontally scrollable`\}/,
   );
   assert.match(
     app,
@@ -157,11 +178,15 @@ test("event photo controls scroll by a responsive increment and disable at bound
 test("event photo rail bleeds to viewport edges with aligned terminal spacing", () => {
   assert.match(
     app,
-    /detail-photo-list[^"]*relative[^"]*left-1\/2[^"]*w-screen[^"]*-translate-x-1\/2[^"]*p-0/,
+    /detail-photo-list[^"]*m-0[^"]*touch-pan-x[^"]*p-0/,
+  );
+  assert.doesNotMatch(
+    app,
+    /detail-photo-list[^"]*(?:left-1\/2|w-screen|-translate-x-1\/2)/,
   );
   assert.match(
     css,
-    /\.detail-photo-list\s*\{[^}]*--page-gutter:\s*clamp\(20px,\s*6vw,\s*96px\);[^}]*scroll-padding-inline:\s*var\(--page-gutter\);/s,
+    /\.detail-photo-list\s*\{[^}]*--page-gutter:\s*clamp\(20px,\s*6vw,\s*96px\);[^}]*width:\s*calc\(100%\s*\+\s*var\(--page-gutter\)\s*\+\s*var\(--page-gutter\)\);[^}]*margin-inline:\s*calc\(0px\s*-\s*var\(--page-gutter\)\);[^}]*scroll-padding-inline:\s*var\(--page-gutter\);/s,
   );
   assert.match(
     css,
@@ -192,7 +217,7 @@ test("event details include sponsors as metadata in the definition list", () => 
 });
 
 test("sponsor logos use restrained Tailwind spacing", () => {
-  assert.match(app, /className="sponsor-list m-0 gap-5 p-0"/);
+  assert.match(app, /className="sponsor-list m-0 gap-5 p-0 pb-4"/);
   assert.doesNotMatch(css, /\.sponsor-list\s*\{[^}]*\bgap:/s);
 });
 
@@ -200,20 +225,20 @@ test("event details begin closer to the selected event caption", () => {
   assert.match(app, /event-detail[^"]*pt-\[clamp\(20px,3vw,40px\)\]/);
 });
 
-test("event description leads a wide left column with metadata on the right", () => {
+test("event description shares the intro copy's four-column alignment", () => {
   assert.doesNotMatch(app, /className="detail-index"/);
   assert.doesNotMatch(app, /Event \{String\(selectedIndex/);
   assert.match(
     css,
-    /\.detail-grid\s*\{[^}]*grid-template-columns:\s*minmax\(280px,\s*1\.7fr\)\s*minmax\(\s*240px,\s*0\.8fr\s*\)/s,
+    /\.detail-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\);[^}]*column-gap:\s*clamp\(16px,\s*2vw,\s*28px\);/s,
   );
   assert.match(
     css,
-    /\.detail-grid > dl\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1;/s,
+    /\.detail-grid > dl\s*\{[^}]*display:\s*grid;[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);[^}]*grid-row:\s*1;/s,
   );
   assert.match(
     css,
-    /\.detail-title\s*\{[^}]*grid-column:\s*1;[^}]*grid-row:\s*1;/s,
+    /\.detail-title\s*\{[^}]*grid-column:\s*9\s*\/\s*span 4;[^}]*grid-row:\s*1;/s,
   );
   assert.match(
     css,
@@ -232,12 +257,16 @@ test("event summaries preserve rich TipTap formatting with plain fallback", () =
 
 test("long event summaries collapse at 360px with an accessible expansion control", () => {
   assert.match(app, /max-h-\[360px\]/);
-  assert.match(app, /bg-gradient-to-b from-transparent to-white/);
   assert.match(
     app,
-    /<Link[\s\S]*aria-expanded=\{isExpanded\}[\s\S]*aria-controls=\{contentId\}[\s\S]*>\s*See more\s*<\/Link>/,
+    /<Link[\s\S]*aria-expanded=\{isExpanded\}[\s\S]*aria-controls=\{contentId\}[\s\S]*onClick=\{\(\) => setIsExpanded\(!isExpanded\)\}[\s\S]*>\s*\{isExpanded \? "See less" : "See more"\}\s*<\/Link>/,
   );
   assert.match(app, /contentHeight > 360/);
+  assert.match(
+    app,
+    /bg-gradient-to-b from-white\/0 via-white\/80 to-white/,
+  );
+  assert.doesNotMatch(app, /backdrop-blur/);
 });
 
 test("event detail content uses base text and gray uppercase labels", () => {
@@ -255,7 +284,15 @@ test("event detail content uses base text and gray uppercase labels", () => {
   );
   assert.equal(
     (app.match(/<dd className="m-0 text-base leading-6">/g) ?? []).length,
-    3,
+    2,
+  );
+  assert.match(
+    app,
+    /<dt[^>]*>\s*Where\s*<\/dt>\s*<dd className="m-0 text-base leading-6">\s*\{selectedEvent\.location\}\s*<\/dd>/,
+  );
+  assert.match(
+    app,
+    /<dt[^>]*>\s*Sponsors\s*<\/dt>[\s\S]*?<dd className="m-0 mb-2 text-base leading-6">/,
   );
   assert.match(
     app,
@@ -263,29 +300,39 @@ test("event detail content uses base text and gray uppercase labels", () => {
   );
 });
 
-test("View on Luma uses the shared secondary button variant", () => {
+test("View on Luma uses the shared Link component as a safe external link", () => {
   assert.match(
     app,
-    /<Primary[\s\S]*variant="secondary"[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*target="_blank"[\s\S]*rel="noreferrer"[\s\S]*>[\s\S]*View on Luma/,
+    /<Link[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*target="_blank"[\s\S]*rel="noreferrer"[\s\S]*>[\s\S]*View on Luma/,
+  );
+  assert.doesNotMatch(
+    app,
+    /<Primary[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*>[\s\S]*View on Luma/,
   );
   assert.match(
     app,
-    /import \{ ArrowUpRightIcon \} from "\.\/components\/icons\/ArrowUpRightIcon"/,
+    /import \{ ArrowUpRightIcon \} from "\.\/icons\/ArrowUpRightIcon"/,
   );
   assert.match(
     app,
     /className="[^"]*\bgap-2\b[^"]*"[\s\S]*View on Luma[\s\S]*<ArrowUpRightIcon \/>/,
   );
   assert.doesNotMatch(app, /<span aria-hidden="true">↗<\/span>/);
-  assert.match(primary, /variant === "primary"/);
-  assert.match(primary, /bg-\[oklch\(96\.7%_0\.003_264\.542\)\]/);
+  assert.match(primary, /variant\?: "primary" \| "secondary" \| "ghost"/);
+  assert.match(primary, /variant === "ghost"/);
 });
 
-test("View on Luma follows the event metadata section spacing", () => {
+test("View on Luma sits once under sponsor content with an aligned left edge", () => {
   assert.match(
     app,
-    /<Primary[\s\S]*className="mt-\[52px\] gap-2"[\s\S]*href=\{selectedEvent\.luma_url\}/,
+    /<div className="detail-sponsor">[\s\S]*<dt[^>]*>\s*Sponsors\s*<\/dt>[\s\S]*<dd className="[^"]*\bmb-2\b[^"]*">[\s\S]*\{sponsors\.length > 0 \? \([\s\S]*Sponsor slot open[\s\S]*<\/dd>[\s\S]*<Link[\s\S]*className="[^"]*\bgap-2\b[^"]*"[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*<\/Link>[\s\S]*<\/div>/,
   );
+  assert.doesNotMatch(app, /<Link[^>]*className="[^"]*-ml-/);
+  assert.doesNotMatch(
+    app,
+    /Where[\s\S]*\{selectedEvent\.location\}[\s\S]*<Link[\s\S]*Hosted by/,
+  );
+  assert.equal((app.match(/View on Luma/g) ?? []).length, 1);
 });
 
 test("mobile event details appear before the event description", () => {
@@ -293,6 +340,55 @@ test("mobile event details appear before the event description", () => {
     css,
     /@media \(max-width: 820px\)[\s\S]*?\.detail-grid > dl\s*\{[^}]*order:\s*1[^}]*\}[\s\S]*?\.detail-title\s*\{[^}]*order:\s*2[^}]*\}/,
   );
+});
+
+test("hosted by metadata is hidden on mobile and visible on tablet/desktop", () => {
+  assert.match(
+    app,
+    /<div className="max-\[820px\]:hidden">\s*<dt className="mb-\[7px\] text-base uppercase text-gray-400">\s*Hosted by\s*<\/dt>/,
+  );
+  assert.doesNotMatch(
+    app,
+    /<div className="hidden[^"]*">\s*<dt[^>]*>\s*Hosted by/,
+  );
+});
+
+test("mobile metadata pairs location and sponsors in two columns without a host gap", () => {
+  assert.match(
+    css,
+    /@media \(max-width: 820px\)[\s\S]*?\.detail-grid > dl\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);[^}]*\}/,
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 820px\)[\s\S]*?\.detail-sponsor\s*\{[^}]*grid-column:\s*auto;[^}]*justify-self:\s*start;[^}]*\}/,
+  );
+});
+
+test("desktop metadata preserves where, hosts, and sponsors in three columns", () => {
+  assert.match(
+    css,
+    /\.detail-grid > dl\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);[^}]*\}/,
+  );
+  assert.match(
+    app,
+    /<dl[^>]*>[\s\S]*?Where[\s\S]*?max-\[820px\]:hidden[\s\S]*?Hosted by[\s\S]*?detail-sponsor[\s\S]*?Sponsors[\s\S]*?<\/dl>/,
+  );
+});
+
+test("mobile detail tracks floor at zero so the bleeding photo rail cannot widen them", () => {
+  // `1fr` is `minmax(auto, 1fr)`, and that auto floor adopts the photo rail's
+  // full max-content width, stretching every sibling past the viewport.
+  const mobile = css.match(/@media \(max-width: 820px\)\s*\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(mobile, "expected a max-width: 820px block");
+
+  for (const selector of [".detail-grid", ".detail-extras"]) {
+    const rule = mobile.match(
+      new RegExp(`\\${selector}\\s*\\{[^}]*\\}`, "s"),
+    )?.[0];
+    assert.ok(rule, `expected a mobile ${selector} rule`);
+    assert.match(rule, /grid-template-columns:\s*minmax\(0,\s*1fr\);/);
+    assert.doesNotMatch(rule, /grid-template-columns:\s*1fr;/);
+  }
 });
 
 test("all image surfaces are borderless", () => {

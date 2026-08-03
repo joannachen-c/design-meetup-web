@@ -1,3 +1,5 @@
+"use client";
+
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   useCallback,
@@ -7,14 +9,16 @@ import {
   useRef,
   useState,
 } from "react";
-import { ArrowUpRightIcon } from "./components/icons/ArrowUpRightIcon";
-import { InstagramIcon, LinkedInIcon, SubstackIcon, XIcon } from "./components/icons/SocialIcons";
-import { Input } from "./components/Input";
-import { Link } from "./components/Link";
-import { Primary } from "./components/Primary";
-import { ScrollReveal } from "./components/ScrollReveal";
-import { Tooltip, TooltipProvider } from "./components/Tooltip";
-import { fetchPastEvents, type MeetupEvent } from "./lib/supabase";
+import { ArrowUpRightIcon } from "./icons/ArrowUpRightIcon";
+import { InstagramIcon, LinkedInIcon, SubstackIcon, XIcon } from "./icons/SocialIcons";
+import { Input } from "./Input";
+import { IconButton } from "./IconButton";
+import { Link } from "./Link";
+import { Primary } from "./Primary";
+import { ScrollReveal } from "./ScrollReveal";
+import { SiteHeader } from "./SiteHeader";
+import { Tooltip, TooltipProvider } from "./Tooltip";
+import type { MeetupEvent } from "@/lib/supabase";
 
 const partnerLogos = [
   { slug: "figma", src: "/partners/figma.png" },
@@ -122,9 +126,6 @@ const footerLinkClassName =
   "rounded-sm text-[oklch(53%_0.025_250)] no-underline hover:text-[oklch(22%_0.025_250)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[oklch(22%_0.025_250)]";
 const footerCreditLinkClassName = `${footerLinkClassName} text-medium`;
 
-const iconButtonClassName =
-  "grid size-9 cursor-pointer place-items-center rounded-full border-0 bg-[oklch(96.7%_0.003_264.542)] p-2 text-[oklch(22%_0.025_250)] hover:not-disabled:bg-gray-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[oklch(22%_0.025_250)] disabled:cursor-not-allowed disabled:opacity-[0.32]";
-
 const detailSummaryClassName = [
   "detail-summary max-w-[54ch] text-base leading-[1.7]",
   "[&_p]:whitespace-pre-line [&_p]:text-pretty [&_li]:whitespace-pre-line [&_li]:text-pretty [&_blockquote]:whitespace-pre-line [&_blockquote]:text-pretty",
@@ -178,7 +179,7 @@ function TeamCard({ member }: { member: TeamMember }) {
 
   return member.linkedin ? (
     <a
-      className="team-polaroid w-[clamp(108px,9vw,132px)] block rounded-md border border-gray-100 bg-white p-2 pb-3.5 no-underline shadow-lg outline-none hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[oklch(22%_0.025_250)] focus-visible:ring-offset-4"
+      className="team-polaroid w-[clamp(116px,9vw,132px)] block rounded-md border border-gray-100 bg-white p-2 pb-3.5 no-underline shadow-lg outline-none hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[oklch(22%_0.025_250)] focus-visible:ring-offset-4"
       href={member.linkedin}
       target="_blank"
       rel="noreferrer"
@@ -187,7 +188,7 @@ function TeamCard({ member }: { member: TeamMember }) {
       {card}
     </a>
   ) : (
-    <div className="team-polaroid w-[clamp(108px,9vw,132px)] block rounded-md border border-gray-100 bg-white p-2 pb-3.5 shadow-lg hover:shadow-xl">
+    <div className="team-polaroid w-[clamp(116px,9vw,132px)] block rounded-md border border-gray-100 bg-white p-2 pb-3.5 shadow-lg hover:shadow-xl">
       {card}
     </div>
   );
@@ -249,31 +250,41 @@ function ExpandableSummary({
         </div>
         {hasOverflow && !isExpanded ? (
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-white backdrop-blur-[1px]"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-white/0 via-white/80 to-white"
             aria-hidden="true"
           />
         ) : null}
       </div>
-      {hasOverflow && !isExpanded ? (
+      {hasOverflow ? (
         <Link
           className="mt-2"
           aria-expanded={isExpanded}
           aria-controls={contentId}
-          onClick={() => setIsExpanded(true)}
+          onClick={() => setIsExpanded(!isExpanded)}
         >
-          See more
+          {isExpanded ? "See less" : "See more"}
         </Link>
       ) : null}
     </>
   );
 }
 
-export default function App() {
-  const [events, setEvents] = useState<MeetupEvent[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+export type HomePageProps = {
+  initialEvents: MeetupEvent[];
+  initialError: string | null;
+};
+
+export default function HomePage({
+  initialEvents,
+  initialError,
+}: HomePageProps) {
+  const events = initialEvents;
+  const [selectedIndex, setSelectedIndex] = useState(() =>
+    initialEvents.length > 3 ? 3 : 0,
+  );
   const [isWebsiteTeamVisible, setIsWebsiteTeamVisible] = useState(false);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const status: "ready" | "error" = initialError ? "error" : "ready";
+  const errorMessage = initialError;
   const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const galleryRef = useRef<HTMLUListElement | null>(null);
   const detailPhotoRailRef = useRef<HTMLUListElement | null>(null);
@@ -361,29 +372,6 @@ export default function App() {
     },
     [reduceMotion],
   );
-
-  useEffect(() => {
-    let cancelled = false;
-
-    fetchPastEvents()
-      .then((rows) => {
-        if (cancelled) return;
-        setEvents(rows);
-        setSelectedIndex(rows.length > 3 ? 3 : 0);
-        setStatus("ready");
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        setStatus("error");
-        setErrorMessage(
-          error instanceof Error ? error.message : "Unable to load events.",
-        );
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const selectEvent = useCallback(
     (index: number) => {
@@ -525,46 +513,7 @@ export default function App() {
 
   return (
     <main className="min-h-dvh w-full overflow-hidden rounded-none border-0 bg-white font-['Alte_Haas_Grotesk',sans-serif] text-[oklch(22%_0.025_250)] shadow-none antialiased [font-synthesis:none] [text-rendering:optimizeLegibility]">
-      <header className="site-header px-[clamp(20px,6vw,96px)] py-[clamp(24px,3vw,46px)] text-base">
-        <ScrollReveal>
-          <a
-            className="wordmark leading-[0] no-underline focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
-            href="#"
-            aria-label="Design Meetup home"
-          >
-            <img
-              className="wordmark-logo border-0 outline-none"
-              src="/design-meetup-logo.png"
-              alt=""
-              width={60}
-              height={60}
-              decoding="async"
-            />
-          </a>
-        </ScrollReveal>
-        <ScrollReveal delay={60}>
-          <nav className="primary-navigation" aria-label="Primary navigation">
-            <a
-              className="text-base text-[oklch(53%_0.025_250)] no-underline hover:text-[oklch(22%_0.025_250)] focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
-              href="#calendar"
-            >
-              CALENDAR
-            </a>
-            <a
-              className="text-base text-[oklch(53%_0.025_250)] no-underline hover:text-[oklch(22%_0.025_250)] focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
-              href="#about"
-            >
-              ABOUT
-            </a>
-            <a
-              className="text-base text-[oklch(53%_0.025_250)] no-underline hover:text-[oklch(22%_0.025_250)] focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
-              href="#sponsor"
-            >
-              SPONSOR
-            </a>
-          </nav>
-        </ScrollReveal>
-      </header>
+      <SiteHeader reveal />
 
       <section
         className="intro px-[clamp(20px,6vw,96px)] py-[clamp(26px,4.5vw,69px)] max-[820px]:py-8 max-[520px]:py-[23px]"
@@ -593,7 +542,7 @@ export default function App() {
 
       <section className="gallery-section" id="events" aria-label="Past events">
         <ScrollReveal className="gallery-toolbar px-[clamp(20px,6vw,96px)] py-4 max-[520px]:py-3">
-          <p className="m-0 text-[0.7rem] text-[oklch(53%_0.025_250)]">
+          <p className="m-0 text-sm text-[oklch(53%_0.025_250)]">
             {status === "ready" ? (
               <>
                 <span className="counter-current font-normal text-[oklch(22%_0.025_250)]">
@@ -603,22 +552,18 @@ export default function App() {
                 {String(events.length).padStart(2, "0")}
               </>
             ) : (
-              <span>{status === "loading" ? "Loading" : "Unavailable"}</span>
+              <span>Unavailable</span>
             )}
           </p>
           <div className="gallery-actions">
-            <button
-              className={iconButtonClassName}
-              type="button"
+            <IconButton
               aria-label="Previous event"
               disabled={selectedIndex === 0 || events.length === 0}
               onClick={() => selectEvent(selectedIndex - 1)}
             >
               <ArrowIcon direction="left" />
-            </button>
-            <button
-              className={iconButtonClassName}
-              type="button"
+            </IconButton>
+            <IconButton
               aria-label="Next event"
               disabled={
                 selectedIndex >= events.length - 1 || events.length === 0
@@ -626,18 +571,9 @@ export default function App() {
               onClick={() => selectEvent(selectedIndex + 1)}
             >
               <ArrowIcon direction="right" />
-            </button>
+            </IconButton>
           </div>
         </ScrollReveal>
-
-        {status === "loading" ? (
-          <div
-            className="gallery-status px-[clamp(20px,6vw,96px)] py-12 text-[0.92rem] text-[oklch(53%_0.025_250)]"
-            role="status"
-          >
-            Loading events from Supabase…
-          </div>
-        ) : null}
 
         {status === "error" ? (
           <div
@@ -721,7 +657,7 @@ export default function App() {
 
             <AnimatePresence mode="wait">
               <motion.div
-                className="gallery-caption mx-auto w-[clamp(168px,16vw,236px)] max-w-[calc(100%-48px)] pb-[clamp(40px,5vw,72px)] pt-0 text-center max-[820px]:w-[min(58vw,220px)]"
+                className="gallery-caption mx-auto pb-[clamp(40px,5vw,72px)] pt-0 text-center"
                 key={selectedEvent.id}
                 initial={reduceMotion ? false : { opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -774,7 +710,7 @@ export default function App() {
                 />
               </div>
               <dl className="m-0">
-                <div className="mb-5 pb-8">
+                <div>
                   <dt className="mb-[7px] text-base uppercase text-gray-400">
                     Where
                   </dt>
@@ -782,7 +718,7 @@ export default function App() {
                     {selectedEvent.location}
                   </dd>
                 </div>
-                <div className="mb-5 pb-8">
+                <div className="max-[820px]:hidden">
                   <dt className="mb-[7px] text-base uppercase text-gray-400">
                     Hosted by
                   </dt>
@@ -796,14 +732,14 @@ export default function App() {
                     </ul>
                   </dd>
                 </div>
-                <div className="mb-5 pb-8">
+                <div className="detail-sponsor">
                   <dt className="mb-4 text-base uppercase text-gray-400">
                     Sponsors
                   </dt>
-                  <dd className="m-0 text-base leading-6">
+                  <dd className="m-0 mb-2 text-base leading-6">
                     {sponsors.length > 0 ? (
                       <TooltipProvider>
-                        <ul className="sponsor-list m-0 gap-5 p-0">
+                        <ul className="sponsor-list m-0 gap-5 p-0 pb-4">
                           {sponsors.map((sponsor) => (
                             <li key={sponsor.id}>
                               {sponsor.logo_url ? (
@@ -836,16 +772,15 @@ export default function App() {
                     )}
                   </dd>
                   {selectedEvent.luma_url ? (
-                    <Primary
-                      className="mt-[52px] gap-2"
-                      variant="secondary"
+                    <Link
+                      className="inline-flex items-center gap-2"
                       href={selectedEvent.luma_url}
                       target="_blank"
                       rel="noreferrer"
                     >
                       View on Luma
                       <ArrowUpRightIcon />
-                    </Primary>
+                    </Link>
                   ) : null}
                 </div>
               </dl>
@@ -859,41 +794,37 @@ export default function App() {
                       className="m-0 text-base font-medium tracking-[-0.06em] uppercase text-gray-400"
                       id="event-photos-title"
                     >
-                      Event photos
+                      Gallery
                     </h3>
                     <div
                       className="flex gap-2"
                       role="group"
                       aria-label="Event photo controls"
                     >
-                      <button
-                        className={iconButtonClassName}
-                        type="button"
+                      <IconButton
                         aria-label="Previous event photo"
                         aria-controls="event-photo-rail"
                         disabled={!canScrollPhotosLeft}
                         onClick={() => scrollPhotoRail(-1)}
                       >
                         <ArrowIcon direction="left" />
-                      </button>
-                      <button
-                        className={iconButtonClassName}
-                        type="button"
+                      </IconButton>
+                      <IconButton
                         aria-label="Next event photo"
                         aria-controls="event-photo-rail"
                         disabled={!canScrollPhotosRight}
                         onClick={() => scrollPhotoRail(1)}
                       >
                         <ArrowIcon direction="right" />
-                      </button>
+                      </IconButton>
                     </div>
                   </div>
                   <ul
-                    className="detail-photo-list relative left-1/2 m-0 w-screen -translate-x-1/2 touch-pan-x p-0 pb-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[oklch(22%_0.025_250)]"
+                    className="detail-photo-list m-0 touch-pan-x p-0 pb-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[oklch(22%_0.025_250)]"
                     id="event-photo-rail"
                     ref={setDetailPhotoRail}
                     tabIndex={0}
-                    aria-label={`${selectedEvent.title} event photos, horizontally scrollable`}
+                    aria-label={`${selectedEvent.title} gallery, horizontally scrollable`}
                   >
                     {selectedPhotos.map((photoUrl, photoIndex) => (
                       <li key={`${selectedEvent.id}-${photoIndex}`}>
@@ -928,7 +859,7 @@ export default function App() {
       </section>
 
       <section
-        className="upcoming-events bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-36"
+        className="upcoming-events bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-[60px]"
         id="calendar"
         aria-labelledby="upcoming-events-title"
       >
@@ -973,12 +904,12 @@ export default function App() {
       </section>
 
       <section
-        className="about-section bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-36"
+        className="about-section bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-[60px]"
         id="about"
         aria-labelledby="about-title"
       >
         <ScrollReveal className="about-grid">
-          <div>
+          <div className="about-copy">
             <h2
               className="m-0 text-balance text-[clamp(3rem,4.7vw,3.75rem)] font-bold leading-[1.2] tracking-[-0.06em] max-[520px]:text-[clamp(2.4rem,11vw,3.25rem)]"
               id="about-title"
@@ -995,7 +926,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="min-w-0">
+          <div className="about-image min-w-0">
             <img
               className="block aspect-[3/2] w-full rounded-[11px] border-0 object-cover outline-none"
               src="/about/design-meetup-community.jpg"
@@ -1031,7 +962,10 @@ export default function App() {
               </li>
             ))}
           </ul>
-          <div className="team-filter-control flex justify-start">
+          <div
+            className="team-filter-control flex justify-start"
+            id="website-team"
+          >
             {isWebsiteTeamVisible ? (
               <Primary
                 className="-ml-4 mt-2"
@@ -1082,7 +1016,7 @@ export default function App() {
       </section>
 
       <section
-        className="partner-cta bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-36"
+        className="partner-cta bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-[60px]"
         id="sponsor"
         aria-labelledby="partner-cta-title"
       >
@@ -1100,14 +1034,14 @@ export default function App() {
           </p>
           <Primary href="#contact">Reach out</Primary>
         </ScrollReveal>
-        <ScrollReveal delay={80}>
+        <ScrollReveal className="partner-logos" delay={80}>
           <ul
             className="partner-grid m-0 p-0"
             aria-label="Selected partner companies"
           >
             {partnerLogos.map((partner) => (
               <li
-                className="partner-tile rounded-lg bg-[#f5f5f5]"
+                className="partner-tile rounded-[10px] bg-[#f5f5f5]"
                 key={partner.slug}
               >
                 <img
@@ -1140,7 +1074,7 @@ export default function App() {
           <h2 className="m-0 mb-4 text-base font-semibold tracking-[-0.06em]">Contact</h2>
           <nav
             aria-label="Contact links"
-            className="flex flex-col items-start gap-4"
+            className="flex flex-col items-start gap-5"
           >
             <a
               className={`${footerLinkClassName} group inline-flex items-center gap-1`}
@@ -1149,7 +1083,7 @@ export default function App() {
               contactdesignmeetup@gmail.com
               <ArrowUpRightIcon className="size-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none" />
             </a>
-            <div className="footer-contact-row flex items-center gap-4">
+            <div className="footer-contact-row flex items-center gap-6">
               <a
                 aria-label="Substack"
                 className={`${footerLinkClassName} inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4`}
@@ -1212,7 +1146,7 @@ export default function App() {
             </Primary>
           </form>
         </ScrollReveal>
-        <ScrollReveal className="col-span-full" delay={160}>
+        <ScrollReveal className="footer-credit col-span-full" delay={160}>
           <p className="col-span-full m-0 text-center text-sm text-gray-400">
             Website built in{" "}
           <a
@@ -1244,7 +1178,7 @@ export default function App() {
             by the{" "}
             <a
               className={footerCreditLinkClassName}
-              href="#about"
+              href="#website-team"
               onClick={showWebsiteTeam}
             >
               Design Meetup Team

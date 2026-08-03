@@ -1,8 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import summaryHtmlByEventId from "../data/event-summaries.json";
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export const supabaseConfigured = Boolean(url && anonKey);
 
@@ -68,7 +68,7 @@ function fallbackSummaryHtml(event: MeetupEventRow) {
 export async function fetchPastEvents(): Promise<MeetupEvent[]> {
   if (!supabase) {
     throw new Error(
-      "Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env.local.",
+      "Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local.",
     );
   }
 

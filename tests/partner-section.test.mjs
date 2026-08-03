@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
-const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
 test("Figma partner section appears immediately before the footer", () => {
   assert.match(
@@ -49,11 +49,11 @@ test("partner logos use stable optical adjustment hooks", () => {
   }
   assert.match(
     css,
-    /\.partner-logo--cursor\s*\{[^}]*width:\s*66px;[^}]*height:\s*90px;/s,
+    /\.partner-logo--cursor\s*\{[^}]*width:\s*max\(66px,\s*65\.35%\);[^}]*height:\s*max\(90px,\s*89\.11%\);/s,
   );
-  assert.match(css, /\.partner-logo--tiktok\s*\{[^}]*width:\s*72px;/s);
-  assert.match(css, /\.partner-logo--google\s*\{[^}]*width:\s*54px;/s);
-  assert.match(css, /\.partner-logo--apple\s*\{[^}]*width:\s*54px;/s);
+  assert.match(css, /\.partner-logo--tiktok\s*\{[^}]*width:\s*max\(72px,\s*71\.29%\);/s);
+  assert.match(css, /\.partner-logo--google\s*\{[^}]*width:\s*max\(54px,\s*53\.47%\);/s);
+  assert.match(css, /\.partner-logo--apple\s*\{[^}]*width:\s*max\(54px,\s*53\.47%\);/s);
   assert.match(
     css,
     /\.partner-logo--ramp\s*\{[^}]*transform:\s*translateX\(-2px\);/s,
@@ -67,23 +67,33 @@ test("partner logos use stable optical adjustment hooks", () => {
 test("partner logo tiles preserve Figma geometry responsively", () => {
   assert.match(
     css,
-    /\.partner-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*101px\)/s,
+    /\.partner-grid\s*\{[^}]*width:\s*100%;[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);[^}]*gap:\s*clamp\(20px,\s*2vw,\s*44px\)/s,
   );
+  assert.doesNotMatch(css, /\.partner-grid\s*\{[^}]*max-width:/s);
   assert.match(
     css,
-    /\.partner-tile\s*\{[^}]*width:\s*101px;[^}]*height:\s*101px;/s,
+    /\.partner-tile\s*\{[^}]*width:\s*100%;[^}]*height:\s*auto;[^}]*aspect-ratio:\s*1;/s,
   );
-  assert.match(app, /partner-tile rounded-lg bg-\[#f5f5f5\]/);
+  assert.match(app, /partner-tile rounded-\[10px\] bg-\[#f5f5f5\]/);
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*\.partner-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s,
   );
 });
 
+test("partner content aligns to the shared twelve-column grid", () => {
+  assert.match(
+    css,
+    /\.partner-cta\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\)/s,
+  );
+  assert.match(css, /\.partner-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;/s);
+  assert.match(css, /\.partner-logos\s*\{[^}]*grid-column:\s*9\s*\/\s*span 4;/s);
+});
+
 test("partner CTA uses generous vertical padding without changing horizontal padding", () => {
   assert.match(app, /partner-cta[^"]*px-\[clamp\(20px,6vw,96px\)\]/);
   assert.match(app, /partner-cta[^"]*py-\[120px\]/);
-  assert.match(app, /partner-cta[^"]*max-\[820px\]:py-36/);
+  assert.match(app, /partner-cta[^"]*max-\[820px\]:py-\[60px\]/);
   assert.doesNotMatch(css, /\.partner-cta\s*\{[^}]*padding(?:-block)?:/s);
 });
 

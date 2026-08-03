@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
-const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
 test("major site content uses the shared scroll reveal", () => {
-  assert.match(app, /import \{ ScrollReveal \} from "\.\/components\/ScrollReveal";/);
+  assert.match(app, /import \{ ScrollReveal \} from "\.\/ScrollReveal";/);
   assert.ok(
     (app.match(/<ScrollReveal\b/g) ?? []).length >= 10,
     "expected scroll reveals across the page",

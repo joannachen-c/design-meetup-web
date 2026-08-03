@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
-const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 const primary = await readFile(
   new URL("../src/components/Primary.tsx", import.meta.url),
   "utf8",
@@ -17,7 +17,7 @@ const socialIcons = await readFile(
   "utf8",
 );
 
-test("footer uses the existing logo and three-column composition", () => {
+test("footer uses the existing logo on the shared twelve-column grid", () => {
   assert.match(app, /className="[^"]*\bfooter-logo\b[^"]*"/);
   assert.match(app, /src="\/design-meetup-logo\.png"/);
   assert.match(app, /<h2[^>]*>Contact<\/h2>/);
@@ -29,8 +29,11 @@ test("footer uses the existing logo and three-column composition", () => {
   assert.match(app, /Join the newsletter/);
   assert.match(
     css,
-    /footer\s*\{[^}]*grid-template-columns:[^;}]*;/s,
+    /footer\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\);[^}]*column-gap:\s*clamp\(16px,\s*2vw,\s*28px\);/s,
   );
+  assert.match(css, /\.footer-brand\s*\{[^}]*grid-column:\s*1\s*\/\s*span 4;/s);
+  assert.match(css, /\.footer-contact\s*\{[^}]*grid-column:\s*6\s*\/\s*span 3;/s);
+  assert.match(css, /\.footer-newsletter\s*\{[^}]*grid-column:\s*9\s*\/\s*span 4;/s);
 });
 
 test("footer contact links use the official destinations", () => {
@@ -58,7 +61,7 @@ test("footer contact links use the official destinations", () => {
   );
   assert.match(
     app,
-    /import \{ InstagramIcon, LinkedInIcon, SubstackIcon, XIcon \} from "\.\/components\/icons\/SocialIcons"/,
+    /import \{ InstagramIcon, LinkedInIcon, SubstackIcon, XIcon \} from "\.\/icons\/SocialIcons"/,
   );
 });
 
@@ -77,11 +80,11 @@ test("social icons are optically balanced", () => {
 test("footer contact links use the requested spacing", () => {
   assert.match(
     app,
-    /<nav\s+aria-label="Contact links"\s+className="[^"]*\bgap-4\b[^"]*"\s*>/,
+    /<nav\s+aria-label="Contact links"\s+className="[^"]*\bgap-5\b[^"]*"\s*>/,
   );
   assert.match(
     app,
-    /<div className="footer-contact-row [^"]*\bgap-4\b[^"]*">/,
+    /<div className="footer-contact-row [^"]*\bgap-6\b[^"]*">/,
   );
   assert.doesNotMatch(css, /\.footer-contact nav\s*\{/);
   assert.doesNotMatch(css, /\.footer-contact-row\s*\{/);
@@ -137,9 +140,17 @@ test("all footer text uses the text-base equivalent and stacks on mobile", () =>
   );
   assert.match(
     css,
-    /@media \(max-width: 820px\)[\s\S]*footer\s*\{[^}]*grid-template-columns:\s*1fr;/s,
+    /@media \(max-width: 820px\)[\s\S]*footer\s*\{[^}]*grid-template-columns:\s*1fr;[\s\S]*\.footer-brand,[\s\S]*\.footer-contact,[\s\S]*\.footer-newsletter\s*\{[^}]*grid-column:\s*1;/s,
   );
   assert.match(app, /className="sr-only"/);
+});
+
+test("mobile footer places the newsletter above contact", () => {
+  assert.match(
+    css,
+    /@media \(max-width: 820px\)[\s\S]*\.footer-brand\s*\{[^}]*order:\s*1;[^}]*\}[\s\S]*\.footer-newsletter\s*\{[^}]*order:\s*2;[^}]*\}[\s\S]*\.footer-contact\s*\{[^}]*order:\s*3;[^}]*\}[\s\S]*\.footer-credit\s*\{[^}]*order:\s*4;/s,
+  );
+  assert.match(app, /<ScrollReveal className="footer-credit col-span-full"/);
 });
 
 test("footer uses a white surface with dark, readable text", () => {
@@ -153,7 +164,7 @@ test("footer uses a white surface with dark, readable text", () => {
   );
   assert.match(
     input,
-    /\bbg-\[oklch\(96\.7%_0\.003_264\.542\)\]/,
+    /\bbg-surface-muted\b/,
   );
 });
 
@@ -200,6 +211,6 @@ test("footer links have no underlines and the team credit opens the website team
   );
   assert.match(
     app,
-    /<a[\s\S]*className=\{footerCreditLinkClassName\}[\s\S]*href="#about"[\s\S]*onClick=\{showWebsiteTeam\}[\s\S]*>\s*Design Meetup Team\s*<\/a>/,
+    /<a[\s\S]*className=\{footerCreditLinkClassName\}[\s\S]*href="#website-team"[\s\S]*onClick=\{showWebsiteTeam\}[\s\S]*>\s*Design Meetup Team\s*<\/a>/,
   );
 });

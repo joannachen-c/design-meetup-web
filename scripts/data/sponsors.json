@@ -1,0 +1,77 @@
+[
+  {
+    "slug": "figma",
+    "name": "Figma",
+    "website_url": "https://www.figma.com"
+  },
+  {
+    "slug": "notion",
+    "name": "Notion",
+    "website_url": "https://www.notion.com"
+  },
+  {
+    "slug": "google",
+    "name": "Google",
+    "website_url": "https://www.google.com"
+  },
+  {
+    "slug": "cursor",
+    "name": "Cursor",
+    "website_url": "https://cursor.com"
+  },
+  {
+    "slug": "entrepreneurs-first",
+    "name": "Entrepreneurs First",
+    "website_url": "https://www.ef.com"
+  },
+  {
+    "slug": "tiat-place",
+    "name": "tiat place",
+    "website_url": "https://tiat.place"
+  },
+  {
+    "slug": "clay",
+    "name": "Clay",
+    "website_url": "https://www.clay.com"
+  },
+  {
+    "slug": "ramp",
+    "name": "Ramp",
+    "website_url": "https://ramp.com"
+  },
+  {
+    "slug": "reve",
+    "name": "Reve",
+    "website_url": "https://reve.com"
+  },
+  {
+    "slug": "tiktok",
+    "name": "TikTok",
+    "website_url": "https://www.tiktok.com"
+  },
+  {
+    "slug": "nexus",
+    "name": "Nexus",
+    "website_url": null
+  },
+  {
+    "slug": "phia",
+    "name": "Phia",
+    "website_url": "https://www.phia.com"
+  },
+  {
+    "slug": "framer",
+    "name": "Framer",
+    "website_url": "https://www.framer.com"
+  },
+  {
+    "slug": "apple",
+    "name": "Apple",
+    "website_url": "https://www.apple.com"
+  },
+  {
+    "slug": "arch-partner",
+    "name": "Arch partner (identity pending)",
+    "website_url": null
+  }
+]

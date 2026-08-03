@@ -1,0 +1,35 @@
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import type { ReactNode } from "react";
+
+type TooltipProviderProps = {
+  children: ReactNode;
+};
+
+type TooltipProps = {
+  children: ReactNode;
+  content: ReactNode;
+};
+
+export function TooltipProvider({ children }: TooltipProviderProps) {
+  return (
+    <TooltipPrimitive.Provider delayDuration={300} skipDelayDuration={100}>
+      {children}
+    </TooltipPrimitive.Provider>
+  );
+}
+
+export function Tooltip({ children, content }: TooltipProps) {
+  return (
+    <TooltipPrimitive.Root>
+      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Portal>
+        <TooltipPrimitive.Content
+          className="z-50 max-w-64 rounded-md bg-black px-2.5 py-1.5 text-sm leading-5 text-pretty text-white"
+          sideOffset={8}
+        >
+          {content}
+        </TooltipPrimitive.Content>
+      </TooltipPrimitive.Portal>
+    </TooltipPrimitive.Root>
+  );
+}

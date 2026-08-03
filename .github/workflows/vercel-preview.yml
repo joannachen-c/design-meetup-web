@@ -52,6 +52,33 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Diagnose Vercel credentials
+        run: |
+          describe() {
+            name=$1
+            value=$2
+            expected=$3
+            expected_length=$4
+            printf '%s: length=%s (expected %s)\n' "$name" "${#value}" "$expected_length"
+            case "$value" in
+              "$expected"*) printf '%s: prefix OK (%s)\n' "$name" "$expected" ;;
+              *) printf '::warning::%s does not start with %s\n' "$name" "$expected" ;;
+            esac
+            case "$value" in
+              *[[:space:]]*) printf '::warning::%s contains whitespace\n' "$name" ;;
+            esac
+          }
+          describe VERCEL_ORG_ID "$VERCEL_ORG_ID" team_ 29
+          describe VERCEL_PROJECT_ID "$VERCEL_PROJECT_ID" prj_ 32
+          echo "--- whoami ---"
+          vercel whoami --token="$VERCEL_TOKEN" || echo "::warning::whoami failed (token invalid or expired)"
+          echo "--- teams ---"
+          vercel teams ls --token="$VERCEL_TOKEN" || echo "::warning::teams ls failed"
+          echo "--- projects visible to token ---"
+          vercel project ls --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID" || echo "::warning::project ls failed for this scope"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
         env:

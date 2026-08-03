@@ -7,3 +7,5 @@ dist
 .gstack/
 .vercel
 .env*
+.next
+out

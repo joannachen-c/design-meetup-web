@@ -4,10 +4,10 @@
   "description": "Official website for Design Meetup",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "test": "node --test tests/*.test.mjs",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
     "seed:events": "node scripts/seed-events.mjs",
     "seed:galleries": "node scripts/seed-galleries.mjs",
     "refresh:summaries": "node scripts/refresh-event-summaries.mjs",
@@ -28,19 +28,17 @@
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.16",
     "@supabase/supabase-js": "^2.111.0",
-    "@tailwindcss/vite": "^4.3.3",
     "motion": "^12.43.0",
+    "next": "^16.2.12",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "@vitejs/plugin-react": "^6.0.5",
-    "agentation": "^3.0.2",
     "dotenv": "^17.4.2",
-    "typescript": "^7.0.2",
-    "vite": "^8.2.0"
+    "typescript": "^7.0.2"
   }
 }

@@ -52,30 +52,14 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Diagnose Vercel credentials
+      # `vercel pull` reports an invalid token as "Could not retrieve Project
+      # Settings", which points at .vercel instead of the real cause.
+      - name: Verify Vercel token
         run: |
-          describe() {
-            name=$1
-            value=$2
-            expected=$3
-            expected_length=$4
-            printf '%s: length=%s (expected %s)\n' "$name" "${#value}" "$expected_length"
-            case "$value" in
-              "$expected"*) printf '%s: prefix OK (%s)\n' "$name" "$expected" ;;
-              *) printf '::warning::%s does not start with %s\n' "$name" "$expected" ;;
-            esac
-            case "$value" in
-              *[[:space:]]*) printf '::warning::%s contains whitespace\n' "$name" ;;
-            esac
-          }
-          describe VERCEL_ORG_ID "$VERCEL_ORG_ID" team_ 29
-          describe VERCEL_PROJECT_ID "$VERCEL_PROJECT_ID" prj_ 32
-          echo "--- whoami ---"
-          vercel whoami --token="$VERCEL_TOKEN" || echo "::warning::whoami failed (token invalid or expired)"
-          echo "--- teams ---"
-          vercel teams ls --token="$VERCEL_TOKEN" || echo "::warning::teams ls failed"
-          echo "--- projects visible to token ---"
-          vercel project ls --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID" || echo "::warning::project ls failed for this scope"
+          if ! vercel whoami --token="$VERCEL_TOKEN" > /dev/null 2>&1; then
+            echo "::error::VERCEL_TOKEN is invalid or expired. Create a new token at https://vercel.com/account/tokens and update it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 

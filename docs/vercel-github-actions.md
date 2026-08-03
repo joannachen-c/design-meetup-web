@@ -1,6 +1,6 @@
 # Vercel deploys via GitHub Actions
 
-Production site: https://design-meetup-web-swart.vercel.app/
+Production site: https://design-meetup-web.vercel.app/
 
 Native Vercel Git deploys are **disabled** (`vercel.json` → `git.deploymentEnabled: false`) so people who are not on the Vercel project can still open and merge PRs. Previews and production ship through GitHub Actions using a token owned by the Vercel project member.
 

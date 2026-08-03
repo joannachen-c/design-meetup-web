@@ -2,10 +2,14 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
-const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 const primary = await readFile(
   new URL("../src/components/Primary.tsx", import.meta.url),
+  "utf8",
+);
+const iconButton = await readFile(
+  new URL("../src/components/IconButton.tsx", import.meta.url),
   "utf8",
 );
 
@@ -87,9 +91,9 @@ test("gallery toolbar keeps only a normal-weight counter and borderless controls
   assert.doesNotMatch(app, /Scroll or use arrow keys/);
   assert.match(app, hasClass("counter-current"));
   assert.match(app, /counter-current font-normal/);
-  assert.match(app, /bg-\[oklch\(96\.7%_0\.003_264\.542\)\]/);
-  assert.match(app, /hover:not-disabled:bg-gray-300/);
-  assert.match(app, /rounded-full border-0/);
+  assert.match(iconButton, /bg-surface-muted/);
+  assert.match(iconButton, /hover:not-disabled:bg-gray-300/);
+  assert.match(iconButton, /rounded-full border-0/);
   assert.match(app, /aria-label="Previous event"/);
   assert.match(app, /aria-label="Next event"/);
   assert.match(app, /stroke="currentColor"/);
@@ -99,7 +103,7 @@ test("event details render the selected event gallery images from Supabase", () 
   assert.match(app, /aria-labelledby="event-photos-title"/);
   assert.match(
     app,
-    /<h3[^>]*id="event-photos-title"[^>]*>\s*Event photos\s*<\/h3>/,
+    /<h3[^>]*id="event-photos-title"[^>]*>\s*Gallery\s*<\/h3>/,
   );
   assert.match(
     app,
@@ -115,7 +119,7 @@ test("event details render the selected event gallery images from Supabase", () 
 test("event photos use an accessible horizontally scrollable rail", () => {
   assert.match(
     app,
-    /className="[^"]*\bdetail-photo-list\b[^"]*\bw-screen\b[^"]*\btouch-pan-x\b[^"]*"[\s\S]*tabIndex=\{0\}[\s\S]*aria-label=\{`\$\{selectedEvent\.title\} event photos, horizontally scrollable`\}/,
+    /className="[^"]*\bdetail-photo-list\b[^"]*\bw-screen\b[^"]*\btouch-pan-x\b[^"]*"[\s\S]*tabIndex=\{0\}[\s\S]*aria-label=\{`\$\{selectedEvent\.title\} gallery, horizontally scrollable`\}/,
   );
   assert.match(
     app,
@@ -200,20 +204,20 @@ test("event details begin closer to the selected event caption", () => {
   assert.match(app, /event-detail[^"]*pt-\[clamp\(20px,3vw,40px\)\]/);
 });
 
-test("event description leads a wide left column with metadata on the right", () => {
+test("event description shares the intro copy's four-column alignment", () => {
   assert.doesNotMatch(app, /className="detail-index"/);
   assert.doesNotMatch(app, /Event \{String\(selectedIndex/);
   assert.match(
     css,
-    /\.detail-grid\s*\{[^}]*grid-template-columns:\s*minmax\(280px,\s*1\.7fr\)\s*minmax\(\s*240px,\s*0\.8fr\s*\)/s,
+    /\.detail-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\);[^}]*column-gap:\s*clamp\(16px,\s*2vw,\s*28px\);/s,
   );
   assert.match(
     css,
-    /\.detail-grid > dl\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1;/s,
+    /\.detail-grid > dl\s*\{[^}]*display:\s*grid;[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);[^}]*grid-row:\s*1;/s,
   );
   assert.match(
     css,
-    /\.detail-title\s*\{[^}]*grid-column:\s*1;[^}]*grid-row:\s*1;/s,
+    /\.detail-title\s*\{[^}]*grid-column:\s*9\s*\/\s*span 4;[^}]*grid-row:\s*1;/s,
   );
   assert.match(
     css,
@@ -235,7 +239,7 @@ test("long event summaries collapse at 360px with an accessible expansion contro
   assert.match(app, /bg-gradient-to-b from-transparent to-white/);
   assert.match(
     app,
-    /<Link[\s\S]*aria-expanded=\{isExpanded\}[\s\S]*aria-controls=\{contentId\}[\s\S]*>\s*See more\s*<\/Link>/,
+    /<Link[\s\S]*aria-expanded=\{isExpanded\}[\s\S]*aria-controls=\{contentId\}[\s\S]*onClick=\{\(\) => setIsExpanded\(!isExpanded\)\}[\s\S]*>\s*\{isExpanded \? "See less" : "See more"\}\s*<\/Link>/,
   );
   assert.match(app, /contentHeight > 360/);
 });
@@ -255,7 +259,15 @@ test("event detail content uses base text and gray uppercase labels", () => {
   );
   assert.equal(
     (app.match(/<dd className="m-0 text-base leading-6">/g) ?? []).length,
-    3,
+    2,
+  );
+  assert.match(
+    app,
+    /<dt[^>]*>\s*Where\s*<\/dt>\s*<dd className="m-0 text-base leading-6">\s*\{selectedEvent\.location\}\s*<\/dd>/,
+  );
+  assert.match(
+    app,
+    /<dt[^>]*>\s*Sponsors\s*<\/dt>[\s\S]*?<dd className="m-0 mb-2 text-base leading-6">/,
   );
   assert.match(
     app,
@@ -263,29 +275,39 @@ test("event detail content uses base text and gray uppercase labels", () => {
   );
 });
 
-test("View on Luma uses the shared secondary button variant", () => {
+test("View on Luma uses the shared Link component as a safe external link", () => {
   assert.match(
     app,
-    /<Primary[\s\S]*variant="secondary"[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*target="_blank"[\s\S]*rel="noreferrer"[\s\S]*>[\s\S]*View on Luma/,
+    /<Link[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*target="_blank"[\s\S]*rel="noreferrer"[\s\S]*>[\s\S]*View on Luma/,
+  );
+  assert.doesNotMatch(
+    app,
+    /<Primary[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*>[\s\S]*View on Luma/,
   );
   assert.match(
     app,
-    /import \{ ArrowUpRightIcon \} from "\.\/components\/icons\/ArrowUpRightIcon"/,
+    /import \{ ArrowUpRightIcon \} from "\.\/icons\/ArrowUpRightIcon"/,
   );
   assert.match(
     app,
     /className="[^"]*\bgap-2\b[^"]*"[\s\S]*View on Luma[\s\S]*<ArrowUpRightIcon \/>/,
   );
   assert.doesNotMatch(app, /<span aria-hidden="true">↗<\/span>/);
-  assert.match(primary, /variant === "primary"/);
-  assert.match(primary, /bg-\[oklch\(96\.7%_0\.003_264\.542\)\]/);
+  assert.match(primary, /variant\?: "primary" \| "secondary" \| "ghost"/);
+  assert.match(primary, /variant === "ghost"/);
 });
 
-test("View on Luma follows the event metadata section spacing", () => {
+test("View on Luma sits once under sponsor content with an aligned left edge", () => {
   assert.match(
     app,
-    /<Primary[\s\S]*className="mt-\[52px\] gap-2"[\s\S]*href=\{selectedEvent\.luma_url\}/,
+    /<div className="detail-sponsor">[\s\S]*<dt[^>]*>\s*Sponsors\s*<\/dt>[\s\S]*<dd className="[^"]*\bmb-2\b[^"]*">[\s\S]*\{sponsors\.length > 0 \? \([\s\S]*Sponsor slot open[\s\S]*<\/dd>[\s\S]*<Link[\s\S]*className="[^"]*\bgap-2\b[^"]*"[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*<\/Link>[\s\S]*<\/div>/,
   );
+  assert.doesNotMatch(app, /<Link[^>]*className="[^"]*-ml-/);
+  assert.doesNotMatch(
+    app,
+    /Where[\s\S]*\{selectedEvent\.location\}[\s\S]*<Link[\s\S]*Hosted by/,
+  );
+  assert.equal((app.match(/View on Luma/g) ?? []).length, 1);
 });
 
 test("mobile event details appear before the event description", () => {

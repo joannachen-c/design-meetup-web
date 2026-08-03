@@ -13,7 +13,7 @@ const supabase = await readFile(
   new URL("../src/lib/supabase.ts", import.meta.url),
   "utf8",
 );
-const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
+const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
 const tooltip = await readFile(
   new URL("../src/components/Tooltip.tsx", import.meta.url),
   "utf8",
@@ -105,9 +105,9 @@ test("sponsor logos show an accessible name tooltip on hover and focus", () => {
   assert.match(tooltip, /@radix-ui\/react-tooltip/);
   assert.match(tooltip, /delayDuration=\{300\}/);
   assert.match(tooltip, /rounded-md/);
-  assert.match(tooltip, /bg-black/);
+  assert.match(tooltip, /bg-ink/);
   assert.match(tooltip, /text-sm/);
-  assert.match(tooltip, /text-white/);
+  assert.match(tooltip, /text-surface/);
   assert.doesNotMatch(tooltip, /TooltipPrimitive\.Arrow/);
   assert.match(app, /<TooltipProvider>/);
   assert.match(app, /<Tooltip content=\{sponsor\.name\}>/);

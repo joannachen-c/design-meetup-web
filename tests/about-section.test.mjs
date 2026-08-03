@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
-const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
 test("about section appears immediately before the partner section", () => {
   assert.match(
@@ -40,8 +40,10 @@ test("about section follows the shared responsive layout conventions", () => {
   assert.match(app, /className="about-grid"/);
   assert.match(
     css,
-    /\.about-grid\s*\{[^}]*grid-template-columns:\s*minmax\(280px,\s*0\.64fr\)\s+minmax\(0,\s*1\.36fr\)/s,
+    /\.about-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\)/s,
   );
+  assert.match(css, /\.about-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 4;/s);
+  assert.match(css, /\.about-image\s*\{[^}]*grid-column:\s*6\s*\/\s*span 7;/s);
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*\.about-grid\s*\{[^}]*grid-template-columns:\s*1fr/s,

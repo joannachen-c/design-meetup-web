@@ -3,13 +3,8 @@ import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const root = new URL("../", import.meta.url);
-const home = await readFile(new URL("src/components/HomePage.tsx", root), "utf8").catch(() => "");
-const appLegacy = await readFile(new URL("src/App.tsx", root), "utf8").catch(() => "");
-const app = home || appLegacy;
-const css = await readFile(
-  new URL("app/globals.css", root),
-  "utf8",
-).catch(() => readFile(new URL("src/styles.css", root), "utf8"));
+const app = await readFile(new URL("src/components/HomePage.tsx", root), "utf8");
+const css = await readFile(new URL("app/globals.css", root), "utf8");
 const layout = await readFile(new URL("app/layout.tsx", root), "utf8").catch(() => "");
 const primary = await readFile(
   new URL("src/components/Primary.tsx", root),

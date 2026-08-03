@@ -7,13 +7,11 @@ const readSource = (path) => readFile(new URL(path, root), "utf8");
 
 const [app, designSystem, iconButton, designSystemPage, styles] =
   await Promise.all([
-    readSource("src/components/HomePage.tsx").catch(() =>
-      readSource("src/App.tsx"),
-    ),
+    readSource("src/components/HomePage.tsx"),
     readSource("src/DesignSystem.tsx").catch(() => ""),
     readSource("src/components/IconButton.tsx").catch(() => ""),
     readSource("app/design-system/page.tsx").catch(() => ""),
-    readSource("app/globals.css").catch(() => readSource("src/styles.css")),
+    readSource("app/globals.css"),
   ]);
 
 test("the design system is available at its own App Router route", () => {
@@ -152,6 +150,29 @@ test("border specimens document production corner radii", () => {
   }
 });
 
+test("border specimens use equal gray squares in a responsive uncarded grid", () => {
+  const bordersSection =
+    designSystem.match(/<section\s+id="borders"[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  assert.match(
+    bordersSection,
+    /grid-cols-2[^"]*lg:grid-cols-5/,
+  );
+  assert.equal(
+    bordersSection.match(/size-20[^"]*bg-gray-200/g)?.length,
+    5,
+  );
+  assert.equal(
+    bordersSection.match(/<li className="grid justify-items-start gap-4">/g)
+      ?.length,
+    5,
+  );
+  assert.doesNotMatch(
+    bordersSection,
+    /size-20[^"]*\bborder\b/,
+  );
+});
+
 test("shadow specimens use production elevation classes", () => {
   const shadowsSection =
     designSystem.match(/<section\s+id="shadows"[\s\S]*?<\/section>/)?.[0] ?? "";
@@ -163,6 +184,35 @@ test("shadow specimens use production elevation classes", () => {
   );
   assert.match(shadowsSection, /shadow-lg/);
   assert.match(shadowsSection, /hover:shadow-xl/);
+});
+
+test("shadow specimens use equal white squares in an uncarded grid", () => {
+  const shadowsSection =
+    designSystem.match(/<section\s+id="shadows"[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  assert.match(shadowsSection, /grid-cols-2[^"]*lg:grid-cols-3/);
+  assert.equal(
+    shadowsSection.match(/size-24[^"]*rounded-\[11px\][^"]*bg-white/g)
+      ?.length,
+    3,
+  );
+  assert.equal(
+    shadowsSection.match(/<li className="grid justify-items-start gap-4">/g)
+      ?.length,
+    3,
+  );
+  assert.match(
+    shadowsSection,
+    /<SpecimenLabel>Base<\/SpecimenLabel>[\s\S]*?size-24[^"]*shadow-none/,
+  );
+  assert.match(
+    shadowsSection,
+    /<SpecimenLabel>Soft<\/SpecimenLabel>[\s\S]*?size-24[^"]*shadow-\[0_3px_10px_rgba\(0,0,0,0\.12\)\]/,
+  );
+  assert.match(
+    shadowsSection,
+    /<SpecimenLabel>Raised<\/SpecimenLabel>[\s\S]*?size-24[^"]*shadow-lg[^"]*hover:shadow-xl/,
+  );
 });
 
 test("the page title is lowercase and stays on one line", () => {
@@ -230,6 +280,22 @@ test("color swatches use gap-4 before tightly grouped copy", () => {
   );
 });
 
+test("colors document only production Tailwind utility colors as small chips", () => {
+  const colorsSection =
+    designSystem.match(/<section\s+id="colors"[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  assert.match(colorsSection, />\s*Tailwind neutrals\s*</);
+  for (const shade of ["100", "200", "300", "400", "500"]) {
+    assert.match(colorsSection, new RegExp(`>\\s*gray-${shade}\\s*<`));
+    assert.match(colorsSection, new RegExp(`\\bbg-gray-${shade}\\b`));
+  }
+  assert.equal(colorsSection.match(/\bsize-12\b/g)?.length, 5);
+  assert.match(
+    colorsSection,
+    /grid-cols-2[^"]*sm:grid-cols-3[^"]*lg:grid-cols-5/,
+  );
+});
+
 test("the display specimen stays on one line without a narrow width cap", () => {
   assert.match(
     designSystem,
@@ -246,7 +312,7 @@ test("gallery arrows use an accessible shared icon button", () => {
   assert.match(iconButton, /aria-label/);
   assert.match(iconButton, /disabled/);
   assert.match(iconButton, /focus-visible:outline-2/);
-  assert.match(app, /import \{ IconButton \} from "\.\/components\/IconButton"/);
+  assert.match(app, /import \{ IconButton \} from "\.\/IconButton"/);
   assert.match(app, /<IconButton/);
   assert.doesNotMatch(app, /const iconButtonClassName/);
 });

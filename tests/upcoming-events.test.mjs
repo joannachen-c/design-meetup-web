@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
-const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
 test("Upcoming events section sits above the partner CTA with a Luma calendar embed", () => {
   assert.match(
@@ -41,10 +41,18 @@ test("Luma calendar embed clips to rounded corners", () => {
   );
 });
 
-test("Upcoming events uses a responsive two-column layout", () => {
+test("Upcoming events uses the shared responsive twelve-column layout", () => {
   assert.match(
     css,
-    /\.upcoming-events\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(280px,\s*0\.64fr\)\s*minmax\(0,\s*1\.36fr\);/s,
+    /\.upcoming-events\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\);/s,
+  );
+  assert.match(
+    css,
+    /\.upcoming-events-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 4;/s,
+  );
+  assert.match(
+    css,
+    /\.upcoming-events-embed\s*\{[^}]*grid-column:\s*6\s*\/\s*span 7;/s,
   );
   assert.match(
     css,

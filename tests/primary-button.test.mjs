@@ -22,13 +22,13 @@ test("Primary prevents button and link interaction while unavailable", () => {
 });
 
 test("Primary has polished hover focus loading and disabled visuals", () => {
-  assert.match(primary, /hover:bg-\[#e3e95f\]/);
+  assert.match(primary, /hover:bg-accent-hover/);
   assert.match(primary, /disabled:hover:bg-accent-primary/);
   assert.match(primary, /aria-disabled:hover:bg-accent-primary/);
   assert.match(primary, /hover:bg-gray-300/);
   assert.match(
     primary,
-    /disabled:hover:bg-\[oklch\(96\.7%_0\.003_264\.542\)\]/,
+    /disabled:hover:bg-surface-muted/,
   );
   assert.match(primary, /focus-visible:outline-2/);
   assert.match(primary, /disabled:cursor-not-allowed/);
@@ -50,10 +50,13 @@ test("secondary buttons tighten padding on the icon side", () => {
   assert.match(primary, /pr-\[14px\]/);
 });
 
-test("Primary supports a transparent ghost variant with a subtle hover surface", () => {
+test("Primary supports a typed ghost variant with restrained interaction states", () => {
   assert.match(primary, /variant\?: "primary" \| "secondary" \| "ghost"/);
   assert.match(
     primary,
-    /variant === "ghost"[\s\S]*bg-transparent[\s\S]*text-gray-500[\s\S]*hover:bg-gray-100/,
+    /variant === "ghost"[\s\S]*bg-transparent[\s\S]*text-gray-500[\s\S]*hover:bg-surface-muted[\s\S]*active:bg-gray-200[\s\S]*disabled:hover:bg-transparent[\s\S]*disabled:active:bg-transparent[\s\S]*aria-disabled:hover:bg-transparent[\s\S]*aria-disabled:active:bg-transparent/,
   );
+  assert.match(primary, /focus-visible:outline-2/);
+  assert.match(primary, /disabled:active:scale-100/);
+  assert.match(primary, /aria-disabled:active:scale-100/);
 });

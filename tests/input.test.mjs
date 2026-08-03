@@ -2,14 +2,14 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
+const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
 const input = await readFile(
   new URL("../src/components/Input.tsx", import.meta.url),
   "utf8",
 ).catch(() => "");
 
 test("newsletter uses the shared Input component", () => {
-  assert.match(app, /import \{ Input \} from "\.\/components\/Input"/);
+  assert.match(app, /import \{ Input \} from "\.\/Input"/);
   assert.match(app, /<Input[\s\S]*id="newsletter-email"/);
 });
 

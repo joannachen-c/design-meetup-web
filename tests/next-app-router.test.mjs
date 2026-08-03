@@ -62,6 +62,16 @@ test("Vite entrypoints are removed", async () => {
   }
 });
 
+test("root layout sets a shared Open Graph and Twitter preview image", async () => {
+  const layout = await read("app/layout.tsx");
+  await access(new URL("public/og-preview.jpg", root));
+  assert.match(layout, /metadataBase/);
+  assert.match(layout, /design-meetup-web\.vercel\.app/);
+  assert.match(layout, /openGraph/);
+  assert.match(layout, /og-preview\.jpg/);
+  assert.match(layout, /summary_large_image/);
+});
+
 test("Agentation loads only in development", async () => {
   const pkg = JSON.parse(await read("package.json"));
   assert.ok(pkg.devDependencies?.agentation);

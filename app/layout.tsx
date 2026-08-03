@@ -3,12 +3,38 @@ import type { ReactNode } from "react";
 import { AgentationDev } from "@/components/AgentationDev";
 import "./globals.css";
 
+const siteUrl = "https://design-meetup-web.vercel.app";
+const siteTitle = "Design Meetup";
+const siteDescription =
+  "A space for ambitious, early-career designers to meet the people behind the work.";
+
 export const metadata: Metadata = {
-  title: "Design Meetup",
-  description:
-    "Design Meetup brings ambitious, early-career designers together.",
+  metadataBase: new URL(siteUrl),
+  title: siteTitle,
+  description: siteDescription,
   icons: {
     icon: [{ url: "/design-meetup-logo.png", type: "image/png" }],
+  },
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    siteName: siteTitle,
+    title: siteTitle,
+    description: siteDescription,
+    images: [
+      {
+        url: "/og-preview.jpg",
+        width: 1024,
+        height: 537,
+        alt: "Design Meetup — For designers who believe growth happens together",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+    images: ["/og-preview.jpg"],
   },
 };
 

@@ -85,14 +85,15 @@ main {
 }
 
 .wordmark {
-  display: inline-flex;
+  display: flex;
+  height: 60px;
   align-items: center;
 }
 
 .wordmark-logo {
   display: block;
-  width: 60px;
-  height: auto;
+  width: auto;
+  height: 100%;
   aspect-ratio: 1;
   object-fit: contain;
 }
@@ -350,6 +351,8 @@ h1 span {
   --page-gutter: clamp(20px, 6vw, 96px);
 
   display: flex;
+  width: calc(100% + var(--page-gutter) + var(--page-gutter));
+  margin-inline: calc(0px - var(--page-gutter));
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scroll-padding-inline: var(--page-gutter);
@@ -613,16 +616,21 @@ footer {
   }
 
   .detail-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 28px;
   }
 
   .detail-grid > dl {
     grid-column: auto;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-row: auto;
     row-gap: 32px;
     order: 1;
+  }
+
+  .detail-sponsor {
+    grid-column: auto;
+    justify-self: start;
   }
 
   .detail-title {
@@ -633,7 +641,7 @@ footer {
 
   .detail-extras {
     grid-column: auto;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     order: 3;
   }
 
@@ -644,6 +652,10 @@ footer {
   .about-copy,
   .about-image {
     grid-column: 1;
+  }
+
+  .about-image {
+    margin-top: 72px;
   }
 
   .about-offerings {
@@ -696,6 +708,22 @@ footer {
   .footer-contact,
   .footer-newsletter {
     grid-column: 1;
+  }
+
+  .footer-brand {
+    order: 1;
+  }
+
+  .footer-newsletter {
+    order: 2;
+  }
+
+  .footer-contact {
+    order: 3;
+  }
+
+  .footer-credit {
+    order: 4;
   }
 }
 

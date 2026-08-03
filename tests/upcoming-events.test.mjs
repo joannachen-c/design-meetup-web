@@ -3,6 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const header = await readFile(
+  new URL("../src/components/SiteHeader.tsx", import.meta.url),
+  "utf8",
+);
 const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
 test("Upcoming events section sits above the partner CTA with a Luma calendar embed", () => {
@@ -19,7 +23,7 @@ test("Upcoming events section sits above the partner CTA with a Luma calendar em
     /https:\/\/luma\.com\/embed\/calendar\/cal-HH5XBdHyWPt0yhB\/events\?lt=light/,
   );
   assert.match(app, /id="calendar"/);
-  assert.match(app, /href="#calendar"/);
+  assert.match(header, /href: "#calendar"/);
   assert.doesNotMatch(
     app,
     /href="https:\/\/luma\.com\/designmeetup"[\s\S]{0,80}Upcoming/,

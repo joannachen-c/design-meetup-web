@@ -23,6 +23,14 @@ test("Link darkens on hover without adding an underline", () => {
   assert.match(link, /focus-visible:underline/);
 });
 
+test("Link shows a pointer when enabled and not-allowed when disabled", () => {
+  assert.match(link, /\bcursor-pointer\b/);
+  assert.match(link, /\bdisabled:cursor-not-allowed\b/);
+  assert.match(link, /\baria-disabled:cursor-not-allowed\b/);
+  assert.match(link, /\bdisabled:hover:text-muted\b/);
+  assert.match(link, /\baria-disabled:hover:text-muted\b/);
+});
+
 test("See more uses the shared Link component as a button", () => {
   assert.match(app, /import \{ Link \} from "\.\/Link"/);
   assert.match(link, /\btext-medium\b/);

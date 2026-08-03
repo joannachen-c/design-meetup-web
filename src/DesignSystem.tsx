@@ -5,30 +5,31 @@ import { IconButton } from "./components/IconButton";
 import { Input } from "./components/Input";
 import { Link } from "./components/Link";
 import { Primary } from "./components/Primary";
+import { SiteHeader } from "./components/SiteHeader";
 import { Tooltip, TooltipProvider } from "./components/Tooltip";
 
 const sectionClassName =
-  "grid gap-8 border-t border-gray-200 py-12 md:grid-cols-[minmax(150px,0.32fr)_minmax(0,1fr)] md:gap-16 md:py-16";
+  "grid gap-8 py-14 md:grid-cols-[minmax(150px,0.32fr)_minmax(0,1fr)] md:gap-16 md:py-20";
 const sectionTitleClassName =
   "m-0 text-balance text-xl font-bold leading-tight tracking-[-0.04em]";
 const specimenClassName =
   "flex min-h-32 flex-wrap items-center rounded-[11px]";
 const whiteSpecimenClassName = `${specimenClassName} gap-3 bg-white py-5 sm:py-8`;
-const linksSpecimenClassName = `${specimenClassName} gap-6 bg-white py-5 sm:py-8`;
-const navLinkClassName =
-  "text-base text-muted no-underline hover:text-ink focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4";
+const linksSpecimenClassName = `${specimenClassName} gap-6 bg-white`;
 const colorItemClassName = "grid gap-4";
+const specimenDescriptionClassName =
+  "m-0 mt-1 text-pretty text-sm leading-[1.5] text-muted";
 
 const sections = [
-  { id: "colors", label: "Colors" },
-  { id: "typography", label: "Typography" },
-  { id: "layout", label: "Layout" },
-  { id: "borders", label: "Borders" },
-  { id: "shadows", label: "Shadows" },
-  { id: "buttons", label: "Buttons" },
-  { id: "links", label: "Links" },
-  { id: "inputs", label: "Inputs" },
-  { id: "tooltips", label: "Tooltips" },
+  { id: "colors", label: "colors" },
+  { id: "typography", label: "typography" },
+  { id: "layout", label: "layout" },
+  { id: "borders", label: "borders" },
+  { id: "shadows", label: "shadows" },
+  { id: "buttons", label: "buttons" },
+  { id: "links", label: "links" },
+  { id: "inputs", label: "inputs" },
+  { id: "tooltips", label: "tooltips" },
 ] as const;
 
 const spacingScale = [
@@ -40,11 +41,12 @@ const spacingScale = [
   { label: "64px", className: "w-16" },
 ] as const;
 
+const layoutGridGapClassName = "gap-2";
 const layoutColumns = Array.from({ length: 12 }, (_, index) => index + 1);
 
 function SpecimenLabel({ children }: { children: string }) {
   return (
-    <p className="m-0 text-sm font-bold uppercase text-muted">{children}</p>
+    <p className="m-0 text-sm font-bold text-muted">{children}</p>
   );
 }
 
@@ -83,32 +85,12 @@ export default function DesignSystem() {
   return (
     <TooltipProvider>
       <main className="min-h-dvh bg-surface font-['Alte_Haas_Grotesk',sans-serif] text-ink antialiased [font-synthesis:none]">
-        <header className="site-header px-[clamp(20px,6vw,96px)] py-[clamp(24px,3vw,46px)] text-base">
-          <a
-            className="wordmark leading-[0] no-underline focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
-            href="/"
-            aria-label="Design Meetup home"
-          >
-            <img
-              className="wordmark-logo border-0 outline-none"
-              src="/design-meetup-logo.png"
-              alt=""
-              width={60}
-              height={60}
-              decoding="async"
-            />
-          </a>
-          <nav
-            className="primary-navigation design-system-navigation"
-            aria-label="Design system sections"
-          >
-            {sections.map(({ id, label }) => (
-              <a key={id} className={navLinkClassName} href={`#${id}`}>
-                {label}
-              </a>
-            ))}
-          </nav>
-        </header>
+        <SiteHeader
+          homeHref="/"
+          navAriaLabel="Design system sections"
+          navClassName="design-system-navigation"
+          links={sections.map(({ id, label }) => ({ href: `#${id}`, label }))}
+        />
 
         <div className="px-[clamp(20px,6vw,96px)] pb-24">
           <div className="grid grid-cols-12 items-end gap-x-[clamp(16px,2vw,28px)] gap-y-8 py-[clamp(32px,7vw,96px)] max-[820px]:grid-cols-1">
@@ -127,14 +109,14 @@ export default function DesignSystem() {
             aria-labelledby="colors-title"
           >
             <h2 className={sectionTitleClassName} id="colors-title">
-              Colors
+              colors
             </h2>
             <div className="grid gap-12">
-              <div className="grid gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-x-4 gap-y-8 grid-cols-2 lg:grid-cols-4">
                 <div className={colorItemClassName}>
                   <div className="aspect-[4/3] rounded-[11px] bg-ink" />
                   <div>
-                    <SpecimenLabel>Ink</SpecimenLabel>
+                    <SpecimenLabel>ink</SpecimenLabel>
                     <p className="m-0 mt-1 text-sm text-subtle">
                       Primary text
                     </p>
@@ -143,7 +125,7 @@ export default function DesignSystem() {
                 <div className={colorItemClassName}>
                   <div className="aspect-[4/3] rounded-[11px] bg-muted" />
                   <div>
-                    <SpecimenLabel>Muted</SpecimenLabel>
+                    <SpecimenLabel>muted</SpecimenLabel>
                     <p className="m-0 mt-1 text-sm text-subtle">
                       Secondary text
                     </p>
@@ -152,7 +134,7 @@ export default function DesignSystem() {
                 <div className={colorItemClassName}>
                   <div className="aspect-[4/3] rounded-[11px] border border-gray-200 bg-surface-muted" />
                   <div>
-                    <SpecimenLabel>Soft gray</SpecimenLabel>
+                    <SpecimenLabel>soft gray</SpecimenLabel>
                     <p className="m-0 mt-1 text-sm text-subtle">
                       Controls and fields
                     </p>
@@ -161,7 +143,7 @@ export default function DesignSystem() {
                 <div className={colorItemClassName}>
                   <div className="aspect-[4/3] rounded-[11px] bg-accent-primary" />
                   <div>
-                    <SpecimenLabel>Meetup lime</SpecimenLabel>
+                    <SpecimenLabel>meetup lime</SpecimenLabel>
                     <p className="m-0 mt-1 text-sm text-subtle">
                       Primary actions
                     </p>
@@ -169,7 +151,7 @@ export default function DesignSystem() {
                 </div>
               </div>
               <div>
-                <SpecimenLabel>Tailwind neutrals</SpecimenLabel>
+                <SpecimenLabel>tailwind neutrals</SpecimenLabel>
                 <ul className="m-0 mt-5 grid list-none grid-cols-2 gap-x-6 gap-y-4 p-0 sm:grid-cols-3 lg:grid-cols-5">
                   <li className="flex items-center gap-3">
                     <div
@@ -217,24 +199,24 @@ export default function DesignSystem() {
             aria-labelledby="typography-title"
           >
             <h2 className={sectionTitleClassName} id="typography-title">
-              Typography
+              typography
             </h2>
             <div className="grid gap-12">
               <div>
-                <SpecimenLabel>Display</SpecimenLabel>
+                <SpecimenLabel>display</SpecimenLabel>
                 <p className="m-0 mt-4 whitespace-nowrap text-balance text-[clamp(1.125rem,4.5vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
                   Growth happens together.
                 </p>
               </div>
               <div className="grid gap-8 sm:grid-cols-2">
                 <div>
-                  <SpecimenLabel>Heading</SpecimenLabel>
+                  <SpecimenLabel>heading</SpecimenLabel>
                   <p className="m-0 mt-4 text-2xl font-bold leading-tight tracking-[-0.04em]">
                     Upcoming events
                   </p>
                 </div>
                 <div>
-                  <SpecimenLabel>Body</SpecimenLabel>
+                  <SpecimenLabel>body</SpecimenLabel>
                   <p className="m-0 mt-4 max-w-[54ch] text-pretty text-base leading-[1.5] text-muted">
                     A space for ambitious, early-career designers to meet the
                     people behind the work.
@@ -250,12 +232,12 @@ export default function DesignSystem() {
             aria-labelledby="layout-title"
           >
             <h2 className={sectionTitleClassName} id="layout-title">
-              Layout
+              layout
             </h2>
             <div className="grid gap-16">
               <div className="grid gap-8">
                 <div>
-                  <SpecimenLabel>Responsive page gutter</SpecimenLabel>
+                  <SpecimenLabel>responsive page gutter</SpecimenLabel>
                   <p className="m-0 mt-2 max-w-[58ch] text-pretty text-base leading-[1.5] text-muted">
                     20–96px, scaling with the viewport via{" "}
                     <code className="text-sm text-ink">
@@ -271,7 +253,7 @@ export default function DesignSystem() {
                 </div>
 
                 <div>
-                  <SpecimenLabel>Spacing scale</SpecimenLabel>
+                  <SpecimenLabel>spacing scale</SpecimenLabel>
                   <dl className="m-0 mt-5 grid gap-4">
                     {spacingScale.map((space) => (
                       <div
@@ -290,9 +272,9 @@ export default function DesignSystem() {
                       </div>
                     ))}
                   </dl>
-                  <p className="m-0 mt-6 max-w-[62ch] text-pretty text-sm leading-[1.5] text-muted">
-                    Design-system sections use 48px vertical padding, growing
-                    to 64px at tablet widths. Larger homepage bands use a more
+                  <p className="m-0 mt-6 max-w-[62ch] text-pretty text-base leading-[1.5] text-muted">
+                    Design-system sections use 56px vertical padding, growing
+                    to 80px at tablet widths. Larger homepage bands use a more
                     generous 120px rhythm.
                   </p>
                 </div>
@@ -305,12 +287,12 @@ export default function DesignSystem() {
                   collapse to one column at 820px and below.
                 </p>
                 <ol
-                  className="m-0 mt-5 grid list-none grid-cols-6 gap-2 p-0 min-[821px]:grid-cols-12"
+                  className={`m-0 mt-5 grid list-none grid-cols-6 ${layoutGridGapClassName} p-0 min-[821px]:grid-cols-12`}
                   aria-label="Twelve-column responsive grid"
                 >
                   {layoutColumns.map((column) => (
                     <li
-                      className="flex aspect-square items-center justify-center rounded-[11px] bg-surface-muted text-sm tabular-nums text-muted"
+                      className="flex aspect-[3/4] items-center justify-center rounded-[11px] bg-surface-muted text-sm tabular-nums text-muted"
                       key={column}
                     >
                       {column}
@@ -318,14 +300,24 @@ export default function DesignSystem() {
                   ))}
                 </ol>
                 <div
-                  className="mt-6 grid grid-cols-1 gap-4 min-[821px]:grid-cols-12"
-                  aria-label="Eight-column heading and four-column copy layout"
+                  className={`mt-6 grid grid-cols-1 ${layoutGridGapClassName} min-[821px]:grid-cols-12`}
+                  aria-label="Eight-column display and four-column body layout"
                 >
-                  <div className="min-h-20 rounded-[11px] bg-ink p-4 text-sm font-bold text-white min-[821px]:col-span-8">
-                    Heading · 8 columns
+                  <div className="min-h-20 rounded-[11px] bg-ink px-4 py-8 text-white min-[821px]:col-span-8">
+                    <p className="m-0 text-2xl font-bold leading-[1.02] tracking-[-0.06em]">
+                      Display
+                    </p>
+                    <p className="m-0 mt-1 text-sm font-normal leading-[1.5]">
+                      8 columns
+                    </p>
                   </div>
-                  <div className="min-h-20 rounded-[11px] bg-surface-muted p-4 text-sm font-bold text-muted min-[821px]:col-span-4">
-                    Copy · 4 columns
+                  <div className="min-h-20 rounded-[11px] bg-surface-muted px-4 py-8 min-[821px]:col-span-4">
+                    <p className="m-0 text-base font-normal leading-[1.5] text-muted">
+                      Body
+                    </p>
+                    <p className="m-0 mt-1 text-sm font-normal leading-[1.5] text-muted">
+                      4 columns
+                    </p>
                   </div>
                 </div>
               </div>
@@ -338,20 +330,16 @@ export default function DesignSystem() {
             aria-labelledby="borders-title"
           >
             <h2 className={sectionTitleClassName} id="borders-title">
-              Borders
+              borders
             </h2>
             <div>
-              <p className="m-0 max-w-[62ch] text-pretty text-base leading-[1.5] text-muted">
-                Corner radii follow the role and scale of each production
-                element.
-              </p>
-              <ul className="m-0 mt-5 grid list-none grid-cols-2 gap-x-8 gap-y-10 p-0 lg:grid-cols-5">
+              <ul className="m-0 grid list-none grid-cols-2 gap-x-8 gap-y-10 p-0 lg:grid-cols-5">
                 <li className="grid justify-items-start gap-4">
                   <div>
-                    <SpecimenLabel>Small</SpecimenLabel>
-                    <code className="mt-1 block text-sm text-muted">
+                    <SpecimenLabel>small</SpecimenLabel>
+                    <p className={specimenDescriptionClassName}>
                       rounded-sm · 4px
-                    </code>
+                    </p>
                   </div>
                   <div
                     className="size-20 rounded-sm bg-gray-200"
@@ -360,10 +348,10 @@ export default function DesignSystem() {
                 </li>
                 <li className="grid justify-items-start gap-4">
                   <div>
-                    <SpecimenLabel>Medium</SpecimenLabel>
-                    <code className="mt-1 block text-sm text-muted">
+                    <SpecimenLabel>medium</SpecimenLabel>
+                    <p className={specimenDescriptionClassName}>
                       rounded-md · 6px
-                    </code>
+                    </p>
                   </div>
                   <div
                     className="size-20 rounded-md bg-gray-200"
@@ -372,10 +360,10 @@ export default function DesignSystem() {
                 </li>
                 <li className="grid justify-items-start gap-4">
                   <div>
-                    <SpecimenLabel>Control</SpecimenLabel>
-                    <code className="mt-1 block text-sm text-muted">
+                    <SpecimenLabel>control</SpecimenLabel>
+                    <p className={specimenDescriptionClassName}>
                       rounded-[10px]
-                    </code>
+                    </p>
                   </div>
                   <div
                     className="size-20 rounded-[10px] bg-gray-200"
@@ -384,10 +372,10 @@ export default function DesignSystem() {
                 </li>
                 <li className="grid justify-items-start gap-4">
                   <div>
-                    <SpecimenLabel>Surface</SpecimenLabel>
-                    <code className="mt-1 block text-sm text-muted">
+                    <SpecimenLabel>surface</SpecimenLabel>
+                    <p className={specimenDescriptionClassName}>
                       rounded-[11px]
-                    </code>
+                    </p>
                   </div>
                   <div
                     className="size-20 rounded-[11px] bg-gray-200"
@@ -396,10 +384,10 @@ export default function DesignSystem() {
                 </li>
                 <li className="grid justify-items-start gap-4">
                   <div>
-                    <SpecimenLabel>Full</SpecimenLabel>
-                    <code className="mt-1 block text-sm text-muted">
+                    <SpecimenLabel>full</SpecimenLabel>
+                    <p className={specimenDescriptionClassName}>
                       rounded-full · pill
-                    </code>
+                    </p>
                   </div>
                   <div
                     className="size-20 rounded-full bg-gray-200"
@@ -416,13 +404,13 @@ export default function DesignSystem() {
             aria-labelledby="shadows-title"
           >
             <h2 className={sectionTitleClassName} id="shadows-title">
-              Shadows
+              shadows
             </h2>
             <ul className="m-0 grid list-none grid-cols-2 gap-x-12 gap-y-10 p-0 lg:grid-cols-3">
               <li className="grid justify-items-start gap-4">
                 <div>
-                  <SpecimenLabel>Base</SpecimenLabel>
-                  <p className="m-0 mt-1 text-pretty text-sm leading-[1.5] text-muted">
+                  <SpecimenLabel>base</SpecimenLabel>
+                  <p className={specimenDescriptionClassName}>
                     Border only
                   </p>
                 </div>
@@ -433,8 +421,8 @@ export default function DesignSystem() {
               </li>
               <li className="grid justify-items-start gap-4">
                 <div>
-                  <SpecimenLabel>Soft</SpecimenLabel>
-                  <p className="m-0 mt-1 text-pretty text-sm leading-[1.5] text-muted">
+                  <SpecimenLabel>soft</SpecimenLabel>
+                  <p className={specimenDescriptionClassName}>
                     Event cards
                   </p>
                 </div>
@@ -445,8 +433,8 @@ export default function DesignSystem() {
               </li>
               <li className="grid justify-items-start gap-4">
                 <div>
-                  <SpecimenLabel>Raised</SpecimenLabel>
-                  <p className="m-0 mt-1 text-pretty text-sm leading-[1.5] text-muted">
+                  <SpecimenLabel>raised</SpecimenLabel>
+                  <p className={specimenDescriptionClassName}>
                     Team cards · shadow-lg / hover:shadow-xl
                   </p>
                 </div>
@@ -464,11 +452,11 @@ export default function DesignSystem() {
             aria-labelledby="buttons-title"
           >
             <h2 className={sectionTitleClassName} id="buttons-title">
-              Buttons
+              buttons
             </h2>
             <div className="grid gap-8">
               <div>
-                <SpecimenLabel>Variants</SpecimenLabel>
+                <SpecimenLabel>variants</SpecimenLabel>
                 <div className={`${whiteSpecimenClassName} mt-4`}>
                   <Primary>Primary</Primary>
                   <Primary variant="secondary">
@@ -482,7 +470,7 @@ export default function DesignSystem() {
                 </div>
               </div>
               <div>
-                <SpecimenLabel>States</SpecimenLabel>
+                <SpecimenLabel>states</SpecimenLabel>
                 <div className={`${whiteSpecimenClassName} mt-4`}>
                   <Primary loading>Loading</Primary>
                   <Primary disabled>Disabled</Primary>
@@ -503,7 +491,7 @@ export default function DesignSystem() {
             aria-labelledby="links-title"
           >
             <h2 className={sectionTitleClassName} id="links-title">
-              Links
+              links
             </h2>
             <div className={linksSpecimenClassName}>
               <Link href="/">Navigation link</Link>
@@ -526,19 +514,19 @@ export default function DesignSystem() {
             aria-labelledby="inputs-title"
           >
             <h2 className={sectionTitleClassName} id="inputs-title">
-              Inputs
+              inputs
             </h2>
             <div className="grid max-w-2xl gap-8 sm:grid-cols-2">
-              <label className="grid gap-2 text-base font-bold">
-                Email address
+              <label className="grid gap-2 text-base">
+                <span className="font-bold">Email address</span>
                 <Input
                   type="email"
                   placeholder="you@example.com"
                   autoComplete="email"
                 />
               </label>
-              <label className="grid gap-2 text-base font-bold">
-                Disabled
+              <label className="grid gap-2 text-base">
+                <span className="font-bold">Disabled</span>
                 <Input placeholder="Unavailable" disabled />
               </label>
             </div>
@@ -550,7 +538,7 @@ export default function DesignSystem() {
             aria-labelledby="tooltips-title"
           >
             <h2 className={sectionTitleClassName} id="tooltips-title">
-              Tooltips
+              tooltips
             </h2>
             <div
               className={`${specimenClassName} gap-3 bg-surface-muted p-5 sm:p-8`}

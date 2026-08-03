@@ -93,7 +93,7 @@ test("partner content aligns to the shared twelve-column grid", () => {
 test("partner CTA uses generous vertical padding without changing horizontal padding", () => {
   assert.match(app, /partner-cta[^"]*px-\[clamp\(20px,6vw,96px\)\]/);
   assert.match(app, /partner-cta[^"]*py-\[120px\]/);
-  assert.match(app, /partner-cta[^"]*max-\[820px\]:py-36/);
+  assert.match(app, /partner-cta[^"]*max-\[820px\]:py-\[60px\]/);
   assert.doesNotMatch(css, /\.partner-cta\s*\{[^}]*padding(?:-block)?:/s);
 });
 

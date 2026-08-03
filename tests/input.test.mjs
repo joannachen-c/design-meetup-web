@@ -13,9 +13,14 @@ test("newsletter uses the shared Input component", () => {
   assert.match(app, /<Input[\s\S]*id="newsletter-email"/);
 });
 
-test("Input matches the button radius and uses a gray focus ring", () => {
+test("Input matches the button radius and uses an accent-primary focus ring", () => {
   assert.match(input, /export function Input/);
   assert.match(input, /rounded-\[10px\]/);
   assert.match(input, /focus-visible:ring-2/);
-  assert.match(input, /focus-visible:ring-gray-400/);
+  assert.match(input, /focus-visible:ring-accent-primary/);
+});
+
+test("Input pins its own weight so a bold label cannot cascade in", () => {
+  assert.match(input, /\bfont-normal\b/);
+  assert.doesNotMatch(input, /\bfont-(?:medium|semibold|bold)\b/);
 });

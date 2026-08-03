@@ -16,6 +16,7 @@ import { IconButton } from "./IconButton";
 import { Link } from "./Link";
 import { Primary } from "./Primary";
 import { ScrollReveal } from "./ScrollReveal";
+import { SiteHeader } from "./SiteHeader";
 import { Tooltip, TooltipProvider } from "./Tooltip";
 import type { MeetupEvent } from "@/lib/supabase";
 
@@ -178,7 +179,7 @@ function TeamCard({ member }: { member: TeamMember }) {
 
   return member.linkedin ? (
     <a
-      className="team-polaroid w-[clamp(108px,9vw,132px)] block rounded-md border border-gray-100 bg-white p-2 pb-3.5 no-underline shadow-lg outline-none hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[oklch(22%_0.025_250)] focus-visible:ring-offset-4"
+      className="team-polaroid w-[clamp(116px,9vw,132px)] block rounded-md border border-gray-100 bg-white p-2 pb-3.5 no-underline shadow-lg outline-none hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[oklch(22%_0.025_250)] focus-visible:ring-offset-4"
       href={member.linkedin}
       target="_blank"
       rel="noreferrer"
@@ -187,7 +188,7 @@ function TeamCard({ member }: { member: TeamMember }) {
       {card}
     </a>
   ) : (
-    <div className="team-polaroid w-[clamp(108px,9vw,132px)] block rounded-md border border-gray-100 bg-white p-2 pb-3.5 shadow-lg hover:shadow-xl">
+    <div className="team-polaroid w-[clamp(116px,9vw,132px)] block rounded-md border border-gray-100 bg-white p-2 pb-3.5 shadow-lg hover:shadow-xl">
       {card}
     </div>
   );
@@ -249,7 +250,7 @@ function ExpandableSummary({
         </div>
         {hasOverflow && !isExpanded ? (
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-white backdrop-blur-[1px]"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-white/0 via-white/80 to-white"
             aria-hidden="true"
           />
         ) : null}
@@ -512,46 +513,7 @@ export default function HomePage({
 
   return (
     <main className="min-h-dvh w-full overflow-hidden rounded-none border-0 bg-white font-['Alte_Haas_Grotesk',sans-serif] text-[oklch(22%_0.025_250)] shadow-none antialiased [font-synthesis:none] [text-rendering:optimizeLegibility]">
-      <header className="site-header px-[clamp(20px,6vw,96px)] pt-[clamp(20px,2.5vw,38px)] pb-[clamp(24px,3vw,46px)] text-base">
-        <ScrollReveal>
-          <a
-            className="wordmark leading-[0] no-underline focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
-            href="#"
-            aria-label="Design Meetup home"
-          >
-            <img
-              className="wordmark-logo border-0 outline-none"
-              src="/design-meetup-logo.png"
-              alt=""
-              width={60}
-              height={60}
-              decoding="async"
-            />
-          </a>
-        </ScrollReveal>
-        <ScrollReveal delay={60}>
-          <nav className="primary-navigation" aria-label="Primary navigation">
-            <a
-              className="text-base text-[oklch(53%_0.025_250)] no-underline hover:text-[oklch(22%_0.025_250)] focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
-              href="#calendar"
-            >
-              CALENDAR
-            </a>
-            <a
-              className="text-base text-[oklch(53%_0.025_250)] no-underline hover:text-[oklch(22%_0.025_250)] focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
-              href="#about"
-            >
-              ABOUT
-            </a>
-            <a
-              className="text-base text-[oklch(53%_0.025_250)] no-underline hover:text-[oklch(22%_0.025_250)] focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
-              href="#sponsor"
-            >
-              SPONSOR
-            </a>
-          </nav>
-        </ScrollReveal>
-      </header>
+      <SiteHeader reveal />
 
       <section
         className="intro px-[clamp(20px,6vw,96px)] py-[clamp(26px,4.5vw,69px)] max-[820px]:py-8 max-[520px]:py-[23px]"
@@ -580,7 +542,7 @@ export default function HomePage({
 
       <section className="gallery-section" id="events" aria-label="Past events">
         <ScrollReveal className="gallery-toolbar px-[clamp(20px,6vw,96px)] py-4 max-[520px]:py-3">
-          <p className="m-0 text-[0.7rem] text-[oklch(53%_0.025_250)]">
+          <p className="m-0 text-sm text-[oklch(53%_0.025_250)]">
             {status === "ready" ? (
               <>
                 <span className="counter-current font-normal text-[oklch(22%_0.025_250)]">
@@ -756,7 +718,7 @@ export default function HomePage({
                     {selectedEvent.location}
                   </dd>
                 </div>
-                <div>
+                <div className="max-[820px]:hidden">
                   <dt className="mb-[7px] text-base uppercase text-gray-400">
                     Hosted by
                   </dt>
@@ -777,7 +739,7 @@ export default function HomePage({
                   <dd className="m-0 mb-2 text-base leading-6">
                     {sponsors.length > 0 ? (
                       <TooltipProvider>
-                        <ul className="sponsor-list m-0 gap-5 p-0">
+                        <ul className="sponsor-list m-0 gap-5 p-0 pb-4">
                           {sponsors.map((sponsor) => (
                             <li key={sponsor.id}>
                               {sponsor.logo_url ? (
@@ -858,7 +820,7 @@ export default function HomePage({
                     </div>
                   </div>
                   <ul
-                    className="detail-photo-list relative left-1/2 m-0 w-screen -translate-x-1/2 touch-pan-x p-0 pb-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[oklch(22%_0.025_250)]"
+                    className="detail-photo-list m-0 touch-pan-x p-0 pb-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[oklch(22%_0.025_250)]"
                     id="event-photo-rail"
                     ref={setDetailPhotoRail}
                     tabIndex={0}
@@ -897,7 +859,7 @@ export default function HomePage({
       </section>
 
       <section
-        className="upcoming-events bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-36"
+        className="upcoming-events bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-[60px]"
         id="calendar"
         aria-labelledby="upcoming-events-title"
       >
@@ -942,7 +904,7 @@ export default function HomePage({
       </section>
 
       <section
-        className="about-section bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-36"
+        className="about-section bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-[60px]"
         id="about"
         aria-labelledby="about-title"
       >
@@ -1000,7 +962,10 @@ export default function HomePage({
               </li>
             ))}
           </ul>
-          <div className="team-filter-control flex justify-start">
+          <div
+            className="team-filter-control flex justify-start"
+            id="website-team"
+          >
             {isWebsiteTeamVisible ? (
               <Primary
                 className="-ml-4 mt-2"
@@ -1051,7 +1016,7 @@ export default function HomePage({
       </section>
 
       <section
-        className="partner-cta bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-36"
+        className="partner-cta bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-[60px]"
         id="sponsor"
         aria-labelledby="partner-cta-title"
       >
@@ -1109,7 +1074,7 @@ export default function HomePage({
           <h2 className="m-0 mb-4 text-base font-semibold tracking-[-0.06em]">Contact</h2>
           <nav
             aria-label="Contact links"
-            className="flex flex-col items-start gap-4"
+            className="flex flex-col items-start gap-5"
           >
             <a
               className={`${footerLinkClassName} group inline-flex items-center gap-1`}
@@ -1118,7 +1083,7 @@ export default function HomePage({
               contactdesignmeetup@gmail.com
               <ArrowUpRightIcon className="size-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none" />
             </a>
-            <div className="footer-contact-row flex items-center gap-4">
+            <div className="footer-contact-row flex items-center gap-6">
               <a
                 aria-label="Substack"
                 className={`${footerLinkClassName} inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4`}
@@ -1181,7 +1146,7 @@ export default function HomePage({
             </Primary>
           </form>
         </ScrollReveal>
-        <ScrollReveal className="col-span-full" delay={160}>
+        <ScrollReveal className="footer-credit col-span-full" delay={160}>
           <p className="col-span-full m-0 text-center text-sm text-gray-400">
             Website built in{" "}
           <a
@@ -1213,7 +1178,7 @@ export default function HomePage({
             by the{" "}
             <a
               className={footerCreditLinkClassName}
-              href="#about"
+              href="#website-team"
               onClick={showWebsiteTeam}
             >
               Design Meetup Team

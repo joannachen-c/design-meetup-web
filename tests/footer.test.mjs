@@ -80,11 +80,11 @@ test("social icons are optically balanced", () => {
 test("footer contact links use the requested spacing", () => {
   assert.match(
     app,
-    /<nav\s+aria-label="Contact links"\s+className="[^"]*\bgap-4\b[^"]*"\s*>/,
+    /<nav\s+aria-label="Contact links"\s+className="[^"]*\bgap-5\b[^"]*"\s*>/,
   );
   assert.match(
     app,
-    /<div className="footer-contact-row [^"]*\bgap-4\b[^"]*">/,
+    /<div className="footer-contact-row [^"]*\bgap-6\b[^"]*">/,
   );
   assert.doesNotMatch(css, /\.footer-contact nav\s*\{/);
   assert.doesNotMatch(css, /\.footer-contact-row\s*\{/);
@@ -145,6 +145,14 @@ test("all footer text uses the text-base equivalent and stacks on mobile", () =>
   assert.match(app, /className="sr-only"/);
 });
 
+test("mobile footer places the newsletter above contact", () => {
+  assert.match(
+    css,
+    /@media \(max-width: 820px\)[\s\S]*\.footer-brand\s*\{[^}]*order:\s*1;[^}]*\}[\s\S]*\.footer-newsletter\s*\{[^}]*order:\s*2;[^}]*\}[\s\S]*\.footer-contact\s*\{[^}]*order:\s*3;[^}]*\}[\s\S]*\.footer-credit\s*\{[^}]*order:\s*4;/s,
+  );
+  assert.match(app, /<ScrollReveal className="footer-credit col-span-full"/);
+});
+
 test("footer uses a white surface with dark, readable text", () => {
   assert.match(
     app,
@@ -203,6 +211,6 @@ test("footer links have no underlines and the team credit opens the website team
   );
   assert.match(
     app,
-    /<a[\s\S]*className=\{footerCreditLinkClassName\}[\s\S]*href="#about"[\s\S]*onClick=\{showWebsiteTeam\}[\s\S]*>\s*Design Meetup Team\s*<\/a>/,
+    /<a[\s\S]*className=\{footerCreditLinkClassName\}[\s\S]*href="#website-team"[\s\S]*onClick=\{showWebsiteTeam\}[\s\S]*>\s*Design Meetup Team\s*<\/a>/,
   );
 });

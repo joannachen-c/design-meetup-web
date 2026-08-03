@@ -1,6 +1,6 @@
 <img src="public/design-meetup-logo.png" alt="Design Meetup logo" width="150">
 
-# design-meetup-web
+# design meetup
 
 Official website for Design Meetup
 

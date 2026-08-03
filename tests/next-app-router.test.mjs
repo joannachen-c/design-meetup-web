@@ -72,6 +72,15 @@ test("root layout sets a shared Open Graph and Twitter preview image", async () 
   assert.match(layout, /summary_large_image/);
 });
 
+test("design-system page sets its own Open Graph preview image", async () => {
+  const page = await read("app/design-system/page.tsx");
+  await access(new URL("public/og-design-system.jpg", root));
+  assert.match(page, /openGraph/);
+  assert.match(page, /og-design-system\.jpg/);
+  assert.match(page, /summary_large_image/);
+  assert.match(page, /\/design-system/);
+});
+
 test("Agentation loads only in development", async () => {
   const pkg = JSON.parse(await read("package.json"));
   assert.ok(pkg.devDependencies?.agentation);

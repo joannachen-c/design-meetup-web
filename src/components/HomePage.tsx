@@ -1069,7 +1069,7 @@ export default function HomePage({
           </h2>
           <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-body">
             {showRecentEvents
-              ? "Nothing on the calendar right now — here’s where we’ve been. Follow our Luma to hear about the next one first."
+              ? "Nothing on the calendar right now. Follow our Luma to hear about the next one first."
               : "RSVP on Luma to join us at the next Design Meetup."}
           </p>
           <Primary
@@ -1182,11 +1182,8 @@ export default function HomePage({
             className="m-0 max-w-[676px] text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="partner-cta-title"
           >
-            We’ve worked with some of your favorite companies
+            Partner with us
           </h2>
-          <p className="m-0 text-pretty text-base leading-[1.6] text-body">
-            We’d love to chat if you’re interested in partnering with us.
-          </p>
           <PartnerContactForm />
         </ScrollReveal>
         <ScrollReveal className="partner-logos" delay={80}>

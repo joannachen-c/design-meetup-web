@@ -88,7 +88,7 @@ export function GalleryViewToggle({
       />
       {galleryViewOptions.map((option) => (
         <button
-          className="view-toggle-option size-[34px] cursor-pointer rounded-full bg-transparent text-muted hover:text-ink aria-pressed:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="view-toggle-option size-[34px] cursor-pointer rounded-full bg-transparent text-subtle hover:text-ink aria-pressed:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           key={option.value}
           ref={(node) => {
             if (node) optionRefs.current.set(option.value, node);

@@ -334,6 +334,12 @@ h1 span {
   perspective: 2200px;
   scroll-snap-align: center;
   transform-style: preserve-3d;
+  /* The slots overlap ~59% and carry the stacking order, so a bare slot
+     rectangle sits above its right-hand neighbours' covers. Left-wing covers
+     shear left into those higher slots, so without this the empty slot swallows
+     the click and only the right wing stays pressable. The cover opts back in
+     below. */
+  pointer-events: none;
 }
 
 /* An unfocused cover paints 0.57x its layout box, so the pitch is measured
@@ -353,6 +359,9 @@ h1 span {
   backface-visibility: hidden;
   transform-origin: center;
   transform-style: preserve-3d;
+  /* Only the sheared cover is a hit target, so the topmost painted cover is
+     always the one that takes the click. */
+  pointer-events: auto;
 }
 
 .event-card img {

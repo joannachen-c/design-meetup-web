@@ -39,13 +39,13 @@ const signatureGroups: Array<{ role: string; people: Signatory[] }> = [
         firstName: "Joanna",
         fullName: "Joanna Chen",
         href: "https://www.linkedin.com/in/joannachen1014/",
-        tiltDeg: 2.75,
+        tiltDeg: 4.5,
       },
       {
         firstName: "Michelle",
         fullName: "Michelle Liu",
         href: "https://www.linkedin.com/in/michelletliu/",
-        tiltDeg: -1.75,
+        tiltDeg: -3.25,
       },
     ],
   },
@@ -125,9 +125,12 @@ export function FoundersNote() {
       >
         <blockquote className="m-0 max-w-[52ch]">
           <p className="m-0 text-pretty text-base leading-[1.7] text-body">
-            We created Design Meetup as a space for young designers to learn
-            from not only each other but also industry leaders as speakers and
-            mentors.
+            We created Design Meetup to build the design community our younger
+            selves wish existed: curated, ambitious, and focused on growth.
+          </p>
+          <p className="m-0 mt-4 text-pretty text-base leading-[1.7] text-body">
+            We’d love to build it alongside partners who believe in the future of
+            design. Join us!
           </p>
         </blockquote>
         <div className="founders-heart mt-[clamp(28px,3.5vw,44px)] flex items-center justify-center gap-2">

@@ -253,7 +253,9 @@ h1 span {
   transition: color 160ms ease;
 }
 
-.gallery-section {
+/* Both columns read the cover size: the rail sizes its slides from it, and list
+   view sizes the detail cover to match the focused one. */
+.events-layout {
   --event-cover-size: clamp(184px, 18vw, 272px);
 }
 
@@ -400,6 +402,9 @@ h1 span {
   display: none;
 }
 
+/* Rows blur out into the page as they reach an edge the list can still scroll
+   towards. The mask ramps the blur and the white wash together, so the band has
+   no seam of its own for the eye to read as a border. */
 .event-list-viewport[data-fade-top]::before,
 .event-list-viewport[data-fade-bottom]::after {
   position: absolute;
@@ -409,16 +414,22 @@ h1 span {
   height: 56px;
   content: "";
   pointer-events: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .event-list-viewport[data-fade-top]::before {
   top: 0;
   background-image: linear-gradient(to top, rgb(255 255 255 / 0), #fff);
+  mask-image: linear-gradient(to top, rgb(0 0 0 / 0), #000 65%);
+  -webkit-mask-image: linear-gradient(to top, rgb(0 0 0 / 0), #000 65%);
 }
 
 .event-list-viewport[data-fade-bottom]::after {
   bottom: 0;
   background-image: linear-gradient(to bottom, rgb(255 255 255 / 0), #fff);
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0), #000 65%);
+  -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0), #000 65%);
 }
 
 .event-list {
@@ -484,12 +495,19 @@ h1 span {
   grid-column: 1 / -1;
 }
 
-/* Stretch the roster to the detail column's height and let the scrollport fill
-   the leftover space, so a short list doesn't leave a short left column. */
+/* The detail column alone sets the row's height, so the roster is taken out of
+   flow: however many events there are, the list scrolls inside whatever height
+   the selected event needs instead of stretching the split. */
 .events-layout[data-view="list"] > .gallery-section {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+.events-layout[data-view="list"] > .gallery-section > .scroll-reveal {
+  position: absolute;
+  inset: 0;
 }
 
 .events-layout[data-view="list"] > .gallery-section > .scroll-reveal,
@@ -536,6 +554,14 @@ h1 span {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: clamp(16px, 2vw, 28px);
   row-gap: clamp(40px, 6vw, 104px);
+}
+
+/* List view has no rail to show the cover, so the detail carries it at the size
+   the focused card paints in the carousel: its layout box times the 1.03 the
+   card is scaled by. */
+.detail-cover {
+  width: min(100%, calc(var(--event-cover-size) * 1.03));
+  margin-inline: auto;
 }
 
 .detail-title {
@@ -1006,7 +1032,7 @@ footer {
     grid-column: 1;
   }
 
-  .gallery-section {
+  .events-layout {
     --event-cover-size: min(64vw, 252px);
   }
 

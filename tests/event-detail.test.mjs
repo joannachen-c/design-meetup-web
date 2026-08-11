@@ -429,6 +429,53 @@ test("list view pairs the roster and the detail into a master/detail split", () 
   );
 });
 
+test("the roster is capped to the detail column's height", () => {
+  // Out of flow, so however many events load, only the detail column sizes the
+  // split and the roster scrolls inside it.
+  assert.match(
+    css,
+    /\.events-layout\[data-view="list"\] > \.gallery-section\s*\{[^}]*position:\s*relative;/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="list"\] > \.gallery-section > \.scroll-reveal\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;/s,
+  );
+});
+
+test("the roster blurs out at whichever edge it can still scroll towards", () => {
+  assert.match(app, /data-fade-top=\{listEdges\.top \? "" : undefined\}/);
+  assert.match(app, /data-fade-bottom=\{listEdges\.bottom \? "" : undefined\}/);
+  assert.match(
+    css,
+    /\.event-list-viewport\[data-fade-top\]::before,\s*\.event-list-viewport\[data-fade-bottom\]::after\s*\{[^}]*backdrop-filter:\s*blur\(6px\);/s,
+  );
+  // The blur ramps with the wash, so the band has no edge of its own.
+  assert.match(
+    css,
+    /\.event-list-viewport\[data-fade-top\]::before\s*\{[^}]*mask-image:\s*linear-gradient\(to top, rgb\(0 0 0 \/ 0\), #000 65%\);/s,
+  );
+  assert.match(
+    css,
+    /\.event-list-viewport\[data-fade-bottom\]::after\s*\{[^}]*mask-image:\s*linear-gradient\(to bottom, rgb\(0 0 0 \/ 0\), #000 65%\);/s,
+  );
+});
+
+test("list view opens the detail with the event cover at carousel size", () => {
+  assert.match(
+    app,
+    /\{view === "list" \? \(\s*<div className="detail-cover[^"]*aspect-square[^"]*">\s*<img[\s\S]*?src=\{selectedEvent\.image_url\}/,
+  );
+  // Sits above the title and centred, at the size the focused card paints.
+  assert.match(
+    app,
+    /<\/div>\s*\) : null\}\s*<div className="detail-title">/,
+  );
+  assert.match(
+    css,
+    /\.detail-cover\s*\{[^}]*width:\s*min\(100%, calc\(var\(--event-cover-size\) \* 1\.03\)\);[^}]*margin-inline:\s*auto;/s,
+  );
+});
+
 test("event summaries preserve rich TipTap formatting with plain fallback", () => {
   assert.match(app, /selectedEvent\?\.summary_html\?\.trim\(\)/);
   assert.match(app, /dangerouslySetInnerHTML=\{\{ __html: summaryHtml \}\}/);

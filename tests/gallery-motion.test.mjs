@@ -86,7 +86,7 @@ test("the selected title id lives on the detail heading the region points at", (
   assert.doesNotMatch(eventListRow, /\btitleId\b/);
   assert.match(
     css,
-    /\.gallery-section\s*\{[^}]*--event-cover-size:\s*clamp\(184px,\s*18vw,\s*272px\);/s,
+    /\.events-layout\s*\{[^}]*--event-cover-size:\s*clamp\(184px,\s*18vw,\s*272px\);/s,
   );
   assert.match(
     css,
@@ -94,7 +94,7 @@ test("the selected title id lives on the detail heading the region points at", (
   );
   assert.match(
     css,
-    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.gallery-section\s*\{[^}]*--event-cover-size:\s*min\(64vw,\s*252px\);/s,
+    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.events-layout\s*\{[^}]*--event-cover-size:\s*min\(64vw,\s*252px\);/s,
   );
 });
 

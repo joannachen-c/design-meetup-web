@@ -936,6 +936,16 @@ export default function HomePage({
                 ease: "easeOut",
               }}
             >
+              {view === "list" ? (
+                <div className="detail-cover aspect-square overflow-hidden rounded-md bg-surface-muted shadow-[0_12px_28px_rgba(0,0,0,0.18)]">
+                  <img
+                    className="block size-full select-none border-0 object-cover outline-none"
+                    src={selectedEvent.image_url}
+                    alt=""
+                    draggable="false"
+                  />
+                </div>
+              ) : null}
               <div className="detail-title">
                 <h2
                   className="m-0 text-balance text-[clamp(1.75rem,2.6vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.06em] text-black"

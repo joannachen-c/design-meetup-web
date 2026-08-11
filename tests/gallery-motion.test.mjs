@@ -86,7 +86,7 @@ test("the selected title id lives on the detail heading the region points at", (
   assert.doesNotMatch(eventListRow, /\btitleId\b/);
   assert.match(
     css,
-    /\.gallery-section\s*\{[^}]*--event-cover-size:\s*clamp\(184px,\s*18vw,\s*272px\);/s,
+    /\.events-layout\s*\{[^}]*--event-cover-size:\s*clamp\(184px,\s*18vw,\s*272px\);/s,
   );
   assert.match(
     css,
@@ -94,7 +94,7 @@ test("the selected title id lives on the detail heading the region points at", (
   );
   assert.match(
     css,
-    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.gallery-section\s*\{[^}]*--event-cover-size:\s*min\(64vw,\s*252px\);/s,
+    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.events-layout\s*\{[^}]*--event-cover-size:\s*min\(64vw,\s*252px\);/s,
   );
 });
 
@@ -106,7 +106,7 @@ test("focused cover projection still uses the measured stacked perspectives", ()
   assert.match(css, /\.gallery\s*\{[^}]*perspective:\s*2400px;/s);
   assert.match(css, /\.gallery li\s*\{[^}]*perspective:\s*2200px;/s);
   assert.match(app, /const depth = selected \? 26 : hovered \? 2 : -14;/);
-  assert.match(app, /const scale = selected \? 1\.03 : hovered \? 0\.87 : 0\.85;/);
+  assert.match(app, /const rest = selected \? 1\.03 : hovered \? 0\.87 : 0\.85;/);
   assert.match(
     app,
     /`perspective\(2200px\) translateX\(\$\{part\}%\) translateZ\(\$\{depth\}px\) scaleX\(\$\{squeeze\}\) skewY\(\$\{shear\}deg\) scale\(\$\{scale\}\) translate\(0px, \$\{lift\}px\)`/,
@@ -143,7 +143,7 @@ test("hovering a cover eases it out from under the cover to its left", () => {
   assert.ok(pull * 3 < part, "the hover pull should stay a fraction of the part");
   assert.match(
     app,
-    /const part = selected\s*\?\s*0\s*:\s*away \* \(CARD_PART_PCT \+ \(hovered \? CARD_PULL_PCT : 0\)\);/s,
+    /const shelf = selected\s*\?\s*0\s*:\s*away \* \(CARD_PART_PCT \+ \(hovered \? CARD_PULL_PCT : 0\)\);/s,
   );
   // The hovered cover keeps its place in the rail's order, so its left-hand
   // neighbour still paints over it while it slides.
@@ -158,21 +158,80 @@ test("hovering a cover eases it out from under the cover to its left", () => {
   assert.doesNotMatch(css, /\.event-row-thumb\s*\{[^}]*translateX/s);
 });
 
-test("covers hold an edge-on pose until the loader lifts, then flip in staggered", () => {
+test("covers fade up in place once the loader lifts, sweeping right to left", () => {
   assert.match(
     app,
-    /const CARD_ENTRANCE_TRANSFORM = `perspective\(2200px\) translateX\(0%\) translateZ\(-48px\) scaleX\(0\.08\)/,
-  );
-  assert.match(
-    app,
-    /transform: isGalleryReady\s*\?\s*transform\s*:\s*CARD_ENTRANCE_TRANSFORM/s,
+    /transform: isGalleryReady\s*\?\s*transform\s*:\s*entranceTransform/s,
   );
   assert.match(app, /opacity: isGalleryReady \? 1 : 0/);
   assert.match(
     app,
-    /delay: hasGalleryEntered\s*\?\s*0\s*:\s*Math\.min\(\s*Math\.abs\(distance\) \* 0\.04,\s*0\.32,\s*\)/s,
+    /const entranceDelay = hasGalleryEntered\s*\?\s*0\s*:\s*cardEntranceDelay\(distance\);/s,
   );
   assert.match(app, /<PageLoader onDone=\{revealGallery\} \/>/);
+
+  // The entrance pose is the resting pose, so nothing turns, unfolds, or
+  // travels across the shelf on the way in.
+  assert.match(
+    app,
+    /const entranceTransform = cardTransform\(\{\s*distance,\s*selected,\s*hovered: false,\s*entering: true,\s*\}\);/s,
+  );
+  assert.match(app, /const part = entering \? shelf \+ CARD_ENTRANCE_SHIFT_PCT : shelf;/);
+  assert.match(app, /const scale = entering \? rest \* CARD_ENTRANCE_SCALE : rest;/);
+});
+
+test("the entrance is a short settle rather than a spring or a long slide", () => {
+  const shift = Number(
+    app.match(/const CARD_ENTRANCE_SHIFT_PCT = ([\d.]+);/)[1],
+  );
+  const entranceScale = Number(
+    app.match(/const CARD_ENTRANCE_SCALE = ([\d.]+);/)[1],
+  );
+  const part = Number(app.match(/const CARD_PART_PCT = ([\d.]+);/)[1]);
+  assert.ok(shift > 0, "covers should come up from right of their slot");
+  assert.ok(
+    shift * 4 < part,
+    "the entrance step should stay well under a shelf part so covers settle rather than fly in",
+  );
+  assert.ok(
+    entranceScale > 0.9 && entranceScale < 1,
+    "the entrance scale should be a touch under the resting scale",
+  );
+
+  const stagger = Number(
+    app.match(/const CARD_ENTRANCE_STAGGER_S = ([\d.]+);/)[1],
+  );
+  const maxDelay = Number(
+    app.match(/const CARD_ENTRANCE_MAX_DELAY_S = ([\d.]+);/)[1],
+  );
+  const handOffMs = Number(app.match(/setHasGalleryEntered\(true\), (\d+)\)/)[1]);
+  assert.ok(stagger > 0, "covers should not all arrive at once");
+  assert.ok(
+    maxDelay > stagger,
+    "the sweep needs room for several covers before it caps",
+  );
+  assert.match(
+    app,
+    /return Math\.min\(\s*Math\.max\(CARD_ENTRANCE_LEAD_SLOTS - distance, 0\) \* CARD_ENTRANCE_STAGGER_S,\s*CARD_ENTRANCE_MAX_DELAY_S,\s*\);/s,
+  );
+
+  // Easing, not a spring: an overshoot at the end of the entrance is what makes
+  // a cover look like it spun out of its slot.
+  assert.match(
+    app,
+    /: \{\s*duration: CARD_ENTRANCE_DURATION_S,\s*ease: CARD_ENTRANCE_EASE,\s*delay: entranceDelay,\s*\}/s,
+  );
+  assert.match(
+    app,
+    /: hasGalleryEntered\s*\?\s*\{\s*type: "spring",/s,
+  );
+  const duration = Number(
+    app.match(/const CARD_ENTRANCE_DURATION_S = ([\d.]+);/)[1],
+  );
+  assert.ok(
+    handOffMs >= (maxDelay + duration) * 1000,
+    "the spring should only take over once the entrance has finished",
+  );
 });
 
 test("card shadows stay restrained and inside the gallery scrollport", () => {

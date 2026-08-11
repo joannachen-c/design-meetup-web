@@ -1,5 +1,17 @@
 [
   {
+    "luma_event_id": "evt-vSYwX6dEPDBtMuE",
+    "sponsor_slugs": ["rivet"]
+  },
+  {
+    "luma_event_id": "evt-5jyqRlxoMzcl4DX",
+    "sponsor_slugs": ["apple"]
+  },
+  {
+    "luma_event_id": "evt-4IoFFcCGFcq1JfC",
+    "sponsor_slugs": ["spotify"]
+  },
+  {
     "luma_event_id": "evt-wTC4bXXVhBB8D7H",
     "sponsor_slugs": ["figma", "notion"]
   },

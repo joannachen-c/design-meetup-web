@@ -35,6 +35,8 @@ const cityOptions: SelectOption[] = [
 
 export function PartnerContactForm() {
   const fieldId = useId();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [interest, setInterest] = useState(interestOptions[0].value);
   const [city, setCity] = useState(cityOptions[0].value);
   const [email, setEmail] = useState("");
@@ -48,7 +50,8 @@ export function PartnerContactForm() {
     const selectedCity =
       cityOptions.find((option) => option.value === city) ?? cityOptions[0];
     const subject = `Design Meetup — ${selectedInterest.subject}`;
-    const body = `Hi Design Meetup,\n\nI'm interested in ${selectedInterest.label} in ${selectedCity.label}.\n\nReach me at ${email}.`;
+    const fullName = `${firstName} ${lastName}`.trim();
+    const body = `Hi Design Meetup,\n\nMy name is ${fullName}.\nI'm interested in ${selectedInterest.label} in ${selectedCity.label}.\n\nReach me at ${email}.`;
 
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
       subject,
@@ -58,10 +61,45 @@ export function PartnerContactForm() {
 
   return (
     <form
-      className="partner-form flex w-fit max-w-full flex-col gap-2 text-base leading-[1.2] text-body"
+      className="partner-form flex w-fit max-w-full flex-col gap-3 text-base leading-[1.2] text-body"
       onSubmit={handleSubmit}
     >
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+      <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-3">
+        <span>My name is</span>
+        <label className="sr-only" htmlFor={`${fieldId}-first-name`}>
+          First name
+        </label>
+        <Input
+          className="min-w-[8rem] grow basis-[8rem]"
+          id={`${fieldId}-first-name`}
+          name="first-name"
+          autoComplete="given-name"
+          placeholder="First"
+          required
+          value={firstName}
+          onChange={(event) => {
+            setFirstName(event.target.value);
+            setSent(false);
+          }}
+        />
+        <label className="sr-only" htmlFor={`${fieldId}-last-name`}>
+          Last name
+        </label>
+        <Input
+          className="min-w-[8rem] grow basis-[8rem]"
+          id={`${fieldId}-last-name`}
+          name="last-name"
+          autoComplete="family-name"
+          placeholder="Last"
+          required
+          value={lastName}
+          onChange={(event) => {
+            setLastName(event.target.value);
+            setSent(false);
+          }}
+        />
+      </div>
+      <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-3">
         <span>I’m interested in</span>
         <label className="sr-only" htmlFor={`${fieldId}-interest`}>
           What you’re interested in
@@ -81,6 +119,7 @@ export function PartnerContactForm() {
           City
         </label>
         <Select
+          className="min-w-[8rem] grow basis-[8rem]"
           id={`${fieldId}-city`}
           name="city"
           options={cityOptions}
@@ -91,7 +130,7 @@ export function PartnerContactForm() {
           }}
         />
       </div>
-      <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-2">
+      <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-3">
         <span>Reach me at</span>
         <label className="sr-only" htmlFor={`${fieldId}-email`}>
           Email address
@@ -102,7 +141,7 @@ export function PartnerContactForm() {
           name="email"
           type="email"
           autoComplete="email"
-          placeholder="you@email.com"
+          placeholder="yourname@company.com"
           required
           value={email}
           onChange={(event) => {
@@ -112,8 +151,8 @@ export function PartnerContactForm() {
         />
         <Primary type="submit">Send</Primary>
       </div>
-      {/* w-0 keeps the confirmation out of the form's fit-content width, so the
-          sentence row above stays the measure that both rows align to. */}
+      {/* w-0 keeps the confirmation out of the form's fit-content width so the
+          rows above keep a shared right edge. */}
       <p
         aria-live="polite"
         className="m-0 w-0 min-w-full text-pretty text-base text-muted empty:hidden"

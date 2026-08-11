@@ -58,7 +58,7 @@ export function NewsletterForm() {
         aria-hidden="true"
       />
       <form
-        className="newsletter-form grid grid-cols-[minmax(0,1fr)_auto] gap-2"
+        className="newsletter-form grid grid-cols-[minmax(0,1fr)_auto] gap-3"
         action={SUBSTACK_SUBSCRIBE_URL}
         method="post"
         target={frameName}

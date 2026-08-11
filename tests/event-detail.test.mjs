@@ -195,6 +195,16 @@ test("event details render the selected event gallery images from Supabase", () 
   assert.doesNotMatch(app, /selectedPhotos\.slice\(/);
 });
 
+test("the gallery stays hidden while an event still uses the shared placeholders", () => {
+  assert.match(app, /url\.includes\("\/placeholders\/"\)/);
+  assert.match(app, /const showEventGallery = selectedPhotos\.length > 0/);
+  assert.match(app, /\{showEventGallery \? \(/);
+  assert.doesNotMatch(
+    app,
+    /gallery_images\?\.length > 0[\s\S]*\? selectedEvent\.image_url/,
+  );
+});
+
 test("event photos use an accessible horizontally scrollable rail", () => {
   assert.match(
     app,
@@ -227,7 +237,36 @@ test("event photo controls scroll by a responsive increment and disable at bound
   assert.match(app, /rail\.scrollLeft < rail\.scrollWidth - rail\.clientWidth - 1/);
   assert.match(app, /aria-label="Previous event photo"[\s\S]*aria-controls="event-photo-rail"[\s\S]*disabled=\{!canScrollPhotosLeft\}/);
   assert.match(app, /aria-label="Next event photo"[\s\S]*aria-controls="event-photo-rail"[\s\S]*disabled=\{!canScrollPhotosRight\}/);
-  assert.match(app, /onLoad=\{\(\) => updatePhotoRailBoundsFromRef\(\)\}/);
+  assert.match(app, /onLoad=\{\(\) => \{[\s\S]*?updatePhotoRailBoundsFromRef\(\);/);
+});
+
+test("event photos shimmer gray until each one decodes", () => {
+  assert.match(
+    app,
+    /detail-photo-frame[^"]*relative[^"]*overflow-hidden[^"]*rounded-md"\s*\n\s*data-loaded=\{loadedPhotos\[photoUrl\] \? "true" : "false"\}/,
+  );
+  assert.match(app, /className="detail-photo-shimmer bg-skeleton"/);
+  assert.match(app, /aria-hidden="true"/);
+  // A cached photo can be complete before onLoad is attached.
+  assert.match(app, /node\?\.complete && node\.naturalWidth > 0/);
+  assert.match(app, /onError=\{\(\) => markPhotoLoaded\(photoUrl\)\}/);
+  assert.match(css, /--color-skeleton:/);
+  assert.match(
+    css,
+    /\.detail-photo-frame\[data-loaded="false"\] \.detail-photo\s*\{[^}]*aspect-ratio:\s*3 \/ 4;[^}]*opacity:\s*0;/s,
+  );
+  assert.match(
+    css,
+    /\.detail-photo-shimmer::after\s*\{[^}]*animation:\s*photo-shimmer/s,
+  );
+  assert.match(
+    css,
+    /\.detail-photo-frame\[data-loaded="true"\] \.detail-photo-shimmer\s*\{[^}]*opacity:\s*0;/s,
+  );
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\)\s*\{[^}]*\.detail-photo-shimmer[\s\S]*?animation:\s*none;/,
+  );
 });
 
 test("event photo rail bleeds to viewport edges with aligned terminal spacing", () => {
@@ -387,6 +426,53 @@ test("list view pairs the roster and the detail into a master/detail split", () 
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*\.events-layout\[data-view="list"\] > \.event-detail\s*\{[^}]*margin-left:\s*0/s,
+  );
+});
+
+test("the roster is capped to the detail column's height", () => {
+  // Out of flow, so however many events load, only the detail column sizes the
+  // split and the roster scrolls inside it.
+  assert.match(
+    css,
+    /\.events-layout\[data-view="list"\] > \.gallery-section\s*\{[^}]*position:\s*relative;/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="list"\] > \.gallery-section > \.scroll-reveal\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;/s,
+  );
+});
+
+test("the roster blurs out at whichever edge it can still scroll towards", () => {
+  assert.match(app, /data-fade-top=\{listEdges\.top \? "" : undefined\}/);
+  assert.match(app, /data-fade-bottom=\{listEdges\.bottom \? "" : undefined\}/);
+  assert.match(
+    css,
+    /\.event-list-viewport\[data-fade-top\]::before,\s*\.event-list-viewport\[data-fade-bottom\]::after\s*\{[^}]*backdrop-filter:\s*blur\(6px\);/s,
+  );
+  // The blur ramps with the wash, so the band has no edge of its own.
+  assert.match(
+    css,
+    /\.event-list-viewport\[data-fade-top\]::before\s*\{[^}]*mask-image:\s*linear-gradient\(to top, rgb\(0 0 0 \/ 0\), #000 65%\);/s,
+  );
+  assert.match(
+    css,
+    /\.event-list-viewport\[data-fade-bottom\]::after\s*\{[^}]*mask-image:\s*linear-gradient\(to bottom, rgb\(0 0 0 \/ 0\), #000 65%\);/s,
+  );
+});
+
+test("list view opens the detail with the event cover at carousel size", () => {
+  assert.match(
+    app,
+    /\{view === "list" \? \(\s*<div className="detail-cover[^"]*aspect-square[^"]*">\s*<img[\s\S]*?src=\{selectedEvent\.image_url\}/,
+  );
+  // Sits above the title and centred, at the size the focused card paints.
+  assert.match(
+    app,
+    /<\/div>\s*\) : null\}\s*<div className="detail-title">/,
+  );
+  assert.match(
+    css,
+    /\.detail-cover\s*\{[^}]*width:\s*min\(100%, calc\(var\(--event-cover-size\) \* 1\.03\)\);[^}]*margin-inline:\s*auto;/s,
   );
 });
 

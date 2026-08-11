@@ -81,6 +81,11 @@ test("partner logo tiles preserve Figma geometry responsively", () => {
     css,
     /@media \(max-width: 820px\)[\s\S]*\.partner-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s,
   );
+  // On mobile the capped grid sits centred in the column instead of flush left.
+  assert.match(
+    css,
+    /@media \(max-width: 820px\)[\s\S]*\.partner-grid\s*\{[^}]*margin-inline:\s*auto;/s,
+  );
 });
 
 test("partner content aligns to the shared twelve-column grid", () => {
@@ -90,6 +95,17 @@ test("partner content aligns to the shared twelve-column grid", () => {
   );
   assert.match(css, /\.partner-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;/s);
   assert.match(css, /\.partner-logos\s*\{[^}]*grid-column:\s*9\s*\/\s*span 4;/s);
+});
+
+test("mobile stacks the form over the logos with a doubled row gap", () => {
+  assert.match(
+    css,
+    /@media \(max-width: 820px\)[\s\S]*\.partner-cta\s*\{[^}]*row-gap:\s*96px;/s,
+  );
+});
+
+test("partner copy sits vertically centered against the logo grid", () => {
+  assert.match(css, /\.partner-copy\s*\{[^}]*justify-content:\s*center;/s);
 });
 
 test("partner CTA uses generous vertical padding without changing horizontal padding", () => {

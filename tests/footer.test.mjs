@@ -57,7 +57,10 @@ test("footer logo is a vector that fills its four-column track", async () => {
   assert.doesNotMatch(svg, /<image\b/);
   assert.match(css, /\.footer-logo\s*\{[^}]*width:\s*100%;[^}]*aspect-ratio:\s*1;/s);
   assert.doesNotMatch(css, /\.footer-logo\s*\{[^}]*width:\s*128px;/s);
-  assert.match(css, /@media \(max-width: 820px\)[\s\S]*\.footer-logo\s*\{[^}]*max-width:/s);
+  assert.match(
+    css,
+    /@media \(max-width: 820px\)[\s\S]*\.footer-logo\s*\{[^}]*max-width:\s*min\(32vw,\s*130px\);/s,
+  );
 });
 
 test("footer logo bleeds off the bottom edge", () => {
@@ -180,7 +183,7 @@ test("newsletter form is accessible, non-reloading, and left aligned", () => {
   assert.match(input, /\btext-base\b/);
   assert.match(
     newsletterForm,
-    /<form\s+className="[^"]*\bgrid-cols-\[minmax\(0,1fr\)_auto\][^"]*\bgap-2\b[^"]*"/,
+    /<form\s+className="[^"]*\bgrid-cols-\[minmax\(0,1fr\)_auto\][^"]*\bgap-3\b[^"]*"/,
   );
   assert.doesNotMatch(css, /\.newsletter-form\s*\{/);
 });
@@ -266,7 +269,7 @@ test("footer ends with a right-aligned gray technology credit", () => {
   }
   assert.match(
     app,
-    /Website built in[\s\S]*Next\.js[\s\S]*Cursor[\s\S]*Supabase[\s\S]*by the[\s\S]*Design Meetup Team[\s\S]*\./,
+    /Website built in[\s\S]*Next\.js[\s\S]*with[\s\S]*Cursor[\s\S]*and[\s\S]*Supabase[\s\S]*\./,
   );
   assert.match(
     app,
@@ -274,14 +277,12 @@ test("footer ends with a right-aligned gray technology credit", () => {
   );
 });
 
-test("footer links have no underlines and the team credit is plain text", () => {
+test("footer links have no underlines and the credit has no team attribution", () => {
   assert.doesNotMatch(
     app.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? "",
     /(?<!no-)underline(?:\s|")/,
   );
-  // The website team roster it used to reveal is gone, so the credit no longer
-  // has anywhere to link to.
-  assert.match(app, /by the Design Meetup Team\./);
+  assert.doesNotMatch(app, /by the Design Meetup Team/);
   assert.doesNotMatch(app, /href="#website-team"/);
   assert.doesNotMatch(app, /showWebsiteTeam/);
 });

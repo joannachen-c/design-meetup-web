@@ -70,6 +70,16 @@
     "website_url": "https://www.apple.com"
   },
   {
+    "slug": "rivet",
+    "name": "Rivet",
+    "website_url": "https://rivet.design"
+  },
+  {
+    "slug": "spotify",
+    "name": "Spotify",
+    "website_url": "https://www.spotify.com"
+  },
+  {
     "slug": "arch-partner",
     "name": "Arch partner (identity pending)",
     "website_url": null

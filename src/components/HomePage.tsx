@@ -36,6 +36,7 @@ import { Primary } from "./Primary";
 import { RecentEventsPanel } from "./RecentEventsPanel";
 import { ScrollReveal } from "./ScrollReveal";
 import { SiteHeader } from "./SiteHeader";
+import { preloadImages, sizedImageUrl } from "@/lib/image";
 import type { LumaEvent } from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
 
@@ -359,9 +360,16 @@ export default function HomePage({
   const summaryHtml = selectedEvent?.summary_html?.trim() ?? "";
   // Shared seed placeholders live under /placeholders/ in storage. Hide that
   // default set until an event has its own photos.
-  const selectedPhotos = (selectedEvent?.gallery_images ?? [])
-    .map((image) => image.image_url)
-    .filter((url) => !url.includes("/placeholders/"));
+  // Photos render a few hundred pixels tall, so ask the CDN for a right-sized
+  // render (~10x smaller than the stored original) instead of the full JPEG.
+  const selectedPhotos = useMemo(
+    () =>
+      (selectedEvent?.gallery_images ?? [])
+        .map((image) => image.image_url)
+        .filter((url) => !url.includes("/placeholders/"))
+        .map((url) => sizedImageUrl(url, { width: 420, quality: 68 })),
+    [selectedEvent?.gallery_images],
+  );
   const showEventGallery = selectedPhotos.length > 0;
   const tickerItems = useMemo(
     () =>
@@ -404,6 +412,22 @@ export default function HomePage({
       previous[photoUrl] ? previous : { ...previous, [photoUrl]: true },
     );
   }, []);
+
+  // Warm the current event's photos right away and prefetch the neighbouring
+  // events' first few, so moving through the carousel opens galleries without
+  // waiting on a fresh download each time.
+  useEffect(() => {
+    const neighbourPhotos = [selectedIndex - 1, selectedIndex + 1]
+      .filter((index) => index >= 0 && index < events.length)
+      .flatMap((index) =>
+        (events[index]?.gallery_images ?? [])
+          .map((image) => image.image_url)
+          .filter((url) => !url.includes("/placeholders/"))
+          .slice(0, 4)
+          .map((url) => sizedImageUrl(url, { width: 420, quality: 68 })),
+      );
+    return preloadImages([...selectedPhotos, ...neighbourPhotos]);
+  }, [selectedPhotos, selectedIndex, events]);
 
   useEffect(() => {
     if (!photoRailElement) {
@@ -859,9 +883,13 @@ export default function HomePage({
                           >
                             <img
                               className="border-0 outline-none"
-                              src={item.image_url}
+                              src={sizedImageUrl(item.image_url, {
+                                width: 420,
+                                quality: 74,
+                              })}
                               alt=""
                               draggable="false"
+                              decoding="async"
                               loading={Math.abs(distance) > 3 ? "lazy" : "eager"}
                             />
                           </motion.button>
@@ -902,7 +930,10 @@ export default function HomePage({
                             title={item.title}
                             dateLabel={item.date_label}
                             location={item.location}
-                            imageUrl={item.image_url}
+                            imageUrl={sizedImageUrl(item.image_url, {
+                              width: 96,
+                              quality: 72,
+                            })}
                             selected={index === selectedIndex}
                             onSelect={() => selectEvent(index)}
                           />
@@ -940,9 +971,13 @@ export default function HomePage({
                 <div className="detail-cover aspect-square overflow-hidden rounded-md bg-surface-muted shadow-[0_12px_28px_rgba(0,0,0,0.18)]">
                   <img
                     className="block size-full select-none border-0 object-cover outline-none"
-                    src={selectedEvent.image_url}
+                    src={sizedImageUrl(selectedEvent.image_url, {
+                      width: 520,
+                      quality: 76,
+                    })}
                     alt=""
                     draggable="false"
+                    decoding="async"
                   />
                 </div>
               ) : null}
@@ -1088,7 +1123,8 @@ export default function HomePage({
                             className="detail-photo h-[clamp(180px,52vw,260px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(190px,15vw,200px)] min-[821px]:max-w-none"
                             src={photoUrl}
                             alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotos.length}`}
-                            loading={photoIndex === 0 ? "eager" : "lazy"}
+                            loading={photoIndex < 3 ? "eager" : "lazy"}
+                            decoding="async"
                             // A cached photo can finish before hydration
                             // attaches onLoad, which would leave the
                             // placeholder up for good.

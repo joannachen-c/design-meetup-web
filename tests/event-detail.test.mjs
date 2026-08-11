@@ -463,7 +463,7 @@ test("the roster blurs out at whichever edge it can still scroll towards", () =>
 test("list view opens the detail with the event cover at carousel size", () => {
   assert.match(
     app,
-    /\{view === "list" \? \(\s*<div className="detail-cover[^"]*aspect-square[^"]*">\s*<img[\s\S]*?src=\{selectedEvent\.image_url\}/,
+    /\{view === "list" \? \(\s*<div className="detail-cover[^"]*aspect-square[^"]*">\s*<img[\s\S]*?src=\{sizedImageUrl\(selectedEvent\.image_url,/,
   );
   // Sits above the title and centred, at the size the focused card paints.
   assert.match(

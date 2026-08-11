@@ -1301,7 +1301,12 @@ export default function HomePage({
               key={selectedEvent.id}
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+              // Instant exit: mode="wait" holds each outgoing panel for the
+              // full exit before mounting the next, so scrubbing the rail
+              // queues those exits and the description falls seconds behind
+              // the centred card. Dropping the exit duration keeps the panel
+              // within a frame of the selection while the enter fade stays.
+              exit={reduceMotion ? undefined : { opacity: 0, transition: { duration: 0 } }}
               transition={{
                 duration: reduceMotion ? 0 : 0.18,
                 ease: "easeOut",

@@ -160,13 +160,22 @@ test("sentence form offers the requested interests and cities", () => {
   ]) {
     assert.match(form, new RegExp(`\\{ value: "${value}", label: "${label}" \\}`));
   }
+  assert.match(form, /<span>My name is<\/span>/);
   assert.match(form, /<span>I’m interested in<\/span>/);
   assert.match(form, /<span>in<\/span>/);
   assert.match(form, /<span>Reach me at<\/span>/);
 });
 
+test("the name row collects a first and last name for the greeting", () => {
+  assert.match(form, /name="first-name"/);
+  assert.match(form, /name="last-name"/);
+  assert.match(form, /autoComplete="given-name"/);
+  assert.match(form, /autoComplete="family-name"/);
+  assert.match(form, /My name is \$\{fullName\}\./);
+});
+
 test("every sentence field is labelled and the email field is validated", () => {
-  for (const field of ["interest", "city", "email"]) {
+  for (const field of ["first-name", "last-name", "interest", "city", "email"]) {
     assert.match(
       form,
       new RegExp(`<label className="sr-only" htmlFor=\\{\`\\$\\{fieldId\\}-${field}\`\\}>`),
@@ -196,7 +205,7 @@ test("sentence breaks into two rows and wraps instead of overflowing", () => {
   );
   assert.equal(
     form.match(/flex-wrap items-center gap-x-2 gap-y-2/g)?.length,
-    2,
+    3,
   );
   // Vertical form gap matches the horizontal gap between email + Send.
   assert.match(form, /\bgap-2\b/);

@@ -5,8 +5,7 @@ export const siteUrl = (
 
 export const siteName = "Design Meetup";
 
-export const siteTitle =
-  "Design Meetup — Community for ambitious creatives in NYC, SF & LA";
+export const siteTitle = "Design Meetup";
 
 export const siteDescription =
   "A space for the world’s most ambitious creatives.";

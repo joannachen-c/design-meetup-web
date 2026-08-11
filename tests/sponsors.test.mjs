@@ -82,6 +82,8 @@ test("all sponsor logos are staged for one-time upload", async () => {
       "phia.svg",
       "ramp.png",
       "reve.png",
+      "rivet.png",
+      "spotify.png",
       "tiat-place.png",
       "tiktok.png",
     ],

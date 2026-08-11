@@ -110,8 +110,8 @@ test("partner copy sits vertically centered against the logo grid", () => {
 
 test("partner CTA uses generous vertical padding without changing horizontal padding", () => {
   assert.match(app, /partner-cta[^"]*px-\[clamp\(20px,6vw,96px\)\]/);
-  assert.match(app, /partner-cta[^"]*py-\[160px\]/);
-  assert.match(app, /partner-cta[^"]*max-\[820px\]:py-\[80px\]/);
+  assert.match(app, /partner-cta[^"]*py-\[200px\]/);
+  assert.match(app, /partner-cta[^"]*max-\[820px\]:py-\[96px\]/);
   assert.doesNotMatch(css, /\.partner-cta\s*\{[^}]*padding(?:-block)?:/s);
 });
 

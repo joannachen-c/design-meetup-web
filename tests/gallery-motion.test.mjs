@@ -552,20 +552,66 @@ test("the about video takes the lighter media edge and no drawn border", () => {
 // read as the drawn border the inset edge had just replaced. Holding the
 // lengths against the live scale keeps the shadow the same size on screen.
 test("the about video's drop shadow does not compress into an edge as it scales", () => {
+  const shadow = app.match(
+    /function aboutVideoShadowAt\(scale: number\) \{[\s\S]*?\n\}/,
+  )[0];
   assert.match(
-    app,
-    /const aboutVideoShadow = useTransform\(aboutVideoScale, \(scale\) => \{\s*const held = \(length: number\) => Math\.round\(\(length \/ scale\) \* 100\) \/ 100;/s,
+    shadow,
+    /const held = \(length: number\) => Math\.round\(\(length \/ scale\) \* 100\) \/ 100;/,
   );
-  // Opacities stay put: dividing them too would fade the shadow as it shrank
-  // rather than hold it steady.
-  const shadow = app.match(/const aboutVideoShadow = useTransform\([\s\S]*?\}\);/)[0];
-  for (const opacity of ["0.02", "0.07", "0.18"]) {
-    assert.match(shadow, new RegExp(`rgba\\(15, 15, 15, ${opacity}\\)`));
+  // Lengths are held against scale, but the opacities ride the edge reveal so
+  // the whole shadow fades in over the last stretch rather than sitting at full
+  // weight against a shrunk video — a heavy cloud at the small end reads as the
+  // drawn border the inset edge just replaced.
+  assert.match(
+    shadow,
+    /const alpha = \(weight: number\) =>\s*Math\.round\(weight \* aboutVideoEdgeReveal\(scale\) \* 1000\) \/ 1000;/s,
+  );
+  for (const weight of ["0.02", "0.07", "0.18"]) {
+    assert.match(shadow, new RegExp(`rgba\\(15, 15, 15, \\$\\{alpha\\(${weight}\\)\\}\\)`));
   }
   assert.doesNotMatch(shadow, /held\(0\.\d+\)/);
+  assert.match(app, /const aboutVideoShadow = useTransform\(aboutVideoScale, aboutVideoShadowAt\);/);
   assert.match(
     app,
-    /reduceMotion\s*\?\s*\{ scale: 1 \}\s*:\s*\{ scale: aboutVideoScale, boxShadow: aboutVideoShadow \}/s,
+    /: \(\{\s*scale: aboutVideoScale,\s*boxShadow: aboutVideoShadow,\s*"--media-edge-reveal": aboutVideoEdgeOpacity,\s*\} as MotionStyle\)/s,
+  );
+});
+
+// The inset edge is painted in the shell's own space too, so it thickens as the
+// video shrinks. It is held back on the same curve as the shadow: nothing at all
+// for the whole approach, fading in only over the last stretch of the scale.
+test("the about video's inset edge only appears once the video reaches full width", () => {
+  assert.match(app, /const ABOUT_VIDEO_EDGE_FROM_SCALE = 0\.9;/);
+  assert.match(
+    app,
+    /function aboutVideoEdgeReveal\(scale: number\) \{\s*const travelled =\s*\(scale - ABOUT_VIDEO_EDGE_FROM_SCALE\) \/ \(1 - ABOUT_VIDEO_EDGE_FROM_SCALE\);\s*return Math\.min\(Math\.max\(travelled, 0\), 1\);/s,
+  );
+  assert.match(
+    app,
+    /const aboutVideoEdgeOpacity = useTransform\(\s*aboutVideoScale,\s*aboutVideoEdgeReveal,\s*\);/s,
+  );
+  // Anything else wearing the soft edge, and the pre-hydration paint, gets the
+  // edge outright: only the shell's reveal can hold it back.
+  assert.match(
+    css,
+    /\.about-video-shell::after,\s*\.media-inset-edge-soft::after \{\s*box-shadow: var\(--media-inset-edge-soft\);\s*opacity: var\(--media-edge-reveal, 1\);\s*\}/s,
+  );
+});
+
+// Regression. The server renders the travelling pose because it cannot know the
+// reader's motion preference, and React leaves the mismatched inline styles it
+// finds on hydration alone. Motion writes its own values to the DOM, so the
+// arrived pose must be spelled in motion values: plain ones left the video
+// wearing the server's faded-out shadow and reveal, with no frame at all.
+test("the about video arrives fully framed under reduced motion", () => {
+  assert.match(app, /const ABOUT_VIDEO_ARRIVED_SHADOW = aboutVideoShadowAt\(1\);/);
+  assert.match(app, /const arrivedScale = useMotionValue\(1\);/);
+  assert.match(app, /const arrivedShadow = useMotionValue\(ABOUT_VIDEO_ARRIVED_SHADOW\);/);
+  assert.match(app, /const arrivedEdgeOpacity = useMotionValue\(1\);/);
+  assert.match(
+    app,
+    /reduceMotion\s*\?\s*\(\{\s*scale: arrivedScale,\s*boxShadow: arrivedShadow,\s*"--media-edge-reveal": arrivedEdgeOpacity,\s*\} as MotionStyle\)/s,
   );
 });
 

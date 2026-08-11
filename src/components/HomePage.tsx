@@ -5,6 +5,8 @@ import MuxPlayer from "@mux/mux-player-react";
 import {
   AnimatePresence,
   motion,
+  type MotionStyle,
+  useMotionValue,
   useReducedMotion,
   useScroll,
   useSpring,
@@ -94,6 +96,23 @@ function aboutVideoEdgeReveal(scale: number) {
     (scale - ABOUT_VIDEO_EDGE_FROM_SCALE) / (1 - ABOUT_VIDEO_EDGE_FROM_SCALE);
   return Math.min(Math.max(travelled, 0), 1);
 }
+
+// Lengths are held against the live scale so the cloud keeps its size on screen
+// rather than compressing with the box; the alphas ride the edge's reveal so
+// there is nothing to compress until the video has arrived.
+function aboutVideoShadowAt(scale: number) {
+  const held = (length: number) => Math.round((length / scale) * 100) / 100;
+  const alpha = (weight: number) =>
+    Math.round(weight * aboutVideoEdgeReveal(scale) * 1000) / 1000;
+  return [
+    `0 ${held(2)}px ${held(4)}px rgba(15, 15, 15, ${alpha(0.02)})`,
+    `0 ${held(12)}px ${held(24)}px ${held(-8)}px rgba(15, 15, 15, ${alpha(0.07)})`,
+    `0 ${held(48)}px ${held(88)}px ${held(-24)}px rgba(15, 15, 15, ${alpha(0.18)})`,
+  ].join(", ");
+}
+
+// A reader who has asked for no motion gets the far end of the travel outright.
+const ABOUT_VIDEO_ARRIVED_SHADOW = aboutVideoShadowAt(1);
 
 // The rail opens on the sixth cover so the shelf reads as a shelf from the
 // first frame, with covers tucked behind the focused one on both sides. An
@@ -428,20 +447,15 @@ export default function HomePage({
     aboutVideoScale,
     aboutVideoEdgeReveal,
   );
-  // Lengths are held against the live scale so the shadow keeps its size on
-  // screen rather than compressing with the box; the alphas ride the same
-  // reveal as the inset edge so there is nothing to compress until the video
-  // has arrived.
-  const aboutVideoShadow = useTransform(aboutVideoScale, (scale) => {
-    const held = (length: number) => Math.round((length / scale) * 100) / 100;
-    const alpha = (weight: number) =>
-      Math.round(weight * aboutVideoEdgeReveal(scale) * 1000) / 1000;
-    return [
-      `0 ${held(2)}px ${held(4)}px rgba(15, 15, 15, ${alpha(0.02)})`,
-      `0 ${held(12)}px ${held(24)}px ${held(-8)}px rgba(15, 15, 15, ${alpha(0.07)})`,
-      `0 ${held(48)}px ${held(88)}px ${held(-24)}px rgba(15, 15, 15, ${alpha(0.18)})`,
-    ].join(", ");
-  });
+  const aboutVideoShadow = useTransform(aboutVideoScale, aboutVideoShadowAt);
+  // The server renders the travelling pose because it cannot know the reader's
+  // motion preference, and React declines to patch up the inline styles it finds
+  // on the shell when a reduced-motion client hydrates over them. Motion writes
+  // its own values to the DOM, so the arrived pose is spelled in motion values:
+  // plain ones would leave the video wearing the server's frameless styles.
+  const arrivedScale = useMotionValue(1);
+  const arrivedShadow = useMotionValue(ABOUT_VIDEO_ARRIVED_SHADOW);
+  const arrivedEdgeOpacity = useMotionValue(1);
   const aboutPlayerRef = useRef<MuxPlayerElement | null>(null);
   const [aboutVideoMuted, setAboutVideoMuted] = useState(true);
   const toggleAboutVideoSound = useCallback(
@@ -1550,12 +1564,16 @@ export default function HomePage({
               className="about-video-shell relative rounded-[20px]"
               style={
                 reduceMotion
-                  ? { scale: 1 }
-                  : {
+                  ? ({
+                      scale: arrivedScale,
+                      boxShadow: arrivedShadow,
+                      "--media-edge-reveal": arrivedEdgeOpacity,
+                    } as MotionStyle)
+                  : ({
                       scale: aboutVideoScale,
                       boxShadow: aboutVideoShadow,
                       "--media-edge-reveal": aboutVideoEdgeOpacity,
-                    }
+                    } as MotionStyle)
               }
             >
               <MuxPlayer
@@ -1597,7 +1615,7 @@ export default function HomePage({
       </section>
 
       <section
-        className="partner-cta bg-surface px-[clamp(20px,6vw,96px)] py-[160px] text-black max-[820px]:py-[80px]"
+        className="partner-cta bg-surface px-[clamp(20px,6vw,96px)] py-[200px] text-black max-[820px]:py-[96px]"
         id="sponsor"
         aria-labelledby="partner-cta-title"
       >

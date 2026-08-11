@@ -5,7 +5,9 @@ import { ArrowUpRightIcon } from "./components/icons/ArrowUpRightIcon";
 import { IconButton } from "./components/IconButton";
 import { Input } from "./components/Input";
 import { Link } from "./components/Link";
+import { PageLoader } from "./components/PageLoader";
 import { Primary } from "./components/Primary";
+import { ScrollReveal } from "./components/ScrollReveal";
 import { Select } from "./components/Select";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
@@ -108,22 +110,36 @@ export default function DesignSystem() {
   return (
     <TooltipProvider>
       <main className="min-h-dvh bg-surface font-['Alte_Haas_Grotesk',sans-serif] text-ink antialiased [font-synthesis:none]">
+        <PageLoader />
+
         <SiteHeader
           homeHref="/"
           navAriaLabel="Design system sections"
           navClassName="design-system-navigation max-[820px]:hidden"
           links={sections.map(({ id, label }) => ({ href: `#${id}`, label }))}
+          reveal
         />
 
         <div className="px-[clamp(20px,6vw,96px)] pb-24">
           <div className="grid grid-cols-12 items-end gap-x-[clamp(16px,2vw,28px)] gap-y-8 py-[clamp(32px,7vw,96px)] max-[820px]:grid-cols-1">
-            <h1 className="col-span-8 m-0 whitespace-nowrap text-balance text-[clamp(3.25rem,7vw,7rem)] font-bold leading-[0.94] tracking-[-0.06em] max-[820px]:col-span-1">
-              design system
-            </h1>
-            <p className="col-start-9 col-span-4 m-0 mb-2 max-w-[48ch] text-pretty text-base leading-[1.5] text-muted max-[820px]:col-start-1 max-[820px]:col-span-1 max-[820px]:mt-2">
-              The foundations behind the Design Meetup website. These examples
-              use the same production components as the site.
-            </p>
+            {/* The grid placement rides the reveal wrapper, as it does on the
+                home page's intro: the wrapper is the grid item once the title
+                is wrapped, so leaving the spans on the heading would drop it
+                out of the twelve-column track. */}
+            <ScrollReveal className="col-span-8 max-[820px]:col-span-1">
+              <h1 className="m-0 whitespace-nowrap text-balance text-[clamp(3.25rem,7vw,7rem)] font-bold leading-[0.94] tracking-[-0.06em]">
+                design system
+              </h1>
+            </ScrollReveal>
+            <ScrollReveal
+              className="col-start-9 col-span-4 max-[820px]:col-start-1 max-[820px]:col-span-1"
+              delay={60}
+            >
+              <p className="m-0 mb-2 max-w-[48ch] text-pretty text-base leading-[1.5] text-muted max-[820px]:mt-2">
+                The foundations behind the Design Meetup website. These examples
+                use the same production components as the site.
+              </p>
+            </ScrollReveal>
           </div>
 
           <section
@@ -459,7 +475,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>media inset edge soft</SpecimenLabel>
                     <p className={specimenDescriptionClassName}>
-                      1px · video · 3%
+                      1px · video · 3% · fades in at full width
                     </p>
                   </div>
                   <div

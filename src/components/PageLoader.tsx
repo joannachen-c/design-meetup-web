@@ -6,7 +6,9 @@ const MIN_VISIBLE_MS = 520;
 const MAX_VISIBLE_MS = 1200;
 const FADE_MS = 300;
 
-export function PageLoader({ onDone }: { onDone: () => void }) {
+// onDone is optional: the home page uses it to start the gallery deal once the
+// curtain is gone, but a page with nothing waiting on the reveal just fades in.
+export function PageLoader({ onDone }: { onDone?: () => void } = {}) {
   const [isLeaving, setIsLeaving] = useState(false);
   const [isDone, setIsDone] = useState(false);
 
@@ -34,7 +36,7 @@ export function PageLoader({ onDone }: { onDone: () => void }) {
           timers.push(
             window.setTimeout(() => {
               setIsDone(true);
-              onDone();
+              onDone?.();
             }, FADE_MS),
           );
         }, remaining),

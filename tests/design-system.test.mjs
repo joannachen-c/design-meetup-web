@@ -377,7 +377,7 @@ test("the media inset edges are documented at their production weights", () => {
     ],
     [
       "media inset edge soft",
-      "1px · video · 3%",
+      "1px · video · 3% · fades in at full width",
       "media-inset-edge-soft relative size-20 rounded-\\[20px\\] bg-white",
     ],
   ]) {
@@ -453,13 +453,15 @@ test("the intro uses the homepage grid relationship and revised copy", () => {
   const introCopy =
     /The foundations behind the Design Meetup website\.\s+These examples\s+use the same production components as the site\./g;
 
+  // The reveal wrapper is the grid item, so the column spans live on it rather
+  // than on the heading and paragraph it wraps.
   assert.match(
     designSystem,
-    /className="[^"]*\bgrid-cols-12\b[^"]*\bmax-\[820px\]:grid-cols-1\b[^"]*"[\s\S]*<h1 className="[^"]*\bcol-span-8\b[^"]*\bmax-\[820px\]:col-span-1\b[^"]*">/,
+    /className="[^"]*\bgrid-cols-12\b[^"]*\bmax-\[820px\]:grid-cols-1\b[^"]*"[\s\S]*<ScrollReveal className="[^"]*\bcol-span-8\b[^"]*\bmax-\[820px\]:col-span-1\b[^"]*">/,
   );
   assert.match(
     designSystem,
-    /<p className="[^"]*\bcol-start-9\b[^"]*\bcol-span-4\b[^"]*\bmax-\[820px\]:col-start-1\b[^"]*\bmax-\[820px\]:col-span-1\b[^"]*">/,
+    /<ScrollReveal\s+className="[^"]*\bcol-start-9\b[^"]*\bcol-span-4\b[^"]*\bmax-\[820px\]:col-start-1\b[^"]*\bmax-\[820px\]:col-span-1\b[^"]*"/,
   );
   assert.equal(designSystem.match(introCopy)?.length, 1);
   assert.doesNotMatch(
@@ -618,6 +620,22 @@ test("tooltip specimen uses a centered SVG help icon", () => {
   assert.doesNotMatch(
     designSystem,
     /<IconButton aria-label="More information">\s*\?\s*<\/IconButton>/,
+  );
+});
+
+// The two pages link to each other, so an entrance on one and none on the
+// other makes the crossing read as a jump. The design system page has nothing
+// waiting on the reveal, so it takes the curtain without a done callback.
+test("the design system page opens with the same entrance as the home page", () => {
+  assert.match(
+    designSystem,
+    /import \{ PageLoader \} from "\.\/components\/PageLoader"/,
+  );
+  assert.match(designSystem, /<PageLoader \/>/);
+  assert.match(designSystem, /<SiteHeader[\s\S]*?\breveal\b[\s\S]*?\/>/);
+  assert.match(
+    designSystem,
+    /import \{ ScrollReveal \} from "\.\/components\/ScrollReveal"/,
   );
 });
 

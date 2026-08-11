@@ -65,8 +65,16 @@ test("requested style categories live in Tailwind utilities", () => {
       .replace(/@font-face\s*\{[^}]*\}/gs, "")
       .replace(/::selection\s*\{[^}]*\}/gs, "")
       .replace(/^\s*border-radius:\s*inherit;$/gm, ""),
-    /^\s*(?:padding(?:-(?:top|right|bottom|left|block|inline))?|border-radius|color|background(?:-color)?|font-size|font-weight|line-height|letter-spacing|text-align|text-decoration|text-transform|text-wrap)\s*:/m,
+    /^\s*(?:padding(?:-(?:top|right|bottom|left|block|inline))?|border-radius|color|background(?:-color)?|font-size|font-weight|line-height|letter-spacing|text-align|text-decoration|text-transform)\s*:/m,
   );
+});
+
+test("global text wrapping prevents typographic orphans", () => {
+  assert.match(
+    css,
+    /h1,\s*h2,\s*h3,\s*h4,\s*h5,\s*h6\s*\{[^}]*text-wrap:\s*balance;/s,
+  );
+  assert.match(css, /p\s*\{[^}]*text-wrap:\s*pretty;/s);
 });
 
 test("design system colors are referenced by token, never re-spelled as literals", async () => {

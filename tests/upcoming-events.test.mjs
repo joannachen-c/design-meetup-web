@@ -18,7 +18,7 @@ const panel = await readFile(
 test("Upcoming events section sits above the partner CTA with a Luma calendar embed", () => {
   assert.match(
     app,
-    /<section[\s\S]*className="[^"]*\bupcoming-events\b[^"]*"[\s\S]*>\s*Upcoming events\s*<\/h2>[\s\S]*<\/section>\s*<section[\s\S]*className="[^"]*\bpartner-cta\b/,
+    /<section[\s\S]*className="[^"]*\bupcoming-events\b[^"]*"[\s\S]*>\s*Calendar\s*<\/h2>[\s\S]*<\/section>\s*<section[\s\S]*className="[^"]*\bpartner-cta\b/,
   );
   assert.match(
     app,
@@ -32,7 +32,7 @@ test("Upcoming events section sits above the partner CTA with a Luma calendar em
   assert.match(header, /href: "#calendar"/);
   assert.doesNotMatch(
     app,
-    /href="https:\/\/luma\.com\/designmeetup"[\s\S]{0,80}Upcoming/,
+    /href="https:\/\/luma\.com\/designmeetup"[\s\S]{0,80}Calendar/,
   );
 });
 

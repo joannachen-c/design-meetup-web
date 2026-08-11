@@ -1065,7 +1065,7 @@ export default function HomePage({
             className="m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="upcoming-events-title"
           >
-            Upcoming events
+            Calendar
           </h2>
           <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-body">
             {showRecentEvents
@@ -1196,7 +1196,7 @@ export default function HomePage({
           >
             {partnerLogos.map((partner) => (
               <li
-                className="partner-tile rounded-[10px] bg-[#f5f5f5]"
+                className="partner-tile rounded-[10px] bg-surface-muted"
                 key={partner.slug}
               >
                 <img

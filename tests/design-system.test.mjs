@@ -118,6 +118,11 @@ test("the inputs specimen documents the dropdown built on the input surface", ()
   assert.match(designSystem, /import \{ Select \} from "\.\/components\/Select"/);
   assert.match(inputsSection, /<SelectSpecimen \/>/);
   assert.match(inputsSection, />\s*Dropdown\s*</);
+  assert.match(
+    inputsSection,
+    /id="inputs-title"[\s\S]*?<div className="grid gap-8">[\s\S]*Email address[\s\S]*Dropdown/,
+  );
+  assert.doesNotMatch(inputsSection, /Shares the input surface and radius/);
   assert.match(designSystem, /function SelectSpecimen\(\)[\s\S]*?<Select\b/);
   assert.doesNotMatch(designSystem, /<select[\s\n>]/);
 });
@@ -217,9 +222,10 @@ test("the annotated 8/4 layout surfaces double vertical padding only", () => {
   for (const surface of [displaySurface, bodySurface]) {
     assert.match(surface, /\bmin-h-20\b/);
     assert.match(surface, /\bpx-4\b/);
-    assert.match(surface, /\bpy-8\b/);
+    assert.match(surface, /\bpy-16\b/);
     assert.doesNotMatch(surface, /\bp-4\b/);
     assert.doesNotMatch(surface, /\bpy-4\b/);
+    assert.doesNotMatch(surface, /\bpy-8\b/);
   }
 });
 
@@ -275,7 +281,7 @@ test("borders and shadows are linked foundations sections", () => {
 test("the expanded design system navigation wraps in the header grid", () => {
   assert.match(
     designSystem,
-    /navClassName="design-system-navigation"/,
+    /navClassName="design-system-navigation max-\[820px\]:hidden"/,
   );
   assert.match(
     styles,
@@ -295,6 +301,7 @@ test("border specimens document production corner radii", () => {
   for (const [label, className] of [
     ["small", "rounded-sm"],
     ["medium", "rounded-md"],
+    ["large", "rounded-lg"],
     ["control", "rounded-\\[10px\\]"],
     ["surface", "rounded-\\[11px\\]"],
     ["full", "rounded-full"],
@@ -318,7 +325,7 @@ test("border metadata shares the shadow description typography", () => {
     bordersSection.match(
       /<p className=\{specimenDescriptionClassName\}>/g,
     )?.length,
-    5,
+    9,
   );
   assert.equal(
     shadowsSection.match(
@@ -336,21 +343,56 @@ test("border specimens use equal gray squares in a responsive uncarded grid", ()
 
   assert.match(
     bordersSection,
-    /m-0 grid[^"]*grid-cols-2[^"]*lg:grid-cols-5/,
+    /m-0 grid[^"]*grid-cols-2[^"]*lg:grid-cols-6/,
   );
   assert.equal(
     bordersSection.match(/size-20[^"]*bg-gray-200/g)?.length,
-    5,
+    6,
   );
   assert.equal(
     bordersSection.match(/<li className="grid justify-items-start gap-4">/g)
       ?.length,
-    5,
+    9,
   );
   assert.doesNotMatch(
     bordersSection,
     /size-20[^"]*\bborder\b/,
   );
+});
+
+// Both edges are specimens of the production custom properties rather than
+// re-spelled shadows, so the page cannot drift from what the covers paint.
+test("the media inset edges are documented at their production weights", () => {
+  const bordersSection =
+    designSystem.match(/<section\s+id="borders"[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  // Each specimen wears the production class, so the page paints whatever the
+  // token paints and the three weights can be compared side by side.
+  for (const [label, description, className] of [
+    ["media inset edge", "2px · shelf covers · 5%", "media-inset-edge relative size-20 rounded-lg bg-white"],
+    [
+      "media inset edge focused",
+      "2px · focused cover · 2%",
+      "media-inset-edge-focused relative size-20 rounded-lg bg-white",
+    ],
+    [
+      "media inset edge soft",
+      "1px · video · 3%",
+      "media-inset-edge-soft relative size-20 rounded-\\[20px\\] bg-white",
+    ],
+  ]) {
+    assert.match(
+      bordersSection,
+      new RegExp(`<SpecimenLabel>${label}</SpecimenLabel>`),
+    );
+    assert.match(bordersSection, new RegExp(description));
+    assert.match(bordersSection, new RegExp(`className="${className}"`));
+  }
+
+  assert.doesNotMatch(bordersSection, /box-shadow|inset 0 0 0/);
+  assert.match(styles, /--media-inset-edge:\s*inset 0 0 0 2px/);
+  assert.match(styles, /--media-inset-edge-focused:\s*inset 0 0 0 2px/);
+  assert.match(styles, /--media-inset-edge-soft:\s*inset 0 0 0 1px/);
 });
 
 test("shadow specimens use production elevation classes", () => {
@@ -583,7 +625,7 @@ test("design system header logo links home and sections have sub-nav anchors", (
   assert.match(designSystem, /import \{ SiteHeader \} from "\.\/components\/SiteHeader"/);
   assert.match(
     designSystem,
-    /<SiteHeader[\s\S]*homeHref="\/"[\s\S]*navAriaLabel="Design system sections"/,
+    /<SiteHeader[\s\S]*homeHref="\/"[\s\S]*navAriaLabel="Design system sections"[\s\S]*navClassName="design-system-navigation max-\[820px\]:hidden"/,
   );
   assert.match(
     designSystem,
@@ -611,5 +653,16 @@ test("design system header logo links home and sections have sub-nav anchors", (
   assert.doesNotMatch(
     designSystem,
     /<p className="[^"]*uppercase text-muted[^"]*">\s*Design Meetup\s*<\/p>/,
+  );
+});
+
+test("design system page reuses the shared footer with a home logo link", () => {
+  assert.match(
+    designSystem,
+    /import \{ SiteFooter \} from "\.\/components\/SiteFooter"/,
+  );
+  assert.match(
+    designSystem,
+    /<SiteFooter logoHref="\/" logoAriaLabel="Design Meetup home" \/>/,
   );
 });

@@ -50,10 +50,10 @@ test("sponsor schema normalizes reusable sponsors and event links", () => {
   assert.match(migration, /Public read event sponsors/);
 });
 
-test("all 19 events map to known reusable sponsor records", () => {
+test("all 20 events map to known reusable sponsor records", () => {
   const slugs = new Set(sponsors.map((sponsor) => sponsor.slug));
   assert.equal(sponsors.length, 17);
-  assert.equal(mappings.length, 19);
+  assert.equal(mappings.length, 20);
   for (const mapping of mappings) {
     assert.ok(mapping.sponsor_slugs.length > 0);
     for (const slug of mapping.sponsor_slugs) {
@@ -111,6 +111,7 @@ test("the Phia event remains stored but is hidden from the site", () => {
 test("the shared tooltip primitive keeps its styling for other surfaces", () => {
   assert.match(tooltip, /@radix-ui\/react-tooltip/);
   assert.match(tooltip, /delayDuration=\{300\}/);
+  assert.match(tooltip, /sideOffset=\{4\}/);
   assert.match(tooltip, /rounded-md/);
   assert.match(tooltip, /bg-ink/);
   assert.match(tooltip, /text-sm/);

@@ -3,6 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const footer = await readFile(
+  new URL("../src/components/SiteFooter.tsx", import.meta.url),
+  "utf8",
+);
 const header = await readFile(
   new URL("../src/components/SiteHeader.tsx", import.meta.url),
   "utf8",
@@ -34,7 +38,7 @@ test("major page sections share one responsive horizontal gutter", () => {
   }
 
   assert.match(
-    app,
+    footer,
     new RegExp(`<footer[\\s\\S]*?className="[^"]*${pageGutter.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[^"]*"`),
     "footer should use the shared page gutter",
   );

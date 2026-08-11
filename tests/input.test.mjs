@@ -3,6 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const footer = await readFile(
+  new URL("../src/components/SiteFooter.tsx", import.meta.url),
+  "utf8",
+);
 const newsletterForm = await readFile(
   new URL("../src/components/NewsletterForm.tsx", import.meta.url),
   "utf8",
@@ -13,7 +17,7 @@ const input = await readFile(
 ).catch(() => "");
 
 test("newsletter uses the shared Input component", () => {
-  assert.match(app, /import \{ NewsletterForm \} from "\.\/NewsletterForm"/);
+  assert.match(footer, /import \{ NewsletterForm \} from "\.\/NewsletterForm"/);
   assert.match(newsletterForm, /import \{ Input \} from "\.\/Input"/);
   assert.match(newsletterForm, /<Input[\s\S]*id="newsletter-email"/);
 });

@@ -65,11 +65,34 @@ test("the menu is anchored, collision aware, and scroll capped", () => {
   assert.match(select, /position="popper"/);
   assert.match(select, /sideOffset=\{6\}/);
   assert.match(select, /align="start"/);
-  assert.match(select, /min-w-\[var\(--radix-select-trigger-width\)\]/);
+  assert.match(
+    select,
+    /min-w-\[calc\(var\(--radix-select-trigger-width\)\+8px\)\]/,
+  );
   assert.match(
     select,
     /max-h-\[var\(--radix-select-content-available-height\)\]/,
   );
+});
+
+test("menu rows land on the trigger's footprint so labels left align", () => {
+  // The menu's own padding is cancelled out by an equal negative alignOffset,
+  // so a row's box matches the trigger's box and its pl-4 / pr-3 put the label
+  // and indicator on the same axes as the trigger's label and chevron.
+  assert.match(select, /const MENU_PADDING = 4;/);
+  assert.match(select, /\bp-1\b/);
+  assert.match(select, /alignOffset=\{-MENU_PADDING\}/);
+  const trigger = select.match(
+    /const triggerClassName = \[([\s\S]*?)\]\s*\n\s*\.filter/,
+  )[1];
+  const item = select.match(
+    /<SelectPrimitive\.Item\s+className="([^"]*)"/,
+  )[1];
+  for (const padding of [/\bpl-4\b/, /\bpr-3\b/]) {
+    assert.match(trigger, padding);
+    assert.match(item, padding);
+  }
+  assert.doesNotMatch(item, /\bpl-3\b|\bpr-2\.5\b/);
 });
 
 test("the portalled menu keeps the site typeface and surface language", () => {
@@ -141,11 +164,10 @@ test("dropdown keeps visible focus and disabled affordances", () => {
 
 test("sentence form offers the requested interests and cities", () => {
   for (const [value, label] of [
+    ["sponsor", "sponsoring an event"],
     ["panelist", "being a panelist"],
     ["judge", "judging a makeathon"],
     ["venue", "providing a venue"],
-    ["sponsor-one", "sponsoring one event"],
-    ["sponsor-series", "sponsoring an event series"],
   ]) {
     assert.match(
       form,
@@ -155,7 +177,11 @@ test("sentence form offers the requested interests and cities", () => {
     );
   }
   assert.doesNotMatch(form, /attending events/);
-  assert.doesNotMatch(form, /value: "sponsor", label: "sponsoring"/);
+  assert.doesNotMatch(form, /sponsor-one|sponsor-series|sponsoring one event|sponsoring an event series/);
+  assert.match(
+    form,
+    /useState\(interestOptions\[0\]\.value\)/,
+  );
   for (const [value, label] of [
     ["sf", "San Francisco"],
     ["nyc", "New York"],
@@ -205,14 +231,15 @@ test("submitting hands off to email without reloading the page", () => {
 test("sentence breaks into rows and wraps instead of overflowing", () => {
   assert.match(
     form,
-    /className="partner-form flex w-fit max-w-full flex-col gap-3/,
+    /className="partner-form flex w-fit max-w-full flex-col gap-3[^"]*max-\[820px\]:gap-6/,
   );
   assert.equal(
     form.match(/flex w-full flex-wrap items-center gap-x-3 gap-y-3/g)?.length,
     3,
   );
-  // Vertical form gap matches the horizontal gap between email + Send.
+  // Desktop keeps the tight row gap; mobile opens it up for touch.
   assert.match(form, /\bgap-3\b/);
+  assert.match(form, /max-\[820px\]:gap-6/);
   assert.match(form, /\bgap-x-3\b/);
 });
 

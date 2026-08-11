@@ -21,20 +21,19 @@ import {
 } from "react";
 import { ArrowUpRightIcon } from "./icons/ArrowUpRightIcon";
 import { Chip } from "./Chip";
-import { EventListRow } from "./EventListRow";
 import { FilmTickerLines, type FilmTickerFocus } from "./FilmTickerLines";
 import { FoundersNote } from "./FoundersNote";
+import { GalleryLightbox } from "./GalleryLightbox";
 import { GalleryViewToggle, type GalleryView } from "./GalleryViewToggle";
-import { InstagramIcon, LinkedInIcon, SubstackIcon, XIcon } from "./icons/SocialIcons";
 import { SoundOffIcon, SoundOnIcon } from "./icons/SoundIcons";
 import { IconButton } from "./IconButton";
 import { Link } from "./Link";
-import { NewsletterForm } from "./NewsletterForm";
 import { PageLoader } from "./PageLoader";
 import { PartnerContactForm } from "./PartnerContactForm";
 import { Primary } from "./Primary";
 import { RecentEventsPanel } from "./RecentEventsPanel";
 import { ScrollReveal } from "./ScrollReveal";
+import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
 import { preloadImages, sizedImageUrl } from "@/lib/image";
 import type { LumaEvent } from "@/lib/luma";
@@ -59,21 +58,49 @@ const LUMA_CALENDAR_EMBED_SRC =
 // records instead of a mirrored fan. The turn is a flat squeeze rather than a
 // rotateY: a rotation runs the covers through perspective, which bows their
 // edges and paints their box off-centre, and an off-centre box cannot leave an
-// even gap on both sides of the focused cover.
-const CARD_SQUEEZE = 0.68;
+// even gap on both sides of the focused cover. Squeeze stays at 1 so the shear
+// alone carries the shelf; the size difference comes from the resting scale.
+const CARD_SQUEEZE = 1;
 // A shear, not a rotation, so the covers keep vertical left and right edges
-// while their top and bottom edges run on the diagonal. The squeeze steepens it
-// on screen — the edges land at atan(tan(shear) / squeeze), about 19deg.
-const CARD_SHEAR_DEG = 13;
+// while their top and bottom edges run on the diagonal.
+const CARD_SHEAR_DEG = 15;
 // Percentages of the cover's own width, so the shelf holds its proportions at
 // every cover size. The part clears the focused cover: the shelf is pitched at
-// 0.409 of a cover and the focused one paints 1.0668x its layout box, so its
-// neighbours step out this far to leave an even gap either side.
-const CARD_PART_PCT = 54;
+// 0.41 of a cover and the focused cover paints 1.03x its layout box, so its
+// neighbours have to step out this far to leave a clear gap either side. Pitch
+// and part are one setting: a shelf card's painted edge lands at
+// distance * pitch + (part + rest scale / 2) * cover, and four whole covers per
+// side only fit inside the viewport half at this pitch if the part carries the
+// wings out past the focused cover. Dropping the resting scale to 0.9 shrinks
+// that painted box, which is what lets the part step out to 0.68 for a more
+// generous gap around the focused cover while the fourth cover still lands whole.
+const CARD_PART_PCT = 68;
 // The hover pull only has to read as a nudge: the cover stays under its left
 // neighbour, so a long travel reads as a card escaping the shelf rather than
-// being eased out of it.
+// being eased out of it. globals.css holds the hovered cover's resting box as a
+// hit target over the same distance, so the pull cannot walk a cover out from
+// under the pointer that asked for it.
 const CARD_PULL_PCT = 5;
+// The About video scales up from 0.55 as it scrolls in, and its frame — the
+// inset edge and the drop shadow — is painted in the shell's own space before
+// that scale is applied. Anything drawn at the edge therefore compresses as the
+// video shrinks and reads as a heavy drawn border at the small end. The frame
+// is held back instead: it stays invisible for the whole approach and fades in
+// over the last stretch, so only a video at full width carries an edge.
+const ABOUT_VIDEO_EDGE_FROM_SCALE = 0.9;
+
+function aboutVideoEdgeReveal(scale: number) {
+  const travelled =
+    (scale - ABOUT_VIDEO_EDGE_FROM_SCALE) / (1 - ABOUT_VIDEO_EDGE_FROM_SCALE);
+  return Math.min(Math.max(travelled, 0), 1);
+}
+
+// The rail opens on the sixth cover so the shelf reads as a shelf from the
+// first frame, with covers tucked behind the focused one on both sides. An
+// archive too short to have a sixth cover opens on the newest instead of the
+// oldest: the covers then run to the right, which is the end the entrance sweep
+// starts from and the end a reader scrolls towards.
+const DEFAULT_FOCUS_SLOT = 5;
 const SELECTED_TITLE_ID = "selected-event-title";
 
 function cardTransform({
@@ -85,49 +112,85 @@ function cardTransform({
   distance: number;
   selected: boolean;
   hovered: boolean;
-  // First load only: the cover holds its finished pose and sits a short step
-  // right of its slot, so nothing about it turns or unfolds on the way in.
+  // Entrance pose: the cover sits a slot to the right of its own, a touch
+  // smaller and turned further, so it deals out from under its right-hand
+  // neighbour instead of appearing in place.
   entering?: boolean;
 }) {
   const squeeze = selected ? 1 : CARD_SQUEEZE;
-  const shear = selected ? 0 : CARD_SHEAR_DEG;
+  const shearRest = selected ? 0 : CARD_SHEAR_DEG;
+  const shear = entering ? shearRest + CARD_ENTRANCE_SHEAR_DEG : shearRest;
   const depth = selected ? 26 : hovered ? 2 : -14;
-  const rest = selected ? 1.03 : hovered ? 0.87 : 0.85;
+  // The focused cover is the only one painted over its layout box. Shelf covers
+  // rest under it and hover stays under it too, so nothing on the shelf ever
+  // reads as large as the cover in focus.
+  const rest = selected ? 1.03 : hovered ? 0.93 : 0.9;
   const scale = entering ? rest * CARD_ENTRANCE_SCALE : rest;
-  const lift = selected
+  const liftRest = selected
     ? -6
     : hovered
       ? -8
       : Math.min(Math.abs(distance) * 1.5, 6);
+  const lift = entering ? liftRest + CARD_ENTRANCE_LIFT_PX : liftRest;
   // Ahead of the squeeze so it reads as flat screen distance, which is what keeps
   // the gap on either side of the focused cover even. Hovering slides the cover
   // further off the shelf, like pulling a vinyl out.
   const away = distance < 0 ? -1 : 1;
+  // The part mirrors, the pull does not. The rail leans one way, so every cover
+  // is painted over by its left-hand neighbour and the only sliver of it a
+  // reader can see or click is its right edge. Pulling away from centre would
+  // therefore reveal a right-wing cover and bury a left-wing one, dragging that
+  // sliver out from under the pointer that hovered it and handing the click to
+  // the cover behind. Rightward on both wings pulls every cover out of the same
+  // crate.
   const shelf = selected
     ? 0
-    : away * (CARD_PART_PCT + (hovered ? CARD_PULL_PCT : 0));
+    : away * CARD_PART_PCT + (hovered ? CARD_PULL_PCT : 0);
   const part = entering ? shelf + CARD_ENTRANCE_SHIFT_PCT : shelf;
 
   return `perspective(2200px) translateX(${part}%) translateZ(${depth}px) scaleX(${squeeze}) skewY(${shear}deg) scale(${scale}) translate(0px, ${lift}px)`;
 }
 
-// First load fades the covers up in place, sweeping right to left. The step to
-// the right and the touch of scale are small on purpose: the shelf should look
-// like it settles into focus, not like the covers were thrown onto it.
-const CARD_ENTRANCE_SHIFT_PCT = 9;
-const CARD_ENTRANCE_SCALE = 0.97;
-// Ordering only. Covers right of this lead in together, then the sweep steps
-// leftward one slot at a time.
+// The shelf deals itself out right to left: every cover starts a slot right of
+// its own and slides into place from under its right-hand neighbour, the way a
+// record is drawn out of a crate.
+//
+// Matches the -0.59 slot overlap in globals.css: the shelf steps 41% of a cover
+// per slot, so a cover that starts about that far right of its slot is sitting
+// where its neighbour rests. Staying a touch under the step keeps the covers
+// from crossing each other on the way in.
+const CARD_SLOT_PITCH_PCT = 41;
+const CARD_ENTRANCE_SHIFT_PCT = 34;
+// Turned further than the shelf rests, so each cover squares up onto the shelf
+// as it lands instead of sliding along it flat.
+const CARD_ENTRANCE_SHEAR_DEG = 9;
+const CARD_ENTRANCE_SCALE = 0.94;
+// Covers rise the last of the way in, which keeps the deal from reading as a
+// purely sideways sweep.
+const CARD_ENTRANCE_LIFT_PX = 16;
+// Soft edges while a cover is travelling, resolving as it lands. This is what
+// sells the deal as movement rather than a row of covers changing places.
+const CARD_ENTRANCE_BLUR_PX = 6;
+const CARD_ENTRANCE_STAGGER_S = 0.05;
+// Ordering only, and counted from the focused cover rather than from the start
+// of the archive, so the sweep travels with the focus wherever the rail opens.
+// Covers right of this lead in together, then the sweep steps leftward one slot
+// at a time.
 const CARD_ENTRANCE_LEAD_SLOTS = 5;
-const CARD_ENTRANCE_STAGGER_S = 0.045;
 // Caps the sweep so covers deep off the left edge, which nobody sees arrive,
 // can't stretch the entrance past the loader's hand-off.
-const CARD_ENTRANCE_MAX_DELAY_S = 0.4;
-const CARD_ENTRANCE_DURATION_S = 0.62;
+const CARD_ENTRANCE_MAX_DELAY_S = 0.42;
+const CARD_ENTRANCE_DURATION_S = 0.72;
 // A long tail out of an easing curve keeps this a settle. A spring here reads as
 // the cover overshooting its slot and snapping back.
-const CARD_ENTRANCE_EASE = [0.22, 1, 0.36, 1] as const;
+const CARD_ENTRANCE_EASE = [0.16, 1, 0.3, 1] as const;
+// Covers have to be back in place before the spring takes over selection, and
+// the view swap replays the same deal, so both wait on this.
+const CARD_ENTRANCE_TOTAL_MS = Math.ceil(
+  (CARD_ENTRANCE_MAX_DELAY_S + CARD_ENTRANCE_DURATION_S) * 1000,
+);
 
+// Right to left: the covers on the right lead, then each slot follows.
 function cardEntranceDelay(distance: number) {
   return Math.min(
     Math.max(CARD_ENTRANCE_LEAD_SLOTS - distance, 0) * CARD_ENTRANCE_STAGGER_S,
@@ -135,9 +198,36 @@ function cardEntranceDelay(distance: number) {
   );
 }
 
-const footerLinkClassName =
-  "rounded-sm text-muted no-underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
-const footerCreditLinkClassName = `${footerLinkClassName} text-medium`;
+// One view clears out before the next builds itself, so the swap never shows two
+// sets of covers at once. Short: it is dead time in front of the view you asked
+// for, and the arriving view carries the motion that reads as the change.
+const VIEW_SWAP_DURATION_MS = 120;
+// The same deal, run faster on the way back from the pack: a first load is a
+// reveal the reader is watching, but a view swap is a control they just pressed,
+// and the far end of the sweep is empty rail until it lands.
+const CARD_SWAP_SPEEDUP = 0.65;
+const CARD_SWAP_TOTAL_MS =
+  VIEW_SWAP_DURATION_MS + Math.ceil(CARD_ENTRANCE_TOTAL_MS * CARD_SWAP_SPEEDUP);
+
+// A smooth centre outlives one settle window, so every frame of it extends the
+// suppression that keeps it from being read back as a change of selection. That
+// extension needs a ceiling: a flick that lands while the rail is still
+// centring goes on renewing it for as long as the reader keeps scrolling, and
+// the selection stays pinned to the cover it was centring on while the rail
+// runs out from under it. Longer than the longest centre the rail can animate,
+// short enough that a stuck latch frees within a frame or two of a flick.
+const PROGRAMMATIC_SCROLL_MAX_MS = 900;
+
+// The pack has far more covers than the rail, so its wave steps in smaller
+// increments and caps well short of the rail's.
+const GRID_TILE_STAGGER_S = 0.022;
+const GRID_TILE_MAX_DELAY_S = 0.22;
+const GRID_TILE_DURATION_S = 0.42;
+const GRID_TILE_RISE_PX = 12;
+
+function gridTileDelay(index: number) {
+  return Math.min(index * GRID_TILE_STAGGER_S, GRID_TILE_MAX_DELAY_S);
+}
 
 const detailSummaryClassName = [
   "detail-summary max-w-[62ch] text-base leading-[1.7] text-body",
@@ -242,7 +332,7 @@ function ExpandableSummary({
         </div>
         {hasOverflow && !isExpanded ? (
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-white/0 via-white/80 to-white"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-surface/0 via-surface/80 to-surface"
             aria-hidden="true"
           />
         ) : null}
@@ -275,22 +365,33 @@ export default function HomePage({
 }: HomePageProps) {
   const events = initialEvents;
   const showRecentEvents = recentEvents.length > 0;
-  const initialIndex = initialEvents.length > 4 ? 4 : 0;
+  const initialIndex =
+    initialEvents.length > DEFAULT_FOCUS_SLOT ? DEFAULT_FOCUS_SLOT : 0;
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [view, setView] = useState<GalleryView>("carousel");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isGalleryReady, setIsGalleryReady] = useState(false);
   const [hasGalleryEntered, setHasGalleryEntered] = useState(false);
+  // Set while the rail replays its deal after a view swap, so the covers mount
+  // from the entrance pose instead of springing out of the selection spring.
+  const [isDealing, setIsDealing] = useState(false);
   const status: "ready" | "error" = initialError ? "error" : "ready";
   const errorMessage = initialError;
   const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const rowRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const galleryRef = useRef<HTMLUListElement | null>(null);
+  // The rail is torn down and rebuilt around a view swap, and it arrives a beat
+  // after the view state changes because the outgoing view animates out first.
+  // Everything that has to measure or scroll the rail waits on the node itself
+  // rather than on the view, which is why it is tracked in state.
+  const [galleryElement, setGalleryElement] = useState<HTMLUListElement | null>(
+    null,
+  );
   const detailPhotoRailRef = useRef<HTMLUListElement | null>(null);
   const slideRefs = useRef<Array<HTMLLIElement | null>>([]);
   const hasCenteredInitial = useRef(false);
   const isProgrammaticScroll = useRef(false);
   const scrollSettleTimer = useRef<number | null>(null);
+  const programmaticScrollUntil = useRef(0);
   const selectionSource = useRef<"control" | "scroll">("control");
   const galleryFocus = useRef<FilmTickerFocus>({
     index: initialIndex,
@@ -300,11 +401,12 @@ export default function HomePage({
   const velocityResetTimer = useRef<number | null>(null);
   const [photoRailElement, setPhotoRailElement] =
     useState<HTMLUListElement | null>(null);
-  const [listScrollElement, setListScrollElement] =
-    useState<HTMLDivElement | null>(null);
-  const [listEdges, setListEdges] = useState({ top: false, bottom: false });
   const [canScrollPhotosLeft, setCanScrollPhotosLeft] = useState(false);
   const [canScrollPhotosRight, setCanScrollPhotosRight] = useState(false);
+  // The rail only overflows once the photos are wider than their column, and a
+  // gallery that fits has nothing for the arrows to do.
+  const [isPhotoRailScrollable, setIsPhotoRailScrollable] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [loadedPhotos, setLoadedPhotos] = useState<Record<string, true>>({});
   const reduceMotion = useReducedMotion();
   const aboutVideoRef = useRef<HTMLDivElement | null>(null);
@@ -321,6 +423,24 @@ export default function HomePage({
     stiffness: 260,
     damping: 42,
     mass: 0.6,
+  });
+  const aboutVideoEdgeOpacity = useTransform(
+    aboutVideoScale,
+    aboutVideoEdgeReveal,
+  );
+  // Lengths are held against the live scale so the shadow keeps its size on
+  // screen rather than compressing with the box; the alphas ride the same
+  // reveal as the inset edge so there is nothing to compress until the video
+  // has arrived.
+  const aboutVideoShadow = useTransform(aboutVideoScale, (scale) => {
+    const held = (length: number) => Math.round((length / scale) * 100) / 100;
+    const alpha = (weight: number) =>
+      Math.round(weight * aboutVideoEdgeReveal(scale) * 1000) / 1000;
+    return [
+      `0 ${held(2)}px ${held(4)}px rgba(15, 15, 15, ${alpha(0.02)})`,
+      `0 ${held(12)}px ${held(24)}px ${held(-8)}px rgba(15, 15, 15, ${alpha(0.07)})`,
+      `0 ${held(48)}px ${held(88)}px ${held(-24)}px rgba(15, 15, 15, ${alpha(0.18)})`,
+    ].join(", ");
   });
   const aboutPlayerRef = useRef<MuxPlayerElement | null>(null);
   const [aboutVideoMuted, setAboutVideoMuted] = useState(true);
@@ -360,15 +480,32 @@ export default function HomePage({
   const summaryHtml = selectedEvent?.summary_html?.trim() ?? "";
   // Shared seed placeholders live under /placeholders/ in storage. Hide that
   // default set until an event has its own photos.
+  const selectedPhotoSources = useMemo(
+    () =>
+      (selectedEvent?.gallery_images ?? [])
+        .map((image) => image.image_url)
+        .filter((url) => !url.includes("/placeholders/")),
+    [selectedEvent?.gallery_images],
+  );
   // Photos render a few hundred pixels tall, so ask the CDN for a right-sized
   // render (~10x smaller than the stored original) instead of the full JPEG.
   const selectedPhotos = useMemo(
     () =>
-      (selectedEvent?.gallery_images ?? [])
-        .map((image) => image.image_url)
-        .filter((url) => !url.includes("/placeholders/"))
-        .map((url) => sizedImageUrl(url, { width: 420, quality: 68 })),
-    [selectedEvent?.gallery_images],
+      selectedPhotoSources.map((url) =>
+        sizedImageUrl(url, { width: 480, quality: 68 }),
+      ),
+    [selectedPhotoSources],
+  );
+  // The lightbox paints a photo across most of the viewport, so the rail's
+  // thumbnail render would go soft there. It stays a long way short of the
+  // stored original, though: the rail's render stands in until this arrives, so
+  // shaving the bytes shortens the wait more than the extra pixels are worth.
+  const lightboxPhotos = useMemo(
+    () =>
+      selectedPhotoSources.map((url) =>
+        sizedImageUrl(url, { width: 1200, quality: 76, dpr: 1.25 }),
+      ),
+    [selectedPhotoSources],
   );
   const showEventGallery = selectedPhotos.length > 0;
   const tickerItems = useMemo(
@@ -382,6 +519,11 @@ export default function HomePage({
   const readGalleryFocus = useCallback(() => galleryFocus.current, []);
   const revealGallery = useCallback(() => setIsGalleryReady(true), []);
 
+  const setGalleryRail = useCallback((rail: HTMLUListElement | null) => {
+    galleryRef.current = rail;
+    setGalleryElement(rail);
+  }, []);
+
   const setDetailPhotoRail = useCallback(
     (rail: HTMLUListElement | null) => {
       detailPhotoRailRef.current = rail;
@@ -392,6 +534,7 @@ export default function HomePage({
 
   const updatePhotoRailBounds = useCallback(
     (rail: HTMLUListElement) => {
+      setIsPhotoRailScrollable(rail.scrollWidth > rail.clientWidth + 1);
       setCanScrollPhotosLeft(rail.scrollLeft > 1);
       setCanScrollPhotosRight(
         rail.scrollLeft < rail.scrollWidth - rail.clientWidth - 1,
@@ -424,13 +567,14 @@ export default function HomePage({
           .map((image) => image.image_url)
           .filter((url) => !url.includes("/placeholders/"))
           .slice(0, 4)
-          .map((url) => sizedImageUrl(url, { width: 420, quality: 68 })),
+          .map((url) => sizedImageUrl(url, { width: 480, quality: 68 })),
       );
     return preloadImages([...selectedPhotos, ...neighbourPhotos]);
   }, [selectedPhotos, selectedIndex, events]);
 
   useEffect(() => {
     if (!photoRailElement) {
+      setIsPhotoRailScrollable(false);
       setCanScrollPhotosLeft(false);
       setCanScrollPhotosRight(false);
       return;
@@ -443,11 +587,24 @@ export default function HomePage({
     photoRailElement.addEventListener("scroll", updateBounds, {
       passive: true,
     });
+    // A photo claims its width only once it decodes, and the rail's own box is
+    // sized by the column around it, so watching the rail alone never sees the
+    // content grow past it. Watching the items too is what catches an
+    // overflowing rail on first paint instead of after a stray scroll.
     observer.observe(photoRailElement);
+    for (const item of Array.from(photoRailElement.children)) {
+      observer.observe(item);
+    }
+    // A cached photo can settle before React attaches onLoad, and load events
+    // don't bubble, so the capture phase is the only way to hear all of them.
+    photoRailElement.addEventListener("load", updateBounds, { capture: true });
 
     return () => {
       cancelAnimationFrame(frame);
       photoRailElement.removeEventListener("scroll", updateBounds);
+      photoRailElement.removeEventListener("load", updateBounds, {
+        capture: true,
+      });
       observer.disconnect();
     };
   }, [photoRailElement, selectedEvent?.id, updatePhotoRailBounds]);
@@ -465,6 +622,17 @@ export default function HomePage({
     [reduceMotion],
   );
 
+  const openLightbox = useCallback((photoIndex: number) => {
+    setLightboxIndex(photoIndex);
+  }, []);
+
+  const closeLightbox = useCallback(() => setLightboxIndex(null), []);
+
+  // Moving to another event swaps the whole gallery out from under the overlay.
+  useEffect(() => {
+    setLightboxIndex(null);
+  }, [selectedEvent?.id]);
+
   const selectEvent = useCallback(
     (index: number) => {
       if (events.length === 0) return;
@@ -481,27 +649,70 @@ export default function HomePage({
     hasCenteredInitial.current = false;
     selectionSource.current = "control";
     setHoveredIndex(null);
+    // The rail is built fresh on the way back in, so it deals out the same way
+    // it does on first load rather than cutting to a finished shelf.
+    if (nextView === "carousel") setIsDealing(true);
     setView(nextView);
   }, []);
 
+  useEffect(() => {
+    if (!isDealing) return;
+    const timer = window.setTimeout(
+      () => setIsDealing(false),
+      reduceMotion ? 0 : CARD_SWAP_TOTAL_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [isDealing, reduceMotion]);
+
+  // The toggle is hidden below 820px, so a grid selection from a wider window
+  // has to snap back to the carousel once the viewport goes mobile.
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 820px)");
+    const syncView = () => {
+      if (media.matches) changeView("carousel");
+    };
+    syncView();
+    media.addEventListener("change", syncView);
+    return () => media.removeEventListener("change", syncView);
+  }, [changeView]);
+
+  // Hover is driven by pointerover on each cover (bubbles, last cover under
+  // the pointer wins) and cleared by pointerleave on the rail. Paired
+  // enter/leave on overlapping, sheared covers used to miss a leave or fire
+  // leave-then-enter out of order, leaving hoveredIndex stuck on one card
+  // while the CSS hover: shadow correctly followed the pointer.
   const hoverCard = useCallback((index: number | null, pointerType: string) => {
     if (pointerType !== "mouse") return;
     setHoveredIndex(index);
   }, []);
 
-  const markProgrammaticScroll = useCallback(() => {
-    isProgrammaticScroll.current = true;
+  const releaseProgrammaticScroll = useCallback(() => {
+    isProgrammaticScroll.current = false;
+    programmaticScrollUntil.current = 0;
+    if (scrollSettleTimer.current !== null) {
+      window.clearTimeout(scrollSettleTimer.current);
+      scrollSettleTimer.current = null;
+    }
+  }, []);
+
+  // Holds the suppression open for one more quiet window. The rail's own scroll
+  // frames call this so a centre that is still animating stays suppressed.
+  const holdProgrammaticScroll = useCallback(() => {
     if (scrollSettleTimer.current !== null) {
       window.clearTimeout(scrollSettleTimer.current);
     }
     scrollSettleTimer.current = window.setTimeout(
-      () => {
-        isProgrammaticScroll.current = false;
-        scrollSettleTimer.current = null;
-      },
+      releaseProgrammaticScroll,
       reduceMotion ? 80 : 180,
     );
-  }, [reduceMotion]);
+  }, [reduceMotion, releaseProgrammaticScroll]);
+
+  const markProgrammaticScroll = useCallback(() => {
+    isProgrammaticScroll.current = true;
+    programmaticScrollUntil.current =
+      performance.now() + PROGRAMMATIC_SCROLL_MAX_MS;
+    holdProgrammaticScroll();
+  }, [holdProgrammaticScroll]);
 
   const slideCenterOffset = useCallback(
     (index: number, scrollportCenter: number) => {
@@ -535,6 +746,9 @@ export default function HomePage({
     if (!gallery) return null;
 
     const rect = gallery.getBoundingClientRect();
+    // A rail that is hidden or has not been laid out measures zero, and every
+    // slide inside it collapses onto the same point, which reads as a focus.
+    if (rect.width === 0) return null;
     const scrollportCenter = rect.left + rect.width / 2;
 
     let nearestIndex = -1;
@@ -565,8 +779,31 @@ export default function HomePage({
     };
   }, [slideCenterOffset]);
 
+  // A rebuilt rail arrives at scrollLeft 0 with the selected cover off to the
+  // right of the scrollport. Its slides carry their layout boxes the moment they
+  // attach, and the covers' entrance pose is a transform those boxes never see,
+  // so the rail can be put where it belongs before anything is painted instead
+  // of a frame later. Only the rail arriving belongs here: a selection change
+  // goes through the effect below, which scrolls smoothly from wherever the
+  // reader left the rail, and this one would jump it there.
+  useLayoutEffect(() => {
+    if (!galleryElement || status !== "ready" || events.length === 0) return;
+    markProgrammaticScroll();
+    centerSlide(selectedIndex, "auto");
+    hasCenteredInitial.current = true;
+    // The ticker's focus is otherwise only refreshed by the rail's scroll
+    // handler, and a rebuilt rail that already sits where it belongs never
+    // scrolls: coming back from the pack onto one of the first covers leaves
+    // the ticker pointing at wherever the rail was before the swap. Reading it
+    // back here also keeps the ticker from painting a frame of the old
+    // position on the swaps that do scroll.
+    const focus = measureGalleryFocus();
+    galleryFocus.current.index = focus?.focal ?? selectedIndex;
+    galleryFocus.current.velocity = 0;
+  }, [galleryElement]);
+
   useEffect(() => {
-    if (status !== "ready" || events.length === 0) return;
+    if (!galleryElement || status !== "ready" || events.length === 0) return;
     if (view !== "carousel") return;
     if (selectionSource.current === "scroll") return;
 
@@ -583,6 +820,7 @@ export default function HomePage({
   }, [
     centerSlide,
     events.length,
+    galleryElement,
     markProgrammaticScroll,
     reduceMotion,
     selectedIndex,
@@ -590,66 +828,15 @@ export default function HomePage({
     view,
   ]);
 
-  // Only fade the edges the list can actually scroll towards, so the first and
-  // last rows are never dimmed for no reason.
-  useEffect(() => {
-    if (!listScrollElement) return;
-
-    const updateEdges = () => {
-      const { scrollTop, scrollHeight, clientHeight } = listScrollElement;
-      const overflowing = scrollHeight > clientHeight + 1;
-      setListEdges({
-        top: overflowing && scrollTop > 1,
-        bottom: overflowing && scrollTop < scrollHeight - clientHeight - 1,
-      });
-    };
-
-    const frame = requestAnimationFrame(updateEdges);
-    const observer = new ResizeObserver(updateEdges);
-
-    listScrollElement.addEventListener("scroll", updateEdges, {
-      passive: true,
-    });
-    observer.observe(listScrollElement);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      listScrollElement.removeEventListener("scroll", updateEdges);
-      observer.disconnect();
-    };
-  }, [listScrollElement]);
-
-  // Arrow keys move the selection in either view, so keep the highlighted row
-  // inside the list's own scroll area. scrollIntoView would also scroll every
-  // ancestor scrollport, which drags the page down the moment list view mounts.
-  useEffect(() => {
-    if (view !== "list") return;
-
-    const row = rowRefs.current[selectedIndex];
-    if (!listScrollElement || !row) return;
-
-    const viewport = listScrollElement.getBoundingClientRect();
-    const rowBox = row.getBoundingClientRect();
-    const offset =
-      rowBox.top < viewport.top
-        ? rowBox.top - viewport.top
-        : rowBox.bottom > viewport.bottom
-          ? rowBox.bottom - viewport.bottom
-          : 0;
-    if (offset === 0) return;
-
-    listScrollElement.scrollBy({
-      top: offset,
-      behavior: reduceMotion ? "auto" : "smooth",
-    });
-  }, [listScrollElement, reduceMotion, selectedIndex, view]);
-
-  // The covers hold just short of their slots until the loader lifts, then fade
-  // up right to left. Once that has played, selection hands over to the spring
+  // The covers hold a slot right of their own until the loader lifts, then deal
+  // in right to left. Once that has played, selection hands over to the spring
   // that carries every later move.
   useEffect(() => {
     if (!isGalleryReady || hasGalleryEntered) return;
-    const timer = window.setTimeout(() => setHasGalleryEntered(true), 1100);
+    const timer = window.setTimeout(
+      () => setHasGalleryEntered(true),
+      CARD_ENTRANCE_TOTAL_MS,
+    );
     return () => window.clearTimeout(timer);
   }, [hasGalleryEntered, isGalleryReady]);
 
@@ -671,7 +858,7 @@ export default function HomePage({
   );
 
   useEffect(() => {
-    const gallery = galleryRef.current;
+    const gallery = galleryElement;
     if (!gallery || status !== "ready" || events.length === 0) return;
     if (view !== "carousel") return;
 
@@ -705,24 +892,43 @@ export default function HomePage({
         galleryFocus.current.index = focus.focal;
 
         if (isProgrammaticScroll.current) {
-          markProgrammaticScroll();
-          return;
+          // Only a centre that is still plausibly running holds the rail: past
+          // its ceiling the frames belong to the reader, and holding them would
+          // freeze the focused cover while the rail carries on under it.
+          if (performance.now() < programmaticScrollUntil.current) {
+            holdProgrammaticScroll();
+            return;
+          }
+          releaseProgrammaticScroll();
         }
         selectionSource.current = "scroll";
         setSelectedIndex(focus.index);
       });
     };
 
+    // The reader reaching for the rail ends any centre in flight — the browser
+    // drops the smooth scroll on the first wheel or touch anyway — so the
+    // frames that follow are theirs to steer the selection with.
+    const takeOverScroll = () => releaseProgrammaticScroll();
+
     gallery.addEventListener("scroll", handleScroll, { passive: true });
+    gallery.addEventListener("wheel", takeOverScroll, { passive: true });
+    gallery.addEventListener("touchstart", takeOverScroll, { passive: true });
+    gallery.addEventListener("pointerdown", takeOverScroll, { passive: true });
 
     return () => {
       gallery.removeEventListener("scroll", handleScroll);
+      gallery.removeEventListener("wheel", takeOverScroll);
+      gallery.removeEventListener("touchstart", takeOverScroll);
+      gallery.removeEventListener("pointerdown", takeOverScroll);
       if (frame !== 0) cancelAnimationFrame(frame);
     };
   }, [
     events.length,
-    markProgrammaticScroll,
+    galleryElement,
+    holdProgrammaticScroll,
     measureGalleryFocus,
+    releaseProgrammaticScroll,
     status,
     view,
   ]);
@@ -737,6 +943,9 @@ export default function HomePage({
         return;
       }
       if (events.length === 0) return;
+      // The lightbox owns the arrows while it is up: stepping the event under it
+      // would swap the whole gallery out and close the overlay.
+      if (lightboxIndex !== null) return;
 
       event.preventDefault();
       selectionSource.current = "control";
@@ -748,10 +957,10 @@ export default function HomePage({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [events.length]);
+  }, [events.length, lightboxIndex]);
 
   return (
-    <main className="min-h-dvh w-full overflow-hidden rounded-none border-0 bg-white font-['Alte_Haas_Grotesk',sans-serif] text-body shadow-none antialiased [font-synthesis:none] [text-rendering:optimizeLegibility]">
+    <main className="min-h-dvh w-full overflow-hidden rounded-none border-0 bg-surface font-['Alte_Haas_Grotesk',sans-serif] text-body shadow-none antialiased [font-synthesis:none] [text-rendering:optimizeLegibility]">
       <PageLoader onDone={revealGallery} />
 
       <SiteHeader reveal />
@@ -772,11 +981,11 @@ export default function HomePage({
         </ScrollReveal>
       </section>
 
-      {/* Carousel view leaves these stacked; list view pairs them into a
+      {/* Carousel view leaves these stacked; grid view pairs them into a
           master/detail split, so they need a common layout parent. */}
       <div className="events-layout" data-view={view}>
       {/* Lives outside the gallery column so the toggle keeps the same
-          top-right placement once list view splits the layout in two. */}
+          top-right placement once grid view splits the layout in two. */}
       <ScrollReveal className="gallery-toolbar px-[clamp(20px,6vw,96px)]">
         {status === "ready" && events.length > 0 ? (
           <GalleryViewToggle view={view} onChange={changeView} />
@@ -808,13 +1017,28 @@ export default function HomePage({
 
         {status === "ready" && events.length > 0 ? (
           <ScrollReveal delay={80}>
+            {/* One view leaves before the next arrives, so the covers never
+                cross-dissolve into a second set of covers. */}
+            <AnimatePresence mode="wait" initial={false}>
             {view === "carousel" ? (
-              <>
+              <motion.div
+                key="carousel"
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={reduceMotion ? undefined : { opacity: 0 }}
+                transition={{
+                  duration: reduceMotion ? 0 : VIEW_SWAP_DURATION_MS / 1000,
+                  ease: "easeOut",
+                }}
+              >
                 <div className="gallery-viewport">
                   <ul
                     className="gallery px-[max(8vw,calc((100vw-1440px)/2))] pt-[clamp(36px,5vw,72px)] pb-[clamp(40px,4vw,56px)] max-[820px]:px-[18vw]"
-                    ref={galleryRef}
+                    ref={setGalleryRail}
                     aria-label="Choose a past event"
+                    onPointerLeave={(event) =>
+                      hoverCard(null, event.pointerType)
+                    }
                   >
                     {events.map((item, index) => {
                       const selected = index === selectedIndex;
@@ -825,15 +1049,25 @@ export default function HomePage({
                         selected,
                         hovered,
                       });
-                      const entranceDelay = hasGalleryEntered
+                      // The shelf is settled once the deal has played and no
+                      // view swap is replaying it; from then on selection is
+                      // carried by the spring.
+                      const settled = hasGalleryEntered && !isDealing;
+                      const pace = isDealing ? CARD_SWAP_SPEEDUP : 1;
+                      const entranceDelay = settled
                         ? 0
-                        : cardEntranceDelay(distance);
+                        : cardEntranceDelay(distance) * pace;
                       const entranceTransform = cardTransform({
                         distance,
                         selected,
                         hovered: false,
                         entering: true,
                       });
+                      const entrancePose = {
+                        transform: entranceTransform,
+                        opacity: 0,
+                        filter: `blur(${CARD_ENTRANCE_BLUR_PX}px)`,
+                      };
 
                       return (
                         <li
@@ -860,43 +1094,54 @@ export default function HomePage({
                               cardRefs.current[index] = node;
                             }}
                             type="button"
-                            className="event-card cursor-pointer rounded-md border-0 bg-white p-0 text-left text-[oklch(98%_0.008_240)] shadow-[0_3px_10px_rgba(0,0,0,0.12)] outline-none focus:shadow-[0_12px_28px_rgba(0,0,0,0.18)] focus-visible:brightness-[0.88] focus-visible:shadow-[0_12px_28px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_30px_rgba(0,0,0,0.14)] aria-pressed:shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
+                            className="event-card cursor-pointer rounded-lg border-0 bg-white p-0 text-left text-[oklch(98%_0.008_240)] shadow-[0_3px_10px_rgba(0,0,0,0.12)] outline-none focus:shadow-[0_12px_28px_rgba(0,0,0,0.18)] focus-visible:brightness-[0.88] focus-visible:shadow-[0_12px_28px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_30px_rgba(0,0,0,0.14)] aria-pressed:shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
                             aria-label={`View details for ${item.title}`}
                             aria-pressed={selected}
                             onFocus={() => selectEvent(index)}
                             onClick={() => selectEvent(index)}
-                            onPointerEnter={(event) =>
+                            onPointerOver={(event) =>
                               hoverCard(index, event.pointerType)
                             }
-                            onPointerLeave={(event) =>
-                              hoverCard(null, event.pointerType)
+                            // A cover built for a view swap has no earlier pose
+                            // to leave, so it takes the entrance pose on mount.
+                            initial={
+                              isDealing && !reduceMotion ? entrancePose : false
                             }
-                            initial={false}
                             animate={{
                               transform: isGalleryReady
                                 ? transform
                                 : entranceTransform,
                               opacity: isGalleryReady ? 1 : 0,
+                              // Dropped to none once the shelf has settled: a
+                              // filter of any kind keeps every cover on its own
+                              // raster layer for the rest of the page's life.
+                              filter:
+                                settled || reduceMotion
+                                  ? "none"
+                                  : isGalleryReady
+                                    ? "blur(0px)"
+                                    : `blur(${CARD_ENTRANCE_BLUR_PX}px)`,
                             }}
                             transition={
                               reduceMotion
                                 ? { duration: 0 }
-                                : hasGalleryEntered
+                                : settled
                                   ? {
                                       type: "spring",
                                       stiffness: 190,
                                       damping: 24,
                                       mass: 0.85,
+                                      filter: { duration: 0 },
                                     }
                                   : {
-                                      duration: CARD_ENTRANCE_DURATION_S,
+                                      duration: CARD_ENTRANCE_DURATION_S * pace,
                                       ease: CARD_ENTRANCE_EASE,
                                       delay: entranceDelay,
                                     }
                             }
                           >
                             <img
-                              className="border-0 outline-none"
+                              className="rounded-[inherit] border-0 outline-none"
                               src={sizedImageUrl(item.image_url, {
                                 width: 420,
                                 quality: 74,
@@ -922,42 +1167,63 @@ export default function HomePage({
                     label="Past event timeline"
                   />
                 </div>
-              </>
+              </motion.div>
             ) : (
-              <div className="gallery-list px-[clamp(20px,6vw,96px)] pt-[clamp(32px,4vw,64px)] pb-[clamp(40px,5vw,72px)]">
-                <div
-                  className="event-list-viewport"
-                  data-fade-top={listEdges.top ? "" : undefined}
-                  data-fade-bottom={listEdges.bottom ? "" : undefined}
-                >
-                  <div className="event-list-scroll" ref={setListScrollElement}>
-                    <ul
-                      className="event-list m-0 p-0 pb-10"
-                      aria-label="Choose a past event"
+              <motion.div
+                key="grid"
+                className="gallery-grid px-[clamp(20px,6vw,96px)] pt-[clamp(32px,4vw,64px)] pb-[clamp(56px,9vw,128px)]"
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={reduceMotion ? undefined : { opacity: 0 }}
+                transition={{
+                  duration: reduceMotion ? 0 : VIEW_SWAP_DURATION_MS / 1000,
+                  ease: "easeOut",
+                }}
+              >
+                <ul className="event-grid m-0 p-0" aria-label="Choose a past event">
+                  {events.map((item, index) => (
+                    // The pack fills in reading order, so the wave runs the way
+                    // the eye already travels across it.
+                    <motion.li
+                      key={item.id}
+                      initial={
+                        reduceMotion ? false : { opacity: 0, y: GRID_TILE_RISE_PX }
+                      }
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: reduceMotion ? 0 : GRID_TILE_DURATION_S,
+                        ease: CARD_ENTRANCE_EASE,
+                        delay: reduceMotion ? 0 : gridTileDelay(index),
+                      }}
                     >
-                      {events.map((item, index) => (
-                        <li key={item.id}>
-                          <EventListRow
-                            ref={(node) => {
-                              rowRefs.current[index] = node;
-                            }}
-                            title={item.title}
-                            dateLabel={item.date_label}
-                            location={item.location}
-                            imageUrl={sizedImageUrl(item.image_url, {
-                              width: 96,
-                              quality: 72,
-                            })}
-                            selected={index === selectedIndex}
-                            onSelect={() => selectEvent(index)}
-                          />
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
+                      {/* The cover carries the event's own artwork, so the
+                          title and date live in the label rather than on
+                          screen. */}
+                      <button
+                        className="event-grid-cover w-full overflow-hidden rounded-lg border-0 bg-surface-muted p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                        type="button"
+                        aria-label={`${item.title}, ${item.date_label}`}
+                        aria-pressed={index === selectedIndex}
+                        onClick={() => selectEvent(index)}
+                      >
+                        <img
+                          className="block size-full select-none border-0 object-cover outline-none"
+                          src={sizedImageUrl(item.image_url, {
+                            width: 280,
+                            quality: 72,
+                          })}
+                          alt=""
+                          draggable="false"
+                          decoding="async"
+                          loading="lazy"
+                        />
+                      </button>
+                    </motion.li>
+                  ))}
+                </ul>
+              </motion.div>
             )}
+            </AnimatePresence>
           </ScrollReveal>
         ) : null}
       </section>
@@ -981,8 +1247,8 @@ export default function HomePage({
                 ease: "easeOut",
               }}
             >
-              {view === "list" ? (
-                <div className="detail-cover aspect-square overflow-hidden rounded-md bg-surface-muted shadow-[0_12px_28px_rgba(0,0,0,0.18)]">
+              {view === "grid" ? (
+                <div className="detail-cover aspect-square overflow-hidden rounded-lg bg-surface-muted shadow-[0_12px_28px_rgba(0,0,0,0.18)]">
                   <img
                     className="block size-full select-none border-0 object-cover outline-none"
                     src={sizedImageUrl(selectedEvent.image_url, {
@@ -1082,44 +1348,45 @@ export default function HomePage({
                   eventId={selectedEvent.id}
                 />
               </div>
+              {showEventGallery ? (
               <div className="detail-extras pt-0">
-                {showEventGallery ? (
                 <section
                   className="detail-photos"
-                  aria-labelledby="event-photos-title"
+                  aria-label="Event gallery"
                 >
-                  <div className="mb-[clamp(24px,3vw,40px)] flex items-center justify-between">
-                    <h3
-                      className="m-0 text-xl font-bold tracking-[-0.06em] text-black"
-                      id="event-photos-title"
-                    >
-                      Gallery
-                    </h3>
-                    <div
-                      className="flex gap-2"
-                      role="group"
-                      aria-label="Event photo controls"
-                    >
-                      <IconButton
-                        aria-label="Previous event photo"
-                        aria-controls="event-photo-rail"
-                        variant="ghost"
-                        disabled={!canScrollPhotosLeft}
-                        onClick={() => scrollPhotoRail(-1)}
+                  {isPhotoRailScrollable ? (
+                    <div className="mb-[clamp(24px,3vw,40px)] flex items-center justify-end">
+                      <div
+                        className="flex gap-2"
+                        role="group"
+                        aria-label="Event photo controls"
                       >
-                        <ArrowIcon direction="left" />
-                      </IconButton>
-                      <IconButton
-                        aria-label="Next event photo"
-                        aria-controls="event-photo-rail"
-                        variant="ghost"
-                        disabled={!canScrollPhotosRight}
-                        onClick={() => scrollPhotoRail(1)}
-                      >
-                        <ArrowIcon direction="right" />
-                      </IconButton>
+                        <IconButton
+                          aria-label="Previous event photo"
+                          aria-controls="event-photo-rail"
+                          variant="ghost"
+                          disabled={!canScrollPhotosLeft}
+                          onClick={() => scrollPhotoRail(-1)}
+                        >
+                          <ArrowIcon direction="left" />
+                        </IconButton>
+                        <IconButton
+                          aria-label="Next event photo"
+                          aria-controls="event-photo-rail"
+                          variant="ghost"
+                          disabled={!canScrollPhotosRight}
+                          onClick={() => scrollPhotoRail(1)}
+                        >
+                          <ArrowIcon direction="right" />
+                        </IconButton>
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
+                  <div
+                    className="detail-photo-viewport"
+                    data-fade-left={canScrollPhotosLeft ? "" : undefined}
+                    data-fade-right={canScrollPhotosRight ? "" : undefined}
+                  >
                   <ul
                     className="detail-photo-list m-0 touch-pan-x p-0 pb-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink"
                     id="event-photo-rail"
@@ -1129,12 +1396,15 @@ export default function HomePage({
                   >
                     {selectedPhotos.map((photoUrl, photoIndex) => (
                       <li key={`${selectedEvent.id}-${photoIndex}`}>
-                        <div
-                          className="detail-photo-frame relative inline-flex overflow-hidden rounded-md"
+                        <button
+                          type="button"
+                          className="detail-photo-frame relative inline-flex overflow-hidden rounded-md border-0 bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                           data-loaded={loadedPhotos[photoUrl] ? "true" : "false"}
+                          aria-label={`Open photo ${photoIndex + 1} of ${selectedPhotos.length} at full size`}
+                          onClick={() => openLightbox(photoIndex)}
                         >
                           <img
-                            className="detail-photo h-[clamp(180px,52vw,260px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(190px,15vw,200px)] min-[821px]:max-w-none"
+                            className="detail-photo h-[clamp(240px,62vw,320px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(260px,22vw,340px)] min-[821px]:max-w-none"
                             src={photoUrl}
                             alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotos.length}`}
                             loading={photoIndex < 3 ? "eager" : "lazy"}
@@ -1157,13 +1427,23 @@ export default function HomePage({
                             className="detail-photo-shimmer bg-skeleton"
                             aria-hidden="true"
                           />
-                        </div>
+                        </button>
                       </li>
                     ))}
                   </ul>
+                  </div>
+                  <GalleryLightbox
+                    photos={lightboxPhotos}
+                    previews={selectedPhotos}
+                    index={lightboxIndex}
+                    label={`${selectedEvent.title} gallery`}
+                    title={selectedEvent.title}
+                    onIndexChange={setLightboxIndex}
+                    onClose={closeLightbox}
+                  />
                 </section>
-                ) : null}
               </div>
+              ) : null}
             </motion.div>
             </AnimatePresence>
           ) : (
@@ -1186,7 +1466,7 @@ export default function HomePage({
       </div>
 
       <section
-        className="upcoming-events bg-white px-[clamp(20px,6vw,96px)] py-[160px] text-black max-[820px]:py-[80px]"
+        className="upcoming-events bg-surface px-[clamp(20px,6vw,96px)] py-[160px] text-black max-[820px]:py-[80px]"
         id="calendar"
         aria-labelledby="upcoming-events-title"
       >
@@ -1198,9 +1478,15 @@ export default function HomePage({
             Calendar
           </h2>
           <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-body">
-            {showRecentEvents
-              ? "Nothing on the calendar right now. Follow our Luma to hear about the next one first."
-              : "RSVP on Luma to join us at the next Design Meetup."}
+            {showRecentEvents ? (
+              <>
+                Nothing&apos;s on the calendar right now ...
+                <br />
+                Stay tuned on Luma to hear about the next one first!
+              </>
+            ) : (
+              "RSVP on Luma to join us at the next Design Meetup."
+            )}
           </p>
           <Primary
             className="gap-2"
@@ -1237,7 +1523,7 @@ export default function HomePage({
       </section>
 
       <section
-        className="about-section bg-white px-[clamp(20px,6vw,96px)] pt-[160px] pb-[80px] text-black max-[820px]:pt-[80px] max-[820px]:pb-[40px]"
+        className="about-section bg-surface px-[clamp(20px,6vw,96px)] pt-[160px] pb-[80px] text-black max-[820px]:pt-[80px] max-[820px]:pb-[40px]"
         id="about"
         aria-labelledby="about-title"
       >
@@ -1262,10 +1548,18 @@ export default function HomePage({
           <div className="about-image min-w-0" ref={aboutVideoRef}>
             <motion.div
               className="about-video-shell relative rounded-[20px]"
-              style={{ scale: reduceMotion ? 1 : aboutVideoScale }}
+              style={
+                reduceMotion
+                  ? { scale: 1 }
+                  : {
+                      scale: aboutVideoScale,
+                      boxShadow: aboutVideoShadow,
+                      "--media-edge-reveal": aboutVideoEdgeOpacity,
+                    }
+              }
             >
               <MuxPlayer
-                className="about-video block aspect-[16/9] w-full overflow-hidden rounded-[20px] border border-gray-200 outline-none"
+                className="about-video block aspect-[16/9] w-full overflow-hidden rounded-[20px] border-0 outline-none"
                 ref={aboutPlayerRef}
                 playbackId="Lsd9OIuICyIM2sIfKSt7ecwwVjFvMPeXOxNFS00X43dM"
                 streamType="on-demand"
@@ -1303,7 +1597,7 @@ export default function HomePage({
       </section>
 
       <section
-        className="partner-cta bg-white px-[clamp(20px,6vw,96px)] py-[160px] text-black max-[820px]:py-[80px]"
+        className="partner-cta bg-surface px-[clamp(20px,6vw,96px)] py-[160px] text-black max-[820px]:py-[80px]"
         id="sponsor"
         aria-labelledby="partner-cta-title"
       >
@@ -1340,114 +1634,7 @@ export default function HomePage({
 
       <FoundersNote />
 
-      <footer
-        className="bg-white px-[clamp(20px,6vw,96px)] pt-[clamp(80px,10vw,144px)] pb-[clamp(40px,5vw,72px)] text-base text-body"
-        id="contact"
-      >
-        <ScrollReveal className="footer-brand">
-          <img
-            className="footer-logo border-0 outline-none"
-            src="/design-meetup-logo.svg"
-            alt="Design Meetup"
-            width={1000}
-            height={1000}
-            loading="lazy"
-          />
-        </ScrollReveal>
-        <ScrollReveal className="footer-contact" delay={60}>
-          <h2 className="m-0 mb-5 text-xl font-bold tracking-[-0.06em] text-black">
-            Contact
-          </h2>
-          <nav
-            aria-label="Contact links"
-            className="flex flex-col items-start gap-5"
-          >
-            <a
-              className={`${footerLinkClassName} group inline-flex items-center gap-1 [overflow-wrap:anywhere]`}
-              href="mailto:contactdesignmeetup@gmail.com"
-            >
-              contactdesignmeetup@gmail.com
-              <ArrowUpRightIcon className="size-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none" />
-            </a>
-            <div className="footer-contact-row flex items-center gap-6">
-              <a
-                aria-label="Substack"
-                className={`${footerLinkClassName} inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4`}
-                href="https://designmeetup.substack.com/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <SubstackIcon />
-              </a>
-              <a
-                aria-label="Instagram"
-                className={`${footerLinkClassName} inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4`}
-                href="https://www.instagram.com/designmeetup/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <InstagramIcon />
-              </a>
-              <a
-                aria-label="LinkedIn"
-                className={`${footerLinkClassName} inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4`}
-                href="https://www.linkedin.com/company/design-meetup/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <LinkedInIcon />
-              </a>
-              <a
-                aria-label="X"
-                className={`${footerLinkClassName} inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4`}
-                href="https://x.com/designmeetuphq"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <XIcon />
-              </a>
-            </div>
-          </nav>
-        </ScrollReveal>
-        <ScrollReveal className="footer-newsletter" delay={120}>
-          <h2 className="m-0 mb-5 text-xl font-bold tracking-[-0.06em] text-black">
-            Join the newsletter
-          </h2>
-          <NewsletterForm />
-        </ScrollReveal>
-        <ScrollReveal className="footer-credit" delay={160}>
-          <p className="m-0 text-right text-base text-muted max-[820px]:text-left">
-            Website built in{" "}
-          <a
-            className={footerCreditLinkClassName}
-            href="https://nextjs.org/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Next.js
-          </a>{" "}
-          with{" "}
-          <a
-            className={footerCreditLinkClassName}
-            href="https://cursor.com/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Cursor
-          </a>{" "}
-          and{" "}
-          <a
-            className={footerCreditLinkClassName}
-            href="https://supabase.com/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Supabase
-          </a>
-          .
-          </p>
-        </ScrollReveal>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

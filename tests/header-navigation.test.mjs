@@ -25,6 +25,16 @@ test("homepage and design system share SiteHeader", () => {
   assert.doesNotMatch(designSystem, /className="[^"]*\bsite-header\b/);
 });
 
+test("design system nav links are hidden on mobile while logo stays visible", () => {
+  assert.match(
+    designSystem,
+    /<SiteHeader[\s\S]*navClassName="design-system-navigation max-\[820px\]:hidden"/,
+  );
+  assert.doesNotMatch(designSystem, /<div className="max-\[820px\]:hidden">\s*<SiteHeader/);
+  assert.doesNotMatch(home, /max-\[820px\]:hidden[\s\S]*<SiteHeader\b/);
+  assert.doesNotMatch(home, /<SiteHeader[\s\S]*max-\[820px\]:hidden/);
+});
+
 test("homepage header navigation uses sentence case labels", () => {
   for (const [label, target] of [
     ["Calendar", "calendar"],
@@ -90,7 +100,7 @@ test("shared header nav links use text-medium with logo sizing and reduced top p
   );
   assert.match(
     header,
-    /const navLinkClassName =\s*"text-medium text-base text-muted/,
+    /const navLinkClassName =\s*"text-medium text-base text-subtle/
   );
   assert.match(
     css,

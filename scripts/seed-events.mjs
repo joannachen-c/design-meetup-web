@@ -8,7 +8,11 @@ config({ path: ".env.local" });
 config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.join(__dirname, "..");
 const eventsPath = path.join(__dirname, "data", "past-events.json");
+
+const onlyIndex = process.argv.indexOf("--event");
+const onlyEventId = onlyIndex === -1 ? null : process.argv[onlyIndex + 1];
 
 const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -55,19 +59,49 @@ async function assertReady() {
   }
 }
 
-async function uploadCover(event) {
-  const response = await fetch(event.image_url);
-  if (!response.ok) {
-    throw new Error(`Failed to download ${event.image_url}: ${response.status}`);
+const CONTENT_TYPES_BY_EXTENSION = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+  png: "image/png",
+};
+
+// A cover can either live on Luma or be checked in under data/event-covers,
+// which is how we swap in artwork Luma never hosted.
+async function readCover(event) {
+  if (/^https?:\/\//.test(event.image_url)) {
+    const response = await fetch(event.image_url);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to download ${event.image_url}: ${response.status}`,
+      );
+    }
+
+    const contentType = response.headers.get("content-type") || "image/png";
+    return {
+      contentType,
+      bytes: Buffer.from(await response.arrayBuffer()),
+    };
   }
 
-  const contentType = response.headers.get("content-type") || "image/png";
+  const localPath = path.join(repoRoot, event.image_url);
+  const extension = path.extname(localPath).slice(1).toLowerCase();
+  const contentType = CONTENT_TYPES_BY_EXTENSION[extension];
+  if (!contentType) {
+    throw new Error(`Unsupported cover format for ${event.image_url}`);
+  }
+
+  return { contentType, bytes: await readFile(localPath) };
+}
+
+async function uploadCover(event) {
+  const { contentType, bytes } = await readCover(event);
+
   const extension = contentType.includes("jpeg")
     ? "jpg"
     : contentType.includes("webp")
       ? "webp"
       : "png";
-  const bytes = Buffer.from(await response.arrayBuffer());
   const objectPath = `${event.luma_event_id}.${extension}`;
 
   const { error: uploadError } = await supabase.storage
@@ -89,7 +123,16 @@ async function uploadCover(event) {
 async function main() {
   await assertReady();
 
-  const events = JSON.parse(await readFile(eventsPath, "utf8"));
+  const allEvents = JSON.parse(await readFile(eventsPath, "utf8"));
+  const events = onlyEventId
+    ? allEvents.filter((event) => event.luma_event_id === onlyEventId)
+    : allEvents;
+
+  if (onlyEventId && events.length === 0) {
+    console.error(`No event in past-events.json matches ${onlyEventId}`);
+    process.exit(1);
+  }
+
   console.log(`Seeding ${events.length} events...`);
 
   const rows = [];

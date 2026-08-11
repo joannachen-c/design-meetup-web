@@ -2,7 +2,18 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const footer = await readFile(
+  new URL("../src/components/SiteFooter.tsx", import.meta.url),
+  "utf8",
+);
+const home = await readFile(
+  new URL("../src/components/HomePage.tsx", import.meta.url),
+  "utf8",
+);
+const designSystem = await readFile(
+  new URL("../src/DesignSystem.tsx", import.meta.url),
+  "utf8",
+);
 const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 const primary = await readFile(
   new URL("../src/components/Primary.tsx", import.meta.url),
@@ -16,6 +27,10 @@ const partnerForm = await readFile(
   new URL("../src/components/PartnerContactForm.tsx", import.meta.url),
   "utf8",
 );
+const scrollReveal = await readFile(
+  new URL("../src/components/ScrollReveal.tsx", import.meta.url),
+  "utf8",
+);
 const newsletterForm = await readFile(
   new URL("../src/components/NewsletterForm.tsx", import.meta.url),
   "utf8",
@@ -26,15 +41,15 @@ const socialIcons = await readFile(
 );
 
 test("footer uses the existing logo on the shared twelve-column grid", () => {
-  assert.match(app, /className="[^"]*\bfooter-logo\b[^"]*"/);
-  assert.match(app, /src="\/design-meetup-logo\.svg"/);
-  assert.match(app, /<h2[^>]*>\s*Contact\s*<\/h2>/);
-  assert.match(app, /contactdesignmeetup@gmail\.com/);
-  assert.match(app, /Substack/);
-  assert.match(app, /aria-label="Instagram"/);
-  assert.match(app, /aria-label="LinkedIn"/);
-  assert.match(app, /aria-label="X"/);
-  assert.match(app, /Join the newsletter/);
+  assert.match(footer, /className="[^"]*\bfooter-logo\b[^"]*"/);
+  assert.match(footer, /src="\/design-meetup-logo\.svg"/);
+  assert.match(footer, /<h2[^>]*>\s*Contact\s*<\/h2>/);
+  assert.match(footer, /contactdesignmeetup@gmail\.com/);
+  assert.match(footer, /Substack/);
+  assert.match(footer, /aria-label="Instagram"/);
+  assert.match(footer, /aria-label="LinkedIn"/);
+  assert.match(footer, /aria-label="X"/);
+  assert.match(footer, /Join the newsletter/);
   assert.match(
     css,
     /footer\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\);[^}]*column-gap:\s*clamp\(16px,\s*2vw,\s*28px\);/s,
@@ -42,6 +57,51 @@ test("footer uses the existing logo on the shared twelve-column grid", () => {
   assert.match(css, /\.footer-brand\s*\{[^}]*grid-column:\s*1\s*\/\s*span 4;/s);
   assert.match(css, /\.footer-contact\s*\{[^}]*grid-column:\s*6\s*\/\s*span 3;/s);
   assert.match(css, /\.footer-newsletter\s*\{[^}]*grid-column:\s*9\s*\/\s*span 4;/s);
+});
+
+test("a hairline opens the footer on the shared page gutters", () => {
+  assert.match(
+    footer,
+    /<footer[\s\S]*?className="[^"]*\brelative\b[^"]*\bpx-\[clamp\(20px,6vw,96px\)\]/,
+  );
+  assert.match(
+    footer,
+    /<div\s+aria-hidden="true"\s+className="[^"]*\babsolute\b[^"]*\binset-x-\[clamp\(20px,6vw,96px\)\][^"]*\btop-0\b[^"]*\bh-px\b[^"]*\bbg-skeleton\b[^"]*"\s*\/>/,
+  );
+
+  // A border on the footer itself would run edge to edge past the gutters.
+  assert.doesNotMatch(footer, /<footer[^>]*className="[^"]*\bborder-t\b/);
+});
+
+test("footer logo destination depends on the page that renders it", () => {
+  assert.match(
+    footer,
+    /logoHref = "\/design-system"/,
+  );
+  assert.match(
+    footer,
+    /logoAriaLabel = "Design Meetup design system"/,
+  );
+  assert.match(
+    footer,
+    /aria-label=\{logoAriaLabel\}[\s\S]*?className="[^"]*\bfooter-logo\b[^"]*"[\s\S]*?href=\{logoHref\}/,
+  );
+  const logoAnchor =
+    footer.match(
+      /<a\s+aria-label=\{logoAriaLabel\}[\s\S]*?className="[^"]*\bfooter-logo\b[^"]*"[\s\S]*?<\/a>/,
+    )?.[0] ?? "";
+  assert.match(logoAnchor, /href=\{logoHref\}/);
+  assert.doesNotMatch(logoAnchor, /instagram\.com/);
+  assert.match(home, /import \{ SiteFooter \} from "\.\/SiteFooter"/);
+  assert.match(home, /<SiteFooter \/>/);
+  assert.match(
+    designSystem,
+    /import \{ SiteFooter \} from "\.\/components\/SiteFooter"/,
+  );
+  assert.match(
+    designSystem,
+    /<SiteFooter logoHref="\/" logoAriaLabel="Design Meetup home" \/>/,
+  );
 });
 
 test("footer logo is a vector that fills its four-column track", async () => {
@@ -84,8 +144,19 @@ test("footer logo bleeds off the bottom edge", () => {
   );
 });
 
-test("footer logo pops up from below when scrolled into view", () => {
-  assert.match(app, /<ScrollReveal className="footer-brand">/);
+test("footer logo pops up from below on every scroll into view", () => {
+  assert.match(footer, /<ScrollReveal className="footer-brand" repeat>/);
+  // The reveal rewinds once the mark is fully past the viewport, so the pop
+  // replays instead of firing once per page load.
+  assert.match(scrollReveal, /repeat = false/);
+  assert.match(scrollReveal, /if \(!repeat\) observation\.stop\(\)/);
+  assert.match(
+    scrollReveal,
+    /if \(repeat\) element\.classList\.remove\("is-visible"\)/,
+  );
+  // The pop starts 40px before the mark reaches the viewport, which is also the
+  // gap that keeps the rewind off the boundary the reveal fires at.
+  assert.match(scrollReveal, /\{ margin: 40 \}/);
 
   // Only the mark animates; the wrapper would otherwise add a second offset.
   assert.match(
@@ -106,9 +177,18 @@ test("footer logo pops up from below when scrolled into view", () => {
   );
 });
 
+test("footer logo lifts slightly on desktop hover only", () => {
+  // translate stays off the entrance transform so the pop-in curve is untouched.
+  assert.match(css, /\.footer-logo\s*\{[^}]*translate:\s*0 0;[^}]*translate 150ms ease-out;/s);
+  assert.match(
+    css,
+    /@media \(hover: hover\) and \(pointer: fine\)\s*\{[^}]*\.footer-brand\.is-visible \.footer-logo:hover\s*\{[^}]*translate:\s*0 -3px;/s,
+  );
+});
+
 test("footer contact links use the official destinations", () => {
   assert.match(
-    app,
+    footer,
     /href="mailto:contactdesignmeetup@gmail\.com"[\s\S]*?>[\s\S]*?contactdesignmeetup@gmail\.com[\s\S]*?<ArrowUpRightIcon[\s\S]*?<\/a>/,
   );
   for (const [label, href, icon] of [
@@ -119,24 +199,24 @@ test("footer contact links use the official destinations", () => {
   ]) {
     const escapedHref = href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     assert.match(
-      app,
+      footer,
       new RegExp(
         `aria-label="${label}"[\\s\\S]*?href="${escapedHref}"[\\s\\S]*?target="_blank"[\\s\\S]*?rel="noreferrer"[\\s\\S]*?>\\s*<${icon} \\/>\\s*<\\/a>`,
       ),
     );
   }
   assert.match(
-    app,
+    footer,
     /<div className="footer-contact-row[^"]*">\s*<a\s+aria-label="Substack"/,
   );
   assert.match(
-    app,
-    /import \{ InstagramIcon, LinkedInIcon, SubstackIcon, XIcon \} from "\.\/icons\/SocialIcons"/,
+    footer,
+    /import \{\s*InstagramIcon,\s*LinkedInIcon,\s*SubstackIcon,\s*XIcon,\s*\} from "\.\/icons\/SocialIcons"/,
   );
 });
 
 test("social icons are optically balanced", () => {
-  assert.match(app, /<SubstackIcon \/>/);
+  assert.match(footer, /<SubstackIcon \/>/);
   assert.match(
     socialIcons,
     /export function SubstackIcon[\s\S]*?className = "size-\[18px\]"/,
@@ -149,11 +229,11 @@ test("social icons are optically balanced", () => {
 
 test("footer contact links use the requested spacing", () => {
   assert.match(
-    app,
+    footer,
     /<nav\s+aria-label="Contact links"\s+className="[^"]*\bgap-5\b[^"]*"\s*>/,
   );
   assert.match(
-    app,
+    footer,
     /<div className="footer-contact-row [^"]*\bgap-6\b[^"]*">/,
   );
   assert.doesNotMatch(css, /\.footer-contact nav\s*\{/);
@@ -161,7 +241,7 @@ test("footer contact links use the requested spacing", () => {
 });
 
 test("email arrow fades without shifting horizontally", () => {
-  const arrow = app.match(/<ArrowUpRightIcon className="([^"]+)"/)?.[1] ?? "";
+  const arrow = footer.match(/<ArrowUpRightIcon className="([^"]+)"/)?.[1] ?? "";
 
   assert.match(arrow, /\btransition-opacity\b/);
   assert.doesNotMatch(arrow, /\btranslate-x-/);
@@ -169,8 +249,8 @@ test("email arrow fades without shifting horizontally", () => {
 });
 
 test("newsletter form is accessible, non-reloading, and left aligned", () => {
-  assert.match(app, /import \{ NewsletterForm \} from "\.\/NewsletterForm"/);
-  assert.match(app, /<NewsletterForm \/>/);
+  assert.match(footer, /import \{ NewsletterForm \} from "\.\/NewsletterForm"/);
+  assert.match(footer, /<NewsletterForm \/>/);
   assert.match(newsletterForm, /action=\{SUBSTACK_SUBSCRIBE_URL\}/);
   assert.match(newsletterForm, /<label htmlFor="newsletter-email"/);
   assert.match(newsletterForm, /type="email"/);
@@ -201,20 +281,19 @@ test("partner and newsletter CTAs share the Primary component", () => {
 });
 
 test("all footer text uses the text-base equivalent and stacks on mobile", () => {
-  assert.match(app, /<footer[\s\S]*\btext-base\b/);
+  assert.match(footer, /<footer[\s\S]*\btext-base\b/);
   assert.match(
-    app,
+    footer,
     /<h2 className="[^"]*\btext-xl\b[^"]*\bfont-bold\b[^"]*\btext-black\b[^"]*">\s*Contact\s*<\/h2>/,
   );
   assert.match(
-    app,
+    footer,
     /<h2 className="[^"]*\btext-xl\b[^"]*\bfont-bold\b[^"]*\btext-black\b[^"]*">\s*Join the newsletter\s*<\/h2>/,
   );
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*footer\s*\{[^}]*grid-template-columns:\s*1fr;[\s\S]*\.footer-brand,[\s\S]*\.footer-contact,[\s\S]*\.footer-newsletter\s*\{[^}]*grid-column:\s*1;/s,
   );
-  assert.match(app, /className="sr-only"/);
 });
 
 test("mobile footer places the newsletter above contact", () => {
@@ -222,17 +301,17 @@ test("mobile footer places the newsletter above contact", () => {
     css,
     /@media \(max-width: 820px\)[\s\S]*\.footer-brand\s*\{[^}]*order:\s*1;[^}]*\}[\s\S]*\.footer-newsletter\s*\{[^}]*order:\s*2;[^}]*\}[\s\S]*\.footer-contact\s*\{[^}]*order:\s*3;[^}]*\}[\s\S]*\.footer-credit\s*\{[^}]*order:\s*4;/s,
   );
-  assert.match(app, /<ScrollReveal className="footer-credit"/);
+  assert.match(footer, /<ScrollReveal className="footer-credit"/);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*\.footer-credit\s*\{[^}]*grid-column:\s*1;/s);
 });
 
-test("footer uses a white surface with dark, readable text", () => {
+test("footer uses the cream surface with dark, readable text", () => {
   assert.match(
-    app,
-    /<footer[\s\S]*className="[^"]*\bbg-white\b[^"]*\btext-body(?:\s|")/,
+    footer,
+    /<footer[\s\S]*className="[^"]*\bbg-surface\b[^"]*\btext-body(?:\s|")/,
   );
   assert.match(
-    app,
+    footer,
     /const footerLinkClassName =\s*"[^"]*\btext-muted\b[^"]*\bhover:text-ink\b/,
   );
   assert.match(
@@ -247,42 +326,47 @@ test("footer ends with a right-aligned gray technology credit", () => {
     /\.text-medium\s*\{[^}]*text-shadow:\s*-0\.25px 0 currentColor,\s*0\.25px 0 currentColor;/s,
   );
   assert.match(
-    app,
+    footer,
     /const footerCreditLinkClassName = `\$\{footerLinkClassName\} text-medium`;/,
   );
   assert.match(
-    app,
-    /<p className="[^"]*\btext-right\b[^"]*\btext-base\b[^"]*\btext-muted\b[^"]*\bmax-\[820px\]:text-left\b[^"]*">/,
+    footer,
+    /<div className="[^"]*\bflex\b[^"]*\bflex-col\b[^"]*\bgap-0\b[^"]*\btext-right\b[^"]*\btext-base\b[^"]*\btext-muted\b[^"]*\bmax-\[820px\]:text-left\b[^"]*">/,
   );
   for (const [label, href] of [
     ["Next.js", "https://nextjs.org/"],
     ["Cursor", "https://cursor.com/"],
     ["Supabase", "https://supabase.com/"],
+    ["Design System", "/design-system"],
   ]) {
     const escapedHref = href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     assert.match(
-      app,
+      footer,
       new RegExp(
         `<a[\\s\\S]*?className=\\{footerCreditLinkClassName\\}[\\s\\S]*?href="${escapedHref}"[\\s\\S]*?target="_blank"[\\s\\S]*?rel="noreferrer"[\\s\\S]*?>\\s*${label.replace(".", "\\.")}\\s*<\\/a>`,
       ),
     );
   }
   assert.match(
-    app,
+    footer,
     /Website built in[\s\S]*Next\.js[\s\S]*with[\s\S]*Cursor[\s\S]*and[\s\S]*Supabase[\s\S]*\./,
   );
   assert.match(
-    app,
-    /<footer[\s\S]*className="[^"]*pt-\[clamp\(80px,10vw,144px\)\][^"]*pb-\[clamp\(40px,5vw,72px\)\]/,
+    footer,
+    /Check out our[\s\S]*Design System[\s\S]*!/,
+  );
+  assert.match(
+    footer,
+    /<footer[\s\S]*className="[^"]*pt-\[clamp\(48px,6\.5vw,96px\)\][^"]*pb-\[clamp\(40px,5vw,72px\)\]/,
   );
 });
 
 test("footer links have no underlines and the credit has no team attribution", () => {
   assert.doesNotMatch(
-    app.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? "",
+    footer.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? "",
     /(?<!no-)underline(?:\s|")/,
   );
-  assert.doesNotMatch(app, /by the Design Meetup Team/);
-  assert.doesNotMatch(app, /href="#website-team"/);
-  assert.doesNotMatch(app, /showWebsiteTeam/);
+  assert.doesNotMatch(footer, /by the Design Meetup Team/);
+  assert.doesNotMatch(footer, /href="#website-team"/);
+  assert.doesNotMatch(footer, /showWebsiteTeam/);
 });

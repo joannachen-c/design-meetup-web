@@ -110,6 +110,17 @@ test("the inputs specimen renders the shared production Input component", () => 
   assert.doesNotMatch(inputsSection, /<input[\s\n>]/);
 });
 
+test("the inputs specimen documents the dropdown built on the input surface", () => {
+  const inputsSection =
+    designSystem.match(/<section\s+id="inputs"[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  assert.match(designSystem, /import \{ Select \} from "\.\/components\/Select"/);
+  assert.match(inputsSection, /<SelectSpecimen \/>/);
+  assert.match(inputsSection, />\s*Dropdown\s*</);
+  assert.match(designSystem, /function SelectSpecimen\(\)[\s\S]*?<Select\b/);
+  assert.doesNotMatch(designSystem, /<select[\s\n>]/);
+});
+
 test("inputs specimen field labels do not cascade bold into the control", () => {
   const inputsSection =
     designSystem.match(/<section\s+id="inputs"[\s\S]*?<\/section>/)?.[0] ?? "";
@@ -117,7 +128,7 @@ test("inputs specimen field labels do not cascade bold into the control", () => 
   assert.doesNotMatch(inputsSection, /<label className="[^"]*\bfont-bold\b/);
   assert.equal(
     inputsSection.match(/<span className="font-bold">/g)?.length,
-    2,
+    3,
   );
   assert.match(input, /\bfont-normal\b/);
 });

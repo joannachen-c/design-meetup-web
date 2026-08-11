@@ -14,6 +14,7 @@ import { InstagramIcon, LinkedInIcon, SubstackIcon, XIcon } from "./icons/Social
 import { Input } from "./Input";
 import { IconButton } from "./IconButton";
 import { Link } from "./Link";
+import { PartnerContactForm } from "./PartnerContactForm";
 import { Primary } from "./Primary";
 import { ScrollReveal } from "./ScrollReveal";
 import { SiteHeader } from "./SiteHeader";
@@ -1032,7 +1033,7 @@ export default function HomePage({
           <p className="m-0 text-pretty text-base leading-[1.2] text-[#202020]">
             We’d love to chat if you’re interested in partnering with us.
           </p>
-          <Primary href="#contact">Reach out</Primary>
+          <PartnerContactForm />
         </ScrollReveal>
         <ScrollReveal className="partner-logos" delay={80}>
           <ul

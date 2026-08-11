@@ -8,7 +8,7 @@ const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8
 test("Figma partner section appears immediately before the footer", () => {
   assert.match(
     app,
-    /<section[\s\S]*className="[^"]*\bpartner-cta\b[^"]*"[\s\S]*WE’VE WORKED WITH[\s\S]*Reach out[\s\S]*<\/section>\s*<footer\b/,
+    /<section[\s\S]*className="[^"]*\bpartner-cta\b[^"]*"[\s\S]*WE’VE WORKED WITH[\s\S]*<PartnerContactForm \/>[\s\S]*<\/section>\s*<footer\b/,
   );
   assert.match(app, /className="[^"]*\bpartner-grid\b[^"]*"/);
   assert.match(app, /\/partners\/figma\.png/);

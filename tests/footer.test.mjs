@@ -12,6 +12,10 @@ const input = await readFile(
   new URL("../src/components/Input.tsx", import.meta.url),
   "utf8",
 );
+const partnerForm = await readFile(
+  new URL("../src/components/PartnerContactForm.tsx", import.meta.url),
+  "utf8",
+);
 const socialIcons = await readFile(
   new URL("../src/components/icons/SocialIcons.tsx", import.meta.url),
   "utf8",
@@ -117,7 +121,7 @@ test("newsletter form is accessible, non-reloading, and left aligned", () => {
 });
 
 test("partner and newsletter CTAs share the Primary component", () => {
-  assert.match(app, /<Primary href="#contact">Reach out<\/Primary>/);
+  assert.match(partnerForm, /<Primary type="submit">Send<\/Primary>/);
   assert.match(app, /<Primary type="submit">\s*Subscribe\s*<\/Primary>/);
   assert.match(primary, /export function Primary/);
   assert.match(primary, /href \?/);

@@ -43,8 +43,10 @@ const PROXIMITY_HEIGHT = 6;
 const SELECTED_MULTIPLIER = 2;
 const HOVER_HEIGHT = 10;
 
-const ACTIVE_COLOR = "oklch(22% 0.025 250)";
-const IDLE_COLOR = "oklch(88% 0.018 240)";
+// Ticks are colored through inline styles, so they read the design system
+// variables directly rather than duplicating the values.
+const ACTIVE_COLOR = "var(--color-ink)";
+const IDLE_COLOR = "var(--color-gray-300)";
 const DISTANCE_LIMIT = 6;
 const HOVER_DISTANCE_LIMIT = 4;
 const IDLE_LERP_FLOOR = 0.14;

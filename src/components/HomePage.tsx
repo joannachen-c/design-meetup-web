@@ -107,7 +107,7 @@ function cardTransform({
 const CARD_ENTRANCE_TRANSFORM = `perspective(2200px) translateX(0%) translateZ(-48px) scaleX(0.08) skewY(${CARD_SHEAR_DEG}deg) scale(0.82) translate(0px, 12px)`;
 
 const footerLinkClassName =
-  "rounded-sm text-[oklch(53%_0.025_250)] no-underline hover:text-[oklch(22%_0.025_250)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[oklch(22%_0.025_250)]";
+  "rounded-sm text-muted no-underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
 const footerCreditLinkClassName = `${footerLinkClassName} text-medium`;
 
 const detailSummaryClassName = [
@@ -117,7 +117,7 @@ const detailSummaryClassName = [
   "[&_h3]:text-xl [&_h3]:font-bold [&_h3]:leading-[1.35] [&_h3]:tracking-[-0.06em] [&_h3]:text-black",
   "[&_h4]:text-base [&_h4]:font-bold [&_h4]:leading-[1.35] [&_h4]:tracking-[-0.06em] [&_h4]:text-black",
   "[&_strong]:font-bold [&_strong]:text-black [&_a]:text-black [&_a]:underline [&_a]:underline-offset-[3px]",
-  "[&_ul]:pl-[1.2rem] [&_ol]:pl-[1.2rem] [&_blockquote]:border-l-2 [&_blockquote]:border-[oklch(88%_0.018_240)] [&_blockquote]:pl-[0.9rem] [&_hr]:bg-[oklch(88%_0.018_240)]",
+  "[&_ul]:pl-[1.2rem] [&_ol]:pl-[1.2rem] [&_blockquote]:border-l-2 [&_blockquote]:border-gray-300 [&_blockquote]:pl-[0.9rem] [&_hr]:bg-gray-300",
 ].join(" ");
 
 // Breathing room above the summary when "See less" scrolls it back into view.
@@ -1014,7 +1014,7 @@ export default function HomePage({
                     </div>
                   </div>
                   <ul
-                    className="detail-photo-list m-0 touch-pan-x p-0 pb-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[oklch(22%_0.025_250)]"
+                    className="detail-photo-list m-0 touch-pan-x p-0 pb-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink"
                     id="event-photo-rail"
                     ref={setDetailPhotoRail}
                     tabIndex={0}
@@ -1023,7 +1023,7 @@ export default function HomePage({
                     {selectedPhotos.map((photoUrl, photoIndex) => (
                       <li key={`${selectedEvent.id}-${photoIndex}`}>
                         <img
-                          className="detail-photo h-[clamp(180px,52vw,260px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-[oklch(98%_0.008_240)] object-contain min-[821px]:h-[clamp(190px,15vw,200px)] min-[821px]:max-w-none"
+                          className="detail-photo h-[clamp(180px,52vw,260px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(190px,15vw,200px)] min-[821px]:max-w-none"
                           src={photoUrl}
                           alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotos.length}`}
                           loading={photoIndex === 0 ? "eager" : "lazy"}
@@ -1135,7 +1135,7 @@ export default function HomePage({
               style={{ scale: reduceMotion ? 1 : aboutVideoScale }}
             >
               <MuxPlayer
-                className="about-video block aspect-[16/9] w-full overflow-hidden rounded-[20px] border border-[#f2f2f2] outline-none"
+                className="about-video block aspect-[16/9] w-full overflow-hidden rounded-[20px] border border-gray-200 outline-none"
                 ref={aboutPlayerRef}
                 playbackId="Lsd9OIuICyIM2sIfKSt7ecwwVjFvMPeXOxNFS00X43dM"
                 streamType="on-demand"

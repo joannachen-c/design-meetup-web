@@ -1107,7 +1107,7 @@ footer {
 
   .partner-cta {
     grid-template-columns: 1fr;
-    row-gap: 48px;
+    row-gap: 96px;
     min-height: auto;
   }
 
@@ -1119,6 +1119,7 @@ footer {
   .partner-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     width: min(100%, 382px);
+    margin-inline: auto;
   }
 
   .partner-tile {

@@ -12,6 +12,7 @@
     "seed:galleries": "node scripts/seed-galleries.mjs",
     "refresh:summaries": "node scripts/refresh-event-summaries.mjs",
     "seed:sponsors": "node scripts/seed-sponsors.mjs",
+    "trim:sponsor-logos": "node scripts/trim-sponsor-logos.mjs",
     "upload:sponsor-logos": "node scripts/upload-sponsor-logos.mjs"
   },
   "repository": {
@@ -41,6 +42,7 @@
     "@types/react-dom": "^19.2.4",
     "agentation": "^3.0.2",
     "dotenv": "^17.4.2",
+    "sharp": "^0.35.3",
     "typescript": "~5.9.0"
   }
 }

@@ -205,20 +205,28 @@ test("event photo gallery starts without extra top padding", () => {
   );
 });
 
-test("event details include sponsors as metadata in the definition list", () => {
+test("sponsors render as chips beside the other event metadata", () => {
   assert.match(
     app,
-    /<dl[^>]*>[\s\S]*<dt[^>]*>\s*Sponsors\s*<\/dt>[\s\S]*className="[^"]*\bsponsor-placeholder\b[^"]*"[\s\S]*<\/dl>/,
+    /<ul[^>]*className="[^"]*\bdetail-chips\b[^"]*"[\s\S]*sponsors\.map\(\(sponsor\)[\s\S]*sponsor\.name[\s\S]*<Chip>\{chipContent\}<\/Chip>[\s\S]*<\/ul>/,
   );
   assert.match(app, /Sponsor slot open/);
   assert.doesNotMatch(app, /className="detail-sponsors"/);
   assert.doesNotMatch(app, /event-sponsors-title/);
-  assert.match(app, /sponsor-placeholder bg-transparent/);
+  assert.match(
+    app,
+    /<Chip className="sponsor-placeholder" variant="outline">/,
+  );
+  assert.doesNotMatch(app, /className="sponsor-list/);
+  assert.doesNotMatch(css, /\.sponsor-list\b/);
 });
 
-test("sponsor logos use restrained Tailwind spacing", () => {
-  assert.match(app, /className="sponsor-list m-0 gap-5 p-0 pb-4"/);
-  assert.doesNotMatch(css, /\.sponsor-list\s*\{[^}]*\bgap:/s);
+test("sponsor logos shrink to sit inside a chip next to the sponsor name", () => {
+  assert.match(app, /sponsor-logo border-0 outline-none/);
+  assert.match(
+    css,
+    /\.sponsor-logo\s*\{[^}]*max-width:\s*72px;[^}]*max-height:\s*18px;[^}]*object-fit:\s*contain;/s,
+  );
 });
 
 test("event details begin closer to the selected event caption", () => {
@@ -325,7 +333,7 @@ test("View on Luma uses the shared Link component as a safe external link", () =
 test("View on Luma sits once under sponsor content with an aligned left edge", () => {
   assert.match(
     app,
-    /<div className="detail-sponsor">[\s\S]*<dt[^>]*>\s*Sponsors\s*<\/dt>[\s\S]*<dd className="[^"]*\bmb-2\b[^"]*">[\s\S]*\{sponsors\.length > 0 \? \([\s\S]*Sponsor slot open[\s\S]*<\/dd>[\s\S]*<Link[\s\S]*className="[^"]*\bgap-2\b[^"]*"[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*<\/Link>[\s\S]*<\/div>/,
+    /<div className="detail-sponsor">[\s\S]*<dt[^>]*>\s*Sponsors\s*<\/dt>[\s\S]*<dd className="[^"]*\bmb-2\b[^"]*">[\s\S]*detail-chips[\s\S]*Sponsor slot open[\s\S]*<\/dd>[\s\S]*<Link[\s\S]*className="[^"]*\bgap-2\b[^"]*"[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*<\/Link>[\s\S]*<\/div>/,
   );
   assert.doesNotMatch(app, /<Link[^>]*className="[^"]*-ml-/);
   assert.doesNotMatch(

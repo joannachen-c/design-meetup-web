@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { ArrowUpRightIcon } from "./icons/ArrowUpRightIcon";
+import { Chip } from "./Chip";
 import { InstagramIcon, LinkedInIcon, SubstackIcon, XIcon } from "./icons/SocialIcons";
 import { Input } from "./Input";
 import { IconButton } from "./IconButton";
@@ -17,7 +18,6 @@ import { Link } from "./Link";
 import { Primary } from "./Primary";
 import { ScrollReveal } from "./ScrollReveal";
 import { SiteHeader } from "./SiteHeader";
-import { Tooltip, TooltipProvider } from "./Tooltip";
 import type { MeetupEvent } from "@/lib/supabase";
 
 const partnerLogos = [
@@ -737,39 +737,51 @@ export default function HomePage({
                     Sponsors
                   </dt>
                   <dd className="m-0 mb-2 text-base leading-6">
-                    {sponsors.length > 0 ? (
-                      <TooltipProvider>
-                        <ul className="sponsor-list m-0 gap-5 p-0 pb-4">
-                          {sponsors.map((sponsor) => (
-                            <li key={sponsor.id}>
+                    <ul
+                      className="detail-chips m-0 gap-2.5 p-0 pb-4"
+                      aria-label="Sponsors"
+                    >
+                      {sponsors.length > 0 ? (
+                        sponsors.map((sponsor) => {
+                          const chipContent = (
+                            <>
+                              <span className="sr-only">Sponsor: </span>
                               {sponsor.logo_url ? (
-                                <Tooltip content={sponsor.name}>
-                                  <span
-                                    className="inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
-                                    tabIndex={0}
-                                  >
-                                    <img
-                                      className="sponsor-logo border-0 outline-none"
-                                      src={sponsor.logo_url}
-                                      alt={sponsor.name}
-                                      loading="lazy"
-                                    />
-                                  </span>
-                                </Tooltip>
+                                <img
+                                  className="sponsor-logo border-0 outline-none"
+                                  src={sponsor.logo_url}
+                                  alt=""
+                                  loading="lazy"
+                                />
+                              ) : null}
+                              {sponsor.name}
+                            </>
+                          );
+
+                          return (
+                            <li key={sponsor.id}>
+                              {sponsor.website_url ? (
+                                <Chip
+                                  href={sponsor.website_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {chipContent}
+                                </Chip>
                               ) : (
-                                <span className="sponsor-placeholder bg-transparent px-0 py-2.5 text-base">
-                                  {sponsor.name}
-                                </span>
+                                <Chip>{chipContent}</Chip>
                               )}
                             </li>
-                          ))}
-                        </ul>
-                      </TooltipProvider>
-                    ) : (
-                      <span className="sponsor-placeholder bg-transparent px-0 py-2.5 text-base">
-                        Sponsor slot open
-                      </span>
-                    )}
+                          );
+                        })
+                      ) : (
+                        <li>
+                          <Chip className="sponsor-placeholder" variant="outline">
+                            Sponsor slot open
+                          </Chip>
+                        </li>
+                      )}
+                    </ul>
                   </dd>
                   {selectedEvent.luma_url ? (
                     <Link

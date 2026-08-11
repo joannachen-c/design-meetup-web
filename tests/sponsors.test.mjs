@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
+import sharp from "sharp";
 
 const migration = await readFile(
   new URL(
@@ -14,6 +15,10 @@ const supabase = await readFile(
   "utf8",
 );
 const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
+const chip = await readFile(
+  new URL("../src/components/Chip.tsx", import.meta.url),
+  "utf8",
+);
 const tooltip = await readFile(
   new URL("../src/components/Tooltip.tsx", import.meta.url),
   "utf8",
@@ -101,7 +106,7 @@ test("the Phia event remains stored but is hidden from the site", () => {
   );
 });
 
-test("sponsor logos show an accessible name tooltip on hover and focus", () => {
+test("the shared tooltip primitive keeps its styling for other surfaces", () => {
   assert.match(tooltip, /@radix-ui\/react-tooltip/);
   assert.match(tooltip, /delayDuration=\{300\}/);
   assert.match(tooltip, /rounded-md/);
@@ -109,7 +114,51 @@ test("sponsor logos show an accessible name tooltip on hover and focus", () => {
   assert.match(tooltip, /text-sm/);
   assert.match(tooltip, /text-surface/);
   assert.doesNotMatch(tooltip, /TooltipPrimitive\.Arrow/);
-  assert.match(app, /<TooltipProvider>/);
-  assert.match(app, /<Tooltip content=\{sponsor\.name\}>/);
-  assert.match(app, /tabIndex=\{0\}/);
+});
+
+test("sponsor chips name the sponsor in text instead of relying on a tooltip", () => {
+  assert.match(app, /<span className="sr-only">Sponsor: <\/span>/);
+  assert.match(app, /\{sponsor\.name\}/);
+  assert.doesNotMatch(app, /<Tooltip content=\{sponsor\.name\}>/);
+  assert.doesNotMatch(app, /alt=\{sponsor\.name\}/);
+});
+
+test("sponsor chips open the sponsor site when a URL is known", () => {
+  assert.match(
+    app,
+    /sponsor\.website_url \? \(\s*<Chip\s+href=\{sponsor\.website_url\}\s+target="_blank"\s+rel="noreferrer"\s*>/,
+  );
+  // Sponsors without a known site stay inert rather than linking nowhere.
+  assert.match(app, /\) : \(\s*<Chip>\{chipContent\}<\/Chip>\s*\)/);
+  assert.match(chip, /hover:bg-gray-200/);
+  assert.match(chip, /active:scale-\[0\.97\]/);
+  assert.match(chip, /transition-\[background-color,transform\]/);
+});
+
+test("every sponsor with a public site carries its URL", () => {
+  const missing = sponsors
+    .filter((sponsor) => !sponsor.website_url)
+    .map((sponsor) => sponsor.slug);
+
+  // Only the unnamed Arch partner has no confirmed site yet.
+  assert.deepEqual(missing, ["arch-partner"]);
+});
+
+test("sponsor logos ship without baked-in padding around the mark", async () => {
+  const dir = new URL("../scripts/data/sponsor-logos/", import.meta.url);
+  const files = (await readdir(dir)).filter((name) => name.endsWith(".png"));
+
+  for (const filename of files) {
+    const source = await readFile(new URL(filename, dir));
+    const before = await sharp(source).metadata();
+    const { info } = await sharp(source)
+      .trim({ threshold: 2 })
+      .toBuffer({ resolveWithObject: true });
+
+    assert.equal(
+      `${filename} ${info.width}×${info.height}`,
+      `${filename} ${before.width}×${before.height}`,
+      `${filename} has empty margins; run npm run trim:sponsor-logos`,
+    );
+  }
 });

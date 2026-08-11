@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { ArrowUpRightIcon } from "./components/icons/ArrowUpRightIcon";
 import { IconButton } from "./components/IconButton";
 import { Input } from "./components/Input";
 import { Link } from "./components/Link";
 import { Primary } from "./components/Primary";
+import { Select } from "./components/Select";
 import { SiteHeader } from "./components/SiteHeader";
 import { Tooltip, TooltipProvider } from "./components/Tooltip";
 
@@ -78,6 +80,26 @@ function HelpIcon() {
       />
       <circle cx="12" cy="18" r="1" fill="currentColor" />
     </svg>
+  );
+}
+
+function SelectSpecimen() {
+  const [city, setCity] = useState("sf");
+
+  return (
+    <span className="flex flex-wrap items-center gap-2 text-base text-body">
+      Our next meetup is in
+      <Select
+        aria-label="City"
+        options={[
+          { value: "sf", label: "San Francisco" },
+          { value: "nyc", label: "New York" },
+          { value: "la", label: "Los Angeles" },
+        ]}
+        value={city}
+        onValueChange={setCity}
+      />
+    </span>
   );
 }
 
@@ -529,6 +551,14 @@ export default function DesignSystem() {
                 <span className="font-bold">Disabled</span>
                 <Input placeholder="Unavailable" disabled />
               </label>
+            </div>
+            <div className="grid gap-2 text-base">
+              <span className="font-bold">Dropdown</span>
+              <SelectSpecimen />
+              <p className={specimenDescriptionClassName}>
+                Shares the input surface and radius, sizes itself to the selected
+                option, and sits inline inside a sentence.
+              </p>
             </div>
           </section>
 

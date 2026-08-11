@@ -68,6 +68,27 @@ main {
   transform: translateY(0);
 }
 
+/* Grows from whichever corner the primitive anchored the menu to, so it reads
+   as coming out of the trigger rather than appearing over it. */
+.select-menu {
+  transform-origin: var(--radix-select-content-transform-origin);
+}
+
+.select-menu[data-state="open"] {
+  animation: select-menu-in 140ms ease-out;
+}
+
+@keyframes select-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .site-header {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -776,6 +797,10 @@ footer {
 
   .team-polaroid:hover {
     transform: none;
+  }
+
+  .select-menu[data-state="open"] {
+    animation: none;
   }
 
   .scroll-reveal {

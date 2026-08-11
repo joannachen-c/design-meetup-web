@@ -64,7 +64,7 @@ export function PartnerContactForm() {
       className="partner-form flex w-fit max-w-full flex-col gap-2 text-base leading-[1.2] text-body"
       onSubmit={handleSubmit}
     >
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+      <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-2">
         <span>My name is</span>
         <label className="sr-only" htmlFor={`${fieldId}-first-name`}>
           First name
@@ -99,7 +99,7 @@ export function PartnerContactForm() {
           }}
         />
       </div>
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+      <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-2">
         <span>I’m interested in</span>
         <label className="sr-only" htmlFor={`${fieldId}-interest`}>
           What you’re interested in
@@ -119,6 +119,7 @@ export function PartnerContactForm() {
           City
         </label>
         <Select
+          className="min-w-[8rem] grow basis-[8rem]"
           id={`${fieldId}-city`}
           name="city"
           options={cityOptions}
@@ -150,8 +151,8 @@ export function PartnerContactForm() {
         />
         <Primary type="submit">Send</Primary>
       </div>
-      {/* w-0 keeps the confirmation out of the form's fit-content width, so the
-          sentence row above stays the measure that both rows align to. */}
+      {/* w-0 keeps the confirmation out of the form's fit-content width so the
+          rows above keep a shared right edge. */}
       <p
         aria-live="polite"
         className="m-0 w-0 min-w-full text-pretty text-base text-muted empty:hidden"

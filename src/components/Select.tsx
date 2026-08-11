@@ -52,8 +52,13 @@ export function Select({
   value,
   "aria-label": ariaLabel,
 }: SelectProps) {
+  // Default to content width; callers can pass grow / an explicit w-* to fill a row.
+  const hasWidthOverride = /(?:^|\s)(?:w-|min-w-|max-w-|grow|flex-1)(?:\s|$)/.test(
+    className,
+  );
   const triggerClassName = [
-    "group inline-flex min-h-11 w-fit max-w-full items-center gap-1.5 rounded-[10px] border-0 bg-surface-muted py-2.5 pr-3 pl-4 text-left text-base font-normal text-ink",
+    "group inline-flex min-h-11 max-w-full items-center justify-between gap-1.5 rounded-[10px] border-0 bg-surface-muted py-2.5 pr-3 pl-4 text-left text-base font-normal text-ink",
+    hasWidthOverride ? "" : "w-fit",
     "transition-colors duration-150 ease-out",
     "cursor-pointer hover:bg-gray-200 data-[state=open]:bg-gray-200",
     "focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ink",
@@ -75,7 +80,7 @@ export function Select({
         id={id}
         aria-label={ariaLabel}
       >
-        <span className="truncate leading-[1.2]">
+        <span className="min-w-0 truncate leading-[1.2]">
           <SelectPrimitive.Value placeholder={placeholder} />
         </span>
         <SelectPrimitive.Icon asChild>

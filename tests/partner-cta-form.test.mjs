@@ -120,8 +120,11 @@ test("dropdown reuses the input surface, radius, and height", () => {
 
 test("dropdown sizes itself to the selected option and shows one chevron", () => {
   assert.match(select, /<SelectPrimitive\.Value placeholder=\{placeholder\} \/>/);
-  assert.match(select, /\bw-fit\b/);
-  assert.match(select, /<span className="truncate leading-\[1\.2\]">/);
+  assert.match(select, /hasWidthOverride \? "" : "w-fit"/);
+  assert.match(select, /<span className="min-w-0 truncate leading-\[1\.2\]">/);
+  // The chevron sits on the trigger's inner right edge, even when the trigger
+  // is stretched wider than its label.
+  assert.match(select, /\bjustify-between\b/);
   assert.match(select, /import \{ ChevronDownIcon \} from "\.\/icons\/ChevronDownIcon"/);
   assert.equal(select.match(/<ChevronDownIcon\b/g)?.length, 1);
   assert.match(select, /group-data-\[state=open\]:-rotate-180/);
@@ -198,13 +201,13 @@ test("submitting hands off to email without reloading the page", () => {
   assert.match(form, /\bempty:hidden\b/);
 });
 
-test("sentence breaks into two rows and wraps instead of overflowing", () => {
+test("sentence breaks into rows and wraps instead of overflowing", () => {
   assert.match(
     form,
     /className="partner-form flex w-fit max-w-full flex-col gap-2/,
   );
   assert.equal(
-    form.match(/flex-wrap items-center gap-x-2 gap-y-2/g)?.length,
+    form.match(/flex w-full flex-wrap items-center gap-x-2 gap-y-2/g)?.length,
     3,
   );
   // Vertical form gap matches the horizontal gap between email + Send.
@@ -218,13 +221,18 @@ test("the selected checkmark matches the chevron stroke weight", () => {
   assert.match(chevron, /strokeWidth="1\.5"/);
 });
 
-test("the email row stretches so Send ends where the city dropdown ends", () => {
-  // The form is fit-content, so its width is the sentence row; the email field
-  // then grows to absorb the slack and Send lands on that same right edge.
+test("every row shares one right edge so the city select lines up with Send", () => {
+  // Form stays fit-content; each row is full-width inside it. The city select
+  // and email field grow to absorb slack so the right edge is shared.
   assert.doesNotMatch(form, /className="partner-form[^"]*(?<!max-)w-full/);
   assert.doesNotMatch(form, /className="partner-form[^"]*items-start/);
+  assert.match(
+    form,
+    /<Select\s+className="min-w-\[8rem\] grow basis-\[8rem\]"\s+id=\{\`\$\{fieldId\}-city\`\}/,
+  );
   assert.match(form, /className="min-w-\[12rem\] grow basis-\[12rem\]"/);
   assert.doesNotMatch(form, /\bmax-w-\[20rem\]\b/);
   assert.match(form, /role="status"/);
   assert.match(form, /\bw-0 min-w-full\b/);
+  assert.match(select, /hasWidthOverride/);
 });

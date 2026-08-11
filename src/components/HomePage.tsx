@@ -357,12 +357,12 @@ export default function HomePage({
   const summaryParagraphs =
     selectedEvent?.summary?.split(/\n{2,}/).filter(Boolean) ?? [];
   const summaryHtml = selectedEvent?.summary_html?.trim() ?? "";
-  const selectedPhotos =
-    selectedEvent?.gallery_images?.length > 0
-      ? selectedEvent.gallery_images.map((image) => image.image_url)
-      : selectedEvent
-        ? [selectedEvent.image_url]
-        : [];
+  // Shared seed placeholders live under /placeholders/ in storage. Hide that
+  // default set until an event has its own photos.
+  const selectedPhotos = (selectedEvent?.gallery_images ?? [])
+    .map((image) => image.image_url)
+    .filter((url) => !url.includes("/placeholders/"));
+  const showEventGallery = selectedPhotos.length > 0;
   const tickerItems = useMemo(
     () =>
       events.map((item) => ({
@@ -397,8 +397,8 @@ export default function HomePage({
     if (rail) updatePhotoRailBounds(rail);
   }, [updatePhotoRailBounds]);
 
-  // Keyed by URL so the shared placeholder photos stay revealed when you move
-  // between events instead of shimmering again.
+  // Keyed by URL so photos stay revealed when you move between events instead
+  // of shimmering again.
   const markPhotoLoaded = useCallback((photoUrl: string) => {
     setLoadedPhotos((previous) =>
       previous[photoUrl] ? previous : { ...previous, [photoUrl]: true },
@@ -1024,6 +1024,7 @@ export default function HomePage({
                 />
               </div>
               <div className="detail-extras pt-0">
+                {showEventGallery ? (
                 <section
                   className="detail-photos"
                   aria-labelledby="event-photos-title"
@@ -1101,6 +1102,7 @@ export default function HomePage({
                     ))}
                   </ul>
                 </section>
+                ) : null}
               </div>
             </motion.div>
             </AnimatePresence>

@@ -50,10 +50,10 @@ test("sponsor schema normalizes reusable sponsors and event links", () => {
   assert.match(migration, /Public read event sponsors/);
 });
 
-test("all 16 events map to known reusable sponsor records", () => {
+test("all 19 events map to known reusable sponsor records", () => {
   const slugs = new Set(sponsors.map((sponsor) => sponsor.slug));
-  assert.equal(sponsors.length, 15);
-  assert.equal(mappings.length, 16);
+  assert.equal(sponsors.length, 17);
+  assert.equal(mappings.length, 19);
   for (const mapping of mappings) {
     assert.ok(mapping.sponsor_slugs.length > 0);
     for (const slug of mapping.sponsor_slugs) {

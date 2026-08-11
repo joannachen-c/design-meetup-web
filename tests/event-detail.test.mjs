@@ -195,6 +195,16 @@ test("event details render the selected event gallery images from Supabase", () 
   assert.doesNotMatch(app, /selectedPhotos\.slice\(/);
 });
 
+test("the gallery stays hidden while an event still uses the shared placeholders", () => {
+  assert.match(app, /url\.includes\("\/placeholders\/"\)/);
+  assert.match(app, /const showEventGallery = selectedPhotos\.length > 0/);
+  assert.match(app, /\{showEventGallery \? \(/);
+  assert.doesNotMatch(
+    app,
+    /gallery_images\?\.length > 0[\s\S]*\? selectedEvent\.image_url/,
+  );
+});
+
 test("event photos use an accessible horizontally scrollable rail", () => {
   assert.match(
     app,

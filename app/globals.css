@@ -69,6 +69,21 @@ body {
   min-height: 100dvh;
 }
 
+/* Balance short display copy while letting longer prose avoid a stranded final
+   word. Unsupported browsers fall back to their normal wrapping algorithm. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
 main {
   width: 100%;
   min-height: 100dvh;

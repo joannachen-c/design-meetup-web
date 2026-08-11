@@ -1412,7 +1412,7 @@ export default function HomePage({
                 />
               </div>
               {showEventGallery ? (
-              <div className="detail-extras pt-0">
+              <div className="detail-extras pt-[var(--detail-extra-gap)]">
                 <section
                   className="detail-photos"
                   aria-label="Event gallery"

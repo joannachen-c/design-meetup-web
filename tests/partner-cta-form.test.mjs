@@ -143,6 +143,7 @@ test("sentence form offers the requested interests and cities", () => {
   for (const [value, label] of [
     ["panelist", "being a panelist"],
     ["judge", "judging a makeathon"],
+    ["venue", "providing a venue"],
     ["sponsor-one", "sponsoring one event"],
     ["sponsor-series", "sponsoring an event series"],
   ]) {

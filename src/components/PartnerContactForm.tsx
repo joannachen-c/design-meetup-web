@@ -15,6 +15,11 @@ const interestOptions = [
     subject: "Judging a makeathon",
   },
   {
+    value: "venue",
+    label: "providing a venue",
+    subject: "Providing a venue",
+  },
+  {
     value: "sponsor-one",
     label: "sponsoring one event",
     subject: "Sponsoring one event",

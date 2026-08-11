@@ -35,6 +35,8 @@ const cityOptions: SelectOption[] = [
 
 export function PartnerContactForm() {
   const fieldId = useId();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [interest, setInterest] = useState(interestOptions[0].value);
   const [city, setCity] = useState(cityOptions[0].value);
   const [email, setEmail] = useState("");
@@ -48,7 +50,8 @@ export function PartnerContactForm() {
     const selectedCity =
       cityOptions.find((option) => option.value === city) ?? cityOptions[0];
     const subject = `Design Meetup — ${selectedInterest.subject}`;
-    const body = `Hi Design Meetup,\n\nI'm interested in ${selectedInterest.label} in ${selectedCity.label}.\n\nReach me at ${email}.`;
+    const fullName = `${firstName} ${lastName}`.trim();
+    const body = `Hi Design Meetup,\n\nMy name is ${fullName}.\nI'm interested in ${selectedInterest.label} in ${selectedCity.label}.\n\nReach me at ${email}.`;
 
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
       subject,
@@ -61,6 +64,41 @@ export function PartnerContactForm() {
       className="partner-form flex w-fit max-w-full flex-col gap-2 text-base leading-[1.2] text-body"
       onSubmit={handleSubmit}
     >
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+        <span>My name is</span>
+        <label className="sr-only" htmlFor={`${fieldId}-first-name`}>
+          First name
+        </label>
+        <Input
+          className="min-w-[8rem] grow basis-[8rem]"
+          id={`${fieldId}-first-name`}
+          name="first-name"
+          autoComplete="given-name"
+          placeholder="First"
+          required
+          value={firstName}
+          onChange={(event) => {
+            setFirstName(event.target.value);
+            setSent(false);
+          }}
+        />
+        <label className="sr-only" htmlFor={`${fieldId}-last-name`}>
+          Last name
+        </label>
+        <Input
+          className="min-w-[8rem] grow basis-[8rem]"
+          id={`${fieldId}-last-name`}
+          name="last-name"
+          autoComplete="family-name"
+          placeholder="Last"
+          required
+          value={lastName}
+          onChange={(event) => {
+            setLastName(event.target.value);
+            setSent(false);
+          }}
+        />
+      </div>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         <span>I’m interested in</span>
         <label className="sr-only" htmlFor={`${fieldId}-interest`}>
@@ -102,7 +140,7 @@ export function PartnerContactForm() {
           name="email"
           type="email"
           autoComplete="email"
-          placeholder="you@email.com"
+          placeholder="yourname@company.com"
           required
           value={email}
           onChange={(event) => {

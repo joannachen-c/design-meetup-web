@@ -261,3 +261,14 @@ test("centering targets the selected slide's layout box, not the transformed cov
   );
   assert.doesNotMatch(app, /\.scrollIntoView\(\{[^}]*inline: "center"/s);
 });
+
+// scrollIntoView scrolls every ancestor scrollport, so keeping the selected row
+// visible also dragged the page down as soon as list view mounted. The list has
+// to scroll its own container and nothing above it.
+test("list view keeps the selected row visible without scrolling the page", () => {
+  assert.doesNotMatch(app, /rowRefs\.current\[selectedIndex\]\?\.scrollIntoView/);
+  assert.match(
+    app,
+    /if \(view !== "list"\) return;[\s\S]*?listScrollElement\.scrollBy\(\{\s*top: offset,/,
+  );
+});

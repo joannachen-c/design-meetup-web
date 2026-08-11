@@ -620,15 +620,29 @@ export default function HomePage({
   }, [listScrollElement]);
 
   // Arrow keys move the selection in either view, so keep the highlighted row
-  // inside the list's own scroll area.
+  // inside the list's own scroll area. scrollIntoView would also scroll every
+  // ancestor scrollport, which drags the page down the moment list view mounts.
   useEffect(() => {
     if (view !== "list") return;
 
-    rowRefs.current[selectedIndex]?.scrollIntoView({
+    const row = rowRefs.current[selectedIndex];
+    if (!listScrollElement || !row) return;
+
+    const viewport = listScrollElement.getBoundingClientRect();
+    const rowBox = row.getBoundingClientRect();
+    const offset =
+      rowBox.top < viewport.top
+        ? rowBox.top - viewport.top
+        : rowBox.bottom > viewport.bottom
+          ? rowBox.bottom - viewport.bottom
+          : 0;
+    if (offset === 0) return;
+
+    listScrollElement.scrollBy({
+      top: offset,
       behavior: reduceMotion ? "auto" : "smooth",
-      block: "nearest",
     });
-  }, [reduceMotion, selectedIndex, view]);
+  }, [listScrollElement, reduceMotion, selectedIndex, view]);
 
   // The covers hold just short of their slots until the loader lifts, then fade
   // up right to left. Once that has played, selection hands over to the spring

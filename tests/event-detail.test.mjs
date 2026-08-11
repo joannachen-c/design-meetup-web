@@ -227,7 +227,36 @@ test("event photo controls scroll by a responsive increment and disable at bound
   assert.match(app, /rail\.scrollLeft < rail\.scrollWidth - rail\.clientWidth - 1/);
   assert.match(app, /aria-label="Previous event photo"[\s\S]*aria-controls="event-photo-rail"[\s\S]*disabled=\{!canScrollPhotosLeft\}/);
   assert.match(app, /aria-label="Next event photo"[\s\S]*aria-controls="event-photo-rail"[\s\S]*disabled=\{!canScrollPhotosRight\}/);
-  assert.match(app, /onLoad=\{\(\) => updatePhotoRailBoundsFromRef\(\)\}/);
+  assert.match(app, /onLoad=\{\(\) => \{[\s\S]*?updatePhotoRailBoundsFromRef\(\);/);
+});
+
+test("event photos shimmer gray until each one decodes", () => {
+  assert.match(
+    app,
+    /detail-photo-frame[^"]*relative[^"]*overflow-hidden[^"]*rounded-md"\s*\n\s*data-loaded=\{loadedPhotos\[photoUrl\] \? "true" : "false"\}/,
+  );
+  assert.match(app, /className="detail-photo-shimmer bg-skeleton"/);
+  assert.match(app, /aria-hidden="true"/);
+  // A cached photo can be complete before onLoad is attached.
+  assert.match(app, /node\?\.complete && node\.naturalWidth > 0/);
+  assert.match(app, /onError=\{\(\) => markPhotoLoaded\(photoUrl\)\}/);
+  assert.match(css, /--color-skeleton:/);
+  assert.match(
+    css,
+    /\.detail-photo-frame\[data-loaded="false"\] \.detail-photo\s*\{[^}]*aspect-ratio:\s*3 \/ 4;[^}]*opacity:\s*0;/s,
+  );
+  assert.match(
+    css,
+    /\.detail-photo-shimmer::after\s*\{[^}]*animation:\s*photo-shimmer/s,
+  );
+  assert.match(
+    css,
+    /\.detail-photo-frame\[data-loaded="true"\] \.detail-photo-shimmer\s*\{[^}]*opacity:\s*0;/s,
+  );
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\)\s*\{[^}]*\.detail-photo-shimmer[\s\S]*?animation:\s*none;/,
+  );
 });
 
 test("event photo rail bleeds to viewport edges with aligned terminal spacing", () => {

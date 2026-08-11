@@ -2,10 +2,13 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
-type Signatory = {
+type Person = {
   firstName: string;
   fullName: string;
   href: string;
+};
+
+type Signatory = Person & {
   // Each signature leans a different way so the four read as hands rather than
   // as one styled font applied four times.
   tiltDeg: number;
@@ -48,12 +51,51 @@ const signatureGroups: Array<{ role: string; people: Signatory[] }> = [
   },
 ];
 
-const signatureClassName = [
-  "founders-signature inline-block rounded-sm px-1 pb-1 font-['Handflair',cursive]",
-  "text-[clamp(2.25rem,4.5vw,3rem)] leading-[1.1] text-[#5c5c5c] no-underline",
+const teamGroups: Array<{ role: string; people: Person[] }> = [
+  {
+    role: "Graphics Leads",
+    people: [
+      {
+        firstName: "Matthew",
+        fullName: "Matthew Hope",
+        href: "https://www.linkedin.com/in/matthewhope1/",
+      },
+      {
+        firstName: "Yufei",
+        fullName: "Yufei Wang",
+        href: "https://www.linkedin.com/in/yufei-wang-5b1138253/",
+      },
+    ],
+  },
+  {
+    role: "Internal Community Lead",
+    people: [
+      {
+        firstName: "Emily",
+        fullName: "Emily Shen",
+        href: "https://www.linkedin.com/in/emilyshenucla/",
+      },
+    ],
+  },
+];
+
+const nameLinkClassName = [
+  "inline-block rounded-sm text-[#5c5c5c] no-underline",
   "transition-colors duration-150 ease-out hover:text-black focus-visible:text-black",
   "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink",
   "motion-reduce:transition-none",
+].join(" ");
+
+const signatureClassName = [
+  nameLinkClassName,
+  "founders-signature px-1 pb-1 font-['Handflair',cursive]",
+  "text-[clamp(2.25rem,4.5vw,3rem)] leading-[1.1]",
+].join(" ");
+
+const teamNameClassName = [
+  nameLinkClassName,
+  "px-1 pb-1 font-['Handflair',cursive]",
+  "text-[clamp(1.75rem,3.5vw,2.25rem)] leading-[1.1]",
 ].join(" ");
 
 export function FoundersNote() {
@@ -88,7 +130,18 @@ export function FoundersNote() {
             mentors.
           </p>
         </blockquote>
-        <figcaption className="mt-[clamp(32px,4vw,52px)] flex w-full flex-wrap items-start justify-center gap-x-[clamp(24px,4vw,56px)] gap-y-[clamp(20px,3vw,32px)]">
+        <div className="founders-heart mt-[clamp(28px,3.5vw,44px)] flex items-center justify-center gap-2">
+          <img
+            className="size-[22px] border-0 outline-none"
+            src="/heart.png"
+            alt="Love"
+            width={200}
+            height={200}
+            loading="lazy"
+          />
+          <p className="m-0 text-base text-body">from,</p>
+        </div>
+        <figcaption className="mt-[clamp(24px,3vw,36px)] flex w-full flex-wrap items-start justify-center gap-x-[clamp(24px,4vw,56px)] gap-y-[clamp(20px,3vw,32px)]">
           {signatureGroups.map((group) => (
             <div className="flex flex-col items-center" key={group.role}>
               <div className="flex items-end justify-center gap-x-[clamp(14px,2.5vw,28px)]">
@@ -111,6 +164,39 @@ export function FoundersNote() {
           ))}
         </figcaption>
       </motion.figure>
+      <motion.div
+        className="mx-auto mt-[clamp(56px,8vw,104px)] flex max-w-[760px] flex-wrap items-start justify-center gap-x-[clamp(56px,10vw,140px)] gap-y-[clamp(16px,2.5vw,24px)] text-center"
+        initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+        whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.35 }}
+        transition={{
+          type: "spring",
+          stiffness: 120,
+          damping: 20,
+          mass: 0.8,
+          delay: 0.08,
+        }}
+      >
+        {teamGroups.map((group) => (
+          <div className="flex flex-col items-center" key={group.role}>
+            <div className="flex flex-wrap items-baseline justify-center gap-x-[clamp(14px,2.5vw,28px)]">
+              {group.people.map((person) => (
+                <a
+                  className={teamNameClassName}
+                  key={person.fullName}
+                  href={person.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`${person.fullName} on LinkedIn`}
+                >
+                  {person.firstName}
+                </a>
+              ))}
+            </div>
+            <p className="m-0 mt-3 text-base text-subtle">{group.role}</p>
+          </div>
+        ))}
+      </motion.div>
     </section>
   );
 }

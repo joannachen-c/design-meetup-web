@@ -266,7 +266,7 @@ test("footer ends with a right-aligned gray technology credit", () => {
   }
   assert.match(
     app,
-    /Website built in[\s\S]*Next\.js[\s\S]*Cursor[\s\S]*Supabase[\s\S]*by the[\s\S]*Design Meetup Team[\s\S]*\./,
+    /Website built in[\s\S]*Next\.js[\s\S]*with[\s\S]*Cursor[\s\S]*and[\s\S]*Supabase[\s\S]*\./,
   );
   assert.match(
     app,
@@ -274,14 +274,12 @@ test("footer ends with a right-aligned gray technology credit", () => {
   );
 });
 
-test("footer links have no underlines and the team credit is plain text", () => {
+test("footer links have no underlines and the credit has no team attribution", () => {
   assert.doesNotMatch(
     app.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? "",
     /(?<!no-)underline(?:\s|")/,
   );
-  // The website team roster it used to reveal is gone, so the credit no longer
-  // has anywhere to link to.
-  assert.match(app, /by the Design Meetup Team\./);
+  assert.doesNotMatch(app, /by the Design Meetup Team/);
   assert.doesNotMatch(app, /href="#website-team"/);
   assert.doesNotMatch(app, /showWebsiteTeam/);
 });

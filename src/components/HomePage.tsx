@@ -79,15 +79,20 @@ function cardTransform({
   distance,
   selected,
   hovered,
+  entering = false,
 }: {
   distance: number;
   selected: boolean;
   hovered: boolean;
+  // First load only: the cover holds its finished pose and sits a short step
+  // right of its slot, so nothing about it turns or unfolds on the way in.
+  entering?: boolean;
 }) {
   const squeeze = selected ? 1 : CARD_SQUEEZE;
   const shear = selected ? 0 : CARD_SHEAR_DEG;
   const depth = selected ? 26 : hovered ? 2 : -14;
-  const scale = selected ? 1.03 : hovered ? 0.87 : 0.85;
+  const rest = selected ? 1.03 : hovered ? 0.87 : 0.85;
+  const scale = entering ? rest * CARD_ENTRANCE_SCALE : rest;
   const lift = selected
     ? -6
     : hovered
@@ -97,14 +102,37 @@ function cardTransform({
   // the gap on either side of the focused cover even. Hovering slides the cover
   // further off the shelf, like pulling a vinyl out.
   const away = distance < 0 ? -1 : 1;
-  const part = selected
+  const shelf = selected
     ? 0
     : away * (CARD_PART_PCT + (hovered ? CARD_PULL_PCT : 0));
+  const part = entering ? shelf + CARD_ENTRANCE_SHIFT_PCT : shelf;
 
   return `perspective(2200px) translateX(${part}%) translateZ(${depth}px) scaleX(${squeeze}) skewY(${shear}deg) scale(${scale}) translate(0px, ${lift}px)`;
 }
 
-const CARD_ENTRANCE_TRANSFORM = `perspective(2200px) translateX(0%) translateZ(-48px) scaleX(0.08) skewY(${CARD_SHEAR_DEG}deg) scale(0.82) translate(0px, 12px)`;
+// First load fades the covers up in place, sweeping right to left. The step to
+// the right and the touch of scale are small on purpose: the shelf should look
+// like it settles into focus, not like the covers were thrown onto it.
+const CARD_ENTRANCE_SHIFT_PCT = 9;
+const CARD_ENTRANCE_SCALE = 0.97;
+// Ordering only. Covers right of this lead in together, then the sweep steps
+// leftward one slot at a time.
+const CARD_ENTRANCE_LEAD_SLOTS = 5;
+const CARD_ENTRANCE_STAGGER_S = 0.045;
+// Caps the sweep so covers deep off the left edge, which nobody sees arrive,
+// can't stretch the entrance past the loader's hand-off.
+const CARD_ENTRANCE_MAX_DELAY_S = 0.4;
+const CARD_ENTRANCE_DURATION_S = 0.62;
+// A long tail out of an easing curve keeps this a settle. A spring here reads as
+// the cover overshooting its slot and snapping back.
+const CARD_ENTRANCE_EASE = [0.22, 1, 0.36, 1] as const;
+
+function cardEntranceDelay(distance: number) {
+  return Math.min(
+    Math.max(CARD_ENTRANCE_LEAD_SLOTS - distance, 0) * CARD_ENTRANCE_STAGGER_S,
+    CARD_ENTRANCE_MAX_DELAY_S,
+  );
+}
 
 const footerLinkClassName =
   "rounded-sm text-muted no-underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
@@ -276,6 +304,7 @@ export default function HomePage({
   const [listEdges, setListEdges] = useState({ top: false, bottom: false });
   const [canScrollPhotosLeft, setCanScrollPhotosLeft] = useState(false);
   const [canScrollPhotosRight, setCanScrollPhotosRight] = useState(false);
+  const [loadedPhotos, setLoadedPhotos] = useState<Record<string, true>>({});
   const reduceMotion = useReducedMotion();
   const aboutVideoRef = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress: aboutVideoProgress } = useScroll({
@@ -367,6 +396,14 @@ export default function HomePage({
     const rail = detailPhotoRailRef.current;
     if (rail) updatePhotoRailBounds(rail);
   }, [updatePhotoRailBounds]);
+
+  // Keyed by URL so the shared placeholder photos stay revealed when you move
+  // between events instead of shimmering again.
+  const markPhotoLoaded = useCallback((photoUrl: string) => {
+    setLoadedPhotos((previous) =>
+      previous[photoUrl] ? previous : { ...previous, [photoUrl]: true },
+    );
+  }, []);
 
   useEffect(() => {
     if (!photoRailElement) {
@@ -569,11 +606,12 @@ export default function HomePage({
     });
   }, [reduceMotion, selectedIndex, view]);
 
-  // The covers hold their edge-on pose until the loader lifts, then flip into
-  // place from the centre outwards.
+  // The covers hold just short of their slots until the loader lifts, then fade
+  // up right to left. Once that has played, selection hands over to the spring
+  // that carries every later move.
   useEffect(() => {
     if (!isGalleryReady || hasGalleryEntered) return;
-    const timer = window.setTimeout(() => setHasGalleryEntered(true), 900);
+    const timer = window.setTimeout(() => setHasGalleryEntered(true), 1100);
     return () => window.clearTimeout(timer);
   }, [hasGalleryEntered, isGalleryReady]);
 
@@ -749,6 +787,15 @@ export default function HomePage({
                         selected,
                         hovered,
                       });
+                      const entranceDelay = hasGalleryEntered
+                        ? 0
+                        : cardEntranceDelay(distance);
+                      const entranceTransform = cardTransform({
+                        distance,
+                        selected,
+                        hovered: false,
+                        entering: true,
+                      });
 
                       return (
                         <li
@@ -790,24 +837,24 @@ export default function HomePage({
                             animate={{
                               transform: isGalleryReady
                                 ? transform
-                                : CARD_ENTRANCE_TRANSFORM,
+                                : entranceTransform,
                               opacity: isGalleryReady ? 1 : 0,
                             }}
                             transition={
                               reduceMotion
                                 ? { duration: 0 }
-                                : {
-                                    type: "spring",
-                                    stiffness: 190,
-                                    damping: 24,
-                                    mass: 0.85,
-                                    delay: hasGalleryEntered
-                                      ? 0
-                                      : Math.min(
-                                          Math.abs(distance) * 0.04,
-                                          0.32,
-                                        ),
-                                  }
+                                : hasGalleryEntered
+                                  ? {
+                                      type: "spring",
+                                      stiffness: 190,
+                                      damping: 24,
+                                      mass: 0.85,
+                                    }
+                                  : {
+                                      duration: CARD_ENTRANCE_DURATION_S,
+                                      ease: CARD_ENTRANCE_EASE,
+                                      delay: entranceDelay,
+                                    }
                             }
                           >
                             <img
@@ -1022,13 +1069,34 @@ export default function HomePage({
                   >
                     {selectedPhotos.map((photoUrl, photoIndex) => (
                       <li key={`${selectedEvent.id}-${photoIndex}`}>
-                        <img
-                          className="detail-photo h-[clamp(180px,52vw,260px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(190px,15vw,200px)] min-[821px]:max-w-none"
-                          src={photoUrl}
-                          alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotos.length}`}
-                          loading={photoIndex === 0 ? "eager" : "lazy"}
-                          onLoad={() => updatePhotoRailBoundsFromRef()}
-                        />
+                        <div
+                          className="detail-photo-frame relative inline-flex overflow-hidden rounded-md"
+                          data-loaded={loadedPhotos[photoUrl] ? "true" : "false"}
+                        >
+                          <img
+                            className="detail-photo h-[clamp(180px,52vw,260px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(190px,15vw,200px)] min-[821px]:max-w-none"
+                            src={photoUrl}
+                            alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotos.length}`}
+                            loading={photoIndex === 0 ? "eager" : "lazy"}
+                            // A cached photo can finish before hydration
+                            // attaches onLoad, which would leave the
+                            // placeholder up for good.
+                            ref={(node) => {
+                              if (node?.complete && node.naturalWidth > 0) {
+                                markPhotoLoaded(photoUrl);
+                              }
+                            }}
+                            onLoad={() => {
+                              markPhotoLoaded(photoUrl);
+                              updatePhotoRailBoundsFromRef();
+                            }}
+                            onError={() => markPhotoLoaded(photoUrl)}
+                          />
+                          <span
+                            className="detail-photo-shimmer bg-skeleton"
+                            aria-hidden="true"
+                          />
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -1295,8 +1363,8 @@ export default function HomePage({
             rel="noreferrer"
           >
             Next.js
-          </a>
-          ,{" "}
+          </a>{" "}
+          with{" "}
           <a
             className={footerCreditLinkClassName}
             href="https://cursor.com/"
@@ -1304,8 +1372,8 @@ export default function HomePage({
             rel="noreferrer"
           >
             Cursor
-          </a>
-          , and{" "}
+          </a>{" "}
+          and{" "}
           <a
             className={footerCreditLinkClassName}
             href="https://supabase.com/"
@@ -1313,8 +1381,8 @@ export default function HomePage({
             rel="noreferrer"
           >
             Supabase
-          </a>{" "}
-            by the Design Meetup Team.
+          </a>
+          .
           </p>
         </ScrollReveal>
       </footer>

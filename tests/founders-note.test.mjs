@@ -65,6 +65,61 @@ test("the two signed pairs sit side by side, wrapping only when cramped", () => 
   assert.match(note, /gap-x-\[clamp\(14px,2\.5vw,28px\)\]/);
 });
 
+test("the leads sit under the card, names above their roles", () => {
+  for (const [firstName, fullName, href] of [
+    ["Matthew", "Matthew Hope", "https://www.linkedin.com/in/matthewhope1/"],
+    ["Yufei", "Yufei Wang", "https://www.linkedin.com/in/yufei-wang-5b1138253/"],
+    ["Emily", "Emily Shen", "https://www.linkedin.com/in/emilyshenucla/"],
+  ]) {
+    assert.ok(
+      note.includes(`firstName: "${firstName}"`),
+      `expected a first name for ${firstName}`,
+    );
+    assert.ok(note.includes(`"${fullName}"`), `expected an entry for ${fullName}`);
+    assert.ok(note.includes(href), `expected ${fullName} to link to ${href}`);
+  }
+
+  for (const role of ["Graphics Leads", "Internal Community Lead"]) {
+    assert.ok(note.includes(role), `expected the role “${role}”`);
+  }
+
+  // Both roles share one row below the card rather than sitting in the
+  // signature caption, and their names match the Handflair signatures.
+  assert.match(note, /<\/motion\.figure>\s*<motion\.div/);
+  assert.match(note, /teamGroups\.map/);
+  assert.match(
+    note,
+    /const teamNameClassName = \[[\s\S]*font-\['Handflair',cursive\]/,
+  );
+  assert.match(note, /gap-x-\[clamp\(56px,10vw,140px\)\]/);
+  assert.match(note, /\{person\.firstName\}/);
+});
+
+test("a heart sign-off sits inside the card below the quote", () => {
+  const signoff = note.match(/<div className="founders-heart[\s\S]*?<\/div>/)?.[0] ?? "";
+  assert.match(signoff, /src="\/heart\.png"/);
+  assert.match(signoff, /from,<\/p>/);
+  // Quote → heart → signatures, all inside the card.
+  assert.ok(
+    note.indexOf("We created Design Meetup") < note.indexOf("founders-heart") &&
+      note.indexOf("founders-heart") < note.indexOf("signatureGroups.map") &&
+      note.indexOf("founders-heart") < note.indexOf("</motion.figure>"),
+    "expected the sign-off between the quote and the signatures inside the card",
+  );
+});
+
+test("the heart is served from the app", async () => {
+  await access(new URL("../public/heart.png", import.meta.url));
+});
+
+test("the lead names share the signature hover treatment", () => {
+  assert.match(
+    note,
+    /const nameLinkClassName = \[[\s\S]*hover:text-black[\s\S]*\]\.join\(" "\)/,
+  );
+  assert.match(note, /const signatureClassName = \[\s*nameLinkClassName,/);
+});
+
 test("the card settles out of a tilt on every scroll into view", () => {
   assert.match(note, /initial=\{reduceMotion \? false : \{ opacity: 0, y: 24, rotate: -1\.6 \}\}/);
   assert.match(note, /whileInView=\{reduceMotion \? undefined : \{ opacity: 1, y: 0, rotate: 0 \}\}/);

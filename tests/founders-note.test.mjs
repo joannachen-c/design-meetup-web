@@ -27,6 +27,12 @@ test("the note carries the community copy in centered text", () => {
     ),
     "expected the note to include the community copy",
   );
+  assert.ok(
+    !note.includes(
+      "The world might change, but we will always have our community.",
+    ),
+    "expected the world-might-change tagline to be removed",
+  );
   assert.match(note, /text-center/);
 });
 

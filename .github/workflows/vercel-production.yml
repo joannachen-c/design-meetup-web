@@ -1,5 +1,7 @@
 name: Vercel Production
 
+# Uses the Vercel REST API (not the CLI). App/integration tokens (vcp_*) can
+# create deployments via the API but fail on `vercel whoami` / `vercel pull`.
 on:
   push:
     branches: [main]
@@ -15,9 +17,8 @@ jobs:
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
-
       - name: Check required secrets
         run: |
           missing=0
@@ -28,48 +29,77 @@ jobs:
             fi
           done
           exit $missing
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      # `vercel pull` reports bad auth OR wrong project IDs as the same
-      # "Could not retrieve Project Settings" message.
       - name: Verify Vercel token
         run: |
-          if ! vercel whoami --token="$VERCEL_TOKEN" > /dev/null 2>&1; then
-            echo "::error::VERCEL_TOKEN is invalid or expired. Create a new token at https://vercel.com/account/tokens and update it under Settings → Secrets and variables → Actions."
+          code=$(curl -sS -o /tmp/vercel-projects.json -w '%{http_code}' \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_ORG_ID}")
+          if [ "$code" != "200" ]; then
+            echo "::error::VERCEL_TOKEN cannot access project (HTTP $code). Create a token at https://vercel.com/account/tokens and confirm VERCEL_ORG_ID / VERCEL_PROJECT_ID."
+            cat /tmp/vercel-projects.json
             exit 1
           fi
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
-      - name: Link Vercel project
-        run: |
-          rm -rf .vercel
-          mkdir -p .vercel
-          printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
-
-      - name: Pull Vercel environment
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build
-        run: vercel build --prod --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy production
-        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          payload=$(jq -n \
+            --arg name "design-meetup-web" \
+            --arg project "$VERCEL_PROJECT_ID" \
+            --arg ref "main" \
+            --arg sha "${{ github.sha }}" \
+            --arg org "${{ github.repository_owner }}" \
+            --arg repo "${{ github.event.repository.name }}" \
+            '{
+              name: $name,
+              project: $project,
+              target: "production",
+              gitSource: {
+                type: "github",
+                org: $org,
+                repo: $repo,
+                ref: $ref,
+                sha: $sha
+              }
+            }')
+
+          response=$(curl -sS -X POST \
+            "https://api.vercel.com/v13/deployments?teamId=${VERCEL_ORG_ID}&forceNew=1" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$payload")
+
+          id=$(echo "$response" | jq -r '.id // empty')
+          url=$(echo "$response" | jq -r '.url // empty')
+          if [ -z "$id" ] || [ -z "$url" ]; then
+            echo "$response" | jq .
+            echo "::error::Failed to create Vercel production deployment."
+            exit 1
+          fi
+
+          echo "Created deployment $id → https://$url"
+
+          for i in $(seq 1 90); do
+            status_json=$(curl -sS \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v13/deployments/${id}?teamId=${VERCEL_ORG_ID}")
+            state=$(echo "$status_json" | jq -r '.readyState // empty')
+            echo "readyState=$state (attempt $i)"
+            case "$state" in
+              READY)
+                echo "Production URL: https://$url"
+                exit 0
+                ;;
+              ERROR|CANCELED)
+                echo "$status_json" | jq .
+                echo "::error::Vercel deployment ended in $state"
+                exit 1
+                ;;
+            esac
+            sleep 4
+          done
+
+          echo "::error::Timed out waiting for Vercel deployment $id"
+          exit 1

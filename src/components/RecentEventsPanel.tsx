@@ -14,7 +14,7 @@ export function RecentEventsPanel({ events }: { events: LumaEvent[] }) {
         {events.map((event) => (
           <li key={event.id}>
             <a
-              className="recent-event-row group grid items-center gap-[clamp(14px,2vw,24px)] rounded-[10px] px-3 py-3.5 no-underline transition-colors duration-150 hover:bg-[oklch(93.5%_0.003_264.542)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              className="recent-event-row group grid items-center gap-[clamp(14px,2vw,24px)] rounded-[10px] px-3 py-3.5 no-underline transition-colors duration-150 hover:bg-gray-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
               href={event.url}
               target="_blank"
               rel="noreferrer"

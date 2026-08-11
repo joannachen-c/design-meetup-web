@@ -230,7 +230,7 @@ test("footer uses a white surface with dark, readable text", () => {
   );
   assert.match(
     app,
-    /const footerLinkClassName =\s*"[^"]*\btext-\[oklch\(53%_0\.025_250\)\][^"]*\bhover:text-\[oklch\(22%_0\.025_250\)\]/,
+    /const footerLinkClassName =\s*"[^"]*\btext-muted\b[^"]*\bhover:text-ink\b/,
   );
   assert.match(
     input,

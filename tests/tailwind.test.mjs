@@ -1,8 +1,14 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const root = new URL("../", import.meta.url);
+const componentPaths = [
+  "src/DesignSystem.tsx",
+  ...(await readdir(new URL("src/components/", root), { recursive: true }))
+    .filter((entry) => entry.endsWith(".tsx"))
+    .map((entry) => `src/components/${entry}`),
+];
 const app = await readFile(new URL("src/components/HomePage.tsx", root), "utf8");
 const css = await readFile(new URL("app/globals.css", root), "utf8");
 const layout = await readFile(new URL("app/layout.tsx", root), "utf8").catch(() => "");
@@ -53,6 +59,48 @@ test("requested style categories live in Tailwind utilities", () => {
       .replace(/::selection\s*\{[^}]*\}/gs, ""),
     /^\s*(?:padding(?:-(?:top|right|bottom|left|block|inline))?|border-radius|color|background(?:-color)?|font-size|font-weight|line-height|letter-spacing|text-align|text-decoration|text-transform|text-wrap)\s*:/m,
   );
+});
+
+test("design system colors are referenced by token, never re-spelled as literals", async () => {
+  const theme = css.match(/@theme\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+  const tokens = [...theme.matchAll(/--color-([\w-]+):\s*([^;]+);/g)].map(
+    ([, name, value]) => ({ name, value: value.trim() }),
+  );
+  assert.ok(tokens.length >= 8);
+
+  const sources = await Promise.all(
+    componentPaths.map((path) => readFile(new URL(path, root), "utf8")),
+  );
+
+  for (const { name, value } of tokens) {
+    // Tailwind arbitrary values swap spaces for underscores, so check both forms.
+    for (const spelling of [value, value.replace(/ /g, "_")]) {
+      for (const [index, source] of sources.entries()) {
+        assert.ok(
+          !source.includes(spelling),
+          `${componentPaths[index]} hardcodes ${spelling}; use the --color-${name} token utility instead`,
+        );
+      }
+    }
+  }
+});
+
+test("gray surfaces share the muted surface token", async () => {
+  const sources = await Promise.all(
+    componentPaths.map((path) => readFile(new URL(path, root), "utf8")),
+  );
+  const input = await readFile(new URL("src/components/Input.tsx", root), "utf8");
+
+  // Inputs set the reference gray; tiles, chips and photo wells must match it
+  // rather than drifting to a near-identical one-off like #f5f5f5.
+  assert.match(input, /\bbg-surface-muted\b/);
+  assert.match(app, /partner-tile[^"]*\bbg-surface-muted\b/);
+  for (const [index, source] of sources.entries()) {
+    assert.ok(
+      !/-\[#(?:f5f5f5|f4f4f4|f2f2f2|fafafa|ececec|eee|e5e5e5)\b/i.test(source),
+      `${componentPaths[index]} uses a one-off light gray; use bg-surface-muted or the gray-100..300 ramp`,
+    );
+  }
 });
 
 test("browser favicon uses the existing Design Meetup logo", async () => {

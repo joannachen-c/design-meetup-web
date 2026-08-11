@@ -52,7 +52,7 @@ const signatureClassName = [
   "founders-signature inline-block rounded-sm px-1 pb-1 font-['Handflair',cursive]",
   "text-[clamp(2.25rem,4.5vw,3rem)] leading-[1.1] text-[#5c5c5c] no-underline",
   "transition-colors duration-150 ease-out hover:text-black focus-visible:text-black",
-  "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[oklch(22%_0.025_250)]",
+  "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink",
   "motion-reduce:transition-none",
 ].join(" ");
 
@@ -70,7 +70,7 @@ export function FoundersNote() {
       {/* The card settles out of a slight tilt, like a note being laid down, and
           replays on every pass rather than only the first. */}
       <motion.figure
-        className="founders-card m-0 mx-auto flex max-w-[760px] flex-col items-center rounded-[14px] border border-[#ececec] bg-white px-[clamp(24px,5vw,64px)] pt-[clamp(36px,5vw,64px)] pb-[clamp(28px,4vw,52px)] text-center shadow-[0_18px_48px_-28px_rgba(0,0,0,0.25)]"
+        className="founders-card m-0 mx-auto flex max-w-[760px] flex-col items-center rounded-[14px] border border-gray-200 bg-white px-[clamp(24px,5vw,64px)] pt-[clamp(36px,5vw,64px)] pb-[clamp(28px,4vw,52px)] text-center shadow-[0_18px_48px_-28px_rgba(0,0,0,0.25)]"
         initial={reduceMotion ? false : { opacity: 0, y: 24, rotate: -1.6 }}
         whileInView={reduceMotion ? undefined : { opacity: 1, y: 0, rotate: 0 }}
         viewport={{ once: false, amount: 0.35 }}

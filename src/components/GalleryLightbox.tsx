@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconButton } from "./IconButton";
-import { isImageWarm, warmImages } from "@/lib/image";
+import { isImageWarm, recoverImage, warmImages } from "@/lib/image";
 
 const OVERLAY_DURATION_S = 0.2;
 const PHOTO_ENTRANCE_DURATION_S = 0.42;
@@ -287,7 +287,9 @@ export function GalleryLightbox({
                     decoding={isPhotoWarm ? "sync" : "async"}
                     ref={(node) => markLoadedIfComplete(node, photo)}
                     onLoad={() => markLoaded(photo)}
-                    onError={() => markLoaded(photo)}
+                    onError={(event) => {
+                      if (!recoverImage(event.currentTarget)) markLoaded(photo);
+                    }}
                   />
                 )}
                 <span

@@ -37,7 +37,7 @@ import { RecentEventsPanel } from "./RecentEventsPanel";
 import { ScrollReveal } from "./ScrollReveal";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
-import { preloadImages, sizedImageUrl } from "@/lib/image";
+import { preloadImages, recoverImage, sizedImage, sizedImageUrl } from "@/lib/image";
 import type { LumaEvent } from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
 
@@ -503,12 +503,20 @@ export default function HomePage({
   );
   // Photos render a few hundred pixels tall, so ask the CDN for a right-sized
   // render (~10x smaller than the stored original) instead of the full JPEG.
-  const selectedPhotos = useMemo(
+  // 460 is the widest the rail can paint one: its tallest clamp against the
+  // widest aspect ratio the recap posts come in.
+  const selectedPhotoRenders = useMemo(
     () =>
       selectedPhotoSources.map((url) =>
-        sizedImageUrl(url, { width: 480, quality: 68 }),
+        sizedImage(url, { width: 460, quality: 68 }),
       ),
     [selectedPhotoSources],
+  );
+  // The 1x render doubles as the identity for a photo's load state and as the
+  // lightbox's stand-in, so the rail keys off it whichever candidate paints.
+  const selectedPhotos = useMemo(
+    () => selectedPhotoRenders.map((photo) => photo.src),
+    [selectedPhotoRenders],
   );
   // The lightbox paints a photo across most of the viewport, so the rail's
   // thumbnail render would go soft there. It stays a long way short of the
@@ -581,10 +589,10 @@ export default function HomePage({
           .map((image) => image.image_url)
           .filter((url) => !url.includes("/placeholders/"))
           .slice(0, 4)
-          .map((url) => sizedImageUrl(url, { width: 480, quality: 68 })),
+          .map((url) => sizedImage(url, { width: 460, quality: 68 })),
       );
-    return preloadImages([...selectedPhotos, ...neighbourPhotos]);
-  }, [selectedPhotos, selectedIndex, events]);
+    return preloadImages([...selectedPhotoRenders, ...neighbourPhotos]);
+  }, [selectedPhotoRenders, selectedIndex, events]);
 
   useEffect(() => {
     if (!photoRailElement) {
@@ -1156,14 +1164,16 @@ export default function HomePage({
                           >
                             <img
                               className="rounded-[inherit] border-0 outline-none"
-                              src={sizedImageUrl(item.image_url, {
-                                width: 420,
+                              // 272 is the --event-cover-size ceiling.
+                              {...sizedImage(item.image_url, {
+                                width: 272,
                                 quality: 74,
                               })}
                               alt=""
                               draggable="false"
                               decoding="async"
                               loading={Math.abs(distance) > 3 ? "lazy" : "eager"}
+                              onError={(event) => recoverImage(event.currentTarget)}
                             />
                           </motion.button>
                         </li>
@@ -1222,14 +1232,17 @@ export default function HomePage({
                       >
                         <img
                           className="block size-full select-none border-0 object-cover outline-none"
-                          src={sizedImageUrl(item.image_url, {
-                            width: 280,
+                          // The pack's columns cap out near 150px, plus the
+                          // scale the selected tile takes.
+                          {...sizedImage(item.image_url, {
+                            width: 160,
                             quality: 72,
                           })}
                           alt=""
                           draggable="false"
                           decoding="async"
                           loading="lazy"
+                          onError={(event) => recoverImage(event.currentTarget)}
                         />
                       </button>
                     </motion.li>
@@ -1265,13 +1278,16 @@ export default function HomePage({
                 <div className="detail-cover aspect-square overflow-hidden rounded-lg bg-surface-muted shadow-[0_12px_28px_rgba(0,0,0,0.18)]">
                   <img
                     className="block size-full select-none border-0 object-cover outline-none"
-                    src={sizedImageUrl(selectedEvent.image_url, {
-                      width: 520,
+                    // Matches .detail-cover: the cover size times the 1.03 the
+                    // focused card is scaled by.
+                    {...sizedImage(selectedEvent.image_url, {
+                      width: 280,
                       quality: 76,
                     })}
                     alt=""
                     draggable="false"
                     decoding="async"
+                    onError={(event) => recoverImage(event.currentTarget)}
                   />
                 </div>
               ) : null}
@@ -1408,19 +1424,20 @@ export default function HomePage({
                     tabIndex={0}
                     aria-label={`${selectedEvent.title} gallery, horizontally scrollable`}
                   >
-                    {selectedPhotos.map((photoUrl, photoIndex) => (
+                    {selectedPhotoRenders.map((photo, photoIndex) => (
                       <li key={`${selectedEvent.id}-${photoIndex}`}>
                         <button
                           type="button"
                           className="detail-photo-frame relative inline-flex overflow-hidden rounded-md border-0 bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-                          data-loaded={loadedPhotos[photoUrl] ? "true" : "false"}
-                          aria-label={`Open photo ${photoIndex + 1} of ${selectedPhotos.length} at full size`}
+                          data-loaded={loadedPhotos[photo.src] ? "true" : "false"}
+                          aria-label={`Open photo ${photoIndex + 1} of ${selectedPhotoRenders.length} at full size`}
                           onClick={() => openLightbox(photoIndex)}
                         >
                           <img
                             className="detail-photo h-[clamp(240px,62vw,320px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(260px,22vw,340px)] min-[821px]:max-w-none"
-                            src={photoUrl}
-                            alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotos.length}`}
+                            src={photo.src}
+                            srcSet={photo.srcSet}
+                            alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotoRenders.length}`}
                             loading={photoIndex < 3 ? "eager" : "lazy"}
                             decoding="async"
                             // A cached photo can finish before hydration
@@ -1428,14 +1445,21 @@ export default function HomePage({
                             // placeholder up for good.
                             ref={(node) => {
                               if (node?.complete && node.naturalWidth > 0) {
-                                markPhotoLoaded(photoUrl);
+                                markPhotoLoaded(photo.src);
                               }
                             }}
                             onLoad={() => {
-                              markPhotoLoaded(photoUrl);
+                              markPhotoLoaded(photo.src);
                               updatePhotoRailBoundsFromRef();
                             }}
-                            onError={() => markPhotoLoaded(photoUrl)}
+                            // Only give up on a photo once the original has
+                            // failed too, otherwise the retry never gets to
+                            // paint over the placeholder.
+                            onError={(event) => {
+                              if (!recoverImage(event.currentTarget)) {
+                                markPhotoLoaded(photo.src);
+                              }
+                            }}
                           />
                           <span
                             className="detail-photo-shimmer bg-skeleton"

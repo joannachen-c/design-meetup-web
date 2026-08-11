@@ -15,11 +15,9 @@ import { Input } from "./Input";
 import { IconButton } from "./IconButton";
 import { Link } from "./Link";
 import { Primary } from "./Primary";
-import { RecentEventsPanel } from "./RecentEventsPanel";
 import { ScrollReveal } from "./ScrollReveal";
 import { SiteHeader } from "./SiteHeader";
 import { Tooltip, TooltipProvider } from "./Tooltip";
-import type { LumaEvent } from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
 
 const partnerLogos = [
@@ -274,17 +272,13 @@ function ExpandableSummary({
 export type HomePageProps = {
   initialEvents: MeetupEvent[];
   initialError: string | null;
-  // Only populated when the Luma calendar has no upcoming events.
-  recentEvents: LumaEvent[];
 };
 
 export default function HomePage({
   initialEvents,
   initialError,
-  recentEvents,
 }: HomePageProps) {
   const events = initialEvents;
-  const showRecentEvents = recentEvents.length > 0;
   const [selectedIndex, setSelectedIndex] = useState(() =>
     initialEvents.length > 3 ? 3 : 0,
   );
@@ -874,12 +868,10 @@ export default function HomePage({
             className="m-0 text-balance text-[clamp(3rem,4.7vw,3.75rem)] font-bold leading-[1.2] tracking-[-0.06em] max-[520px]:text-[clamp(2.4rem,11vw,3.25rem)]"
             id="upcoming-events-title"
           >
-            Calendar
+            UPCOMING EVENTS
           </h2>
           <p className="m-0 max-w-[54ch] text-pretty text-[1.05rem] leading-[1.5] text-[#202020] max-[520px]:text-base">
-            {showRecentEvents
-              ? "Nothing on the calendar right now. Follow our Luma to hear about the next one first!"
-              : "RSVP on Luma and join us at the next Design Meetup."}
+            RSVP on Luma and join us at the next Design Meetup.
           </p>
           <Primary
             className="gap-2"
@@ -901,17 +893,13 @@ export default function HomePage({
           className="upcoming-events-embed overflow-hidden rounded-[11px]"
           delay={80}
         >
-          {showRecentEvents ? (
-            <RecentEventsPanel events={recentEvents} />
-          ) : (
-            <iframe
-              className="upcoming-events-frame block w-full border-0 bg-transparent"
-              src={LUMA_CALENDAR_EMBED_SRC}
-              title="Design Meetup upcoming events on Luma"
-              loading="lazy"
-              allow="fullscreen"
-            />
-          )}
+          <iframe
+            className="upcoming-events-frame block w-full border-0 bg-transparent"
+            src={LUMA_CALENDAR_EMBED_SRC}
+            title="Design Meetup upcoming events on Luma"
+            loading="lazy"
+            allow="fullscreen"
+          />
         </ScrollReveal>
       </section>
 

@@ -8,7 +8,7 @@ const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8
 test("Figma partner section appears immediately before the founders note and footer", () => {
   assert.match(
     app,
-    /<section[\s\S]*className="[^"]*\bpartner-cta\b[^"]*"[\s\S]*We’ve worked with some of your favorite companies[\s\S]*<PartnerContactForm \/>[\s\S]*<\/section>\s*<FoundersNote \/>\s*<footer\b/,
+    /<section[\s\S]*className="[^"]*\bpartner-cta\b[^"]*"[\s\S]*Partner with us[\s\S]*<PartnerContactForm \/>[\s\S]*<\/section>\s*<FoundersNote \/>\s*<footer\b/,
   );
   assert.match(app, /className="[^"]*\bpartner-grid\b[^"]*"/);
   assert.match(app, /\/partners\/figma\.png/);
@@ -74,7 +74,9 @@ test("partner logo tiles preserve Figma geometry responsively", () => {
     css,
     /\.partner-tile\s*\{[^}]*width:\s*100%;[^}]*height:\s*auto;[^}]*aspect-ratio:\s*1;/s,
   );
-  assert.match(app, /partner-tile rounded-\[10px\] bg-\[#f5f5f5\]/);
+  // Shares the muted surface token with inputs and chips instead of a one-off
+  // hex, so every resting gray surface tracks the same value.
+  assert.match(app, /partner-tile rounded-\[10px\] bg-surface-muted/);
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*\.partner-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s,
@@ -97,9 +99,9 @@ test("partner CTA uses generous vertical padding without changing horizontal pad
   assert.doesNotMatch(css, /\.partner-cta\s*\{[^}]*padding(?:-block)?:/s);
 });
 
-test("partner description uses the shared base text size", () => {
-  assert.match(
-    app,
-    /<p className="[^"]*\btext-base\b[^"]*">\s*We’d love to chat if you’re interested in partnering with us\./,
-  );
+// The form's own sentence already explains the ask, so a description above it
+// only repeated "interested in".
+test("partner heading leads straight into the contact form", () => {
+  assert.match(app, /Partner with us\s*<\/h2>\s*<PartnerContactForm \/>/);
+  assert.doesNotMatch(app, /love to chat/);
 });

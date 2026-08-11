@@ -180,7 +180,7 @@ test("newsletter form is accessible, non-reloading, and left aligned", () => {
   assert.match(input, /\btext-base\b/);
   assert.match(
     newsletterForm,
-    /<form\s+className="[^"]*\bgrid-cols-\[minmax\(0,1fr\)_auto\][^"]*\bgap-2\b[^"]*"/,
+    /<form\s+className="[^"]*\bgrid-cols-\[minmax\(0,1fr\)_auto\][^"]*\bgap-3\b[^"]*"/,
   );
   assert.doesNotMatch(css, /\.newsletter-form\s*\{/);
 });

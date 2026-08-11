@@ -204,15 +204,15 @@ test("submitting hands off to email without reloading the page", () => {
 test("sentence breaks into rows and wraps instead of overflowing", () => {
   assert.match(
     form,
-    /className="partner-form flex w-fit max-w-full flex-col gap-2/,
+    /className="partner-form flex w-fit max-w-full flex-col gap-3/,
   );
   assert.equal(
-    form.match(/flex w-full flex-wrap items-center gap-x-2 gap-y-2/g)?.length,
+    form.match(/flex w-full flex-wrap items-center gap-x-3 gap-y-3/g)?.length,
     3,
   );
   // Vertical form gap matches the horizontal gap between email + Send.
-  assert.match(form, /\bgap-2\b/);
-  assert.match(form, /\bgap-x-2\b/);
+  assert.match(form, /\bgap-3\b/);
+  assert.match(form, /\bgap-x-3\b/);
 });
 
 test("the selected checkmark matches the chevron stroke weight", () => {

@@ -92,6 +92,10 @@ test("partner content aligns to the shared twelve-column grid", () => {
   assert.match(css, /\.partner-logos\s*\{[^}]*grid-column:\s*9\s*\/\s*span 4;/s);
 });
 
+test("partner copy sits vertically centered against the logo grid", () => {
+  assert.match(css, /\.partner-copy\s*\{[^}]*justify-content:\s*center;/s);
+});
+
 test("partner CTA uses generous vertical padding without changing horizontal padding", () => {
   assert.match(app, /partner-cta[^"]*px-\[clamp\(20px,6vw,96px\)\]/);
   assert.match(app, /partner-cta[^"]*py-\[160px\]/);

@@ -61,10 +61,10 @@ export function PartnerContactForm() {
 
   return (
     <form
-      className="partner-form flex w-fit max-w-full flex-col gap-2 text-base leading-[1.2] text-body"
+      className="partner-form flex w-fit max-w-full flex-col gap-3 text-base leading-[1.2] text-body"
       onSubmit={handleSubmit}
     >
-      <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-2">
+      <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-3">
         <span>My name is</span>
         <label className="sr-only" htmlFor={`${fieldId}-first-name`}>
           First name
@@ -99,7 +99,7 @@ export function PartnerContactForm() {
           }}
         />
       </div>
-      <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-2">
+      <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-3">
         <span>I’m interested in</span>
         <label className="sr-only" htmlFor={`${fieldId}-interest`}>
           What you’re interested in
@@ -130,7 +130,7 @@ export function PartnerContactForm() {
           }}
         />
       </div>
-      <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-2">
+      <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-3">
         <span>Reach me at</span>
         <label className="sr-only" htmlFor={`${fieldId}-email`}>
           Email address

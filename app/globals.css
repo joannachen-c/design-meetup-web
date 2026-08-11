@@ -997,15 +997,15 @@ footer {
   transition: none;
 }
 
-/* Half the four-column brand track, so the mark still tracks the grid. Taken
+/* Fills the four-column brand track so the mark lines up with the grid. Taken
    out of flow so its full height does not set the footer's height. */
 .footer-logo {
   position: absolute;
   top: 0;
   left: 0;
   display: block;
-  width: 50%;
-  max-width: 230px;
+  width: 100%;
+  max-width: 460px;
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;

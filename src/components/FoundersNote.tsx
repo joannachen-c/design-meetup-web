@@ -85,8 +85,7 @@ export function FoundersNote() {
           <p className="m-0 text-pretty text-base leading-[1.7] text-body">
             We created Design Meetup as a space for young designers to learn
             from not only each other but also industry leaders as speakers and
-            mentors. The world might change, but we will always have our
-            community.
+            mentors.
           </p>
         </blockquote>
         <figcaption className="mt-[clamp(32px,4vw,52px)] flex w-full flex-wrap items-start justify-center gap-x-[clamp(24px,4vw,56px)] gap-y-[clamp(20px,3vw,32px)]">

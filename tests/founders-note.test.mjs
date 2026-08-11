@@ -23,9 +23,15 @@ test("the founders note sits between the partner section and the footer", () => 
 test("the note carries the community copy in centered text", () => {
   assert.ok(
     note.includes(
-      "We created Design Meetup as a space for young designers to learn",
+      "We created Design Meetup to build the design community our younger",
     ),
     "expected the note to include the community copy",
+  );
+  assert.ok(
+    note.includes(
+      "We’d love to build it alongside partners who believe in the future of",
+    ),
+    "expected the note to invite partners",
   );
   assert.match(note, /text-center/);
 });

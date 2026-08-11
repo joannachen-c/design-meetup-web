@@ -55,6 +55,15 @@ const TRANSITION_MS = 300;
 const MAX_TICK_HEIGHT = Math.ceil(
   (IDLE_HEIGHT + PROXIMITY_HEIGHT) * SELECTED_MULTIPLIER + HOVER_HEIGHT,
 );
+/** Vertical padding inside each tick's hit area (matches `py-1.5`). */
+const TICK_HIT_PAD_Y = 6;
+/**
+ * Ticks are bottom-anchored and grow upward, so the row reserves the tallest
+ * state up front. A content-sized row would push every tick down on hover.
+ */
+const ROW_HEIGHT = MAX_TICK_HEIGHT + TICK_HIT_PAD_Y * 2;
+/** Room for the 2px focus ring plus its 2px offset outside the hit area. */
+const FOCUS_RING_ROOM = 4;
 
 function rowWidth(count: number) {
   if (count <= 0) return 0;
@@ -138,7 +147,9 @@ export function FilmTickerLines({
       const viewport = viewportRef.current;
       const rail = railRef.current;
 
-      if (viewport && rail) {
+      // A viewport that measures zero has no centre to hold the focal tick
+      // against, and centring on it would park the whole row at the left edge.
+      if (viewport && rail && viewport.clientWidth > 0) {
         const focalX = RAIL_GUTTER + tickCenter(focalIndex);
         rail.style.transform = `translate3d(${
           viewport.clientWidth / 2 - focalX
@@ -217,10 +228,11 @@ export function FilmTickerLines({
       className={`film-ticker relative w-full max-w-full overflow-hidden ${className}`}
       role="group"
       aria-label={label}
+      style={{ paddingBlock: FOCUS_RING_ROOM }}
     >
-      <div ref={railRef} className="inline-block min-w-0 will-change-transform">
+      <div ref={railRef} className="flex w-max min-w-0 will-change-transform">
         <div
-          className="inline-flex min-w-0"
+          className="flex min-w-0"
           style={{ minWidth: width + RAIL_GUTTER * 2 }}
         >
           <div className="shrink-0" style={{ width: RAIL_GUTTER }} aria-hidden="true" />
@@ -232,7 +244,7 @@ export function FilmTickerLines({
             style={{
               width,
               gap: TICK_GAP,
-              minHeight: MAX_TICK_HEIGHT,
+              height: ROW_HEIGHT,
               touchAction: "none",
             }}
             onPointerDown={handlePointerDown}
@@ -264,8 +276,11 @@ export function FilmTickerLines({
                     if (event.pointerType !== "mouse") return;
                     hoveredIndexRef.current = null;
                   }}
-                  className="flex shrink-0 cursor-pointer items-end justify-center rounded-sm border-0 bg-transparent p-0 py-1.5 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-                  style={{ width: TICK_HIT_WIDTH }}
+                  className="flex shrink-0 cursor-pointer items-end justify-center rounded-sm border-0 bg-transparent p-0 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                  style={{
+                    width: TICK_HIT_WIDTH,
+                    paddingBlock: TICK_HIT_PAD_Y,
+                  }}
                 >
                   <span
                     ref={(element) => {

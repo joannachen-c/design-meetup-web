@@ -8,6 +8,11 @@ import { Select, type SelectOption } from "./Select";
 const CONTACT_EMAIL = "contactdesignmeetup@gmail.com";
 
 const interestOptions = [
+  {
+    value: "sponsor",
+    label: "sponsoring an event",
+    subject: "Sponsoring an event",
+  },
   { value: "panelist", label: "being a panelist", subject: "Being a panelist" },
   {
     value: "judge",
@@ -18,16 +23,6 @@ const interestOptions = [
     value: "venue",
     label: "providing a venue",
     subject: "Providing a venue",
-  },
-  {
-    value: "sponsor-one",
-    label: "sponsoring one event",
-    subject: "Sponsoring one event",
-  },
-  {
-    value: "sponsor-series",
-    label: "sponsoring an event series",
-    subject: "Sponsoring an event series",
   },
 ];
 
@@ -66,7 +61,7 @@ export function PartnerContactForm() {
 
   return (
     <form
-      className="partner-form flex w-fit max-w-full flex-col gap-3 text-base leading-[1.2] text-body"
+      className="partner-form flex w-fit max-w-full flex-col gap-3 text-base leading-[1.2] text-body max-[820px]:gap-6"
       onSubmit={handleSubmit}
     >
       <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-3">

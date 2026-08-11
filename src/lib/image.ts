@@ -112,3 +112,33 @@ export function preloadImages(urls: Array<string | null | undefined>): () => voi
     }
   };
 }
+
+const warmedUrls = new Set<string>();
+
+/**
+ * Fetch and decode images, then remember that they are ready to paint.
+ *
+ * Unlike `preloadImages` this never aborts an in-flight fetch: the images it
+ * warms are the ones about to be shown, so cancelling on the next state change
+ * would throw away exactly the work that makes the swap feel instant.
+ */
+export function warmImages(urls: Array<string | null | undefined>): void {
+  if (typeof window === "undefined") return;
+  for (const url of urls) {
+    if (!url || warmedUrls.has(url)) continue;
+    const image = new Image();
+    image.decoding = "async";
+    image.src = url;
+    // The pending decode holds `image` alive; once it settles the browser's own
+    // cache keeps the pixels, so only the URL is worth remembering.
+    const remember = () => {
+      if (image.complete && image.naturalWidth > 0) warmedUrls.add(url);
+    };
+    image.decode().then(remember, remember);
+  }
+}
+
+/** True once `warmImages` has decoded `url`, so it can paint without a fetch. */
+export function isImageWarm(url: string | null | undefined): boolean {
+  return Boolean(url && warmedUrls.has(url));
+}

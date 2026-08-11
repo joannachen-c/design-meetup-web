@@ -5,8 +5,11 @@ import { ArrowUpRightIcon } from "./components/icons/ArrowUpRightIcon";
 import { IconButton } from "./components/IconButton";
 import { Input } from "./components/Input";
 import { Link } from "./components/Link";
+import { PageLoader } from "./components/PageLoader";
 import { Primary } from "./components/Primary";
+import { ScrollReveal } from "./components/ScrollReveal";
 import { Select } from "./components/Select";
+import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
 import { Tooltip, TooltipProvider } from "./components/Tooltip";
 
@@ -107,22 +110,36 @@ export default function DesignSystem() {
   return (
     <TooltipProvider>
       <main className="min-h-dvh bg-surface font-['Alte_Haas_Grotesk',sans-serif] text-ink antialiased [font-synthesis:none]">
+        <PageLoader />
+
         <SiteHeader
           homeHref="/"
           navAriaLabel="Design system sections"
-          navClassName="design-system-navigation"
+          navClassName="design-system-navigation max-[820px]:hidden"
           links={sections.map(({ id, label }) => ({ href: `#${id}`, label }))}
+          reveal
         />
 
         <div className="px-[clamp(20px,6vw,96px)] pb-24">
           <div className="grid grid-cols-12 items-end gap-x-[clamp(16px,2vw,28px)] gap-y-8 py-[clamp(32px,7vw,96px)] max-[820px]:grid-cols-1">
-            <h1 className="col-span-8 m-0 whitespace-nowrap text-balance text-[clamp(3.25rem,7vw,7rem)] font-bold leading-[0.94] tracking-[-0.06em] max-[820px]:col-span-1">
-              design system
-            </h1>
-            <p className="col-start-9 col-span-4 m-0 mb-2 max-w-[48ch] text-pretty text-base leading-[1.5] text-muted max-[820px]:col-start-1 max-[820px]:col-span-1 max-[820px]:mt-2">
-              The foundations behind the Design Meetup website. These examples
-              use the same production components as the site.
-            </p>
+            {/* The grid placement rides the reveal wrapper, as it does on the
+                home page's intro: the wrapper is the grid item once the title
+                is wrapped, so leaving the spans on the heading would drop it
+                out of the twelve-column track. */}
+            <ScrollReveal className="col-span-8 max-[820px]:col-span-1">
+              <h1 className="m-0 whitespace-nowrap text-balance text-[clamp(3.25rem,7vw,7rem)] font-bold leading-[0.94] tracking-[-0.06em]">
+                design system
+              </h1>
+            </ScrollReveal>
+            <ScrollReveal
+              className="col-start-9 col-span-4 max-[820px]:col-start-1 max-[820px]:col-span-1"
+              delay={60}
+            >
+              <p className="m-0 mb-2 max-w-[48ch] text-pretty text-base leading-[1.5] text-muted max-[820px]:mt-2">
+                The foundations behind the Design Meetup website. These examples
+                use the same production components as the site.
+              </p>
+            </ScrollReveal>
           </div>
 
           <section
@@ -325,7 +342,7 @@ export default function DesignSystem() {
                   className={`mt-6 grid grid-cols-1 ${layoutGridGapClassName} min-[821px]:grid-cols-12`}
                   aria-label="Eight-column display and four-column body layout"
                 >
-                  <div className="min-h-20 rounded-[11px] bg-ink px-4 py-8 text-white min-[821px]:col-span-8">
+                  <div className="min-h-20 rounded-[11px] bg-ink px-4 py-16 text-white min-[821px]:col-span-8">
                     <p className="m-0 text-2xl font-bold leading-[1.02] tracking-[-0.06em]">
                       Display
                     </p>
@@ -333,7 +350,7 @@ export default function DesignSystem() {
                       8 columns
                     </p>
                   </div>
-                  <div className="min-h-20 rounded-[11px] bg-surface-muted px-4 py-8 min-[821px]:col-span-4">
+                  <div className="min-h-20 rounded-[11px] bg-surface-muted px-4 py-16 min-[821px]:col-span-4">
                     <p className="m-0 text-base font-normal leading-[1.5] text-muted">
                       Body
                     </p>
@@ -355,7 +372,7 @@ export default function DesignSystem() {
               borders
             </h2>
             <div>
-              <ul className="m-0 grid list-none grid-cols-2 gap-x-8 gap-y-10 p-0 lg:grid-cols-5">
+              <ul className="m-0 grid list-none grid-cols-2 gap-x-8 gap-y-10 p-0 lg:grid-cols-6">
                 <li className="grid justify-items-start gap-4">
                   <div>
                     <SpecimenLabel>small</SpecimenLabel>
@@ -377,6 +394,18 @@ export default function DesignSystem() {
                   </div>
                   <div
                     className="size-20 rounded-md bg-gray-200"
+                    aria-hidden="true"
+                  />
+                </li>
+                <li className="grid justify-items-start gap-4">
+                  <div>
+                    <SpecimenLabel>large</SpecimenLabel>
+                    <p className={specimenDescriptionClassName}>
+                      rounded-lg · 8px · event covers
+                    </p>
+                  </div>
+                  <div
+                    className="size-20 rounded-lg bg-gray-200"
                     aria-hidden="true"
                   />
                 </li>
@@ -413,6 +442,44 @@ export default function DesignSystem() {
                   </div>
                   <div
                     className="size-20 rounded-full bg-gray-200"
+                    aria-hidden="true"
+                  />
+                </li>
+              </ul>
+              <ul className="m-0 mt-10 grid list-none grid-cols-2 gap-x-8 gap-y-10 p-0 lg:grid-cols-6">
+                <li className="grid justify-items-start gap-4">
+                  <div>
+                    <SpecimenLabel>media inset edge</SpecimenLabel>
+                    <p className={specimenDescriptionClassName}>
+                      2px · shelf covers · 5%
+                    </p>
+                  </div>
+                  <div
+                    className="media-inset-edge relative size-20 rounded-lg bg-white"
+                    aria-hidden="true"
+                  />
+                </li>
+                <li className="grid justify-items-start gap-4">
+                  <div>
+                    <SpecimenLabel>media inset edge focused</SpecimenLabel>
+                    <p className={specimenDescriptionClassName}>
+                      2px · focused cover · 2%
+                    </p>
+                  </div>
+                  <div
+                    className="media-inset-edge-focused relative size-20 rounded-lg bg-white"
+                    aria-hidden="true"
+                  />
+                </li>
+                <li className="grid justify-items-start gap-4">
+                  <div>
+                    <SpecimenLabel>media inset edge soft</SpecimenLabel>
+                    <p className={specimenDescriptionClassName}>
+                      1px · video · 3% · fades in at full width
+                    </p>
+                  </div>
+                  <div
+                    className="media-inset-edge-soft relative size-20 rounded-[20px] bg-white"
                     aria-hidden="true"
                   />
                 </li>
@@ -457,7 +524,7 @@ export default function DesignSystem() {
                 <div>
                   <SpecimenLabel>raised</SpecimenLabel>
                   <p className={specimenDescriptionClassName}>
-                    Team cards · shadow-lg / hover:shadow-xl
+                    Team cards
                   </p>
                 </div>
                 <div
@@ -538,27 +605,25 @@ export default function DesignSystem() {
             <h2 className={sectionTitleClassName} id="inputs-title">
               inputs
             </h2>
-            <div className="grid max-w-2xl gap-8 sm:grid-cols-2">
-              <label className="grid gap-2 text-base">
-                <span className="font-bold">Email address</span>
-                <Input
-                  type="email"
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                />
-              </label>
-              <label className="grid gap-2 text-base">
-                <span className="font-bold">Disabled</span>
-                <Input placeholder="Unavailable" disabled />
-              </label>
-            </div>
-            <div className="grid gap-2 text-base">
-              <span className="font-bold">Dropdown</span>
-              <SelectSpecimen />
-              <p className={specimenDescriptionClassName}>
-                Shares the input surface and radius, sizes itself to the selected
-                option, and sits inline inside a sentence.
-              </p>
+            <div className="grid gap-8">
+              <div className="grid max-w-2xl gap-8 sm:grid-cols-2">
+                <label className="grid gap-2 text-base">
+                  <span className="font-bold">Email address</span>
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
+                </label>
+                <label className="grid gap-2 text-base">
+                  <span className="font-bold">Disabled</span>
+                  <Input placeholder="Unavailable" disabled />
+                </label>
+              </div>
+              <div className="grid gap-2 text-base">
+                <span className="font-bold">Dropdown</span>
+                <SelectSpecimen />
+              </div>
             </div>
           </section>
 
@@ -585,6 +650,8 @@ export default function DesignSystem() {
             </div>
           </section>
         </div>
+
+        <SiteFooter logoHref="/" logoAriaLabel="Design Meetup home" />
       </main>
     </TooltipProvider>
   );

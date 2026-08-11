@@ -25,7 +25,7 @@ export function Tooltip({ children, content }: TooltipProps) {
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
           className="z-50 max-w-64 rounded-md bg-ink px-2.5 py-1.5 text-sm leading-5 text-pretty text-surface"
-          sideOffset={8}
+          sideOffset={4}
         >
           {content}
         </TooltipPrimitive.Content>

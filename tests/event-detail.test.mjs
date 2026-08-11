@@ -20,8 +20,8 @@ const viewToggle = await readFile(
   new URL("../src/components/GalleryViewToggle.tsx", import.meta.url),
   "utf8",
 );
-const eventListRow = await readFile(
-  new URL("../src/components/EventListRow.tsx", import.meta.url),
+const lightbox = await readFile(
+  new URL("../src/components/GalleryLightbox.tsx", import.meta.url),
   "utf8",
 );
 
@@ -128,9 +128,16 @@ test("gallery toolbar carries the layout toggle instead of a counter and arrows"
   assert.match(iconButton, /hover:not-disabled:bg-gray-300/);
   assert.match(iconButton, /rounded-full border-0/);
   assert.match(app, /stroke="currentColor"/);
+  // Mobile has no grid view: hide the toggle and snap back to the carousel.
+  assert.match(
+    css,
+    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.gallery-toolbar\s*\{[^}]*display:\s*none;/s,
+  );
+  assert.match(app, /matchMedia\("\(max-width: 820px\)"\)/);
+  assert.match(app, /if \(media\.matches\) changeView\("carousel"\)/);
 });
 
-test("the layout toggle swaps the carousel for a scannable list", () => {
+test("the layout toggle swaps the carousel for a grid of covers", () => {
   assert.match(viewToggle, hasClass("view-toggle"));
   assert.match(viewToggle, /role="group"\s*\n?\s*aria-label="Event layout"/);
   assert.match(viewToggle, /aria-pressed=\{view === option\.value\}/);
@@ -143,18 +150,84 @@ test("the layout toggle swaps the carousel for a scannable list", () => {
     /transform: `translateX\(\$\{thumb\.x\}px\)`, width: thumb\.width/,
   );
   // Icon-only pills: no visible text label, so each button carries its own
-  // aria-label and renders only an icon. Selected state stays on the thumb.
+  // aria-label and a hover tooltip. Selected state stays on the thumb.
   assert.doesNotMatch(viewToggle, /view-toggle-label/);
   assert.match(viewToggle, /aria-label=\{option\.label\}/);
+  assert.match(viewToggle, /<Tooltip key=\{option\.value\} content=\{option\.label\}>/);
   assert.match(
     viewToggle,
-    /option\.value === "carousel" \? <CarouselViewIcon \/> : <ListViewIcon \/>/,
+    /option\.value === "carousel" \? \(\s*<CarouselViewIcon filled=\{view === option\.value\} \/>\s*\) : \(\s*<GridViewIcon filled=\{view === option\.value\} \/>\s*\)/,
   );
   assert.doesNotMatch(css, /\.view-toggle-label\b/);
   assert.match(app, /view === "carousel" \? \(/);
-  assert.match(app, hasClass("event-list"));
-  assert.match(app, /<EventListRow/);
-  assert.match(eventListRow, hasClass("event-row"));
+  assert.match(app, hasClass("event-grid"));
+  assert.match(viewToggle, /\{ value: "grid", label: "Grid" \}/);
+});
+
+test("the selected layout icon fills while the other stays an outline", () => {
+  assert.match(viewToggle, /function CarouselViewIcon\(\{ filled \}: \{ filled: boolean \}\)/);
+  assert.match(viewToggle, /function GridViewIcon\(\{ filled \}: \{ filled: boolean \}\)/);
+  // Solid state swaps fill in and halves the stroke so both states keep the
+  // same footprint on a 16x16 viewBox.
+  assert.match(
+    viewToggle,
+    /filled \? \{ fill: "currentColor", strokeWidth: 0\.7 \} : undefined/,
+  );
+  // The two carousel side marks are lines, so they stay stroked in both states.
+  assert.match(viewToggle, /<path d="M3\.5 5\.25v5\.5M12\.5 5\.25v5\.5" \/>/);
+  assert.match(viewToggle, /<rect[^>]*x="6"[\s\S]*?\{\.\.\.solidShapeProps\(filled\)\}/);
+  assert.match(
+    viewToggle,
+    /<rect x="9" y="9" width="4" height="4" rx="0\.9" \{\.\.\.square\} \/>/,
+  );
+  assert.match(viewToggle, /aria-pressed:text-ink/);
+});
+
+test("grid view shows covers alone, with the title and date left to the label", () => {
+  const cover = app.match(/className="event-grid-cover[^"]*"/)?.[0] ?? "";
+  assert.notEqual(cover, "");
+  assert.match(app, /aria-label=\{`\$\{item\.title\}, \$\{item\.date_label\}`\}/);
+  assert.match(app, /aria-pressed=\{index === selectedIndex\}/);
+  // No visible name, date or location: the artwork carries the event.
+  assert.doesNotMatch(app, /event-grid[\s\S]{0,1200}\{item\.date_label\}</);
+  assert.doesNotMatch(app, /event-grid[\s\S]{0,1200}\{item\.location\}</);
+  // Covers pack to the column's width at a readable size rather than a fixed count.
+  assert.match(
+    css,
+    /\.event-grid\s*\{[^}]*grid-template-columns:\s*repeat\(\s*auto-fill,\s*minmax\(clamp\(96px,\s*9vw,\s*132px\),\s*1fr\)\s*\);/s,
+  );
+  assert.match(css, /\.event-grid-cover\s*\{[^}]*aspect-ratio:\s*1;/s);
+  // The unselected covers step back, so the chosen one reads without a ring.
+  assert.match(
+    css,
+    /\.event-grid-cover:not\(\[aria-pressed="true"\]\)\s*\{[^}]*opacity:\s*0\.6;/s,
+  );
+  assert.match(
+    css,
+    /\.event-grid-cover\[aria-pressed="true"\]\s*\{[^}]*opacity:\s*1;/s,
+  );
+  assert.match(
+    css,
+    /\.event-grid-cover\[aria-pressed="true"\]\s*\{[^}]*transform:\s*scale\(1\.04\);/s,
+  );
+  // Hovering an unselected cover wakes it up without reaching the selection.
+  assert.match(
+    css,
+    /\.event-grid-cover:not\(\[aria-pressed="true"\]\):hover\s*\{[^}]*opacity:\s*0\.85;/s,
+  );
+  assert.doesNotMatch(css, /\.event-grid-cover:hover\s*\{[^}]*opacity:/s);
+  // Selection changes fade rather than snap, and hold still under reduced motion.
+  assert.match(
+    css,
+    /\.event-grid-cover\s*\{[^}]*transition:[^;]*opacity 150ms ease-out;/s,
+  );
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.event-grid-cover,[\s\S]*?\{\s*transition:\s*none;/s,
+  );
+  // The row component the old list view used is gone along with its styles.
+  assert.doesNotMatch(css, /\.event-row\b/);
+  assert.doesNotMatch(app, /EventListRow/);
 });
 
 test("the detail heading owns the selected title id", () => {
@@ -164,7 +237,6 @@ test("the detail heading owns the selected title id", () => {
     /<h2[\s\S]*id=\{SELECTED_TITLE_ID\}[\s\S]*>\s*\{selectedEvent\.title\}\s*<\/h2>/,
   );
   assert.doesNotMatch(app, /titleId=/);
-  assert.doesNotMatch(eventListRow, /\btitleId\b/);
 });
 
 test("selected event title uses the next heavier text weight", () => {
@@ -172,22 +244,12 @@ test("selected event title uses the next heavier text weight", () => {
     app,
     /<h2[^>]*className="[^"]*\bfont-bold\b[^"]*"[^>]*id=\{SELECTED_TITLE_ID\}/s,
   );
-  assert.match(
-    eventListRow,
-    /className="event-row-title block font-bold/,
-  );
 });
 
 test("event details render the selected event gallery images from Supabase", () => {
-  assert.match(app, /aria-labelledby="event-photos-title"/);
-  assert.match(
-    app,
-    /<h3[^>]*id="event-photos-title"[^>]*>\s*Gallery\s*<\/h3>/,
-  );
-  assert.match(
-    app,
-    /className="mb-\[clamp\(24px,3vw,40px\)\] flex items-center justify-between"[\s\S]*id="event-photos-title"/,
-  );
+  assert.match(app, /aria-label="Event gallery"/);
+  assert.doesNotMatch(app, /id="event-photos-title"/);
+  assert.doesNotMatch(app, />\s*Gallery\s*<\/h3>/);
   assert.match(app, hasClass("detail-photo-list"));
   assert.match(app, /selectedEvent\?\.gallery_images/);
   assert.match(app, /selectedPhotos\.map\(\(photoUrl, photoIndex\)/);
@@ -198,7 +260,12 @@ test("event details render the selected event gallery images from Supabase", () 
 test("the gallery stays hidden while an event still uses the shared placeholders", () => {
   assert.match(app, /url\.includes\("\/placeholders\/"\)/);
   assert.match(app, /const showEventGallery = selectedPhotos\.length > 0/);
-  assert.match(app, /\{showEventGallery \? \(/);
+  // The extras wrapper goes with it, so a gallery-less event doesn't leave an
+  // empty grid row and its gap under the detail.
+  assert.match(
+    app,
+    /\{showEventGallery \? \(\s*<div className="detail-extras pt-0">/,
+  );
   assert.doesNotMatch(
     app,
     /gallery_images\?\.length > 0[\s\S]*\? selectedEvent\.image_url/,
@@ -222,9 +289,31 @@ test("event photos use an accessible horizontally scrollable rail", () => {
     css,
     /\.detail-photo-list li\s*\{[^}]*flex:\s*0 0 auto;/s,
   );
+  // One height for both layouts: the utility is on the shared photo element, so
+  // carousel and grid view cannot drift apart.
   assert.match(
     app,
-    /detail-photo[^"]*h-\[clamp\(180px,52vw,260px\)\][^"]*w-auto[^"]*max-w-\[min\(82vw,640px\)\][^"]*object-contain[^"]*min-\[821px\]:h-\[clamp\(190px,15vw,200px\)\][^"]*min-\[821px\]:max-w-none/,
+    /detail-photo[^"]*h-\[clamp\(240px,62vw,320px\)\][^"]*w-auto[^"]*max-w-\[min\(82vw,640px\)\][^"]*object-contain[^"]*min-\[821px\]:h-\[clamp\(260px,22vw,340px\)\][^"]*min-\[821px\]:max-w-none/,
+  );
+});
+
+test("the photo arrows only appear once the rail can actually scroll", () => {
+  assert.match(
+    app,
+    /const \[isPhotoRailScrollable, setIsPhotoRailScrollable\] = useState\(false\)/,
+  );
+  assert.match(
+    app,
+    /setIsPhotoRailScrollable\(rail\.scrollWidth > rail\.clientWidth \+ 1\)/,
+  );
+  assert.match(
+    app,
+    /\{isPhotoRailScrollable \? \(\s*<div className="mb-\[clamp\(24px,3vw,40px\)\] flex items-center justify-end">\s*<div\s*\n?\s*className="flex gap-2"/,
+  );
+  // A rail that never mounts has no arrows to speak of.
+  assert.match(
+    app,
+    /if \(!photoRailElement\) \{\s*setIsPhotoRailScrollable\(false\)/,
   );
 });
 
@@ -243,7 +332,7 @@ test("event photo controls scroll by a responsive increment and disable at bound
 test("event photos shimmer gray until each one decodes", () => {
   assert.match(
     app,
-    /detail-photo-frame[^"]*relative[^"]*overflow-hidden[^"]*rounded-md"\s*\n\s*data-loaded=\{loadedPhotos\[photoUrl\] \? "true" : "false"\}/,
+    /detail-photo-frame[^"]*relative[^"]*overflow-hidden[^"]*rounded-md[^"]*"\s*\n\s*data-loaded=\{loadedPhotos\[photoUrl\] \? "true" : "false"\}/,
   );
   assert.match(app, /className="detail-photo-shimmer bg-skeleton"/);
   assert.match(app, /aria-hidden="true"/);
@@ -267,6 +356,164 @@ test("event photos shimmer gray until each one decodes", () => {
     css,
     /@media \(prefers-reduced-motion: reduce\)\s*\{[^}]*\.detail-photo-shimmer[\s\S]*?animation:\s*none;/,
   );
+});
+
+test("clicking a gallery photo opens it in the lightbox at its own index", () => {
+  assert.match(app, /import \{ GalleryLightbox \} from "\.\/GalleryLightbox"/);
+  assert.match(
+    app,
+    /<button\s*\n\s*type="button"\s*\n\s*className="detail-photo-frame[^"]*"[\s\S]*?onClick=\{\(\) => openLightbox\(photoIndex\)\}/,
+  );
+  assert.match(
+    app,
+    /<GalleryLightbox\s*\n\s*photos=\{lightboxPhotos\}\s*\n\s*previews=\{selectedPhotos\}\s*\n\s*index=\{lightboxIndex\}[\s\S]*?onIndexChange=\{setLightboxIndex\}\s*\n\s*onClose=\{closeLightbox\}/,
+  );
+  // The rail's thumbnail render would go soft blown up across the viewport.
+  assert.match(
+    app,
+    /const lightboxPhotos = useMemo\([\s\S]*?sizedImageUrl\(url, \{ width: 1200/,
+  );
+  // Switching events swaps the whole gallery out from under the overlay.
+  assert.match(
+    app,
+    /useEffect\(\(\) => \{\s*setLightboxIndex\(null\);\s*\}, \[selectedEvent\?\.id\]\)/,
+  );
+  // The frame is a button now, so it has to shed the default button chrome.
+  assert.match(app, /detail-photo-frame[^"]*border-0 bg-transparent p-0/);
+  assert.match(css, /\.detail-photo-frame\s*\{[^}]*cursor:\s*pointer;/s);
+});
+
+test("the lightbox is a light modal overlay driven by ghost icon buttons", () => {
+  assert.match(lightbox, /createPortal\(/);
+  assert.match(lightbox, /role="dialog"\s*\n\s*aria-modal="true"/);
+  assert.match(lightbox, /bg-white\/88 backdrop-blur-md/);
+  assert.match(lightbox, /max-h-\[78vh\] max-w-\[88vw\]/);
+
+  for (const label of ["Close gallery", "Previous photo", "Next photo"]) {
+    assert.match(
+      lightbox,
+      new RegExp(
+        `aria-label="${label}"\\s*\\n\\s*variant="ghost"`,
+      ),
+      `${label} should be a ghost icon button`,
+    );
+  }
+  // Close sits in the corner; the arrows straddle the photo.
+  assert.match(
+    lightbox,
+    /className="absolute top-\[clamp\(16px,3vw,32px\)\] right-\[clamp\(16px,3vw,32px\)\]"\s*\n\s*aria-label="Close gallery"/,
+  );
+  assert.match(lightbox, /absolute top-1\/2 left-\[clamp\(12px,3vw,32px\)\] -translate-y-1\/2/);
+  assert.match(lightbox, /absolute top-1\/2 right-\[clamp\(12px,3vw,32px\)\] -translate-y-1\/2/);
+  assert.match(lightbox, /disabled=\{!hasPrevious\}/);
+  assert.match(lightbox, /disabled=\{!hasNext\}/);
+  // A single photo has nowhere to step, so it keeps only the close control.
+  assert.match(lightbox, /\{photos\.length > 1 \? \(/);
+});
+
+test("the lightbox never shows empty space while a photo loads", () => {
+  // The rail's render is already decoded, so it paints on the first frame and
+  // gives the frame the photo's real shape before the big render lands.
+  assert.match(app, /previews=\{selectedPhotos\}/);
+  assert.match(
+    lightbox,
+    /const basePhoto = \(isOpen \? previews\?\.\[index\] : null\) \?\? photo/,
+  );
+  assert.match(lightbox, /className="lightbox-photo[^"]*"\s*\n\s*key=\{basePhoto\}/);
+  assert.match(lightbox, /\{basePhoto === photo \? null : \(/);
+  // Same shimmer as the rail, for photos the reader never scrolled past. It
+  // waits a beat so it never washes over a photo that is already on screen.
+  assert.match(lightbox, /className="detail-photo-shimmer bg-skeleton"/);
+  assert.match(lightbox, /const PLACEHOLDER_DELAY_MS = 120/);
+  assert.match(
+    lightbox,
+    /data-placeholder=\{\s*isPlaceholderDue && !isBaseLoaded \? "true" : "false"\s*\}/,
+  );
+  assert.match(
+    css,
+    /\.lightbox-frame \.detail-photo-shimmer\s*\{[^}]*opacity:\s*0;/s,
+  );
+  assert.match(
+    css,
+    /\.lightbox-frame\[data-placeholder="true"\] \.detail-photo-shimmer\s*\{[^}]*opacity:\s*1;/s,
+  );
+  assert.match(lightbox, /node\?\.complete && node\.naturalWidth > 0/);
+  assert.match(
+    css,
+    /\.lightbox-frame\[data-base-loaded="false"\] \.lightbox-photo\s*\{[^}]*aspect-ratio:\s*3 \/ 4;[^}]*opacity:\s*0;/s,
+  );
+  assert.match(
+    css,
+    /\.lightbox-frame\[data-loaded="true"\] \.lightbox-photo-full\s*\{[^}]*opacity:\s*1;/s,
+  );
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.lightbox-photo-full[\s\S]*?transition:\s*none;/,
+  );
+});
+
+test("the lightbox answers the keyboard and hands focus back on close", () => {
+  assert.match(lightbox, /event\.key === "Escape"[\s\S]*?onClose\(\)/);
+  assert.match(lightbox, /event\.key === "ArrowLeft"[\s\S]*?step\(-1\)/);
+  assert.match(lightbox, /event\.key === "ArrowRight"[\s\S]*?step\(1\)/);
+  // Portaled past the page, so Tab has to be wrapped by hand.
+  assert.match(lightbox, /event\.key !== "Tab"/);
+  assert.match(lightbox, /returnFocusRef\.current = document\.activeElement/);
+  assert.match(lightbox, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(
+    lightbox,
+    /returnFocusRef\.current\?\.focus\(\{ preventScroll: true \}\)/,
+  );
+  // Clicking anywhere off the photo closes; the photo, caption and controls
+  // keep the overlay open.
+  assert.match(
+    lightbox,
+    /if \(target\.closest\("img, figcaption, button"\)\) return;\s*onClose\(\);/,
+  );
+});
+
+// Stepping used to wait out the outgoing photo's exit before mounting the next
+// one, so an arrow cost two animations before anything appeared.
+test("stepping swaps a warmed photo instantly instead of cross-fading", () => {
+  assert.doesNotMatch(lightbox, /mode="wait"/);
+  assert.match(
+    lightbox,
+    /warmImages\(\[\s*photos\[index\],\s*photos\[index \+ 1\],\s*photos\[index - 1\],/,
+  );
+  assert.match(lightbox, /const isPhotoWarm = isImageWarm\(photo\)/);
+  assert.match(lightbox, /decoding=\{isPhotoWarm \? "sync" : "async"\}/);
+  assert.doesNotMatch(lightbox, /<motion\.img/);
+  // The reveal belongs to the overlay's arrival, not to every arrow press.
+  assert.match(
+    lightbox,
+    /<motion\.figure[\s\S]*?: \{ opacity: 0, y: PHOTO_ENTRANCE_Y_PX \}[\s\S]*?animate=\{\{ opacity: 1, y: 0 \}\}/,
+  );
+  assert.match(
+    lightbox,
+    /const PHOTO_ENTRANCE_DURATION_S = 0\.42;\s*const PHOTO_ENTRANCE_Y_PX = 20;/,
+  );
+});
+
+test("the lightbox keeps the event name stable under the photo", () => {
+  assert.match(
+    lightbox,
+    /grid h-\[calc\(78vh\+44px\)\] w-\[88vw\] grid-rows-\[78vh_20px\] gap-6/,
+  );
+  assert.match(
+    lightbox,
+    /<figcaption className="m-0 self-start text-center text-sm leading-5 text-muted">\s*\{title\}\s*<\/figcaption>/,
+  );
+  assert.match(app, /title=\{selectedEvent\.title\}/);
+});
+
+// The controls sit on a near-white wash, where ink reads as a hard black.
+test("lightbox controls use the lighter icon tone", () => {
+  assert.equal(lightbox.match(/tone="muted"/g)?.length, 3);
+  assert.match(
+    iconButton,
+    /muted: "text-muted hover:not-disabled:text-ink"/,
+  );
+  assert.match(iconButton, /transition-\[background-color,color,transform,opacity\]/);
 });
 
 test("event photo rail bleeds to viewport edges with aligned terminal spacing", () => {
@@ -329,7 +576,7 @@ test("the event card separates the name from its metadata column", () => {
   assert.doesNotMatch(app, /Event \{String\(selectedIndex/);
   assert.match(
     css,
-    /\.detail-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\);[^}]*column-gap:\s*clamp\(16px,\s*2vw,\s*28px\);/s,
+    /\.detail-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\);[^}]*column-gap:\s*clamp\(16px,\s*2vw,\s*28px\);[^}]*row-gap:\s*clamp\(20px,\s*3vw,\s*52px\);/s,
   );
   assert.match(
     css,
@@ -376,94 +623,109 @@ test("event metadata sits under the title in the left column", () => {
   );
 });
 
-test("list view pairs the roster and the detail into a master/detail split", () => {
+test("grid view pairs the covers and the detail into a master/detail split", () => {
   assert.match(app, /<div className="events-layout" data-view=\{view\}>/);
   assert.match(
     css,
-    /\.events-layout\[data-view="list"\]\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*7fr\)\s+minmax\(0,\s*5fr\)/s,
+    /\.events-layout\[data-view="grid"\]\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*7fr\)\s+minmax\(0,\s*5fr\)/s,
   );
   assert.match(
     css,
-    /\.events-layout\[data-view="list"\]\s*\{[^}]*align-items:\s*stretch;/s,
+    /\.events-layout\[data-view="grid"\]\s*\{[^}]*align-items:\s*start;/s,
   );
-  // Same top inset as the detail column so the first row lines up with the title.
+  // Same top inset as the detail column so the first covers line up with the title.
   assert.match(
     app,
-    /gallery-list[^"]*pt-\[clamp\(32px,4vw,64px\)\]/,
+    /gallery-grid[^"]*pt-\[clamp\(32px,4vw,64px\)\]/,
   );
   assert.match(
     app,
     /event-detail[^"]*pt-\[clamp\(32px,4vw,64px\)\]/,
   );
-  // The scrollport grows with the detail column instead of capping at a short viewport.
+  // Matching bottom inset, so the covers stop where the detail's copy stops.
   assert.match(
-    css,
-    /\.events-layout\[data-view="list"\] \.event-list-scroll\s*\{[^}]*max-height:\s*none;/s,
+    app,
+    /event-detail[^"]*pb-\[clamp\(56px,9vw,128px\)\]/,
+  );
+  assert.match(
+    app,
+    /gallery-grid[^"]*pb-\[clamp\(56px,9vw,128px\)\]/,
   );
   // Detail stacks into one column instead of its own 12-column split.
   assert.match(
     css,
-    /\.events-layout\[data-view="list"\] \.detail-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
+    /\.events-layout\[data-view="grid"\] \.detail-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);[^}]*row-gap:\s*clamp\(14px,\s*1\.5vw,\s*22px\);/s,
   );
   assert.match(
     css,
-    /\.events-layout\[data-view="list"\] \.detail-title,\s*\.events-layout\[data-view="list"\] \.detail-meta\s*\{[^}]*grid-column:\s*auto/s,
+    /\.events-layout\[data-view="grid"\] \.detail-title,\s*\.events-layout\[data-view="grid"\] \.detail-meta\s*\{[^}]*grid-column:\s*auto/s,
   );
-  // Without this the full-bleed rail would run back under the list.
+  // Without this the full-bleed rail would run back under the covers.
   assert.match(
     css,
-    /\.events-layout\[data-view="list"\] \.detail-photo-list\s*\{[^}]*--page-gutter:\s*0px/s,
+    /\.events-layout\[data-view="grid"\] \.detail-photo-list\s*\{[^}]*--page-gutter:\s*0px/s,
+  );
+  // Photos run shorter beside the covers than they do at full width.
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] \.detail-photo\s*\{[^}]*height:\s*clamp\(220px,\s*57vw,\s*292px\)/s,
+  );
+  assert.match(
+    css,
+    /@media \(min-width: 821px\)\s*\{\s*\.events-layout\[data-view="grid"\] \.detail-photo\s*\{[^}]*height:\s*clamp\(236px,\s*20vw,\s*308px\)/s,
   );
   // One page gutter between the columns rather than two stacked ones.
   assert.match(
     css,
-    /\.events-layout\[data-view="list"\] > \.event-detail\s*\{[^}]*margin-left:\s*calc\(0px - clamp\(20px,\s*6vw,\s*96px\)\)/s,
+    /\.events-layout\[data-view="grid"\] > \.event-detail\s*\{[^}]*margin-left:\s*calc\(0px - clamp\(20px,\s*6vw,\s*96px\)\)/s,
   );
   assert.match(
     css,
-    /@media \(max-width: 820px\)[\s\S]*\.events-layout\[data-view="list"\]\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
+    /@media \(max-width: 820px\)[\s\S]*\.events-layout\[data-view="grid"\]\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
   );
   assert.match(
     css,
-    /@media \(max-width: 820px\)[\s\S]*\.events-layout\[data-view="list"\] > \.event-detail\s*\{[^}]*margin-left:\s*0/s,
-  );
-});
-
-test("the roster is capped to the detail column's height", () => {
-  // Out of flow, so however many events load, only the detail column sizes the
-  // split and the roster scrolls inside it.
-  assert.match(
-    css,
-    /\.events-layout\[data-view="list"\] > \.gallery-section\s*\{[^}]*position:\s*relative;/s,
-  );
-  assert.match(
-    css,
-    /\.events-layout\[data-view="list"\] > \.gallery-section > \.scroll-reveal\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;/s,
+    /@media \(max-width: 820px\)[\s\S]*\.events-layout\[data-view="grid"\] > \.event-detail\s*\{[^}]*margin-left:\s*0/s,
   );
 });
 
-test("the roster blurs out at whichever edge it can still scroll towards", () => {
-  assert.match(app, /data-fade-top=\{listEdges\.top \? "" : undefined\}/);
-  assert.match(app, /data-fade-bottom=\{listEdges\.bottom \? "" : undefined\}/);
+test("the cover grid stands at its full height rather than scrolling in a box", () => {
+  // Nothing wraps the covers in a scrollport or takes the column out of flow,
+  // so every cover stays whole and the page is what scrolls.
+  assert.doesNotMatch(css, /\.event-grid-scroll\b/);
+  assert.doesNotMatch(css, /\.event-grid-viewport\b/);
+  assert.doesNotMatch(app, /event-grid-scroll|event-grid-viewport/);
+  assert.doesNotMatch(
+    css,
+    /\.events-layout\[data-view="grid"\] > \.gallery-section > \.scroll-reveal\s*\{[^}]*position:\s*absolute/s,
+  );
+  // The covers keep their own column width now that no wrapper carries it.
+  assert.match(css, /\.event-grid\s*\{[^}]*max-width:\s*min\(100%, 900px\);/s);
+});
+
+test("only the photo rail blurs at its edges, since only it scrolls", () => {
+  assert.doesNotMatch(app, /gridEdges|data-fade-top|data-fade-bottom/);
+  assert.match(app, /data-fade-left=\{canScrollPhotosLeft \? "" : undefined\}/);
+  assert.match(app, /data-fade-right=\{canScrollPhotosRight \? "" : undefined\}/);
   assert.match(
     css,
-    /\.event-list-viewport\[data-fade-top\]::before,\s*\.event-list-viewport\[data-fade-bottom\]::after\s*\{[^}]*backdrop-filter:\s*blur\(6px\);/s,
+    /\.events-layout\[data-view="grid"\] \.detail-photo-viewport\[data-fade-left\]::before,\s*\.events-layout\[data-view="grid"\] \.detail-photo-viewport\[data-fade-right\]::after\s*\{[^}]*backdrop-filter:\s*blur\(6px\);/s,
   );
   // The blur ramps with the wash, so the band has no edge of its own.
   assert.match(
     css,
-    /\.event-list-viewport\[data-fade-top\]::before\s*\{[^}]*mask-image:\s*linear-gradient\(to top, rgb\(0 0 0 \/ 0\), #000 65%\);/s,
+    /\.detail-photo-viewport\[data-fade-left\]::before\s*\{[^}]*mask-image:\s*linear-gradient\(to left, rgb\(0 0 0 \/ 0\), #000 65%\);/s,
   );
   assert.match(
     css,
-    /\.event-list-viewport\[data-fade-bottom\]::after\s*\{[^}]*mask-image:\s*linear-gradient\(to bottom, rgb\(0 0 0 \/ 0\), #000 65%\);/s,
+    /\.detail-photo-viewport\[data-fade-right\]::after\s*\{[^}]*mask-image:\s*linear-gradient\(to right, rgb\(0 0 0 \/ 0\), #000 65%\);/s,
   );
 });
 
-test("list view opens the detail with the event cover at carousel size", () => {
+test("grid view opens the detail with the event cover at carousel size", () => {
   assert.match(
     app,
-    /\{view === "list" \? \(\s*<div className="detail-cover[^"]*aspect-square[^"]*">\s*<img[\s\S]*?src=\{sizedImageUrl\(selectedEvent\.image_url,/,
+    /\{view === "grid" \? \(\s*<div className="detail-cover[^"]*aspect-square[^"]*">\s*<img[\s\S]*?src=\{sizedImageUrl\(selectedEvent\.image_url,/,
   );
   // Sits above the title and centred, at the size the focused card paints.
   assert.match(
@@ -496,8 +758,11 @@ test("long event summaries collapse at 220px with an accessible expansion contro
   assert.match(app, /contentHeight > 220/);
   assert.match(
     app,
-    /bg-gradient-to-b from-white\/0 via-white\/80 to-white/,
+    /bg-gradient-to-b from-surface\/0 via-surface\/80 to-surface/,
   );
+  // A taller fade washes out several readable lines, so the softening stays
+  // shallow enough to only touch the last line of the clamped copy.
+  assert.match(app, /bottom-0 h-16 bg-gradient-to-b/);
   assert.doesNotMatch(app, /backdrop-blur/);
 });
 
@@ -520,10 +785,6 @@ test("event detail body copy is dark gray with no uppercase gray labels", () => 
   assert.doesNotMatch(app, /\buppercase\b/);
   assert.doesNotMatch(app, /\btext-gray-400\b/);
   assert.match(css, /--color-body:\s*#202020;/);
-  assert.match(
-    app,
-    /<h3[\s\S]*className="[^"]*\btext-xl\b[^"]*\btext-black\b"[\s\S]*id="event-photos-title"/,
-  );
 });
 
 test("event metadata reads as three rows: facts, sponsor pills, then the link", () => {
@@ -630,10 +891,18 @@ test("nonselected covers blend against a white underlay so they look lighter", (
     css,
     /\.event-card\s*\{[^}]*background:\s*oklch\(35%/s,
   );
-  assert.doesNotMatch(
-    css,
-    /\.event-card(?:\[aria-pressed="true"\])?::(?:before|after)\s*\{/s,
-  );
+  // The cover pseudo-elements carry the inset hairline and the hover hit pad,
+  // so they may exist; what they must never do again is wash a tint over the
+  // artwork, which is what made nonselected covers read as muddy.
+  const coverPseudoRules =
+    css.match(
+      /[^{}]*\.event-card[^{}]*::(?:before|after)[^{}]*\{[^}]*\}/gs,
+    ) ?? [];
+
+  assert.ok(coverPseudoRules.length > 0);
+  for (const rule of coverPseudoRules) {
+    assert.doesNotMatch(rule, /background|backdrop-filter|mix-blend-mode/);
+  }
 });
 
 test("event images keep normal color while nonselected images use 70% opacity", () => {

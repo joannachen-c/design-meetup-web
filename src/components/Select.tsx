@@ -8,6 +8,9 @@ export type SelectOption = {
   value: string;
 };
 
+// Matches the menu's `p-1`, in px.
+const MENU_PADDING = 4;
+
 type SelectProps = {
   className?: string;
   disabled?: boolean;
@@ -88,16 +91,22 @@ export function Select({
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Portal>
+        {/* The menu is the trigger's box inflated by its own 1-unit padding, so
+            every row lands exactly on the trigger's footprint: alignOffset and
+            the extra min-width cancel that padding out, and each row repeats the
+            trigger's pl-4 / pr-3 so label and indicator sit on the same axes as
+            the trigger's label and chevron. */}
         <SelectPrimitive.Content
           align="start"
-          className="select-menu z-50 max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[10px] bg-white p-1 font-['Alte_Haas_Grotesk',sans-serif] text-base shadow-lg ring-1 ring-black/5"
+          alignOffset={-MENU_PADDING}
+          className="select-menu z-50 max-h-[var(--radix-select-content-available-height)] min-w-[calc(var(--radix-select-trigger-width)+8px)] overflow-hidden rounded-[10px] bg-white p-1 font-['Alte_Haas_Grotesk',sans-serif] text-base shadow-lg ring-1 ring-black/5"
           position="popper"
           sideOffset={6}
         >
           <SelectPrimitive.Viewport>
             {options.map((option) => (
               <SelectPrimitive.Item
-                className="flex min-h-10 cursor-pointer items-center justify-between gap-4 rounded-[7px] py-2 pr-2.5 pl-3 text-base text-ink outline-none select-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[highlighted]:bg-surface-muted"
+                className="flex min-h-10 cursor-pointer items-center justify-between gap-4 rounded-[7px] py-2 pr-3 pl-4 text-base text-ink outline-none select-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[highlighted]:bg-surface-muted"
                 key={option.value}
                 value={option.value}
               >

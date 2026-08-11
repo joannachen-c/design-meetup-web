@@ -1,13 +1,18 @@
 import { type ReactNode, useEffect, useRef } from "react";
 
+import { observeReplayReveal } from "../lib/replay-reveal";
+
 export function ScrollReveal({
   children,
   delay = 0,
   className = "",
+  repeat = false,
 }: {
   children: ReactNode;
   delay?: number;
   className?: string;
+  /** Replay the reveal on every pass instead of settling after the first. */
+  repeat?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -15,24 +20,27 @@ export function ScrollReveal({
     const element = ref.current;
     if (!element) return;
 
-    if (!("IntersectionObserver" in window)) {
-      element.classList.add("is-visible");
-      return;
-    }
+    // Held in an object so the reveal callback can stop the observers on the
+    // very first notification, which arrives after this assignment.
+    const observation = { stop: () => {} };
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
+    observation.stop = observeReplayReveal(
+      element,
+      (revealed) => {
+        if (revealed) {
           element.classList.add("is-visible");
-          observer.unobserve(element);
+          if (!repeat) observation.stop();
+          return;
         }
+        // Rewinding only once the element is fully past the viewport keeps the
+        // reset off screen, so the next pass starts from the top of the motion.
+        if (repeat) element.classList.remove("is-visible");
       },
-      { rootMargin: "40px", threshold: 0 },
+      { margin: 40 },
     );
 
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
+    return () => observation.stop();
+  }, [repeat]);
 
   return (
     <div

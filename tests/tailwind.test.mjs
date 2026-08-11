@@ -53,10 +53,18 @@ test("requested style categories live in Tailwind utilities", () => {
   assert.match(app, /px-\[clamp\(/);
   assert.match(app, /rounded-\[/);
   assert.match(app, /bg-\[#/);
+  // A pseudo-element cannot carry a utility class, so tracking the radius its
+  // owner sets in Tailwind is the one radius the stylesheet may declare: it
+  // states no value of its own and so cannot drift from the utility.
+  for (const [, value] of css.matchAll(/^\s*border-radius:\s*([^;]+);/gm)) {
+    assert.equal(value, "inherit");
+  }
+
   assert.doesNotMatch(
     css
       .replace(/@font-face\s*\{[^}]*\}/gs, "")
-      .replace(/::selection\s*\{[^}]*\}/gs, ""),
+      .replace(/::selection\s*\{[^}]*\}/gs, "")
+      .replace(/^\s*border-radius:\s*inherit;$/gm, ""),
     /^\s*(?:padding(?:-(?:top|right|bottom|left|block|inline))?|border-radius|color|background(?:-color)?|font-size|font-weight|line-height|letter-spacing|text-align|text-decoration|text-transform|text-wrap)\s*:/m,
   );
 });

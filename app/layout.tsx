@@ -67,7 +67,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#fcfdff",
   colorScheme: "light",
 };
 
@@ -76,7 +76,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   // hydrates, which otherwise reports a mismatch on every page load.
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>
+      <body className="bg-surface" suppressHydrationWarning>
         {children}
         {process.env.NODE_ENV === "development" ? <AgentationDev /> : null}
       </body>

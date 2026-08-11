@@ -1,15 +1,22 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
+import { Tooltip, TooltipProvider } from "./Tooltip";
 
-export type GalleryView = "carousel" | "list";
+export type GalleryView = "carousel" | "grid";
 
 const galleryViewOptions: Array<{ value: GalleryView; label: string }> = [
   { value: "carousel", label: "Carousel" },
-  { value: "list", label: "List" },
+  { value: "grid", label: "Grid" },
 ];
 
-function CarouselViewIcon() {
+// A solid shape carrying the full 1.4 outline sits 0.7 units wider than the
+// outline alone, so the filled state halves its stroke: the silhouette lands
+// between the outline's inner and outer edge and neither state reads heavier.
+const solidShapeProps = (filled: boolean) =>
+  filled ? { fill: "currentColor", strokeWidth: 0.7 } : undefined;
+
+function CarouselViewIcon({ filled }: { filled: boolean }) {
   return (
     <svg
       className="size-4"
@@ -20,13 +27,22 @@ function CarouselViewIcon() {
       strokeWidth="1.4"
       aria-hidden="true"
     >
-      <rect x="6" y="3.25" width="4" height="9.5" rx="1" />
+      <rect
+        x="6"
+        y="3.25"
+        width="4"
+        height="9.5"
+        rx="1"
+        {...solidShapeProps(filled)}
+      />
       <path d="M3.5 5.25v5.5M12.5 5.25v5.5" />
     </svg>
   );
 }
 
-function ListViewIcon() {
+function GridViewIcon({ filled }: { filled: boolean }) {
+  const square = solidShapeProps(filled);
+
   return (
     <svg
       className="size-4"
@@ -37,7 +53,10 @@ function ListViewIcon() {
       strokeWidth="1.4"
       aria-hidden="true"
     >
-      <path d="M3 4.5h10M3 8h10M3 11.5h10" />
+      <rect x="3" y="3" width="4" height="4" rx="0.9" {...square} />
+      <rect x="9" y="3" width="4" height="4" rx="0.9" {...square} />
+      <rect x="3" y="9" width="4" height="4" rx="0.9" {...square} />
+      <rect x="9" y="9" width="4" height="4" rx="0.9" {...square} />
     </svg>
   );
 }
@@ -70,38 +89,45 @@ export function GalleryViewToggle({
   }, [view]);
 
   return (
-    <div
-      className="view-toggle rounded-full bg-transparent p-[3px]"
-      role="group"
-      aria-label="Event layout"
-    >
-      <span
-        className="view-toggle-thumb rounded-full bg-surface-muted"
-        data-view={view}
-        data-measured={thumb ? "" : undefined}
-        aria-hidden="true"
-        style={
-          thumb
-            ? { transform: `translateX(${thumb.x}px)`, width: thumb.width }
-            : undefined
-        }
-      />
-      {galleryViewOptions.map((option) => (
-        <button
-          className="view-toggle-option size-[34px] cursor-pointer rounded-full bg-transparent text-subtle hover:text-ink aria-pressed:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-          key={option.value}
-          ref={(node) => {
-            if (node) optionRefs.current.set(option.value, node);
-            else optionRefs.current.delete(option.value);
-          }}
-          type="button"
-          aria-label={option.label}
-          aria-pressed={view === option.value}
-          onClick={() => onChange(option.value)}
-        >
-          {option.value === "carousel" ? <CarouselViewIcon /> : <ListViewIcon />}
-        </button>
-      ))}
-    </div>
+    <TooltipProvider>
+      <div
+        className="view-toggle rounded-full bg-transparent p-[3px]"
+        role="group"
+        aria-label="Event layout"
+      >
+        <span
+          className="view-toggle-thumb rounded-full bg-surface-muted"
+          data-view={view}
+          data-measured={thumb ? "" : undefined}
+          aria-hidden="true"
+          style={
+            thumb
+              ? { transform: `translateX(${thumb.x}px)`, width: thumb.width }
+              : undefined
+          }
+        />
+        {galleryViewOptions.map((option) => (
+          <Tooltip key={option.value} content={option.label}>
+            <button
+              className="view-toggle-option size-[34px] cursor-pointer rounded-full bg-transparent text-subtle hover:text-ink aria-pressed:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              ref={(node) => {
+                if (node) optionRefs.current.set(option.value, node);
+                else optionRefs.current.delete(option.value);
+              }}
+              type="button"
+              aria-label={option.label}
+              aria-pressed={view === option.value}
+              onClick={() => onChange(option.value)}
+            >
+              {option.value === "carousel" ? (
+                <CarouselViewIcon filled={view === option.value} />
+              ) : (
+                <GridViewIcon filled={view === option.value} />
+              )}
+            </button>
+          </Tooltip>
+        ))}
+      </div>
+    </TooltipProvider>
   );
 }

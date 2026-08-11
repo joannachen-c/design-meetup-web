@@ -91,19 +91,79 @@ export function sizedImageUrl(
   }
 }
 
+export type SizedImage = { src: string; srcSet?: string };
+
+/**
+ * Build a `src`/`srcSet` pair for an image that paints `width` CSS pixels wide.
+ *
+ * Density descriptors leave the choice of render to the browser, which is the
+ * only party that knows the screen. Asking for a fixed 2x render instead made
+ * every 1x visitor download four times the pixels they could display, and
+ * offering a 1x candidate is also what lets a 2x screen stay sharp without us
+ * having to pick a compromise size for both.
+ */
+export function sizedImage(
+  url: string | null | undefined,
+  options: Omit<SizedImageOptions, "dpr">,
+): SizedImage {
+  const src = sizedImageUrl(url, { ...options, dpr: 1 });
+  const retina = sizedImageUrl(url, { ...options, dpr: 2 });
+  return retina === src ? { src } : { src, srcSet: `${src} 1x, ${retina} 2x` };
+}
+
+/** The stored original behind a transformed URL, or null if this isn't one. */
+export function untransformedImageUrl(url: string): string | null {
+  if (!url.includes(SUPABASE_RENDER_SEGMENT)) return null;
+  try {
+    const parsed = new URL(url);
+    parsed.search = "";
+    return parsed
+      .toString()
+      .replace(SUPABASE_RENDER_SEGMENT, SUPABASE_OBJECT_SEGMENT);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Retry a failed image against its untransformed original.
+ *
+ * Every photo on the site is served through the one transformation endpoint, so
+ * without this a fault there leaves the page with no artwork at all rather than
+ * heavy artwork. Returns whether a retry was started, so callers can tell a
+ * recoverable failure from a final one.
+ */
+export function recoverImage(image: HTMLImageElement | null): boolean {
+  if (!image || image.dataset.recovered === "true") return false;
+  const original = untransformedImageUrl(image.currentSrc || image.src);
+  if (!original) return false;
+  image.dataset.recovered = "true";
+  image.srcset = "";
+  image.src = original;
+  return true;
+}
+
 /**
  * Warm the browser cache for a set of images. Returns a cleanup function that
  * detaches the in-flight loaders so we don't keep decoding work alive after the
  * component unmounts or the target set changes.
  */
-export function preloadImages(urls: Array<string | null | undefined>): () => void {
+export function preloadImages(
+  images: Array<SizedImage | string | null | undefined>,
+): () => void {
   if (typeof window === "undefined") return () => {};
   const loaders: HTMLImageElement[] = [];
-  for (const url of urls) {
-    if (!url) continue;
+  for (const entry of images) {
+    if (!entry) continue;
+    const { src, srcSet } = typeof entry === "string" ? { src: entry, srcSet: undefined } : entry;
+    if (!src) continue;
     const image = new Image();
     image.decoding = "async";
-    image.src = url;
+    // Before `src`, so the browser resolves the same candidate the rendered
+    // `<img>` will. Warming a different variant would fetch bytes nothing goes
+    // on to use and still leave the real image cold.
+    if (srcSet) image.srcset = srcSet;
+    image.src = src;
     loaders.push(image);
   }
   return () => {

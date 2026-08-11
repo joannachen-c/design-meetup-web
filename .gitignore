@@ -11,3 +11,5 @@ dist
 out
 tsconfig.tsbuildinfo
 scripts/data/event-galleries/
+
+.qa-shots/

@@ -252,9 +252,9 @@ test("event details render the selected event gallery images from Supabase", () 
   assert.doesNotMatch(app, />\s*Gallery\s*<\/h3>/);
   assert.match(app, hasClass("detail-photo-list"));
   assert.match(app, /selectedEvent\?\.gallery_images/);
-  assert.match(app, /selectedPhotos\.map\(\(photoUrl, photoIndex\)/);
+  assert.match(app, /selectedPhotoRenders\.map\(\(photo, photoIndex\)/);
   assert.doesNotMatch(app, /Array\.from\(\{ length: 3 \}/);
-  assert.doesNotMatch(app, /selectedPhotos\.slice\(/);
+  assert.doesNotMatch(app, /selectedPhotoRenders\.slice\(/);
 });
 
 test("the gallery stays hidden while an event still uses the shared placeholders", () => {
@@ -279,7 +279,7 @@ test("event photos use an accessible horizontally scrollable rail", () => {
   );
   assert.match(
     app,
-    /`\$\{selectedEvent\.title\} event photo \$\{photoIndex \+ 1\} of \$\{selectedPhotos\.length\}`/,
+    /`\$\{selectedEvent\.title\} event photo \$\{photoIndex \+ 1\} of \$\{selectedPhotoRenders\.length\}`/,
   );
   assert.match(
     css,
@@ -332,13 +332,17 @@ test("event photo controls scroll by a responsive increment and disable at bound
 test("event photos shimmer gray until each one decodes", () => {
   assert.match(
     app,
-    /detail-photo-frame[^"]*relative[^"]*overflow-hidden[^"]*rounded-md[^"]*"\s*\n\s*data-loaded=\{loadedPhotos\[photoUrl\] \? "true" : "false"\}/,
+    /detail-photo-frame[^"]*relative[^"]*overflow-hidden[^"]*rounded-md[^"]*"\s*\n\s*data-loaded=\{loadedPhotos\[photo\.src\] \? "true" : "false"\}/,
   );
   assert.match(app, /className="detail-photo-shimmer bg-skeleton"/);
   assert.match(app, /aria-hidden="true"/);
   // A cached photo can be complete before onLoad is attached.
   assert.match(app, /node\?\.complete && node\.naturalWidth > 0/);
-  assert.match(app, /onError=\{\(\) => markPhotoLoaded\(photoUrl\)\}/);
+  // A photo only gives up once the untransformed original has failed too.
+  assert.match(
+    app,
+    /onError=\{\(event\) => \{\s*if \(!recoverImage\(event\.currentTarget\)\) \{\s*markPhotoLoaded\(photo\.src\);/,
+  );
   assert.match(css, /--color-skeleton:/);
   assert.match(
     css,
@@ -725,7 +729,7 @@ test("only the photo rail blurs at its edges, since only it scrolls", () => {
 test("grid view opens the detail with the event cover at carousel size", () => {
   assert.match(
     app,
-    /\{view === "grid" \? \(\s*<div className="detail-cover[^"]*aspect-square[^"]*">\s*<img[\s\S]*?src=\{sizedImageUrl\(selectedEvent\.image_url,/,
+    /\{view === "grid" \? \(\s*<div className="detail-cover[^"]*aspect-square[^"]*">\s*<img[\s\S]*?\{\.\.\.sizedImage\(selectedEvent\.image_url,/,
   );
   // Sits above the title and centred, at the size the focused card paints.
   assert.match(

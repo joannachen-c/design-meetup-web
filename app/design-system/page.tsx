@@ -1,15 +1,22 @@
 import type { Metadata } from "next";
 import DesignSystem from "@/DesignSystem";
 
-const pageTitle = "Design system — Design Meetup";
+const pageTitle = "Design system";
 const pageDescription =
   "Colors, typography, layout, and shared components for Design Meetup.";
 
 export const metadata: Metadata = {
   title: pageTitle,
   description: pageDescription,
+  alternates: {
+    canonical: "/design-system",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
   openGraph: {
-    title: pageTitle,
+    title: `${pageTitle} · Design Meetup`,
     description: pageDescription,
     url: "/design-system",
     images: [
@@ -23,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: pageTitle,
+    title: `${pageTitle} · Design Meetup`,
     description: pageDescription,
     images: ["/og-design-system.jpg"],
   },

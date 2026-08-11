@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
+import { createHash } from "node:crypto";
 import { readdir, readFile, access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -100,10 +101,14 @@ async function main() {
       .from("sponsor-logos")
       .getPublicUrl(objectPath);
 
+    // Objects keep their path across re-uploads, so a content hash is what
+    // pushes a replaced logo past the year-long browser cache.
+    const version = createHash("sha1").update(bytes).digest("hex").slice(0, 8);
+
     const { error: updateError } = await supabase
       .from("sponsors")
       .update({
-        logo_url: data.publicUrl,
+        logo_url: `${data.publicUrl}?v=${version}`,
         updated_at: new Date().toISOString(),
       })
       .eq("slug", slug);

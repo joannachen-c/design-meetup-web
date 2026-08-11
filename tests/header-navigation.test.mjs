@@ -25,11 +25,11 @@ test("homepage and design system share SiteHeader", () => {
   assert.doesNotMatch(designSystem, /className="[^"]*\bsite-header\b/);
 });
 
-test("homepage header navigation uses all-caps labels", () => {
+test("homepage header navigation uses sentence case labels", () => {
   for (const [label, target] of [
-    ["CALENDAR", "calendar"],
-    ["ABOUT", "about"],
-    ["SPONSOR", "sponsor"],
+    ["Calendar", "calendar"],
+    ["About", "about"],
+    ["Sponsor", "sponsor"],
   ]) {
     assert.match(
       header,
@@ -38,9 +38,9 @@ test("homepage header navigation uses all-caps labels", () => {
     assert.match(home, new RegExp(`id="${target}"`));
   }
 
-  assert.doesNotMatch(header, /label: "Calendar"/);
-  assert.doesNotMatch(header, /label: "About"/);
-  assert.doesNotMatch(header, /label: "Sponsor"/);
+  assert.doesNotMatch(header, /label: "CALENDAR"/);
+  assert.doesNotMatch(header, /label: "ABOUT"/);
+  assert.doesNotMatch(header, /label: "SPONSOR"/);
   assert.doesNotMatch(home, />\s*Past events\s*</);
   assert.doesNotMatch(home, />\s*Upcoming\s*</);
   assert.doesNotMatch(home, /href="#events"[\s\S]*?>\s*EVENTS\s*<\/a>/);

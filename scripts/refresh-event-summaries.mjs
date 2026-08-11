@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 
 import {
   normalizeTipTapDescription,
+  stripLiabilityContent,
+  stripLiabilityFromHtml,
+  stripLiabilityFromPlainText,
   tipTapToHtml,
   tipTapToPlainText,
 } from "./lib/tiptap.mjs";
@@ -23,7 +26,14 @@ const summaryBundlePath = path.join(
   "event-summaries.json",
 );
 
-export { normalizeTipTapDescription, tipTapToHtml, tipTapToPlainText };
+export {
+  normalizeTipTapDescription,
+  stripLiabilityContent,
+  stripLiabilityFromHtml,
+  stripLiabilityFromPlainText,
+  tipTapToHtml,
+  tipTapToPlainText,
+};
 
 export function buildSummaryBundle(events) {
   return Object.fromEntries(
@@ -99,7 +109,7 @@ async function scrapeDescription(lumaUrl) {
     throw new Error(`Failed to fetch ${lumaUrl}: ${response.status}`);
   }
   const html = await response.text();
-  const doc = extractDescriptionMirror(html);
+  const doc = stripLiabilityContent(extractDescriptionMirror(html));
   const summary = tipTapToPlainText(doc);
   const summary_html = tipTapToHtml(doc);
   if (!summary || !summary_html) {

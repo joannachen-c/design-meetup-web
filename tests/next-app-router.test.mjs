@@ -64,21 +64,46 @@ test("Vite entrypoints are removed", async () => {
 
 test("root layout sets a shared Open Graph and Twitter preview image", async () => {
   const layout = await read("app/layout.tsx");
+  const site = await read("src/lib/site.ts");
   await access(new URL("public/og-preview.jpg", root));
   assert.match(layout, /metadataBase/);
-  assert.match(layout, /design-meetup-web\.vercel\.app/);
+  assert.match(layout, /from ["']@\/lib\/site["']/);
+  assert.match(site, /design-meetup-web\.vercel\.app/);
   assert.match(layout, /openGraph/);
-  assert.match(layout, /og-preview\.jpg/);
+  assert.match(site, /og-preview\.jpg/);
   assert.match(layout, /summary_large_image/);
+  assert.match(layout, /alternates:\s*\{[\s\S]*canonical:\s*["']\/["']/);
+  assert.match(layout, /robots:\s*\{[\s\S]*index:\s*true/);
 });
 
-test("design-system page sets its own Open Graph preview image", async () => {
+test("design-system page sets its own Open Graph preview image and is noindex", async () => {
   const page = await read("app/design-system/page.tsx");
   await access(new URL("public/og-design-system.jpg", root));
   assert.match(page, /openGraph/);
   assert.match(page, /og-design-system\.jpg/);
   assert.match(page, /summary_large_image/);
   assert.match(page, /\/design-system/);
+  assert.match(page, /index:\s*false/);
+  assert.match(page, /follow:\s*false/);
+});
+
+test("robots and sitemap routes exist for search engines", async () => {
+  const robots = await read("app/robots.ts");
+  const sitemap = await read("app/sitemap.ts");
+  assert.match(robots, /disallow:\s*\[["']\/design-system["']\]/);
+  assert.match(robots, /sitemap\.xml/);
+  assert.match(sitemap, /siteUrl/);
+  assert.match(sitemap, /priority:\s*1/);
+});
+
+test("home page emits Organization and WebSite JSON-LD", async () => {
+  const page = await read("app/page.tsx");
+  const jsonLd = await read("src/components/SiteJsonLd.tsx");
+  assert.match(page, /SiteJsonLd/);
+  assert.match(jsonLd, /application\/ld\+json/);
+  assert.match(jsonLd, /"Organization"/);
+  assert.match(jsonLd, /"WebSite"/);
+  assert.match(jsonLd, /sameAs/);
 });
 
 test("Agentation loads only in development", async () => {

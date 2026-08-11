@@ -4,6 +4,10 @@ import test from "node:test";
 
 const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+const eventListRow = await readFile(
+  new URL("../src/components/EventListRow.tsx", import.meta.url),
+  "utf8",
+);
 
 test("cards retain perspective through the list wrapper", () => {
   assert.match(
@@ -20,7 +24,7 @@ test("page uses a white background without an outer frame", () => {
 });
 
 test("cards use a pronounced perspective transform and spring to flat", () => {
-  assert.match(app, /perspective\(\d+px\) rotateY\(/);
+  assert.match(app, /perspective\(\d+px\) translateX\([^)]*\) translateZ\(/);
   assert.match(app, /type:\s*"spring"/);
 });
 
@@ -35,24 +39,54 @@ test("cards use a tight square treatment without selection outlines", () => {
   );
 });
 
-test("desktop cards overlap to keep four neighbors visible per side", () => {
+test("desktop covers overlap in proportion to the cover, not the viewport", () => {
   assert.match(
     css,
-    /\.gallery li \+ li\s*\{[^}]*margin-left:\s*clamp\(-64px,\s*-4\.3vw,\s*-38px\);/s,
+    /\.gallery li \+ li\s*\{[^}]*margin-left:\s*calc\(var\(--event-cover-size\) \* -0\.591\);/s,
+  );
+  assert.match(
+    css,
+    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.gallery li \+ li\s*\{[^}]*margin-left:\s*calc\(var\(--event-cover-size\) \* -0\.42\);/s,
   );
 });
 
-test("selected title and date live in the gallery without a divider", () => {
-  assert.match(app, /className="[^"]*\bgallery-caption\b[^"]*"/);
+test("the rail fades into the page instead of hard-cutting at the edges", () => {
+  assert.match(app, /className="gallery-viewport"/);
+  assert.match(
+    css,
+    /\.gallery-viewport::before,\s*\.gallery-viewport::after\s*\{[^}]*position:\s*absolute;[^}]*pointer-events:\s*none;/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-viewport::before\s*\{[^}]*background-image:\s*linear-gradient\(\s*to right,/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-viewport::after\s*\{[^}]*background-image:\s*linear-gradient\(\s*to left,/s,
+  );
+});
+
+test("gallery title and date live only in the detail section below", () => {
+  assert.doesNotMatch(app, /\bgallery-caption\b/);
+  assert.doesNotMatch(css, /\.gallery-caption\b/);
   assert.match(app, /selectedEvent\.date_label/);
   assert.doesNotMatch(css, /\.gallery-section\s*\{[^}]*border-block/s);
 });
 
-test("gallery caption tracks the centered cover size responsively", () => {
-  assert.match(app, /gallery-caption[^"]*\bmx-auto\b/);
+test("the selected title id lives on the detail heading the region points at", () => {
+  assert.match(
+    app,
+    /<h2[\s\S]*id=\{SELECTED_TITLE_ID\}[\s\S]*>\s*\{selectedEvent\.title\}\s*<\/h2>/,
+  );
+  assert.match(
+    app,
+    /aria-labelledby=\{selectedEvent \? SELECTED_TITLE_ID : undefined\}/,
+  );
+  assert.doesNotMatch(app, /titleId=/);
+  assert.doesNotMatch(eventListRow, /\btitleId\b/);
   assert.match(
     css,
-    /\.gallery-section\s*\{[^}]*--event-cover-size:\s*clamp\(168px,\s*16vw,\s*236px\);/s,
+    /\.gallery-section\s*\{[^}]*--event-cover-size:\s*clamp\(184px,\s*18vw,\s*272px\);/s,
   );
   assert.match(
     css,
@@ -60,61 +94,85 @@ test("gallery caption tracks the centered cover size responsively", () => {
   );
   assert.match(
     css,
-    /\.gallery-caption\s*\{[^}]*width:\s*calc\(\s*var\(--event-cover-size\)\s*\*\s*var\(--event-cover-scale\)\s*\);/s,
-  );
-  assert.match(
-    css,
-    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.gallery-section\s*\{[^}]*--event-cover-size:\s*min\(58vw,\s*220px\);/s,
-  );
-  assert.doesNotMatch(
-    app,
-    /gallery-caption[^"]*(?:w-\[clamp|max-\[820px\]:w-\[min)/,
-  );
-  assert.match(app, /gallery-caption[^"]*\btext-center\b/);
-  assert.match(
-    app,
-    /<p[^>]*className="[^"]*\bw-full\b[^"]*\btext-pretty\b[^"]*\bfont-bold\b[^"]*"[^>]*id="selected-event-title"[^>]*>[\s\S]*?<\/p>/,
-  );
-  assert.doesNotMatch(app, /<h2[^>]*id="selected-event-title"/);
-  assert.doesNotMatch(
-    app,
-    /className="[^"]*\btracking-[^"]*"[^>]*id="selected-event-title"/,
-  );
-  assert.match(
-    app,
-    /aria-labelledby=\{selectedEvent \? "selected-event-title" : undefined\}/,
+    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.gallery-section\s*\{[^}]*--event-cover-size:\s*min\(64vw,\s*252px\);/s,
   );
 });
 
-test("caption width matches the focused cover's projected width, not its layout width", () => {
-  assert.match(
-    css,
-    /\.gallery-section\s*\{[^}]*--event-cover-scale:\s*1\.2422;/s,
-  );
-  assert.doesNotMatch(
-    css,
-    /\.gallery-caption\s*\{[^}]*width:\s*var\(--event-cover-size\);/s,
-  );
+test("focused cover projection still uses the measured stacked perspectives", () => {
+  assert.doesNotMatch(css, /--event-cover-scale/);
 
-  // 1.2422 was measured against these three stacked perspectives and the
-  // focused card's depth/scale. Changing any of them requires re-measuring.
-  assert.match(css, /\.gallery\s*\{[^}]*perspective:\s*1200px;/s);
-  assert.match(css, /\.gallery li\s*\{[^}]*perspective:\s*900px;/s);
-  assert.match(app, /const depth = selected \? 48 : -24;/);
-  assert.match(app, /const scale = selected \? 1\.06 : 0\.96;/);
+  // Depth and scale were measured against these three stacked perspectives.
+  // Changing any of them requires re-measuring the painted cover.
+  assert.match(css, /\.gallery\s*\{[^}]*perspective:\s*2400px;/s);
+  assert.match(css, /\.gallery li\s*\{[^}]*perspective:\s*2200px;/s);
+  assert.match(app, /const depth = selected \? 26 : hovered \? 2 : -14;/);
+  assert.match(app, /const scale = selected \? 1\.03 : hovered \? 0\.87 : 0\.85;/);
   assert.match(
     app,
-    /`perspective\(900px\) rotateY\(\$\{slant\}deg\) translateZ\(\$\{depth\}px\) scale\(\$\{scale\}\) translateY\(\$\{lift\}px\)`/,
+    /`perspective\(2200px\) translateX\(\$\{part\}%\) translateZ\(\$\{depth\}px\) scaleX\(\$\{squeeze\}\) skewY\(\$\{shear\}deg\) scale\(\$\{scale\}\) translate\(0px, \$\{lift\}px\)`/,
   );
 });
 
-test("side cards mirror in depth with straight vertical edges", () => {
+test("every unfocused cover faces the same way on a shared diagonal", () => {
+  assert.match(app, /const CARD_SQUEEZE = 0\.68;/);
+  assert.match(app, /const CARD_SHEAR_DEG = 13;/);
+  assert.match(app, /const squeeze = selected \? 1 : CARD_SQUEEZE;/);
+  assert.match(app, /const shear = selected \? 0 : CARD_SHEAR_DEG;/);
+  // A shear keeps the covers' vertical edges vertical; a rotation would tip
+  // them over with the diagonal. A squeeze keeps the painted box centred on the
+  // cover; rotateY runs it through perspective and pushes it off-centre, which
+  // breaks the even gap either side of the focused cover.
+  assert.doesNotMatch(app, /rotateZ\(|rotateY\(/);
+  assert.doesNotMatch(app, /distance < 0 \? 42 : -42/);
+  // Every cover sits on the one to its right, so the stack leans with the shear
+  // across the whole rail rather than mirroring at the centre. Only the focused
+  // cover breaks that order.
   assert.match(
     app,
-    /const slant = selected \? 0 : distance < 0 \? 42 : -42;/,
+    /zIndex: selected\s*\?\s*events\.length \+ 1\s*:\s*events\.length - index,/s,
   );
-  assert.doesNotMatch(app, /rotateZ\(/);
-  assert.match(app, /style=\{\{ zIndex: events\.length - Math\.abs\(distance\) \}\}/);
+  assert.doesNotMatch(app, /events\.length - Math\.abs\(distance\)/);
+});
+
+test("hovering a cover eases it out from under the cover to its left", () => {
+  // A nudge, not a leap: the pull stays well under the part that clears the
+  // focused cover, so the hovered cover never escapes the shelf.
+  assert.match(app, /const CARD_PULL_PCT = 5;/);
+  const pull = Number(app.match(/const CARD_PULL_PCT = ([\d.]+);/)[1]);
+  const part = Number(app.match(/const CARD_PART_PCT = ([\d.]+);/)[1]);
+  assert.ok(pull * 3 < part, "the hover pull should stay a fraction of the part");
+  assert.match(
+    app,
+    /const part = selected\s*\?\s*0\s*:\s*away \* \(CARD_PART_PCT \+ \(hovered \? CARD_PULL_PCT : 0\)\);/s,
+  );
+  // The hovered cover keeps its place in the rail's order, so its left-hand
+  // neighbour still paints over it while it slides.
+  assert.doesNotMatch(app, /zIndex: hovered/);
+  assert.match(app, /onPointerEnter=\{\(event\) =>\s*hoverCard\(index, event\.pointerType\)/s);
+  assert.match(app, /onPointerLeave=\{\(event\) =>\s*hoverCard\(null, event\.pointerType\)/s);
+  // The row covers grow in place on hover rather than sliding sideways.
+  assert.match(
+    css,
+    /@media \(hover: hover\) and \(pointer: fine\)\s*\{[\s\S]*?\.event-row:hover \.event-row-thumb\s*\{[^}]*transform:\s*scale\(1\.06\);/s,
+  );
+  assert.doesNotMatch(css, /\.event-row-thumb\s*\{[^}]*translateX/s);
+});
+
+test("covers hold an edge-on pose until the loader lifts, then flip in staggered", () => {
+  assert.match(
+    app,
+    /const CARD_ENTRANCE_TRANSFORM = `perspective\(2200px\) translateX\(0%\) translateZ\(-48px\) scaleX\(0\.08\)/,
+  );
+  assert.match(
+    app,
+    /transform: isGalleryReady\s*\?\s*transform\s*:\s*CARD_ENTRANCE_TRANSFORM/s,
+  );
+  assert.match(app, /opacity: isGalleryReady \? 1 : 0/);
+  assert.match(
+    app,
+    /delay: hasGalleryEntered\s*\?\s*0\s*:\s*Math\.min\(\s*Math\.abs\(distance\) \* 0\.04,\s*0\.32,\s*\)/s,
+  );
+  assert.match(app, /<PageLoader onDone=\{revealGallery\} \/>/);
 });
 
 test("card shadows stay restrained and inside the gallery scrollport", () => {
@@ -129,8 +187,18 @@ test("edge cards have enough scroll rail to center in the viewport", () => {
     css,
     /flex:\s*0 0 calc\(50% - \(var\(--event-cover-size\) \/ 2\)\)/,
   );
+  assert.match(app, /centerSlide\(\s*selectedIndex,/);
+});
+
+// A cover only paints where its slide sits once it is the focused one: until
+// then cardTransform pushes it out by CARD_PART_PCT of its own width. Centring
+// the card element centred that pushed box, overshot by the push, and scroll
+// snap rounded the overshoot up to a whole slide of error, so the scroll target
+// has to come from the slide's layout box.
+test("centering targets the selected slide's layout box, not the transformed cover", () => {
   assert.match(
     app,
-    /cardRefs\.current\[selectedIndex\]\?\.scrollIntoView\(/,
+    /const centerSlide = useCallback\(\s*\(index: number, behavior: ScrollBehavior\) => \{[\s\S]*?slideCenterOffset\(index, rect\.left \+ rect\.width \/ 2\)[\s\S]*?gallery\.scrollTo\(\{ left: gallery\.scrollLeft \+ offset, behavior \}\)/,
   );
+  assert.doesNotMatch(app, /\.scrollIntoView\(\{[^}]*inline: "center"/s);
 });

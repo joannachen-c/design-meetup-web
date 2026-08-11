@@ -5,16 +5,16 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const readSource = (path) => readFile(new URL(path, root), "utf8");
 
-const [app, designSystem, primary, link, iconButton, input] = await Promise.all(
-  [
+const [app, designSystem, primary, link, iconButton, input, chipSource] =
+  await Promise.all([
     readSource("src/components/HomePage.tsx"),
     readSource("src/DesignSystem.tsx"),
     readSource("src/components/Primary.tsx"),
     readSource("src/components/Link.tsx"),
     readSource("src/components/IconButton.tsx"),
     readSource("src/components/Input.tsx"),
-  ],
-);
+    readSource("src/components/Chip.tsx"),
+  ]);
 
 const sharedControls = [
   ["Primary", primary],
@@ -62,17 +62,21 @@ test("the clickable event card carries an explicit pointer", () => {
   assert.match(eventCard, /\bcursor-pointer\b/);
 });
 
-test("scroll regions and tooltip triggers are not styled as clickable", () => {
+test("scroll regions and static metadata chips are not styled as clickable", () => {
   const photoRail =
     app.match(/className="detail-photo-list[^"]*"/)?.[0] ?? "";
-  const sponsorTrigger =
-    app.match(/className="inline-flex rounded-sm focus-visible:outline-2[^"]*"/)
-      ?.[0] ?? "";
+  const chipList = app.match(/className="detail-chips[^"]*"/)?.[0] ?? "";
 
   assert.notEqual(photoRail, "");
-  assert.notEqual(sponsorTrigger, "");
+  assert.notEqual(chipList, "");
   assert.doesNotMatch(photoRail, /\bcursor-pointer\b/);
-  assert.doesNotMatch(sponsorTrigger, /\bcursor-pointer\b/);
+  assert.doesNotMatch(chipList, /\bcursor-pointer\b/);
+
+  // Only the anchor branch of Chip earns a pointer; plain chips stay inert.
+  const chip = chipSource.match(/if \(href === undefined\)[\s\S]*?\n  \}/)?.[0] ?? "";
+  assert.notEqual(chip, "");
+  assert.doesNotMatch(chip, /\bcursor-pointer\b/);
+  assert.match(chipSource, /<a\s+className=\{`\$\{chipClassName\} cursor-pointer/);
 });
 
 test("pointer affordances come from shared components, not one-off anchors", () => {

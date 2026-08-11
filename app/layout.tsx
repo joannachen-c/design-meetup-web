@@ -1,41 +1,74 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { AgentationDev } from "@/components/AgentationDev";
+import {
+  siteDescription,
+  siteName,
+  siteOgImage,
+  siteTitle,
+  siteUrl,
+} from "@/lib/site";
 import "./globals.css";
-
-const siteUrl = "https://design-meetup-web.vercel.app";
-const siteTitle = "Design Meetup";
-const siteDescription =
-  "A space for ambitious, early-career designers to meet the people behind the work.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: siteTitle,
+  title: {
+    default: siteTitle,
+    template: `%s · ${siteName}`,
+  },
   description: siteDescription,
+  applicationName: siteName,
+  authors: [{ name: siteName, url: siteUrl }],
+  creator: siteName,
+  publisher: siteName,
+  category: "community",
+  keywords: [
+    "Design Meetup",
+    "design community",
+    "NYC designers",
+    "San Francisco designers",
+    "Los Angeles designers",
+    "creative meetup",
+    "early career designers",
+  ],
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: [{ url: "/design-meetup-logo.png", type: "image/png" }],
+    apple: [{ url: "/design-meetup-logo.png", type: "image/png" }],
   },
   openGraph: {
     type: "website",
-    url: siteUrl,
-    siteName: siteTitle,
+    locale: "en_US",
+    url: "/",
+    siteName: siteName,
     title: siteTitle,
     description: siteDescription,
-    images: [
-      {
-        url: "/og-preview.jpg",
-        width: 1024,
-        height: 537,
-        alt: "Design Meetup — For designers who believe growth happens together",
-      },
-    ],
+    images: [siteOgImage],
   },
   twitter: {
     card: "summary_large_image",
     title: siteTitle,
     description: siteDescription,
-    images: ["/og-preview.jpg"],
+    images: [siteOgImage.url],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -14,11 +14,20 @@ test("gallery scrollport and slides are measurable from the component", () => {
 });
 
 test("manual scrolling selects the slide nearest the scrollport center", () => {
-  assert.match(app, /function nearestSlideIndexToCenter|nearestSlideIndexToCenter = useCallback/);
+  assert.match(app, /measureGalleryFocus = useCallback/);
   assert.match(app, /getBoundingClientRect\(\)/);
   assert.match(app, /rect\.left \+ rect\.width \/ 2/);
   assert.match(app, /Math\.abs\(/);
   assert.match(app, /addEventListener\("scroll", handleScroll, \{ passive: true \}\)/);
+});
+
+test("the ticker reads fractional scroll progress without re-rendering the page", () => {
+  assert.match(app, /galleryFocus = useRef<FilmTickerFocus>/);
+  assert.match(app, /readGalleryFocus = useCallback\(\(\) => galleryFocus\.current, \[\]\)/);
+  assert.match(app, /galleryFocus\.current\.index = focus\.focal/);
+  assert.match(app, /pitch > 0 \? nearestIndex - nearestOffset \/ pitch : nearestIndex/);
+  assert.match(app, /galleryFocus\.current\.velocity =/);
+  assert.match(app, /readFocus=\{readGalleryFocus\}/);
 });
 
 test("scroll-driven selection is throttled with requestAnimationFrame", () => {
@@ -44,6 +53,6 @@ test("scroll settle timing and centering behavior respect reduced motion", () =>
   assert.match(app, /reduceMotion \? \d+ : \d+/);
   assert.match(
     app,
-    /behavior:\s*\n?\s*hasCenteredInitial\.current && !reduceMotion \? "smooth" : "auto"/,
+    /centerSlide\(\s*selectedIndex,\s*hasCenteredInitial\.current && !reduceMotion \? "smooth" : "auto",\s*\)/,
   );
 });

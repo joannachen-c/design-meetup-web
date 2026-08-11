@@ -1,23 +1,42 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type MuxPlayerElement from "@mux/mux-player";
+import MuxPlayer from "@mux/mux-player-react";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import {
   useCallback,
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import { ArrowUpRightIcon } from "./icons/ArrowUpRightIcon";
+import { Chip } from "./Chip";
+import { EventListRow } from "./EventListRow";
+import { FilmTickerLines, type FilmTickerFocus } from "./FilmTickerLines";
+import { FoundersNote } from "./FoundersNote";
+import { GalleryViewToggle, type GalleryView } from "./GalleryViewToggle";
 import { InstagramIcon, LinkedInIcon, SubstackIcon, XIcon } from "./icons/SocialIcons";
-import { Input } from "./Input";
+import { SoundOffIcon, SoundOnIcon } from "./icons/SoundIcons";
 import { IconButton } from "./IconButton";
 import { Link } from "./Link";
+import { NewsletterForm } from "./NewsletterForm";
+import { PageLoader } from "./PageLoader";
+import { PartnerContactForm } from "./PartnerContactForm";
 import { Primary } from "./Primary";
+import { RecentEventsPanel } from "./RecentEventsPanel";
 import { ScrollReveal } from "./ScrollReveal";
 import { SiteHeader } from "./SiteHeader";
-import { Tooltip, TooltipProvider } from "./Tooltip";
+import type { LumaEvent } from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
 
 const partnerLogos = [
@@ -32,116 +51,77 @@ const partnerLogos = [
   { slug: "rainbow", src: "/partners/partner-9.png" },
 ];
 
-type TeamMember = {
-  name: string;
-  linkedin: string | null;
-  image: string;
-};
-
-const teamGroups: Array<{ role: string; members: TeamMember[] }> = [
-  {
-    role: "Founders",
-    members: [
-      {
-        name: "Ilyssa Yan",
-        linkedin: "https://www.linkedin.com/in/ilyssayan",
-        image: "/team/ilyssa-yan.jpg",
-      },
-      {
-        name: "Brandon Lee",
-        linkedin: "https://www.linkedin.com/in/brandonjoshlee",
-        image: "/team/brandon-lee.jpg",
-      },
-    ],
-  },
-  {
-    role: "Directors, Event & Partnerships",
-    members: [
-      {
-        name: "Joanna Chen",
-        linkedin: "https://www.linkedin.com/in/joannachen1014/",
-        image: "/team/joanna-chen.jpg",
-      },
-      {
-        name: "Michelle Liu",
-        linkedin: "https://www.linkedin.com/in/michelletliu",
-        image: "/team/michelle-liu.jpg",
-      },
-    ],
-  },
-  {
-    role: "Graphics Leads",
-    members: [
-      {
-        name: "Matthew Hope",
-        linkedin: "https://www.linkedin.com/in/matthewhope1",
-        image: "/team/matthew-hope.jpg",
-      },
-      {
-        name: "Yufei Wang",
-        linkedin: "https://www.linkedin.com/in/yufei-wang-5b1138253/",
-        image: "/team/yufei-wang.jpg",
-      },
-    ],
-  },
-  {
-    role: "Internal Community Lead",
-    members: [
-      {
-        name: "Emily Shen",
-        linkedin: "https://www.linkedin.com/in/emilyshenucla",
-        image: "/team/emily-shen.jpg",
-      },
-    ],
-  },
-];
-
-const websiteTeam = new Set(["Ilyssa Yan", "Brandon Lee", "Joanna Chen", "Michelle Liu"]);
-
-const aboutOfferings = [
-  {
-    title: "In-person events",
-    description:
-      "Think speaker panels, workshops, talks, and meetups at cafes and co-working venues to meet new design friends.",
-    icon: "/about/in-person-events.svg",
-  },
-  {
-    title: "Monthly newsletter",
-    description:
-      "Get curated events, opportunities, and designers to watch and candid takes about craft and taste.",
-    icon: "/about/monthly-newsletter.svg",
-  },
-  {
-    title: "Online community",
-    description:
-      "Meet new design friends, get feedback on your portfolio or side projects, and learn about exclusive opportunities.",
-    icon: "/about/online-community.svg",
-  },
-];
-
 const LUMA_CALENDAR_EMBED_SRC =
   "https://luma.com/embed/calendar/cal-HH5XBdHyWPt0yhB/events?lt=light";
+
+// Every unfocused cover turns the same way, so the rail reads as one shelf of
+// records instead of a mirrored fan. The turn is a flat squeeze rather than a
+// rotateY: a rotation runs the covers through perspective, which bows their
+// edges and paints their box off-centre, and an off-centre box cannot leave an
+// even gap on both sides of the focused cover.
+const CARD_SQUEEZE = 0.68;
+// A shear, not a rotation, so the covers keep vertical left and right edges
+// while their top and bottom edges run on the diagonal. The squeeze steepens it
+// on screen — the edges land at atan(tan(shear) / squeeze), about 19deg.
+const CARD_SHEAR_DEG = 13;
+// Percentages of the cover's own width, so the shelf holds its proportions at
+// every cover size. The part clears the focused cover: the shelf is pitched at
+// 0.409 of a cover and the focused one paints 1.0668x its layout box, so its
+// neighbours step out this far to leave an even gap either side.
+const CARD_PART_PCT = 54;
+// The hover pull only has to read as a nudge: the cover stays under its left
+// neighbour, so a long travel reads as a card escaping the shelf rather than
+// being eased out of it.
+const CARD_PULL_PCT = 5;
+const SELECTED_TITLE_ID = "selected-event-title";
+
+function cardTransform({
+  distance,
+  selected,
+  hovered,
+}: {
+  distance: number;
+  selected: boolean;
+  hovered: boolean;
+}) {
+  const squeeze = selected ? 1 : CARD_SQUEEZE;
+  const shear = selected ? 0 : CARD_SHEAR_DEG;
+  const depth = selected ? 26 : hovered ? 2 : -14;
+  const scale = selected ? 1.03 : hovered ? 0.87 : 0.85;
+  const lift = selected
+    ? -6
+    : hovered
+      ? -8
+      : Math.min(Math.abs(distance) * 1.5, 6);
+  // Ahead of the squeeze so it reads as flat screen distance, which is what keeps
+  // the gap on either side of the focused cover even. Hovering slides the cover
+  // further off the shelf, like pulling a vinyl out.
+  const away = distance < 0 ? -1 : 1;
+  const part = selected
+    ? 0
+    : away * (CARD_PART_PCT + (hovered ? CARD_PULL_PCT : 0));
+
+  return `perspective(2200px) translateX(${part}%) translateZ(${depth}px) scaleX(${squeeze}) skewY(${shear}deg) scale(${scale}) translate(0px, ${lift}px)`;
+}
+
+const CARD_ENTRANCE_TRANSFORM = `perspective(2200px) translateX(0%) translateZ(-48px) scaleX(0.08) skewY(${CARD_SHEAR_DEG}deg) scale(0.82) translate(0px, 12px)`;
 
 const footerLinkClassName =
   "rounded-sm text-[oklch(53%_0.025_250)] no-underline hover:text-[oklch(22%_0.025_250)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[oklch(22%_0.025_250)]";
 const footerCreditLinkClassName = `${footerLinkClassName} text-medium`;
 
 const detailSummaryClassName = [
-  "detail-summary max-w-[54ch] text-base leading-[1.7]",
+  "detail-summary max-w-[62ch] text-base leading-[1.7] text-body",
   "[&_p]:whitespace-pre-line [&_p]:text-pretty [&_li]:whitespace-pre-line [&_li]:text-pretty [&_blockquote]:whitespace-pre-line [&_blockquote]:text-pretty",
-  "[&_h2]:text-base [&_h2]:font-bold [&_h2]:leading-[1.35] [&_h2]:tracking-[-0.06em] [&_h2]:text-[oklch(22%_0.025_250)]",
-  "[&_h3]:text-base [&_h3]:font-bold [&_h3]:leading-[1.35] [&_h3]:tracking-[-0.06em] [&_h3]:text-[oklch(22%_0.025_250)]",
-  "[&_h4]:text-base [&_h4]:font-bold [&_h4]:leading-[1.35] [&_h4]:tracking-[-0.06em] [&_h4]:text-[oklch(22%_0.025_250)]",
-  "[&_strong]:font-bold [&_strong]:text-[oklch(22%_0.025_250)] [&_a]:text-[oklch(22%_0.025_250)] [&_a]:underline [&_a]:underline-offset-[3px]",
+  "[&_h2]:text-xl [&_h2]:font-bold [&_h2]:leading-[1.35] [&_h2]:tracking-[-0.06em] [&_h2]:text-black",
+  "[&_h3]:text-xl [&_h3]:font-bold [&_h3]:leading-[1.35] [&_h3]:tracking-[-0.06em] [&_h3]:text-black",
+  "[&_h4]:text-base [&_h4]:font-bold [&_h4]:leading-[1.35] [&_h4]:tracking-[-0.06em] [&_h4]:text-black",
+  "[&_strong]:font-bold [&_strong]:text-black [&_a]:text-black [&_a]:underline [&_a]:underline-offset-[3px]",
   "[&_ul]:pl-[1.2rem] [&_ol]:pl-[1.2rem] [&_blockquote]:border-l-2 [&_blockquote]:border-[oklch(88%_0.018_240)] [&_blockquote]:pl-[0.9rem] [&_hr]:bg-[oklch(88%_0.018_240)]",
 ].join(" ");
 
-function parseHosts(hosts: string | null | undefined) {
-  return (hosts ?? "")
-    .split(/\s*(?:,|&|\band\b)\s*/i)
-    .map((host) => host.trim())
-    .filter(Boolean);
-}
+// Breathing room above the summary when "See less" scrolls it back into view.
+const SUMMARY_COLLAPSE_SCROLL_MARGIN = 24;
 
 function ArrowIcon({ direction }: { direction: "left" | "right" }) {
   return (
@@ -158,42 +138,6 @@ function ArrowIcon({ direction }: { direction: "left" | "right" }) {
   );
 }
 
-function TeamCard({ member }: { member: TeamMember }) {
-  const card = (
-    <>
-      <div className="aspect-square overflow-hidden rounded-sm bg-gray-100">
-        <img
-          className="size-full rounded-sm border-0 object-cover outline-none"
-          src={member.image}
-          alt={`${member.name} portrait`}
-          width={800}
-          height={800}
-          loading="lazy"
-        />
-      </div>
-      <span className="mt-1.5 block text-sm font-bold text-[oklch(22%_0.025_250)]">
-        {member.name}
-      </span>
-    </>
-  );
-
-  return member.linkedin ? (
-    <a
-      className="team-polaroid w-[clamp(116px,9vw,132px)] block rounded-md border border-gray-100 bg-white p-2 pb-3.5 no-underline shadow-lg outline-none hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[oklch(22%_0.025_250)] focus-visible:ring-offset-4"
-      href={member.linkedin}
-      target="_blank"
-      rel="noreferrer"
-      aria-label={`${member.name} on LinkedIn`}
-    >
-      {card}
-    </a>
-  ) : (
-    <div className="team-polaroid w-[clamp(116px,9vw,132px)] block rounded-md border border-gray-100 bg-white p-2 pb-3.5 shadow-lg hover:shadow-xl">
-      {card}
-    </div>
-  );
-}
-
 function ExpandableSummary({
   summaryHtml,
   summaryParagraphs,
@@ -206,7 +150,25 @@ function ExpandableSummary({
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasOverflow, setHasOverflow] = useState(false);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const contentId = `event-summary-${eventId}-${useId().replace(/:/g, "")}`;
+  const reduceMotion = useReducedMotion();
+
+  const toggleExpanded = useCallback(() => {
+    const container = containerRef.current;
+    // Collapsing removes everything the reader scrolled through, so walk them
+    // back up to where the summary starts instead of dropping them mid-page.
+    if (isExpanded && container) {
+      const top = container.getBoundingClientRect().top;
+      if (top < SUMMARY_COLLAPSE_SCROLL_MARGIN) {
+        window.scrollTo({
+          top: window.scrollY + top - SUMMARY_COLLAPSE_SCROLL_MARGIN,
+          behavior: reduceMotion ? "auto" : "smooth",
+        });
+      }
+    }
+    setIsExpanded(!isExpanded);
+  }, [isExpanded, reduceMotion]);
 
   useLayoutEffect(() => {
     const content = contentRef.current;
@@ -214,7 +176,8 @@ function ExpandableSummary({
 
     const updateOverflow = () => {
       const contentHeight = content.getBoundingClientRect().height;
-      setHasOverflow(contentHeight > 360);
+      // Keep in step with the max-h-[220px] clamp below.
+      setHasOverflow(contentHeight > 220);
     };
 
     updateOverflow();
@@ -226,9 +189,9 @@ function ExpandableSummary({
 
   return (
     <>
-      <div className="relative">
+      <div className="relative" ref={containerRef}>
         <div
-          className={isExpanded ? "overflow-visible" : "max-h-[360px] overflow-hidden"}
+          className={isExpanded ? "overflow-visible" : "max-h-[220px] overflow-hidden"}
           id={contentId}
         >
           <div ref={contentRef}>
@@ -260,7 +223,7 @@ function ExpandableSummary({
           className="mt-2"
           aria-expanded={isExpanded}
           aria-controls={contentId}
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={toggleExpanded}
         >
           {isExpanded ? "See less" : "See more"}
         </Link>
@@ -272,20 +235,27 @@ function ExpandableSummary({
 export type HomePageProps = {
   initialEvents: MeetupEvent[];
   initialError: string | null;
+  // Only populated when the Luma calendar has no upcoming events.
+  recentEvents: LumaEvent[];
 };
 
 export default function HomePage({
   initialEvents,
   initialError,
+  recentEvents,
 }: HomePageProps) {
   const events = initialEvents;
-  const [selectedIndex, setSelectedIndex] = useState(() =>
-    initialEvents.length > 3 ? 3 : 0,
-  );
-  const [isWebsiteTeamVisible, setIsWebsiteTeamVisible] = useState(false);
+  const showRecentEvents = recentEvents.length > 0;
+  const initialIndex = initialEvents.length > 4 ? 4 : 0;
+  const [selectedIndex, setSelectedIndex] = useState(initialIndex);
+  const [view, setView] = useState<GalleryView>("carousel");
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [isGalleryReady, setIsGalleryReady] = useState(false);
+  const [hasGalleryEntered, setHasGalleryEntered] = useState(false);
   const status: "ready" | "error" = initialError ? "error" : "ready";
   const errorMessage = initialError;
   const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const rowRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const galleryRef = useRef<HTMLUListElement | null>(null);
   const detailPhotoRailRef = useRef<HTMLUListElement | null>(null);
   const slideRefs = useRef<Array<HTMLLIElement | null>>([]);
@@ -293,13 +263,65 @@ export default function HomePage({
   const isProgrammaticScroll = useRef(false);
   const scrollSettleTimer = useRef<number | null>(null);
   const selectionSource = useRef<"control" | "scroll">("control");
+  const galleryFocus = useRef<FilmTickerFocus>({
+    index: initialIndex,
+    velocity: 0,
+  });
+  const lastScrollSample = useRef({ left: 0, at: 0 });
+  const velocityResetTimer = useRef<number | null>(null);
   const [photoRailElement, setPhotoRailElement] =
     useState<HTMLUListElement | null>(null);
+  const [listScrollElement, setListScrollElement] =
+    useState<HTMLDivElement | null>(null);
+  const [listEdges, setListEdges] = useState({ top: false, bottom: false });
   const [canScrollPhotosLeft, setCanScrollPhotosLeft] = useState(false);
   const [canScrollPhotosRight, setCanScrollPhotosRight] = useState(false);
   const reduceMotion = useReducedMotion();
+  const aboutVideoRef = useRef<HTMLDivElement | null>(null);
+  const { scrollYProgress: aboutVideoProgress } = useScroll({
+    target: aboutVideoRef,
+    offset: ["start end", "start 15%"],
+  });
+  const aboutVideoScaleTarget = useTransform(
+    aboutVideoProgress,
+    [0, 1],
+    [0.55, 1],
+  );
+  const aboutVideoScale = useSpring(aboutVideoScaleTarget, {
+    stiffness: 260,
+    damping: 42,
+    mass: 0.6,
+  });
+  const aboutPlayerRef = useRef<MuxPlayerElement | null>(null);
+  const [aboutVideoMuted, setAboutVideoMuted] = useState(true);
+  const toggleAboutVideoSound = useCallback(
+    () => setAboutVideoMuted((previous) => !previous),
+    [],
+  );
+
+  useEffect(() => {
+    const container = aboutVideoRef.current;
+    if (!container || reduceMotion) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const player = aboutPlayerRef.current;
+        if (!player) return;
+        if (entry.isIntersecting) {
+          // Autoplay can still be refused (e.g. unmuted with no prior
+          // interaction); leaving the poster up is the acceptable fallback.
+          void player.play?.().catch(() => {});
+        } else {
+          player.pause?.();
+        }
+      },
+      { threshold: 0.4 },
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [reduceMotion]);
   const selectedEvent = events[selectedIndex];
-  const hosts = parseHosts(selectedEvent?.hosts);
   const sponsors =
     selectedEvent?.event_sponsors.map((eventSponsor) => eventSponsor.sponsor) ??
     [];
@@ -312,7 +334,16 @@ export default function HomePage({
       : selectedEvent
         ? [selectedEvent.image_url]
         : [];
-  const showWebsiteTeam = () => setIsWebsiteTeamVisible(true);
+  const tickerItems = useMemo(
+    () =>
+      events.map((item) => ({
+        id: item.id,
+        label: `${item.title}, ${item.date_label}`,
+      })),
+    [events],
+  );
+  const readGalleryFocus = useCallback(() => galleryFocus.current, []);
+  const revealGallery = useCallback(() => setIsGalleryReady(true), []);
 
   const setDetailPhotoRail = useCallback(
     (rail: HTMLUListElement | null) => {
@@ -383,6 +414,20 @@ export default function HomePage({
     [events.length],
   );
 
+  const changeView = useCallback((nextView: GalleryView) => {
+    // Re-entering the carousel should land on the selected cover without
+    // animating the scrollport across the whole rail.
+    hasCenteredInitial.current = false;
+    selectionSource.current = "control";
+    setHoveredIndex(null);
+    setView(nextView);
+  }, []);
+
+  const hoverCard = useCallback((index: number | null, pointerType: string) => {
+    if (pointerType !== "mouse") return;
+    setHoveredIndex(index);
+  }, []);
+
   const markProgrammaticScroll = useCallback(() => {
     isProgrammaticScroll.current = true;
     if (scrollSettleTimer.current !== null) {
@@ -397,57 +442,153 @@ export default function HomePage({
     );
   }, [reduceMotion]);
 
-  const nearestSlideIndexToCenter = useCallback(() => {
+  const slideCenterOffset = useCallback(
+    (index: number, scrollportCenter: number) => {
+      const slide = slideRefs.current[index];
+      if (!slide) return null;
+      const rect = slide.getBoundingClientRect();
+      return rect.left + rect.width / 2 - scrollportCenter;
+    },
+    [],
+  );
+
+  // Center on the slide's layout box, not the transformed cover: an unfocused
+  // cover is painted offset by CARD_PART_PCT, and scrollIntoView would chase
+  // that painted box and overshoot into the next snap point.
+  const centerSlide = useCallback(
+    (index: number, behavior: ScrollBehavior) => {
+      const gallery = galleryRef.current;
+      if (!gallery) return;
+      const rect = gallery.getBoundingClientRect();
+      const offset = slideCenterOffset(index, rect.left + rect.width / 2);
+      if (offset === null || Math.abs(offset) < 1) return;
+      gallery.scrollTo({ left: gallery.scrollLeft + offset, behavior });
+    },
+    [slideCenterOffset],
+  );
+
+  // Returns both the snapped index and the fractional position of the
+  // scrollport centre, which the ticker reads to track mid-scroll.
+  const measureGalleryFocus = useCallback(() => {
     const gallery = galleryRef.current;
     if (!gallery) return null;
 
     const rect = gallery.getBoundingClientRect();
     const scrollportCenter = rect.left + rect.width / 2;
-    let nearestIndex: number | null = null;
-    let nearestDistance = Number.POSITIVE_INFINITY;
 
-    slideRefs.current.forEach((slide, index) => {
-      if (!slide) return;
-      const slideRect = slide.getBoundingClientRect();
-      const slideCenter = slideRect.left + slideRect.width / 2;
-      const distance = Math.abs(slideCenter - scrollportCenter);
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
+    let nearestIndex = -1;
+    let nearestOffset = Number.POSITIVE_INFINITY;
+
+    for (let index = 0; index < slideRefs.current.length; index += 1) {
+      const offset = slideCenterOffset(index, scrollportCenter);
+      if (offset === null) continue;
+      if (Math.abs(offset) < Math.abs(nearestOffset)) {
+        nearestOffset = offset;
         nearestIndex = index;
       }
-    });
+    }
 
-    return nearestIndex;
-  }, []);
+    if (nearestIndex < 0) return null;
+
+    const neighborIndex = nearestIndex > 0 ? nearestIndex - 1 : 1;
+    const neighborOffset = slideCenterOffset(neighborIndex, scrollportCenter);
+    const pitch =
+      neighborOffset === null
+        ? 0
+        : Math.abs(neighborOffset - nearestOffset) /
+          Math.abs(neighborIndex - nearestIndex);
+
+    return {
+      index: nearestIndex,
+      focal: pitch > 0 ? nearestIndex - nearestOffset / pitch : nearestIndex,
+    };
+  }, [slideCenterOffset]);
 
   useEffect(() => {
     if (status !== "ready" || events.length === 0) return;
+    if (view !== "carousel") return;
     if (selectionSource.current === "scroll") return;
 
     const frame = requestAnimationFrame(() => {
       markProgrammaticScroll();
-      cardRefs.current[selectedIndex]?.scrollIntoView({
-        behavior:
-          hasCenteredInitial.current && !reduceMotion ? "smooth" : "auto",
-        block: "nearest",
-        inline: "center",
-      });
+      centerSlide(
+        selectedIndex,
+        hasCenteredInitial.current && !reduceMotion ? "smooth" : "auto",
+      );
       hasCenteredInitial.current = true;
     });
 
     return () => cancelAnimationFrame(frame);
   }, [
+    centerSlide,
     events.length,
     markProgrammaticScroll,
     reduceMotion,
     selectedIndex,
     status,
+    view,
   ]);
+
+  // Only fade the edges the list can actually scroll towards, so the first and
+  // last rows are never dimmed for no reason.
+  useEffect(() => {
+    if (!listScrollElement) return;
+
+    const updateEdges = () => {
+      const { scrollTop, scrollHeight, clientHeight } = listScrollElement;
+      const overflowing = scrollHeight > clientHeight + 1;
+      setListEdges({
+        top: overflowing && scrollTop > 1,
+        bottom: overflowing && scrollTop < scrollHeight - clientHeight - 1,
+      });
+    };
+
+    const frame = requestAnimationFrame(updateEdges);
+    const observer = new ResizeObserver(updateEdges);
+
+    listScrollElement.addEventListener("scroll", updateEdges, {
+      passive: true,
+    });
+    observer.observe(listScrollElement);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      listScrollElement.removeEventListener("scroll", updateEdges);
+      observer.disconnect();
+    };
+  }, [listScrollElement]);
+
+  // Arrow keys move the selection in either view, so keep the highlighted row
+  // inside the list's own scroll area.
+  useEffect(() => {
+    if (view !== "list") return;
+
+    rowRefs.current[selectedIndex]?.scrollIntoView({
+      behavior: reduceMotion ? "auto" : "smooth",
+      block: "nearest",
+    });
+  }, [reduceMotion, selectedIndex, view]);
+
+  // The covers hold their edge-on pose until the loader lifts, then flip into
+  // place from the centre outwards.
+  useEffect(() => {
+    if (!isGalleryReady || hasGalleryEntered) return;
+    const timer = window.setTimeout(() => setHasGalleryEntered(true), 900);
+    return () => window.clearTimeout(timer);
+  }, [hasGalleryEntered, isGalleryReady]);
+
+  useEffect(() => {
+    const failsafe = window.setTimeout(() => setIsGalleryReady(true), 2400);
+    return () => window.clearTimeout(failsafe);
+  }, []);
 
   useEffect(
     () => () => {
       if (scrollSettleTimer.current !== null) {
         window.clearTimeout(scrollSettleTimer.current);
+      }
+      if (velocityResetTimer.current !== null) {
+        window.clearTimeout(velocityResetTimer.current);
       }
     },
     [],
@@ -456,22 +597,43 @@ export default function HomePage({
   useEffect(() => {
     const gallery = galleryRef.current;
     if (!gallery || status !== "ready" || events.length === 0) return;
+    if (view !== "carousel") return;
 
     let frame = 0;
 
-    const handleScroll = () => {
-      if (isProgrammaticScroll.current) {
-        markProgrammaticScroll();
-        return;
+    const sampleVelocity = () => {
+      const now = performance.now();
+      const previous = lastScrollSample.current;
+      const elapsed = now - previous.at;
+      galleryFocus.current.velocity =
+        elapsed > 0 ? ((gallery.scrollLeft - previous.left) / elapsed) * 1000 : 0;
+      lastScrollSample.current = { left: gallery.scrollLeft, at: now };
+
+      if (velocityResetTimer.current !== null) {
+        window.clearTimeout(velocityResetTimer.current);
       }
+      velocityResetTimer.current = window.setTimeout(() => {
+        galleryFocus.current.velocity = 0;
+      }, 140);
+    };
+
+    const handleScroll = () => {
       if (frame !== 0) return;
 
       frame = requestAnimationFrame(() => {
         frame = 0;
-        const nextIndex = nearestSlideIndexToCenter();
-        if (nextIndex === null) return;
+        sampleVelocity();
+
+        const focus = measureGalleryFocus();
+        if (focus === null) return;
+        galleryFocus.current.index = focus.focal;
+
+        if (isProgrammaticScroll.current) {
+          markProgrammaticScroll();
+          return;
+        }
         selectionSource.current = "scroll";
-        setSelectedIndex(nextIndex);
+        setSelectedIndex(focus.index);
       });
     };
 
@@ -484,8 +646,9 @@ export default function HomePage({
   }, [
     events.length,
     markProgrammaticScroll,
-    nearestSlideIndexToCenter,
+    measureGalleryFocus,
     status,
+    view,
   ]);
 
   useEffect(() => {
@@ -512,72 +675,46 @@ export default function HomePage({
   }, [events.length]);
 
   return (
-    <main className="min-h-dvh w-full overflow-hidden rounded-none border-0 bg-white font-['Alte_Haas_Grotesk',sans-serif] text-[oklch(22%_0.025_250)] shadow-none antialiased [font-synthesis:none] [text-rendering:optimizeLegibility]">
+    <main className="min-h-dvh w-full overflow-hidden rounded-none border-0 bg-white font-['Alte_Haas_Grotesk',sans-serif] text-body shadow-none antialiased [font-synthesis:none] [text-rendering:optimizeLegibility]">
+      <PageLoader onDone={revealGallery} />
+
       <SiteHeader reveal />
 
       <section
-        className="intro px-[clamp(20px,6vw,96px)] py-[clamp(26px,4.5vw,69px)] max-[820px]:py-8 max-[520px]:py-[23px]"
+        className="intro px-[clamp(20px,6vw,96px)] pt-[clamp(18px,2.5vw,40px)] pb-[clamp(14px,2vw,32px)] max-[820px]:pt-5 max-[820px]:pb-3.5 max-[520px]:pt-4 max-[520px]:pb-3"
         aria-labelledby="page-title"
       >
         <ScrollReveal className="intro-title col-span-8 max-[820px]:col-span-1">
           <h1
-            className="m-0 text-balance text-[clamp(3rem,4.7vw,3.75rem)] font-bold leading-[1.08] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.4rem,11vw,3.25rem)]"
+            className="m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="page-title"
-            aria-label="For designers who believe growth happens together"
+            aria-label="A space for the world’s most ambitious creatives"
           >
-            <span>For designers who believe</span>{" "}
-            <span>growth happens together</span>
+            <span>A space for the world’s</span>{" "}
+            <span>most ambitious creatives</span>
           </h1>
-        </ScrollReveal>
-        <ScrollReveal
-          className="col-start-9 col-span-4 max-[820px]:col-start-1 max-[820px]:col-span-1"
-          delay={80}
-        >
-          <p className="intro-copy col-start-9 col-span-4 m-0 mb-2 text-pretty text-base text-[oklch(53%_0.025_250)] max-[820px]:mt-2">
-            A space for ambitious, early-career designers to meet the people
-            behind the work.
-          </p>
         </ScrollReveal>
       </section>
 
-      <section className="gallery-section" id="events" aria-label="Past events">
-        <ScrollReveal className="gallery-toolbar px-[clamp(20px,6vw,96px)] py-4 max-[520px]:py-3">
-          <p className="m-0 text-sm text-[oklch(53%_0.025_250)]">
-            {status === "ready" ? (
-              <>
-                <span className="counter-current font-normal text-[oklch(22%_0.025_250)]">
-                  {String(selectedIndex + 1).padStart(2, "0")}
-                </span>
-                {" / "}
-                {String(events.length).padStart(2, "0")}
-              </>
-            ) : (
-              <span>Unavailable</span>
-            )}
+      {/* Carousel view leaves these stacked; list view pairs them into a
+          master/detail split, so they need a common layout parent. */}
+      <div className="events-layout" data-view={view}>
+      {/* Lives outside the gallery column so the toggle keeps the same
+          top-right placement once list view splits the layout in two. */}
+      <ScrollReveal className="gallery-toolbar px-[clamp(20px,6vw,96px)]">
+        {status === "ready" && events.length > 0 ? (
+          <GalleryViewToggle view={view} onChange={changeView} />
+        ) : (
+          <p className="m-0 text-base text-muted">
+            {status === "error" ? "Unavailable" : null}
           </p>
-          <div className="gallery-actions">
-            <IconButton
-              aria-label="Previous event"
-              disabled={selectedIndex === 0 || events.length === 0}
-              onClick={() => selectEvent(selectedIndex - 1)}
-            >
-              <ArrowIcon direction="left" />
-            </IconButton>
-            <IconButton
-              aria-label="Next event"
-              disabled={
-                selectedIndex >= events.length - 1 || events.length === 0
-              }
-              onClick={() => selectEvent(selectedIndex + 1)}
-            >
-              <ArrowIcon direction="right" />
-            </IconButton>
-          </div>
-        </ScrollReveal>
+        )}
+      </ScrollReveal>
 
+      <section className="gallery-section" id="events" aria-label="Past events">
         {status === "error" ? (
           <div
-            className="gallery-status px-[clamp(20px,6vw,96px)] py-12 text-[0.92rem] text-[oklch(53%_0.025_250)]"
+            className="gallery-status px-[clamp(20px,6vw,96px)] py-12 text-base text-muted"
             role="alert"
           >
             Couldn’t load events. {errorMessage}
@@ -586,7 +723,7 @@ export default function HomePage({
 
         {status === "ready" && events.length === 0 ? (
           <div
-            className="gallery-status px-[clamp(20px,6vw,96px)] py-12 text-[0.92rem] text-[oklch(53%_0.025_250)]"
+            className="gallery-status px-[clamp(20px,6vw,96px)] py-12 text-base text-muted"
             role="status"
           >
             No past events yet. Run the seed script after creating the table.
@@ -595,98 +732,148 @@ export default function HomePage({
 
         {status === "ready" && events.length > 0 ? (
           <ScrollReveal delay={80}>
-            <ul
-              className="gallery px-[max(8vw,calc((100vw-1440px)/2))] pt-[clamp(36px,5vw,72px)] pb-[clamp(40px,4vw,56px)] max-[820px]:px-[18vw]"
-              ref={galleryRef}
-              aria-label="Choose a past event"
-            >
-              {events.map((item, index) => {
-                const selected = index === selectedIndex;
-                const distance = index - selectedIndex;
-                const slant = selected ? 0 : distance < 0 ? 42 : -42;
-                const depth = selected ? 48 : -24;
-                const scale = selected ? 1.06 : 0.96;
-                const lift = selected
-                  ? -8
-                  : Math.min(Math.abs(distance) * 2, 8);
-                const transform = `perspective(900px) rotateY(${slant}deg) translateZ(${depth}px) scale(${scale}) translateY(${lift}px)`;
-
-                return (
-                  <li
-                    key={item.id}
-                    ref={(node) => {
-                      slideRefs.current[index] = node;
-                    }}
-                    style={{ zIndex: events.length - Math.abs(distance) }}
+            {view === "carousel" ? (
+              <>
+                <div className="gallery-viewport">
+                  <ul
+                    className="gallery px-[max(8vw,calc((100vw-1440px)/2))] pt-[clamp(36px,5vw,72px)] pb-[clamp(40px,4vw,56px)] max-[820px]:px-[18vw]"
+                    ref={galleryRef}
+                    aria-label="Choose a past event"
                   >
-                    <motion.button
-                      ref={(node) => {
-                        cardRefs.current[index] = node;
-                      }}
-                      type="button"
-                      className="event-card cursor-pointer rounded-md border-0 bg-white p-0 text-left text-[oklch(98%_0.008_240)] shadow-[0_3px_10px_rgba(0,0,0,0.12)] outline-none focus:shadow-[0_12px_28px_rgba(0,0,0,0.18)] focus-visible:brightness-[0.88] focus-visible:shadow-[0_12px_28px_rgba(0,0,0,0.18)] aria-pressed:shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
-                      aria-label={`View details for ${item.title}`}
-                      aria-pressed={selected}
-                      onFocus={() => selectEvent(index)}
-                      onClick={() => selectEvent(index)}
-                      initial={false}
-                      animate={{ transform }}
-                      transition={
-                        reduceMotion
-                          ? { duration: 0 }
-                          : {
-                              type: "spring",
-                              stiffness: 190,
-                              damping: 24,
-                              mass: 0.85,
-                            }
-                      }
-                    >
-                      <img
-                        className="border-0 outline-none"
-                        src={item.image_url}
-                        alt=""
-                        draggable="false"
-                        loading={Math.abs(distance) > 3 ? "lazy" : "eager"}
-                      />
-                    </motion.button>
-                  </li>
-                );
-              })}
-            </ul>
+                    {events.map((item, index) => {
+                      const selected = index === selectedIndex;
+                      const distance = index - selectedIndex;
+                      const hovered = hoveredIndex === index && !selected;
+                      const transform = cardTransform({
+                        distance,
+                        selected,
+                        hovered,
+                      });
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                className="gallery-caption mx-auto pb-[clamp(40px,5vw,72px)] pt-0 text-center"
-                key={selectedEvent.id}
-                initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
-                transition={{
-                  duration: reduceMotion ? 0 : 0.18,
-                  ease: "easeOut",
-                }}
-                aria-live="polite"
-              >
-                <p
-                  className="m-0 w-full text-pretty text-base font-bold leading-6"
-                  id="selected-event-title"
+                      return (
+                        <li
+                          key={item.id}
+                          ref={(node) => {
+                            slideRefs.current[index] = node;
+                          }}
+                          style={{
+                            // One order across the whole rail: every cover sits
+                            // on the one to its right, so both wings lean the
+                            // same way as the shear instead of mirroring at the
+                            // centre. The focused cover keeps the top of the
+                            // stack so its shadow stays clear. A hovered cover
+                            // holds its place in that order, so it slides out
+                            // from under its left-hand neighbour the way a
+                            // record leaves a crate.
+                            zIndex: selected
+                              ? events.length + 1
+                              : events.length - index,
+                          }}
+                        >
+                          <motion.button
+                            ref={(node) => {
+                              cardRefs.current[index] = node;
+                            }}
+                            type="button"
+                            className="event-card cursor-pointer rounded-md border-0 bg-white p-0 text-left text-[oklch(98%_0.008_240)] shadow-[0_3px_10px_rgba(0,0,0,0.12)] outline-none focus:shadow-[0_12px_28px_rgba(0,0,0,0.18)] focus-visible:brightness-[0.88] focus-visible:shadow-[0_12px_28px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_30px_rgba(0,0,0,0.14)] aria-pressed:shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
+                            aria-label={`View details for ${item.title}`}
+                            aria-pressed={selected}
+                            onFocus={() => selectEvent(index)}
+                            onClick={() => selectEvent(index)}
+                            onPointerEnter={(event) =>
+                              hoverCard(index, event.pointerType)
+                            }
+                            onPointerLeave={(event) =>
+                              hoverCard(null, event.pointerType)
+                            }
+                            initial={false}
+                            animate={{
+                              transform: isGalleryReady
+                                ? transform
+                                : CARD_ENTRANCE_TRANSFORM,
+                              opacity: isGalleryReady ? 1 : 0,
+                            }}
+                            transition={
+                              reduceMotion
+                                ? { duration: 0 }
+                                : {
+                                    type: "spring",
+                                    stiffness: 190,
+                                    damping: 24,
+                                    mass: 0.85,
+                                    delay: hasGalleryEntered
+                                      ? 0
+                                      : Math.min(
+                                          Math.abs(distance) * 0.04,
+                                          0.32,
+                                        ),
+                                  }
+                            }
+                          >
+                            <img
+                              className="border-0 outline-none"
+                              src={item.image_url}
+                              alt=""
+                              draggable="false"
+                              loading={Math.abs(distance) > 3 ? "lazy" : "eager"}
+                            />
+                          </motion.button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+
+                <div className="gallery-ticker px-[clamp(20px,6vw,96px)] pb-[clamp(32px,4vw,56px)]">
+                  <FilmTickerLines
+                    items={tickerItems}
+                    currentIndex={selectedIndex}
+                    readFocus={readGalleryFocus}
+                    onSelect={selectEvent}
+                    label="Past event timeline"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="gallery-list px-[clamp(20px,6vw,96px)] pt-[clamp(32px,4vw,64px)] pb-[clamp(40px,5vw,72px)]">
+                <div
+                  className="event-list-viewport"
+                  data-fade-top={listEdges.top ? "" : undefined}
+                  data-fade-bottom={listEdges.bottom ? "" : undefined}
                 >
-                  {selectedEvent.title}
-                </p>
-                <p className="m-0 text-base leading-6 text-[oklch(70.7%_0.022_261.325)]">
-                  {selectedEvent.date_label}
-                </p>
-              </motion.div>
-            </AnimatePresence>
+                  <div className="event-list-scroll" ref={setListScrollElement}>
+                    <ul
+                      className="event-list m-0 p-0 pb-10"
+                      aria-label="Choose a past event"
+                    >
+                      {events.map((item, index) => (
+                        <li key={item.id}>
+                          <EventListRow
+                            ref={(node) => {
+                              rowRefs.current[index] = node;
+                            }}
+                            title={item.title}
+                            dateLabel={item.date_label}
+                            location={item.location}
+                            imageUrl={item.image_url}
+                            selected={index === selectedIndex}
+                            onSelect={() => selectEvent(index)}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </ScrollReveal>
         ) : null}
       </section>
 
       <section
-        className="event-detail px-[clamp(20px,6vw,96px)] pt-[clamp(20px,3vw,40px)] pb-[clamp(56px,9vw,128px)]"
+        className="event-detail px-[clamp(20px,6vw,96px)] pt-[clamp(32px,4vw,64px)] pb-[clamp(56px,9vw,128px)]"
         aria-live="polite"
-        aria-labelledby={selectedEvent ? "selected-event-title" : undefined}
+        aria-labelledby={selectedEvent ? SELECTED_TITLE_ID : undefined}
       >
         <ScrollReveal>
           {selectedEvent ? (
@@ -703,77 +890,75 @@ export default function HomePage({
               }}
             >
               <div className="detail-title">
-                <ExpandableSummary
-                  summaryHtml={summaryHtml}
-                  summaryParagraphs={summaryParagraphs}
-                  eventId={selectedEvent.id}
-                />
-              </div>
-              <dl className="m-0">
-                <div>
-                  <dt className="mb-[7px] text-base uppercase text-gray-400">
-                    Where
-                  </dt>
-                  <dd className="m-0 text-base leading-6">
-                    {selectedEvent.location}
-                  </dd>
-                </div>
-                <div className="max-[820px]:hidden">
-                  <dt className="mb-[7px] text-base uppercase text-gray-400">
-                    Hosted by
-                  </dt>
-                  <dd className="m-0 text-base leading-6">
-                    <ul className="host-list m-0 p-0">
-                      {hosts.length > 0 ? (
-                        hosts.map((host) => <li key={host}>{host}</li>)
-                      ) : (
-                        <li>Host details to come</li>
-                      )}
-                    </ul>
-                  </dd>
-                </div>
-                <div className="detail-sponsor">
-                  <dt className="mb-4 text-base uppercase text-gray-400">
-                    Sponsors
-                  </dt>
-                  <dd className="m-0 mb-2 text-base leading-6">
-                    {sponsors.length > 0 ? (
-                      <TooltipProvider>
-                        <ul className="sponsor-list m-0 gap-5 p-0 pb-4">
-                          {sponsors.map((sponsor) => (
-                            <li key={sponsor.id}>
-                              {sponsor.logo_url ? (
-                                <Tooltip content={sponsor.name}>
-                                  <span
-                                    className="inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
-                                    tabIndex={0}
-                                  >
-                                    <img
-                                      className="sponsor-logo border-0 outline-none"
-                                      src={sponsor.logo_url}
-                                      alt={sponsor.name}
-                                      loading="lazy"
-                                    />
-                                  </span>
-                                </Tooltip>
-                              ) : (
-                                <span className="sponsor-placeholder bg-transparent px-0 py-2.5 text-base">
-                                  {sponsor.name}
-                                </span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </TooltipProvider>
-                    ) : (
-                      <span className="sponsor-placeholder bg-transparent px-0 py-2.5 text-base">
-                        Sponsor slot open
+                <h2
+                  className="m-0 text-balance text-[clamp(1.75rem,2.6vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.06em] text-black"
+                  id={SELECTED_TITLE_ID}
+                >
+                  {selectedEvent.title}
+                </h2>
+                <div className="detail-facts pt-[clamp(12px,1.4vw,18px)]">
+                  {/* Same colour split as the list rows: place sits one step
+                      darker than the date, location first. */}
+                  <p className="m-0 flex flex-wrap items-baseline gap-x-4 text-base leading-6">
+                    {selectedEvent.location ? (
+                      <span className="text-muted">
+                        <span className="sr-only">Location: </span>
+                        {selectedEvent.location}
                       </span>
+                    ) : null}
+                    <span className="text-subtle">
+                      <span className="sr-only">Date: </span>
+                      {selectedEvent.date_label}
+                    </span>
+                  </p>
+                  <ul
+                    className="detail-chips m-0 gap-2.5 p-0"
+                    aria-label="Sponsors"
+                  >
+                    {sponsors.length > 0 ? (
+                      sponsors.map((sponsor) => {
+                        const chipContent = (
+                          <>
+                            <span className="sr-only">Sponsor: </span>
+                            {sponsor.logo_url ? (
+                              <img
+                                className="sponsor-logo border-0 outline-none"
+                                src={sponsor.logo_url}
+                                alt=""
+                                loading="lazy"
+                              />
+                            ) : null}
+                            {sponsor.name}
+                          </>
+                        );
+
+                        return (
+                          <li key={sponsor.id}>
+                            {sponsor.website_url ? (
+                              <Chip
+                                href={sponsor.website_url}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {chipContent}
+                              </Chip>
+                            ) : (
+                              <Chip>{chipContent}</Chip>
+                            )}
+                          </li>
+                        );
+                      })
+                    ) : (
+                      <li>
+                        <Chip className="sponsor-placeholder" variant="outline">
+                          Sponsor slot open
+                        </Chip>
+                      </li>
                     )}
-                  </dd>
+                  </ul>
                   {selectedEvent.luma_url ? (
                     <Link
-                      className="inline-flex items-center gap-2"
+                      className="inline-flex items-center gap-1.5"
                       href={selectedEvent.luma_url}
                       target="_blank"
                       rel="noreferrer"
@@ -783,15 +968,22 @@ export default function HomePage({
                     </Link>
                   ) : null}
                 </div>
-              </dl>
+              </div>
+              <div className="detail-meta">
+                <ExpandableSummary
+                  summaryHtml={summaryHtml}
+                  summaryParagraphs={summaryParagraphs}
+                  eventId={selectedEvent.id}
+                />
+              </div>
               <div className="detail-extras pt-0">
                 <section
                   className="detail-photos"
                   aria-labelledby="event-photos-title"
                 >
-                  <div className="mb-4 flex items-center justify-between">
+                  <div className="mb-[clamp(24px,3vw,40px)] flex items-center justify-between">
                     <h3
-                      className="m-0 text-base font-medium tracking-[-0.06em] uppercase text-gray-400"
+                      className="m-0 text-xl font-bold tracking-[-0.06em] text-black"
                       id="event-photos-title"
                     >
                       Gallery
@@ -804,6 +996,7 @@ export default function HomePage({
                       <IconButton
                         aria-label="Previous event photo"
                         aria-controls="event-photo-rail"
+                        variant="ghost"
                         disabled={!canScrollPhotosLeft}
                         onClick={() => scrollPhotoRail(-1)}
                       >
@@ -812,6 +1005,7 @@ export default function HomePage({
                       <IconButton
                         aria-label="Next event photo"
                         aria-controls="event-photo-rail"
+                        variant="ghost"
                         disabled={!canScrollPhotosRight}
                         onClick={() => scrollPhotoRail(1)}
                       >
@@ -845,10 +1039,12 @@ export default function HomePage({
           ) : (
             <div className="detail-grid detail-empty">
               <div className="detail-title">
-                <h2 className="m-0 max-w-[18ch] text-balance text-[clamp(2rem,4.2vw,4.8rem)] font-medium leading-[1.03] tracking-[-0.06em] max-[820px]:max-w-[22ch]">
-                  Waiting for the archive.
+                <h2 className="m-0 text-balance text-[clamp(1.75rem,2.6vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.06em] text-black">
+                  Waiting for the archive
                 </h2>
-                <p className="m-0 mt-7 max-w-[54ch] text-pretty text-base leading-[1.7]">
+              </div>
+              <div className="detail-meta">
+                <p className="m-0 max-w-[62ch] text-pretty text-base leading-[1.7] text-body">
                   Once Supabase is seeded, each square opens the full event
                   details here.
                 </p>
@@ -857,21 +1053,24 @@ export default function HomePage({
           )}
         </ScrollReveal>
       </section>
+      </div>
 
       <section
-        className="upcoming-events bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-[60px]"
+        className="upcoming-events bg-white px-[clamp(20px,6vw,96px)] py-[160px] text-black max-[820px]:py-[80px]"
         id="calendar"
         aria-labelledby="upcoming-events-title"
       >
         <ScrollReveal className="upcoming-events-copy">
           <h2
-            className="m-0 text-balance text-[clamp(3rem,4.7vw,3.75rem)] font-bold leading-[1.2] tracking-[-0.06em] max-[520px]:text-[clamp(2.4rem,11vw,3.25rem)]"
+            className="m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="upcoming-events-title"
           >
-            UPCOMING EVENTS
+            Upcoming events
           </h2>
-          <p className="m-0 max-w-[54ch] text-pretty text-[1.05rem] leading-[1.5] text-[#202020] max-[520px]:text-base">
-            RSVP on Luma and join us at the next Design Meetup.
+          <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-body">
+            {showRecentEvents
+              ? "Nothing on the calendar right now — here’s where we’ve been. Follow our Luma to hear about the next one first."
+              : "RSVP on Luma to join us at the next Design Meetup."}
           </p>
           <Primary
             className="gap-2"
@@ -893,146 +1092,102 @@ export default function HomePage({
           className="upcoming-events-embed overflow-hidden rounded-[11px]"
           delay={80}
         >
-          <iframe
-            className="upcoming-events-frame block w-full border-0 bg-transparent"
-            src={LUMA_CALENDAR_EMBED_SRC}
-            title="Design Meetup upcoming events on Luma"
-            loading="lazy"
-            allow="fullscreen"
-          />
+          {showRecentEvents ? (
+            <RecentEventsPanel events={recentEvents} />
+          ) : (
+            <iframe
+              className="upcoming-events-frame block w-full border-0 bg-transparent"
+              src={LUMA_CALENDAR_EMBED_SRC}
+              title="Design Meetup upcoming events on Luma"
+              loading="lazy"
+              allow="fullscreen"
+            />
+          )}
         </ScrollReveal>
       </section>
 
       <section
-        className="about-section bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-[60px]"
+        className="about-section bg-white px-[clamp(20px,6vw,96px)] pt-[160px] pb-[80px] text-black max-[820px]:pt-[80px] max-[820px]:pb-[40px]"
         id="about"
         aria-labelledby="about-title"
       >
         <ScrollReveal className="about-grid">
           <div className="about-copy">
             <h2
-              className="m-0 text-balance text-[clamp(3rem,4.7vw,3.75rem)] font-bold leading-[1.2] tracking-[-0.06em] max-[520px]:text-[clamp(2.4rem,11vw,3.25rem)]"
+              className="m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
               id="about-title"
             >
-              ABOUT
+              About
             </h2>
-            <div className="mt-8 grid max-w-[54ch] gap-5 text-base leading-[1.5] text-[#202020]">
+            <div className="about-lede grid gap-5 text-base leading-[1.6] text-body">
               <p className="m-0 text-pretty">
-                We are a community of the world’s most ambitious creatives.
+                We are a community of the world’s most ambitious creatives in NYC, SF, & LA.
               </p>
               <p className="m-0 text-pretty">
-                We bring together those who aspire to take their craft seriously while forming meaningful connections.
+                We bring together designers who aspire to take their craft seriously while forming meaningful connections.
               </p>
             </div>
           </div>
 
-          <div className="about-image min-w-0">
-            <img
-              className="block aspect-[3/2] w-full rounded-[11px] border-0 object-cover outline-none"
-              src="/about/design-meetup-community.jpg"
-              alt="Design Meetup community gathering around tables to make and connect"
-              width={1600}
-              height={1067}
-              loading="lazy"
-            />
-          </div>
-          <ul
-            className="about-offerings m-0 mt-[clamp(72px,8vw,120px)] list-none p-0"
-            aria-label="Ways to join Design Meetup"
-          >
-            {aboutOfferings.map((offering) => (
-              <li className="min-w-0 flex flex-col gap-3" key={offering.title}>
-                <div className="flex items-center gap-2.5">
-                  <img
-                    className="size-[18px] shrink-0 border-0 outline-none"
-                    src={offering.icon}
-                    alt=""
-                    width={18}
-                    height={18}
-                    loading="lazy"
-                    aria-hidden="true"
-                  />
-                  <h3 className="m-0 whitespace-nowrap text-balance text-lg font-bold leading-[1.2] tracking-[-0.06em] text-black">
-                    {offering.title}
-                  </h3>
-                </div>
-                <p className="m-0 max-w-[321px] text-pretty text-base leading-[1.2] tracking-[-0.03em] text-[#727272]">
-                  {offering.description}
-                </p>
-              </li>
-            ))}
-          </ul>
-          <div
-            className="team-filter-control flex justify-start"
-            id="website-team"
-          >
-            {isWebsiteTeamVisible ? (
-              <Primary
-                className="-ml-4 mt-2"
-                variant="ghost"
-                aria-pressed={isWebsiteTeamVisible}
-                onClick={() => setIsWebsiteTeamVisible(false)}
+          <div className="about-image min-w-0" ref={aboutVideoRef}>
+            <motion.div
+              className="about-video-shell relative rounded-[20px]"
+              style={{ scale: reduceMotion ? 1 : aboutVideoScale }}
+            >
+              <MuxPlayer
+                className="about-video block aspect-[16/9] w-full overflow-hidden rounded-[20px] border border-[#f2f2f2] outline-none"
+                ref={aboutPlayerRef}
+                playbackId="Lsd9OIuICyIM2sIfKSt7ecwwVjFvMPeXOxNFS00X43dM"
+                streamType="on-demand"
+                thumbnailTime={31}
+                muted={aboutVideoMuted}
+                loop
+                nohotkeys
+                playsInline
+                preload="auto"
+                title="Design Meetup community gathering around tables to make and connect"
+                style={{
+                  aspectRatio: "16 / 9",
+                  "--controls": "none",
+                  "--media-object-fit": "cover",
+                }}
+              />
+              <button
+                className="about-video-sound absolute right-4 bottom-4 grid size-9 place-items-center rounded-full border-0 bg-[#0f0f0f]/55 p-2 text-white transition-[background-color,transform] duration-150 ease-out hover:bg-[#0f0f0f]/75 active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                type="button"
+                onClick={toggleAboutVideoSound}
+                aria-pressed={!aboutVideoMuted}
+                aria-label={
+                  aboutVideoMuted ? "Unmute video" : "Mute video"
+                }
               >
-                WEBSITE TEAM!
-              </Primary>
-            ) : null}
+                {aboutVideoMuted ? (
+                  <SoundOffIcon className="size-4 shrink-0" />
+                ) : (
+                  <SoundOnIcon className="size-4 shrink-0" />
+                )}
+              </button>
+            </motion.div>
           </div>
-          <dl className="team-groups m-0 pb-4">
-            {teamGroups.map((group) => (
-              <div className="team-row" key={group.role}>
-                <dt
-                  className={`mb-4 text-base uppercase text-gray-400 ${
-                    isWebsiteTeamVisible &&
-                    !group.members.some((member) =>
-                      websiteTeam.has(member.name),
-                    )
-                      ? "opacity-50"
-                      : ""
-                  }`}
-                >
-                  {group.role}
-                </dt>
-                <dd className="m-0">
-                  <ul className="m-0 flex list-none flex-nowrap gap-[clamp(8px,1.25vw,14px)] p-0">
-                    {group.members.map((member) => (
-                      <li
-                        className={
-                          isWebsiteTeamVisible &&
-                          !websiteTeam.has(member.name)
-                            ? "opacity-50"
-                            : ""
-                        }
-                        key={member.name}
-                      >
-                        <TeamCard member={member} />
-                      </li>
-                    ))}
-                  </ul>
-                </dd>
-              </div>
-            ))}
-          </dl>
         </ScrollReveal>
       </section>
 
       <section
-        className="partner-cta bg-white px-[clamp(20px,6vw,96px)] py-[120px] text-black max-[820px]:py-[60px]"
+        className="partner-cta bg-white px-[clamp(20px,6vw,96px)] py-[160px] text-black max-[820px]:py-[80px]"
         id="sponsor"
         aria-labelledby="partner-cta-title"
       >
         <ScrollReveal className="partner-copy">
           <h2
-            className="m-0 max-w-[676px] text-balance text-[clamp(3rem,4.7vw,3.75rem)] font-bold leading-[1.2] tracking-[-0.06em] max-[520px]:text-[clamp(2.4rem,11vw,3.25rem)] [&_span]:block"
+            className="m-0 max-w-[676px] text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="partner-cta-title"
           >
-            <span>WE’VE WORKED WITH</span>
-            <span>SOME OF YOUR</span>
-            <span>FAVORITE COMPANIES</span>
+            We’ve worked with some of your favorite companies
           </h2>
-          <p className="m-0 text-pretty text-base leading-[1.2] text-[#202020]">
+          <p className="m-0 text-pretty text-base leading-[1.6] text-body">
             We’d love to chat if you’re interested in partnering with us.
           </p>
-          <Primary href="#contact">Reach out</Primary>
+          <PartnerContactForm />
         </ScrollReveal>
         <ScrollReveal className="partner-logos" delay={80}>
           <ul
@@ -1056,28 +1211,32 @@ export default function HomePage({
         </ScrollReveal>
       </section>
 
+      <FoundersNote />
+
       <footer
-        className="bg-white px-[clamp(20px,6vw,96px)] pt-[clamp(64px,8vw,112px)] pb-[clamp(32px,4vw,56px)] text-base text-[oklch(22%_0.025_250)]"
+        className="bg-white px-[clamp(20px,6vw,96px)] pt-[clamp(80px,10vw,144px)] pb-[clamp(40px,5vw,72px)] text-base text-body"
         id="contact"
       >
         <ScrollReveal className="footer-brand">
           <img
             className="footer-logo border-0 outline-none"
-            src="/design-meetup-logo.png"
+            src="/design-meetup-logo.svg"
             alt="Design Meetup"
-            width={128}
-            height={128}
+            width={1000}
+            height={1000}
             loading="lazy"
           />
         </ScrollReveal>
         <ScrollReveal className="footer-contact" delay={60}>
-          <h2 className="m-0 mb-4 text-base font-semibold tracking-[-0.06em]">Contact</h2>
+          <h2 className="m-0 mb-5 text-xl font-bold tracking-[-0.06em] text-black">
+            Contact
+          </h2>
           <nav
             aria-label="Contact links"
             className="flex flex-col items-start gap-5"
           >
             <a
-              className={`${footerLinkClassName} group inline-flex items-center gap-1`}
+              className={`${footerLinkClassName} group inline-flex items-center gap-1 [overflow-wrap:anywhere]`}
               href="mailto:contactdesignmeetup@gmail.com"
             >
               contactdesignmeetup@gmail.com
@@ -1124,30 +1283,13 @@ export default function HomePage({
           </nav>
         </ScrollReveal>
         <ScrollReveal className="footer-newsletter" delay={120}>
-          <h2 className="m-0 mb-4 text-base font-semibold tracking-[-0.06em]">
+          <h2 className="m-0 mb-5 text-xl font-bold tracking-[-0.06em] text-black">
             Join the newsletter
           </h2>
-          <form
-            className="newsletter-form grid grid-cols-[minmax(0,1fr)_auto] gap-2"
-            onSubmit={(event) => event.preventDefault()}
-          >
-            <label htmlFor="newsletter-email" className="sr-only">
-              Email address
-            </label>
-            <Input
-              id="newsletter-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="Enter your email here"
-            />
-            <Primary type="submit">
-              Subscribe
-            </Primary>
-          </form>
+          <NewsletterForm />
         </ScrollReveal>
-        <ScrollReveal className="footer-credit col-span-full" delay={160}>
-          <p className="col-span-full m-0 text-center text-sm text-gray-400">
+        <ScrollReveal className="footer-credit" delay={160}>
+          <p className="m-0 text-right text-base text-muted max-[820px]:text-left">
             Website built in{" "}
           <a
             className={footerCreditLinkClassName}
@@ -1175,15 +1317,7 @@ export default function HomePage({
           >
             Supabase
           </a>{" "}
-            by the{" "}
-            <a
-              className={footerCreditLinkClassName}
-              href="#website-team"
-              onClick={showWebsiteTeam}
-            >
-              Design Meetup Team
-            </a>
-            .
+            by the Design Meetup Team.
           </p>
         </ScrollReveal>
       </footer>

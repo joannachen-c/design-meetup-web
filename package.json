@@ -12,6 +12,7 @@
     "seed:galleries": "node scripts/seed-galleries.mjs",
     "refresh:summaries": "node scripts/refresh-event-summaries.mjs",
     "seed:sponsors": "node scripts/seed-sponsors.mjs",
+    "trim:sponsor-logos": "node scripts/trim-sponsor-logos.mjs",
     "upload:sponsor-logos": "node scripts/upload-sponsor-logos.mjs"
   },
   "repository": {
@@ -26,6 +27,8 @@
   },
   "homepage": "https://github.com/joannachen-c/design-meetup-web#readme",
   "dependencies": {
+    "@mux/mux-player-react": "^3.13.2",
+    "@radix-ui/react-select": "^2.3.7",
     "@radix-ui/react-tooltip": "^1.2.16",
     "@supabase/supabase-js": "^2.111.0",
     "motion": "^12.43.0",
@@ -41,6 +44,7 @@
     "@types/react-dom": "^19.2.4",
     "agentation": "^3.0.2",
     "dotenv": "^17.4.2",
+    "sharp": "^0.35.3",
     "typescript": "~5.9.0"
   }
 }

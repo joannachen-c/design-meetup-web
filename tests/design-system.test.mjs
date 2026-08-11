@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const readSource = (path) => readFile(new URL(path, root), "utf8");
 
-const [app, designSystem, iconButton, designSystemPage, styles, input] =
+const [app, designSystem, iconButton, designSystemPage, styles, input, newsletterForm] =
   await Promise.all([
     readSource("src/components/HomePage.tsx"),
     readSource("src/DesignSystem.tsx").catch(() => ""),
@@ -13,6 +13,7 @@ const [app, designSystem, iconButton, designSystemPage, styles, input] =
     readSource("app/design-system/page.tsx").catch(() => ""),
     readSource("app/globals.css"),
     readSource("src/components/Input.tsx").catch(() => ""),
+    readSource("src/components/NewsletterForm.tsx").catch(() => ""),
   ]);
 
 test("the design system is available at its own App Router route", () => {
@@ -105,9 +106,20 @@ test("the inputs specimen renders the shared production Input component", () => 
     designSystem.match(/<section\s+id="inputs"[\s\S]*?<\/section>/)?.[0] ?? "";
 
   assert.match(designSystem, /import \{ Input \} from "\.\/components\/Input"/);
-  assert.match(app, /import \{ Input \} from "\.\/Input"/);
+  assert.match(newsletterForm, /import \{ Input \} from "\.\/Input"/);
   assert.equal(inputsSection.match(/<Input[\s\n]/g)?.length, 2);
   assert.doesNotMatch(inputsSection, /<input[\s\n>]/);
+});
+
+test("the inputs specimen documents the dropdown built on the input surface", () => {
+  const inputsSection =
+    designSystem.match(/<section\s+id="inputs"[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  assert.match(designSystem, /import \{ Select \} from "\.\/components\/Select"/);
+  assert.match(inputsSection, /<SelectSpecimen \/>/);
+  assert.match(inputsSection, />\s*Dropdown\s*</);
+  assert.match(designSystem, /function SelectSpecimen\(\)[\s\S]*?<Select\b/);
+  assert.doesNotMatch(designSystem, /<select[\s\n>]/);
 });
 
 test("inputs specimen field labels do not cascade bold into the control", () => {
@@ -117,7 +129,7 @@ test("inputs specimen field labels do not cascade bold into the control", () => 
   assert.doesNotMatch(inputsSection, /<label className="[^"]*\bfont-bold\b/);
   assert.equal(
     inputsSection.match(/<span className="font-bold">/g)?.length,
-    2,
+    3,
   );
   assert.match(input, /\bfont-normal\b/);
 });

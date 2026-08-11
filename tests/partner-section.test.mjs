@@ -5,10 +5,10 @@ import test from "node:test";
 const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
-test("Figma partner section appears immediately before the footer", () => {
+test("Figma partner section appears immediately before the founders note and footer", () => {
   assert.match(
     app,
-    /<section[\s\S]*className="[^"]*\bpartner-cta\b[^"]*"[\s\S]*WE’VE WORKED WITH[\s\S]*Reach out[\s\S]*<\/section>\s*<footer\b/,
+    /<section[\s\S]*className="[^"]*\bpartner-cta\b[^"]*"[\s\S]*We’ve worked with some of your favorite companies[\s\S]*<PartnerContactForm \/>[\s\S]*<\/section>\s*<FoundersNote \/>\s*<footer\b/,
   );
   assert.match(app, /className="[^"]*\bpartner-grid\b[^"]*"/);
   assert.match(app, /\/partners\/figma\.png/);
@@ -92,8 +92,8 @@ test("partner content aligns to the shared twelve-column grid", () => {
 
 test("partner CTA uses generous vertical padding without changing horizontal padding", () => {
   assert.match(app, /partner-cta[^"]*px-\[clamp\(20px,6vw,96px\)\]/);
-  assert.match(app, /partner-cta[^"]*py-\[120px\]/);
-  assert.match(app, /partner-cta[^"]*max-\[820px\]:py-\[60px\]/);
+  assert.match(app, /partner-cta[^"]*py-\[160px\]/);
+  assert.match(app, /partner-cta[^"]*max-\[820px\]:py-\[80px\]/);
   assert.doesNotMatch(css, /\.partner-cta\s*\{[^}]*padding(?:-block)?:/s);
 });
 

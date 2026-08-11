@@ -184,9 +184,101 @@ function renderPlainBlock(node) {
   }
 }
 
+const LIABILITY_HEADING =
+  /^(photography(\s+and\s+filming)?|safety\s+and\s+inclusivity|code\s+of\s+conduct)$/i;
+
+const LIABILITY_BODY =
+  /please be aware that this event will be photographed|reserves the right to use these images|by attending,?\s+you (give your )?consent|all .+ events are inclusive and welcoming|discrimination of any kind will not be tolerated|governed by .+ code of conduct/i;
+
+export function isLiabilityText(text) {
+  const normalized = String(text ?? "").trim();
+  if (!normalized) return false;
+  if (LIABILITY_HEADING.test(firstMeaningfulLine(normalized))) return true;
+  return LIABILITY_BODY.test(normalized);
+}
+
+function firstMeaningfulLine(text) {
+  return String(text)
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .find(Boolean) ?? "";
+}
+
+function isLiabilityNode(node) {
+  if (!node || typeof node !== "object") return false;
+  if (node.type === "horizontal_rule") return false;
+  return isLiabilityText(renderPlainBlock(node));
+}
+
+/**
+ * Drop host liability / policy boilerplate from a Luma TipTap description
+ * (photography consent, code of conduct, inclusivity legal copy, etc.).
+ */
+export function stripLiabilityContent(doc) {
+  if (!doc || typeof doc !== "object") return doc;
+  const content = Array.isArray(doc.content) ? doc.content : [];
+  const kept = content.filter((node) => !isLiabilityNode(node));
+
+  // Drop horizontal rules that only separated stripped liability blocks.
+  const withoutOrphanRules = [];
+  for (let index = 0; index < kept.length; index += 1) {
+    const node = kept[index];
+    if (node?.type !== "horizontal_rule") {
+      withoutOrphanRules.push(node);
+      continue;
+    }
+    const prev = withoutOrphanRules[withoutOrphanRules.length - 1];
+    const next = kept.slice(index + 1).find((candidate) => candidate?.type !== "horizontal_rule");
+    if (!prev || !next) continue;
+    if (prev.type === "horizontal_rule") continue;
+    withoutOrphanRules.push(node);
+  }
+
+  return { ...doc, content: withoutOrphanRules };
+}
+
+/** Strip liability/policy paragraphs from already-rendered plain summaries. */
+export function stripLiabilityFromPlainText(text) {
+  if (typeof text !== "string" || !text.trim()) return text ?? "";
+  return text
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter((block) => block && !isLiabilityText(block))
+    .join("\n\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/**
+ * Strip liability/policy blocks from already-rendered HTML summaries.
+ * Handles both dedicated paragraphs and title+body packed into one <p>.
+ */
+export function stripLiabilityFromHtml(html) {
+  if (typeof html !== "string" || !html.trim()) return html ?? "";
+
+  let output = html
+    // Title-only or title+body paragraphs (Figma Field Days style).
+    .replace(
+      /(?:<hr\s*\/?>\s*)?<p>(?:\s|<br\s*\/?>)*<(?:strong|b)>\s*(?:Photography(?:\s+and\s+Filming)?|Safety\s+and\s+Inclusivity|Code\s+of\s+Conduct)\s*<\/(?:strong|b)>[\s\S]*?<\/p>/gi,
+      "",
+    )
+    // Standalone consent paragraphs.
+    .replace(
+      /<p>(?:(?!<\/p>)[\s\S])*?\b(?:by attending,?\s+you (?:give your )?consent|please be aware that this event will be photographed|reserves the right to use these images|discrimination of any kind will not be tolerated)(?:(?!<\/p>)[\s\S])*?<\/p>/gi,
+      "",
+    )
+    .replace(/(?:<hr\s*\/?>\s*)+$/gi, "")
+    .replace(/^(?:\s*<hr\s*\/?>)+/gi, "")
+    .replace(/(<hr\s*\/?>\s*){2,}/gi, "<hr />")
+    .trim();
+
+  return output;
+}
+
 export function tipTapToHtml(doc) {
   if (!doc || typeof doc !== "object") return "";
-  return (doc.content ?? [])
+  const cleaned = stripLiabilityContent(doc);
+  return (cleaned.content ?? [])
     .map(renderBlock)
     .filter(Boolean)
     .join("")
@@ -196,7 +288,8 @@ export function tipTapToHtml(doc) {
 
 export function tipTapToPlainText(doc) {
   if (!doc || typeof doc !== "object") return "";
-  return (doc.content ?? [])
+  const cleaned = stripLiabilityContent(doc);
+  return (cleaned.content ?? [])
     .map(renderPlainBlock)
     .map((block) => block.replace(/[ \t]+\n/g, "\n").trim())
     .filter(Boolean)

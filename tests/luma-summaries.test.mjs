@@ -5,7 +5,9 @@ import test from "node:test";
 import {
   buildSummaryBundle,
   normalizeTipTapDescription,
+  stripLiabilityContent,
   tipTapToHtml,
+  tipTapToPlainText,
 } from "../scripts/refresh-event-summaries.mjs";
 
 const seed = await readFile(
@@ -84,6 +86,91 @@ test("TipTap descriptions retain paragraphs and list breaks", () => {
   );
 });
 
+test("Luma description parsing strips photography, safety, and consent liability copy", () => {
+  const description = {
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Join us for lightning talks and dinner." }],
+      },
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "Who this is for",
+            marks: [{ type: "bold" }],
+          },
+          { type: "hard_break" },
+          { type: "text", text: "Students and early career designers." },
+        ],
+      },
+      { type: "horizontal_rule" },
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "Photography and Filming",
+            marks: [{ type: "bold" }],
+          },
+          { type: "hard_break" },
+          { type: "hard_break" },
+          {
+            type: "text",
+            text: "Please be aware that this event will be photographed and filmed. Figma reserves the right to use these images and videos for marketing and communications purposes. By attending, you consent to the use of your likeness for these purposes.",
+          },
+        ],
+      },
+      { type: "horizontal_rule" },
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "Safety and Inclusivity",
+            marks: [{ type: "bold" }],
+          },
+          { type: "hard_break" },
+          { type: "hard_break" },
+          {
+            type: "text",
+            text: "All Figma events are inclusive and welcoming of all genders, sexualities, races, and abilities. Discrimination of any kind will not be tolerated. This event is governed by the Figma Code of Conduct.",
+          },
+        ],
+      },
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "By attending, you give your consent to be photographed or filmed. If you prefer not to be included, please notify us during check-in or adjust your RSVP.",
+          },
+        ],
+      },
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "See you soon!" }],
+      },
+    ],
+  };
+
+  const cleaned = stripLiabilityContent(description);
+  const summary = tipTapToPlainText(cleaned);
+  const summaryHtml = tipTapToHtml(cleaned);
+
+  assert.match(summary, /Join us for lightning talks and dinner/);
+  assert.match(summary, /Who this is for/);
+  assert.match(summary, /See you soon!/);
+  assert.doesNotMatch(summary, /Photography and Filming|Safety and Inclusivity|Code of Conduct|consent to|reserves the right|Discrimination/i);
+  assert.doesNotMatch(
+    summaryHtml,
+    /Photography and Filming|Safety and Inclusivity|Code of Conduct|consent to|reserves the right|Discrimination/i,
+  );
+  assert.doesNotMatch(summaryHtml, /<hr\s*\/>\s*$/);
+});
+
 test("summary refresh updates plain and html summary fields in Supabase", () => {
   assert.match(migration, /add column if not exists summary_html text/);
   assert.match(seed, /\.from\("events"\)\s*\.update\(\{/);
@@ -99,6 +186,14 @@ test("all local event summaries contain retained line breaks and html", () => {
     assert.match(event.summary, /\n/);
     assert.match(event.summary_html, /<(?:p|h2|ul|blockquote)\b/);
     assert.doesNotMatch(event.summary, /MadiJiabao|open6:00/);
+    assert.doesNotMatch(
+      event.summary,
+      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind/i,
+    );
+    assert.doesNotMatch(
+      event.summary_html,
+      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind/i,
+    );
   }
 });
 

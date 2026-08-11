@@ -8,11 +8,17 @@ const header = await readFile(
   "utf8",
 );
 const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+const luma = await readFile(new URL("../src/lib/luma.ts", import.meta.url), "utf8");
+const panel = await readFile(
+  new URL("../src/components/RecentEventsPanel.tsx", import.meta.url),
+  "utf8",
+);
 
 test("Upcoming events section sits above the partner CTA with a Luma calendar embed", () => {
   assert.match(
     app,
-    /<section[\s\S]*className="[^"]*\bupcoming-events\b[^"]*"[\s\S]*UPCOMING EVENTS[\s\S]*<\/section>\s*<section[\s\S]*className="[^"]*\bpartner-cta\b/,
+    /<section[\s\S]*className="[^"]*\bupcoming-events\b[^"]*"[\s\S]*>\s*Upcoming events\s*<\/h2>[\s\S]*<\/section>\s*<section[\s\S]*className="[^"]*\bpartner-cta\b/,
   );
   assert.match(
     app,
@@ -43,6 +49,30 @@ test("Luma calendar embed clips to rounded corners", () => {
     app,
     /className="[^"]*\bupcoming-events-embed\b[^"]*\boverflow-hidden\b[^"]*rounded-\[11px\][^"]*"/,
   );
+});
+
+test("Empty Luma calendar falls back to the past events list", () => {
+  assert.match(luma, /calendar_api_id: LUMA_CALENDAR_API_ID/);
+  assert.match(luma, /period,/);
+  assert.match(page, /fetchLumaCalendarEvents\("future"\)/);
+  // Only a confirmed empty calendar swaps the embed out: an unreachable Luma
+  // returns null, which must leave the embed in place.
+  assert.match(luma, /if \(!response\.ok\) return null;/);
+  assert.match(
+    page,
+    /upcomingEvents\?\.length === 0\s*\?\s*\(\(await fetchLumaCalendarEvents\("past"\)\) \?\? \[\]\)\s*:\s*\[\]/s,
+  );
+  assert.match(app, /const showRecentEvents = recentEvents\.length > 0;/);
+  assert.match(
+    app,
+    /\{showRecentEvents \? \(\s*<RecentEventsPanel events=\{recentEvents\} \/>\s*\) : \(\s*<iframe/,
+  );
+  assert.match(panel, /https:\/\/luma\.com\/designmeetup\?period=past/);
+  assert.match(panel, /Past events/);
+});
+
+test("Past events fallback holds the embed's block in the layout", () => {
+  assert.match(css, /\.recent-events\s*\{[^}]*min-height:\s*520px;/s);
 });
 
 test("Upcoming events uses the shared responsive twelve-column layout", () => {

@@ -6,9 +6,9 @@ export type SiteHeaderLink = {
 };
 
 export const homeHeaderLinks: SiteHeaderLink[] = [
-  { href: "#calendar", label: "CALENDAR" },
-  { href: "#about", label: "ABOUT" },
-  { href: "#sponsor", label: "SPONSOR" },
+  { href: "#calendar", label: "Calendar" },
+  { href: "#about", label: "About" },
+  { href: "#sponsor", label: "Sponsor" },
 ];
 
 const navLinkClassName =

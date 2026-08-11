@@ -76,19 +76,25 @@ test("every top-level content region uses the shared twelve-column grid", () => 
   );
 });
 
-test("major marketing sections use 60px block padding at the mobile breakpoint", () => {
+test("major marketing sections use 80px block padding at the mobile breakpoint", () => {
   assert.match(
     app,
     /className="[^"]*\bevent-detail\b[^"]*pb-\[clamp\(56px,9vw,128px\)\][^"]*"/,
   );
 
-  for (const classHook of ["upcoming-events", "about-section", "partner-cta"]) {
+  for (const classHook of ["upcoming-events", "partner-cta"]) {
     assert.match(
       app,
       new RegExp(
-        `className="[^"]*\\b${classHook}\\b[^"]*py-\\[120px\\][^"]*max-\\[820px\\]:py-\\[60px\\][^"]*"`,
+        `className="[^"]*\\b${classHook}\\b[^"]*py-\\[160px\\][^"]*max-\\[820px\\]:py-\\[80px\\][^"]*"`,
       ),
-      `${classHook} should preserve 120px desktop padding and use 60px mobile padding`,
+      `${classHook} should use 160px desktop padding and 80px mobile padding`,
     );
   }
+
+  assert.match(
+    app,
+    /className="[^"]*\babout-section\b[^"]*pt-\[160px\][^"]*pb-\[80px\][^"]*max-\[820px\]:pt-\[80px\][^"]*max-\[820px\]:pb-\[40px\][^"]*"/,
+    "about-section should keep 160px top padding and half the bottom padding",
+  );
 });

@@ -10,3 +10,4 @@ dist
 .next
 out
 tsconfig.tsbuildinfo
+scripts/data/event-galleries/

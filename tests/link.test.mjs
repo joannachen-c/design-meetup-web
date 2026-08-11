@@ -36,16 +36,18 @@ test("See more uses the shared Link component as a button", () => {
   assert.match(link, /\btext-medium\b/);
   assert.match(
     app,
-    /<Link[\s\S]*aria-expanded=\{isExpanded\}[\s\S]*aria-controls=\{contentId\}[\s\S]*onClick=\{\(\) => setIsExpanded\(!isExpanded\)\}[\s\S]*>\s*\{isExpanded \? "See less" : "See more"\}\s*<\/Link>/,
+    /<Link[\s\S]*aria-expanded=\{isExpanded\}[\s\S]*aria-controls=\{contentId\}[\s\S]*onClick=\{toggleExpanded\}[\s\S]*>\s*\{isExpanded \? "See less" : "See more"\}\s*<\/Link>/,
   );
 });
 
-test("View on Luma uses Link's zero-padding external anchor pattern", () => {
+test("View on Luma is a Link, sitting flush with the metadata rows", () => {
   assert.match(link, /bg-transparent p-0 text-left/);
   assert.match(
     app,
-    /<Link[\s\S]*className="[^"]*\binline-flex\b[^"]*\bitems-center\b[^"]*\bgap-2\b[^"]*"[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*target="_blank"[\s\S]*rel="noreferrer"[\s\S]*>[\s\S]*View on Luma[\s\S]*<ArrowUpRightIcon \/>[\s\S]*<\/Link>/,
+    /<Link\s+className="inline-flex items-center gap-1\.5"\s+href=\{selectedEvent\.luma_url\}/,
   );
+  assert.doesNotMatch(app, /<Chip[^>]*href=\{selectedEvent\.luma_url\}/);
+  // No optical nudge: the row already starts at the column edge.
   assert.doesNotMatch(app, /<Link[^>]*className="[^"]*-ml-/);
   assert.equal((app.match(/View on Luma/g) ?? []).length, 1);
 });

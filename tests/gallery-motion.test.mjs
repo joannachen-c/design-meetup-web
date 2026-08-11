@@ -16,6 +16,14 @@ test("cards retain perspective through the list wrapper", () => {
   );
 });
 
+// The slots overlap and carry the stacking order, so a bare slot rectangle sits
+// over its right-hand neighbours' covers. Left-wing covers shear left into those
+// slots, so if the slot is a hit target it swallows their clicks.
+test("only the covers take clicks, never the slots they shear over", () => {
+  assert.match(css, /\.gallery li\s*\{[^}]*pointer-events:\s*none;/s);
+  assert.match(css, /\.event-card\s*\{[^}]*pointer-events:\s*auto;/s);
+});
+
 test("page uses a white background without an outer frame", () => {
   assert.match(app, /<main className="[^"]*\bbg-white\b/);
   assert.match(css, /main\s*\{[^}]*width:\s*100%;/s);

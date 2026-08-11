@@ -272,6 +272,9 @@ h1 span {
    view sizes the detail cover to match the focused one. */
 .events-layout {
   --event-cover-size: clamp(184px, 18vw, 272px);
+  /* Add one quarter of the surrounding row gap without loosening the title
+     and summary relationship above the photo rail. */
+  --detail-extra-gap: clamp(8px, 0.75vw, 13px);
 }
 
 .gallery-viewport {
@@ -615,6 +618,9 @@ h1 span {
    the selected event stacks into the right five. The sections keep their own
    page padding, so the left column's right padding is what spaces the two. */
 .events-layout[data-view="grid"] {
+  /* Match the tighter detail rhythm used beside the cover grid. */
+  --detail-extra-gap: clamp(4px, 0.375vw, 6px);
+
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   align-items: start;
@@ -680,8 +686,8 @@ h1 span {
 
 .detail-title {
   /* Spans up to the meta column so long titles like "Design Meetup x Reve
-     Makeathon" stay on one line; the empty middle columns were dead space. */
-  grid-column: 1 / span 8;
+     Makeathon" wrap with enough breathing room before the summary column. */
+  grid-column: 1 / span 7;
   grid-row: 1;
 }
 

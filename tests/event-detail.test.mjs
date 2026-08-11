@@ -264,7 +264,7 @@ test("the gallery stays hidden while an event still uses the shared placeholders
   // empty grid row and its gap under the detail.
   assert.match(
     app,
-    /\{showEventGallery \? \(\s*<div className="detail-extras pt-0">/,
+    /\{showEventGallery \? \(\s*<div className="detail-extras pt-\[var\(--detail-extra-gap\)\]">/,
   );
   assert.doesNotMatch(
     app,
@@ -539,14 +539,18 @@ test("event photo rail bleeds to viewport edges with aligned terminal spacing", 
   );
 });
 
-test("event photo gallery starts without extra top padding", () => {
+test("event photo gallery gets a subtle responsive content gap", () => {
   assert.match(
     app,
-    /className="detail-extras pt-0"/,
+    /className="detail-extras pt-\[var\(--detail-extra-gap\)\]"/,
   );
-  assert.doesNotMatch(
-    app,
-    /className="detail-extras[^"]*(?:pt-\[clamp|max-\[820px\]:pt-)/,
+  assert.match(
+    css,
+    /\.events-layout\s*\{[^}]*--detail-extra-gap:\s*clamp\(8px,\s*0\.75vw,\s*13px\);/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\]\s*\{[^}]*--detail-extra-gap:\s*clamp\(4px,\s*0\.375vw,\s*6px\);/s,
   );
 });
 
@@ -584,7 +588,7 @@ test("the event card separates the name from its metadata column", () => {
   );
   assert.match(
     css,
-    /\.detail-title\s*\{[^}]*grid-column:\s*1\s*\/\s*span 8;[^}]*grid-row:\s*1;/s,
+    /\.detail-title\s*\{[^}]*grid-column:\s*1\s*\/\s*span 7;[^}]*grid-row:\s*1;/s,
   );
   assert.match(
     css,

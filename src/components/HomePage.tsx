@@ -412,6 +412,12 @@ export default function HomePage({
   const scrollSettleTimer = useRef<number | null>(null);
   const programmaticScrollUntil = useRef(0);
   const selectionSource = useRef<"control" | "scroll">("control");
+  // Which cover was centred when the pointer went down. Focus lands on a cover
+  // before its click fires and moves the selection under it, so a click can
+  // only tell it was aimed at the already-centred cover by the index it read
+  // on the way down. Cleared on any keypress: keyboard activation has no
+  // pointerdown to read and falls back to the live selection.
+  const pressedFromIndex = useRef<number | null>(null);
   const galleryFocus = useRef<FilmTickerFocus>({
     index: initialIndex,
     velocity: 0,
@@ -663,6 +669,22 @@ export default function HomePage({
       setSelectedIndex(nextIndex);
     },
     [events.length],
+  );
+
+  // A cover out on the wings is a target to bring in; the centred one has
+  // already been read, so hitting it again leaves for the event's Luma page.
+  const activateEvent = useCallback(
+    (index: number) => {
+      const centered = pressedFromIndex.current ?? selectedIndex;
+      pressedFromIndex.current = null;
+      const lumaUrl = events[index]?.luma_url;
+      if (centered === index && lumaUrl) {
+        window.open(lumaUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+      selectEvent(index);
+    },
+    [events, selectEvent, selectedIndex],
   );
 
   const changeView = useCallback((nextView: GalleryView) => {
@@ -1117,10 +1139,20 @@ export default function HomePage({
                             }}
                             type="button"
                             className="event-card cursor-pointer rounded-lg border-0 bg-white p-0 text-left text-[oklch(98%_0.008_240)] shadow-[0_3px_10px_rgba(0,0,0,0.12)] outline-none focus:shadow-[0_12px_28px_rgba(0,0,0,0.18)] focus-visible:brightness-[0.88] focus-visible:shadow-[0_12px_28px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_30px_rgba(0,0,0,0.14)] aria-pressed:shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
-                            aria-label={`View details for ${item.title}`}
+                            aria-label={
+                              selected && item.luma_url
+                                ? `Open ${item.title} on Luma`
+                                : `View details for ${item.title}`
+                            }
                             aria-pressed={selected}
                             onFocus={() => selectEvent(index)}
-                            onClick={() => selectEvent(index)}
+                            onPointerDown={() => {
+                              pressedFromIndex.current = selectedIndex;
+                            }}
+                            onKeyDown={() => {
+                              pressedFromIndex.current = null;
+                            }}
+                            onClick={() => activateEvent(index)}
                             onPointerOver={(event) =>
                               hoverCard(index, event.pointerType)
                             }
@@ -1175,6 +1207,7 @@ export default function HomePage({
                               loading={Math.abs(distance) > 3 ? "lazy" : "eager"}
                               onError={(event) => recoverImage(event.currentTarget)}
                             />
+                            <span className="event-card-sheen" aria-hidden />
                           </motion.button>
                         </li>
                       );

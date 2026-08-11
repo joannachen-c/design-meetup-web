@@ -427,6 +427,84 @@ h1 span {
   box-shadow: var(--media-inset-edge-focused);
 }
 
+/* Card stock has thickness, and the rail is lit from overhead — the same light
+   the covers' straight-down shadows are cast by. So the top edge takes the key
+   square on, the side edges only graze it, and the underside falls away into
+   shadow. Painting that run of light is what gives a flat cover its depth.
+
+   The four edges ride separate strips rather than one traced ring so each can
+   fade along its own length, and every strip fades out before the corner radius
+   begins, so none of them has to follow the curve. The strips live inside the
+   cover's transform, so the highlight leans with the shear the way a real edge
+   would rather than staying pinned to the screen. */
+.event-card-sheen {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  /* Shelf covers sit under a 70% wash, so their sheen is pulled back with the
+     artwork instead of floating over it at full strength. */
+  opacity: 0.8;
+  background-repeat: no-repeat;
+  background-position: top, right, bottom, left, top;
+  background-size:
+    100% 1.5px,
+    1.5px 100%,
+    100% 1.5px,
+    1.5px 100%,
+    100% 5px;
+  background-image:
+    /* Top edge: the key. It peaks left of centre, the corner the shear lifts
+       highest and so the one nearest the light. */
+    linear-gradient(
+      to right,
+      rgb(255 255 255 / 0) 4%,
+      rgb(255 255 255 / 0.5) 20%,
+      rgb(255 255 255 / 0.72) 38%,
+      rgb(255 255 255 / 0.3) 74%,
+      rgb(255 255 255 / 0) 95%
+    ),
+    /* Right edge: the one the stack leaves exposed, so it catches a graze that
+       runs out as the edge falls away from the light. */
+    linear-gradient(
+        to bottom,
+        rgb(255 255 255 / 0) 5%,
+        rgb(255 255 255 / 0.3) 20%,
+        rgb(255 255 255 / 0.1) 55%,
+        rgb(255 255 255 / 0) 82%
+      ),
+    /* Underside: turned away from the light, and deepest at the right, the end
+       the shear drops lowest. */
+    linear-gradient(
+        to right,
+        rgb(0 0 0 / 0) 6%,
+        rgb(0 0 0 / 0.14) 30%,
+        rgb(0 0 0 / 0.22) 78%,
+        rgb(0 0 0 / 0) 96%
+      ),
+    /* Left edge: tucked under the neighbouring cover, so it reads as occlusion
+       rather than shade, gathering toward the bottom of the overlap. */
+    linear-gradient(
+        to bottom,
+        rgb(0 0 0 / 0) 8%,
+        rgb(0 0 0 / 0.1) 45%,
+        rgb(0 0 0 / 0.14) 85%,
+        rgb(0 0 0 / 0) 96%
+      ),
+    /* The key rolling off the top edge onto the face: without it the highlight
+       reads as a drawn line instead of a lit bevel. */
+    linear-gradient(to bottom, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0));
+  pointer-events: none;
+  transition: opacity 240ms ease;
+}
+
+/* The focused cover stands clear of the stack and forward of the shelf, so it
+   takes the light at full strength. */
+.event-card[aria-pressed="true"] .event-card-sheen {
+  opacity: 1;
+}
+
 /* The video's edge is revealed by the shell as it reaches full width, so a
    scrolling-in video shows no frame at all. Everything else paints it outright. */
 .about-video-shell::after,

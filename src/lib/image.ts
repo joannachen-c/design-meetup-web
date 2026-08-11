@@ -40,8 +40,11 @@ function transformSupabase(url: string, options: SizedImageOptions) {
       "height",
       String(Math.round(options.height * (options.dpr ?? 2))),
     );
-    parsed.searchParams.set("resize", "contain");
   }
+  // Needed even when we only ask for a width: the endpoint defaults to `cover`
+  // and fills the dimension we leave out with the original's, so a bare width
+  // renders a 2400x2400 cover as a 840x2400 slice with the sides cropped off.
+  parsed.searchParams.set("resize", "contain");
   parsed.searchParams.set("quality", String(clampQuality(options.quality ?? 70)));
   return parsed.toString();
 }

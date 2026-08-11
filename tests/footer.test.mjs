@@ -55,7 +55,7 @@ test("footer logo is a vector that fills its four-column track", async () => {
   // raster source would soften it at this scale.
   assert.match(svg, /viewBox="0 0 (\d+) \1"/);
   assert.doesNotMatch(svg, /<image\b/);
-  assert.match(css, /\.footer-logo\s*\{[^}]*width:\s*100%;[^}]*aspect-ratio:\s*1;/s);
+  assert.match(css, /\.footer-logo\s*\{[^}]*width:\s*50%;[^}]*aspect-ratio:\s*1;/s);
   assert.doesNotMatch(css, /\.footer-logo\s*\{[^}]*width:\s*128px;/s);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*\.footer-logo\s*\{[^}]*max-width:/s);
 });

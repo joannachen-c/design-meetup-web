@@ -12,7 +12,7 @@ test("gallery scrollport and slides are measurable from the component", () => {
   assert.match(app, /const galleryRef = useRef<HTMLUListElement \| null>\(null\)/);
   assert.match(
     app,
-    /<ul\s+className="[^"]*\bgallery\b[^"]*"\s+ref=\{setGalleryRail\}/,
+    /<ul[\s\S]*?className="[^"]*\bgallery\b[^"]*"[\s\S]*?ref=\{setGalleryRail\}/,
   );
   assert.match(app, /slideRefs\.current\[index\] = node/);
 

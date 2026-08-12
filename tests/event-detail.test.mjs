@@ -731,9 +731,16 @@ test("only the photo rail blurs at its edges, since only it scrolls", () => {
 });
 
 test("grid view opens the detail with the event cover at carousel size", () => {
+  // The slot holds the cover (and the Luma label under it); the frame itself
+  // still paints at the focused card's size.
   assert.match(
     app,
-    /\{view === "grid" \? \(\s*<div className="detail-cover[^"]*aspect-square[^"]*">\s*<img[\s\S]*?\{\.\.\.sizedImage\(selectedEvent\.image_url,/,
+    /\{view === "grid" \? \(\s*<div className="detail-cover-slot">/,
+  );
+  assert.match(app, /const DETAIL_COVER_FRAME =\s*"detail-cover aspect-square/);
+  assert.match(
+    app,
+    /\{\.\.\.sizedImage\(selectedEvent\.image_url, \{ width: 280, quality: 76 \}\)/,
   );
   // Sits above the title and centred, at the size the focused card paints.
   assert.match(
@@ -742,7 +749,7 @@ test("grid view opens the detail with the event cover at carousel size", () => {
   );
   assert.match(
     css,
-    /\.detail-cover\s*\{[^}]*width:\s*min\(100%, calc\(var\(--event-cover-size\) \* 1\.03\)\);[^}]*margin-inline:\s*auto;/s,
+    /\.detail-cover-slot\s*\{[^}]*width:\s*min\(100%, calc\(var\(--event-cover-size\) \* 1\.03\)\);[^}]*margin-inline:\s*auto;/s,
   );
 });
 
@@ -795,7 +802,7 @@ test("event detail body copy is dark gray with no uppercase gray labels", () => 
   assert.match(css, /--color-body:\s*#202020;/);
 });
 
-test("event metadata reads as three rows: facts, sponsor pills, then the link", () => {
+test("event metadata reads as two rows: facts, then sponsor pills", () => {
   const facts = app.match(
     /<div className="detail-facts[\s\S]*?\n {16}<\/div>/,
   )?.[0];
@@ -834,15 +841,29 @@ test("event metadata reads as three rows: facts, sponsor pills, then the link", 
   );
 });
 
-test("View on Luma is a link rather than a pill", () => {
+test("View on Luma sits under the cover rather than in the facts", () => {
+  // The cover itself opens Luma; the hint is a caption under it, not a link.
   assert.match(
     app,
-    /<Link\s+className="inline-flex items-center gap-1\.5"\s+href=\{selectedEvent\.luma_url\}\s+target="_blank"\s+rel="noreferrer"\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>\s*<\/Link>/,
+    /aria-label=\{`Open \$\{selectedEvent\.title\} on Luma`\}/,
+  );
+  assert.match(app, /onClick=\{\(\) => openLuma\(detailLumaUrl\)\}/);
+  assert.match(
+    app,
+    /className="cover-luma-hint text-base text-muted"\s*aria-hidden\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>/,
+  );
+  assert.doesNotMatch(
+    app,
+    /<Link[^>]*href=\{selectedEvent\.luma_url\}[^>]*>[\s\S]*View on Luma/,
   );
   assert.doesNotMatch(app, /<Chip[^>]*href=\{selectedEvent\.luma_url\}/);
   assert.doesNotMatch(
     app,
     /<Primary[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*>[\s\S]*View on Luma/,
+  );
+  assert.doesNotMatch(
+    app,
+    /detail-facts[\s\S]*View on Luma/,
   );
   assert.match(
     app,
@@ -850,7 +871,8 @@ test("View on Luma is a link rather than a pill", () => {
   );
   assert.match(app, /import \{ Chip \} from "\.\/Chip"/);
   assert.doesNotMatch(app, /<span aria-hidden="true">↗<\/span>/);
-  assert.equal((app.match(/View on Luma/g) ?? []).length, 1);
+  // Once in the rail, once under the grid detail cover.
+  assert.equal((app.match(/View on Luma/g) ?? []).length, 2);
 });
 
 test("the event name stacks above its metadata on mobile", () => {
@@ -864,6 +886,7 @@ test("the event name stacks above its metadata on mobile", () => {
   );
   assert.doesNotMatch(css, /\.detail-sponsor\b/);
 });
+
 
 test("the sponsor tooltip is retired now that chips spell out the name", () => {
   assert.doesNotMatch(app, /<TooltipProvider>/);

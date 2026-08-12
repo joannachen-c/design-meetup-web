@@ -80,13 +80,15 @@ test("scroll regions and static metadata chips are not styled as clickable", () 
 });
 
 test("pointer affordances come from shared components, not one-off anchors", () => {
-  for (const [name, source] of [
-    ["HomePage", app],
-    ["DesignSystem", designSystem],
+  // HomePage may mark the rail card and the grid detail cover — both are the
+  // same "open this event" surface — but nowhere else should invent a pointer.
+  for (const [name, source, max] of [
+    ["HomePage", app, 2],
+    ["DesignSystem", designSystem, 0],
   ]) {
     const pointerUsages = source.match(/\bcursor-pointer\b/g)?.length ?? 0;
     assert.ok(
-      pointerUsages <= 1,
+      pointerUsages <= max,
       `${name} should not hand-roll pointer classes (found ${pointerUsages})`,
     );
   }

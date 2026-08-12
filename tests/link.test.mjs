@@ -40,14 +40,14 @@ test("See more uses the shared Link component as a button", () => {
   );
 });
 
-test("View on Luma is a Link, sitting flush with the metadata rows", () => {
+test("View on Luma is no longer a Link in the metadata rows", () => {
   assert.match(link, /bg-transparent p-0 text-left/);
-  assert.match(
+  // The cover opens Luma; the hint under it is not a Link.
+  assert.doesNotMatch(
     app,
-    /<Link\s+className="inline-flex items-center gap-1\.5"\s+href=\{selectedEvent\.luma_url\}/,
+    /<Link[^>]*href=\{selectedEvent\.luma_url\}/,
   );
   assert.doesNotMatch(app, /<Chip[^>]*href=\{selectedEvent\.luma_url\}/);
-  // No optical nudge: the row already starts at the column edge.
-  assert.doesNotMatch(app, /<Link[^>]*className="[^"]*-ml-/);
-  assert.equal((app.match(/View on Luma/g) ?? []).length, 1);
+  assert.match(app, /cover-luma-hint/);
+  assert.equal((app.match(/View on Luma/g) ?? []).length, 2);
 });

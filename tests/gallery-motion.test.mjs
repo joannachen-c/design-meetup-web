@@ -479,7 +479,13 @@ test("the entrance softness is reduced-motion aware and does not outlive it", ()
 test("card shadows stay restrained and inside the gallery scrollport", () => {
   assert.match(app, /shadow-\[0_3px_10px_rgba\(0,0,0,0\.12\)\]/);
   assert.match(app, /aria-pressed:shadow-\[0_12px_28px_rgba\(0,0,0,0\.18\)\]/);
-  assert.match(app, /pb-\[clamp\(40px,4vw,56px\)\]/);
+  // Bottom padding lives in CSS so it can include the rail underhang the
+  // focused cover's shadow (and Luma hint) paint into.
+  assert.match(
+    css,
+    /\.gallery\s*\{[^}]*padding-bottom:\s*calc\(clamp\(40px,\s*4vw,\s*56px\) \+ var\(--rail-underhang\)\);/s,
+  );
+  assert.match(css, /--rail-underhang:\s*28px;/);
 });
 
 // The hairline lives on one shared rule so a cover can never gain the outer

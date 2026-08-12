@@ -1031,7 +1031,7 @@ export default function HomePage({
       <SiteHeader reveal />
 
       <section
-        className="intro px-[clamp(20px,6vw,96px)] pt-[clamp(18px,2.5vw,40px)] pb-[clamp(14px,2vw,32px)] max-[820px]:pt-5 max-[820px]:pb-3.5 max-[520px]:pt-4 max-[520px]:pb-3"
+        className="intro px-[clamp(20px,6vw,96px)] pt-[clamp(18px,2.5vw,40px)] pb-[clamp(12px,1.6vw,24px)] max-[820px]:pt-5 max-[820px]:pb-3 max-[520px]:pt-4 max-[520px]:pb-2.5"
         aria-labelledby="page-title"
       >
         <ScrollReveal className="intro-title col-span-8 max-[820px]:col-span-1">
@@ -1339,7 +1339,12 @@ export default function HomePage({
               key={selectedEvent.id}
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+              // Instant exit: mode="wait" holds each outgoing panel for the
+              // full exit before mounting the next, so scrubbing the rail
+              // queues those exits and the description falls seconds behind
+              // the centred card. Dropping the exit duration keeps the panel
+              // within a frame of the selection while the enter fade stays.
+              exit={reduceMotion ? undefined : { opacity: 0, transition: { duration: 0 } }}
               transition={{
                 duration: reduceMotion ? 0 : 0.18,
                 ease: "easeOut",
@@ -1383,14 +1388,14 @@ export default function HomePage({
                 <div className="detail-facts pt-[clamp(12px,1.4vw,18px)]">
                   {/* Same colour split as the list rows: place sits one step
                       darker than the date, location first. */}
-                  <p className="m-0 flex flex-wrap items-baseline gap-x-4 text-base leading-6">
+                  <p className="detail-fact-line m-0 flex flex-wrap items-baseline gap-x-4 text-base leading-6">
                     {selectedEvent.location ? (
-                      <span className="text-muted">
+                      <span className="detail-place text-muted">
                         <span className="sr-only">Location: </span>
                         {selectedEvent.location}
                       </span>
                     ) : null}
-                    <span className="text-subtle">
+                    <span className="detail-date text-subtle">
                       <span className="sr-only">Date: </span>
                       {selectedEvent.date_label}
                     </span>

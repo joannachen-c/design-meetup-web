@@ -728,13 +728,54 @@ h1 span {
 
 .events-layout[data-view="grid"] .detail-grid {
   grid-template-columns: minmax(0, 1fr);
-  row-gap: clamp(14px, 1.5vw, 22px);
+  row-gap: clamp(28px, 2.8vw, 44px);
 }
 
 .events-layout[data-view="grid"] .detail-title,
 .events-layout[data-view="grid"] .detail-meta {
   grid-column: auto;
   grid-row: auto;
+}
+
+/* Under the cover the date reads as the heading's eyebrow, so grid view stacks
+   date, title, place. Carousel keeps title first with place and date on one
+   line. */
+.events-layout[data-view="grid"] .detail-title {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 0.9vw, 12px);
+}
+
+/* Unwrapping the facts stack and its first line puts the place and date in the
+   title's flex flow so they can order around the heading; it also drops the
+   padding that spaced the facts under the title. */
+.events-layout[data-view="grid"] .detail-facts,
+.events-layout[data-view="grid"] .detail-fact-line {
+  display: contents;
+}
+
+/* Keeps anything else the facts carry, sponsor pills included, below the stack
+   rather than ahead of the date. */
+.events-layout[data-view="grid"] .detail-facts > * {
+  order: 4;
+}
+
+.events-layout[data-view="grid"] .detail-date {
+  order: 1;
+}
+
+.events-layout[data-view="grid"] .detail-title > h2 {
+  order: 2;
+}
+
+.events-layout[data-view="grid"] .detail-place {
+  order: 3;
+}
+
+/* Beside the cover grid the sponsor pills compete with the title stack; keep
+   them for carousel where the detail column stands alone. */
+.events-layout[data-view="grid"] .detail-chips {
+  display: none;
 }
 
 /* The rail bleeds to the page edge at full width; inside a column it has to

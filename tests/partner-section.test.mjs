@@ -49,20 +49,21 @@ test("partner logos use stable optical adjustment hooks", () => {
   }
   assert.match(
     css,
-    /\.partner-logo--cursor\s*\{[^}]*width:\s*max\(62px,\s*61\.39%\);[^}]*height:\s*max\(62px,\s*61\.39%\);/s,
+    /\.partner-logo\s*\{[^}]*width:\s*max\(var\(--partner-logo-min-width\),\s*var\(--partner-logo-width\)\);[^}]*height:\s*max\(var\(--partner-logo-min-height\),\s*var\(--partner-logo-height\)\);[^}]*object-fit:\s*contain;/s,
   );
-  assert.match(css, /\.partner-logo--notion\s*\{[^}]*width:\s*max\(51px,\s*50\.5%\);/s);
-  assert.match(css, /\.partner-logo--ramp\s*\{[^}]*width:\s*max\(94px,\s*93\.07%\);/s);
-  assert.match(css, /\.partner-logo--tiktok\s*\{[^}]*width:\s*max\(66px,\s*65\.35%\);/s);
-  assert.match(css, /\.partner-logo--google\s*\{[^}]*width:\s*max\(47px,\s*46\.53%\);/s);
-  assert.match(css, /\.partner-logo--apple\s*\{[^}]*width:\s*max\(47px,\s*46\.53%\);/s);
+  assert.match(css, /\.partner-logo--figma\s*\{[^}]*--partner-logo-min-width:\s*31px;[^}]*--partner-logo-min-height:\s*46px;/s);
+  assert.match(css, /\.partner-logo--notion\s*\{[^}]*--partner-logo-min-width:\s*45px;[^}]*--partner-logo-min-height:\s*45px;/s);
+  assert.match(css, /\.partner-logo--tiktok\s*\{[^}]*--partner-logo-min-width:\s*87px;[^}]*--partner-logo-min-height:\s*49px;/s);
+  assert.match(css, /\.partner-logo--framer\s*\{[^}]*--partner-logo-min-width:\s*48px;[^}]*--partner-logo-min-height:\s*48px;/s);
+  assert.match(css, /\.partner-logo--google\s*\{[^}]*--partner-logo-min-width:\s*43px;[^}]*--partner-logo-min-height:\s*43px;/s);
+  assert.match(css, /\.partner-logo--rainbow\s*\{[^}]*--partner-logo-min-width:\s*51px;[^}]*--partner-logo-min-height:\s*45px;/s);
   assert.match(
     css,
     /\.partner-logo--ramp\s*\{[^}]*transform:\s*translateX\(-2px\);/s,
   );
   assert.match(
     css,
-    /\.partner-logo--framer\s*\{[^}]*transform:\s*translateY\(3px\);/s,
+    /\.partner-logo--framer\s*\{[^}]*transform:\s*translateY\(2px\);/s,
   );
 });
 

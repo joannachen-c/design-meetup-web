@@ -67,9 +67,7 @@ test("requested style categories live in Tailwind utilities", () => {
       .replace(/^\s*border-radius:\s*inherit;$/gm, "")
       // Gallery padding is tied to --rail-underhang in the stylesheet so the
       // focused cover's shadow and Luma hint can paint into the rail safely.
-      .replace(/\.gallery\s*\{[\s\S]*?\n\}/g, "")
-      // Slot keeps a line open under the cover for the Luma hint.
-      .replace(/\.detail-cover-slot\s*\{[\s\S]*?\n\}/, ""),
+      .replace(/\.gallery\s*\{[\s\S]*?\n\}/, ""),
     /^\s*(?:padding(?:-(?:top|right|bottom|left|block|inline))?|border-radius|color|background(?:-color)?|font-size|font-weight|line-height|letter-spacing|text-align|text-decoration|text-transform)\s*:/m,
   );
 });

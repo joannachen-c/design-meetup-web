@@ -943,6 +943,23 @@ test("the event name stacks above its metadata on mobile", () => {
   assert.doesNotMatch(css, /\.detail-sponsor\b/);
 });
 
+// On a phone the date reads as the title's eyebrow rather than a caption under
+// it, the same stack grid view uses: the fact line has to unwrap into the
+// title's own flow before its parts can order around the heading.
+test("the date sits above the event name on mobile", () => {
+  const phone = css.match(/@media \(max-width: 820px\)\s*\{[\s\S]*$/)[0];
+  assert.match(phone, /\.detail-title\s*\{[^}]*flex-direction:\s*column;/s);
+  assert.match(
+    phone,
+    /\.detail-facts,\s*\.detail-fact-line\s*\{\s*display:\s*contents;/s,
+  );
+  assert.match(phone, /\.detail-date\s*\{\s*order:\s*1;/s);
+  assert.match(phone, /\.detail-title > h2\s*\{\s*order:\s*2;/s);
+  assert.match(phone, /\.detail-place\s*\{\s*order:\s*3;/s);
+  // Sponsor pills and anything else the facts carry stay below the stack rather
+  // than landing ahead of the date.
+  assert.match(phone, /\.detail-facts > \*\s*\{\s*order:\s*4;/s);
+});
 
 test("the sponsor tooltip is retired now that chips spell out the name", () => {
   assert.doesNotMatch(app, /<TooltipProvider>/);

@@ -51,7 +51,54 @@ test("desktop covers overlap in proportion to the cover, not the viewport", () =
   );
   assert.match(
     css,
-    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.gallery li \+ li\s*\{[^}]*margin-left:\s*calc\(var\(--event-cover-size\) \* -0\.35\);/s,
+    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.gallery li \+ li\s*\{[^}]*margin-left:\s*calc\(var\(--event-cover-size\) \* -0\.5\);/s,
+  );
+});
+
+// The phone shelf is tuned against the same three settings as the desktop one,
+// but for a cover and a half a side instead of four covers: a viewport half only
+// has room for the part, the nearest cover whole, and half of the next.
+test("phone shelf shows a cover and a half on each side of the focused one", () => {
+  const part = Number(app.match(/const CARD_PART_PCT = ([\d.]+);/)[1]) / 100;
+  const rest = Number(
+    app.match(/const rest = selected \? 1\.03 : hovered \? [\d.]+ : ([\d.]+);/)[1],
+  );
+  const phone = css.match(/@media \(max-width:\s*820px\)\s*\{[\s\S]*$/)[0];
+  const overlap = Number(
+    phone.match(
+      /\.gallery li \+ li\s*\{[^}]*margin-left:\s*calc\(var\(--event-cover-size\) \* (-[\d.]+)\);/s,
+    )[1],
+  );
+  const coverVw =
+    Number(phone.match(/--event-cover-size:\s*min\(([\d.]+)vw,/)[1]) / 100;
+
+  const pitch = 1 + overlap;
+  // Cover widths from the focused cover's centre, so this holds at every phone
+  // width the cover is sized by the viewport at.
+  const half = 0.5 / coverVw;
+  const paintedEdge = (distance) => distance * pitch + part + rest / 2;
+
+  assert.ok(
+    paintedEdge(1) < half,
+    "the cover next to the focused one should paint whole inside the rail",
+  );
+  // Each shelf cover is painted over by its left-hand neighbour, so what shows
+  // of the cover two slots out starts where the cover one slot out ends.
+  assert.ok(
+    half - paintedEdge(1) > 0.3,
+    "the cover two slots out should show about half of itself, not a hairline",
+  );
+  assert.ok(
+    paintedEdge(2) >= half,
+    "a third cover would mean the shelf is denser than a cover and a half",
+  );
+
+  // Same rule as desktop: the shelf has to stand clear of the focused cover, or
+  // the covers beside it are swallowed rather than tucked behind it.
+  const gap = (pitch + part - rest / 2 - 1.03 / 2) * coverVw * 375;
+  assert.ok(
+    gap > 8,
+    "the focused cover should keep a visible gap either side on a phone too",
   );
 });
 
@@ -134,7 +181,7 @@ test("the selected title id lives on the detail heading the region points at", (
   );
   assert.match(
     css,
-    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.events-layout\s*\{[^}]*--event-cover-size:\s*min\(52vw,\s*220px\);/s,
+    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.events-layout\s*\{[^}]*--event-cover-size:\s*min\(25vw,\s*130px\);/s,
   );
 });
 

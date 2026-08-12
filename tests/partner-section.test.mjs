@@ -49,18 +49,20 @@ test("partner logos use stable optical adjustment hooks", () => {
   }
   assert.match(
     css,
-    /\.partner-logo--cursor\s*\{[^}]*width:\s*max\(66px,\s*65\.35%\);[^}]*height:\s*max\(90px,\s*89\.11%\);/s,
+    /\.partner-logo--cursor\s*\{[^}]*width:\s*max\(62px,\s*61\.39%\);[^}]*height:\s*max\(62px,\s*61\.39%\);/s,
   );
-  assert.match(css, /\.partner-logo--tiktok\s*\{[^}]*width:\s*max\(72px,\s*71\.29%\);/s);
-  assert.match(css, /\.partner-logo--google\s*\{[^}]*width:\s*max\(54px,\s*53\.47%\);/s);
-  assert.match(css, /\.partner-logo--apple\s*\{[^}]*width:\s*max\(54px,\s*53\.47%\);/s);
+  assert.match(css, /\.partner-logo--notion\s*\{[^}]*width:\s*max\(51px,\s*50\.5%\);/s);
+  assert.match(css, /\.partner-logo--ramp\s*\{[^}]*width:\s*max\(94px,\s*93\.07%\);/s);
+  assert.match(css, /\.partner-logo--tiktok\s*\{[^}]*width:\s*max\(66px,\s*65\.35%\);/s);
+  assert.match(css, /\.partner-logo--google\s*\{[^}]*width:\s*max\(47px,\s*46\.53%\);/s);
+  assert.match(css, /\.partner-logo--apple\s*\{[^}]*width:\s*max\(47px,\s*46\.53%\);/s);
   assert.match(
     css,
     /\.partner-logo--ramp\s*\{[^}]*transform:\s*translateX\(-2px\);/s,
   );
   assert.match(
     css,
-    /\.partner-logo--framer\s*\{[^}]*transform:\s*translateY\(5px\);/s,
+    /\.partner-logo--framer\s*\{[^}]*transform:\s*translateY\(3px\);/s,
   );
 });
 

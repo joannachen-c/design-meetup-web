@@ -5,15 +5,21 @@ import { Input } from "./Input";
 import { Primary } from "./Primary";
 import { Select, type SelectOption } from "./Select";
 
-const CONTACT_EMAIL = "contactdesignmeetup@gmail.com";
+function createSubmissionId() {
+  return crypto.randomUUID();
+}
 
 const interestOptions = [
   {
     value: "sponsor",
-    label: "sponsoring an event",
-    subject: "Sponsoring an event",
+    label: "partnering on an event",
+    subject: "Partnering on an event",
   },
-  { value: "panelist", label: "being a panelist", subject: "Being a panelist" },
+  {
+    value: "panelist",
+    label: "speaking at an event",
+    subject: "Speaking at an event",
+  },
   {
     value: "judge",
     label: "judging a makeathon",
@@ -40,23 +46,43 @@ export function PartnerContactForm() {
   const [interest, setInterest] = useState(interestOptions[0].value);
   const [city, setCity] = useState(cityOptions[0].value);
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [company, setCompany] = useState("");
+  const [submissionId, setSubmissionId] = useState(createSubmissionId);
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle",
+  );
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const resetStatus = () => {
+    setStatus("idle");
+    setSubmissionId(createSubmissionId());
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const selectedInterest =
-      interestOptions.find((option) => option.value === interest) ??
-      interestOptions[0];
-    const selectedCity =
-      cityOptions.find((option) => option.value === city) ?? cityOptions[0];
-    const subject = `Design Meetup — ${selectedInterest.subject}`;
-    const fullName = `${firstName} ${lastName}`.trim();
-    const body = `Hi Design Meetup,\n\nMy name is ${fullName}.\nI'm interested in ${selectedInterest.label} in ${selectedCity.label}.\n\nReach me at ${email}.`;
 
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-      subject,
-    )}&body=${encodeURIComponent(body)}`;
-    setSent(true);
+    if (status === "sending") return;
+
+    setStatus("sending");
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          interest,
+          city,
+          email,
+          company,
+          submissionId,
+        }),
+      });
+
+      setStatus(response.ok ? "sent" : "error");
+    } catch {
+      setStatus("error");
+    }
   };
 
   return (
@@ -79,7 +105,7 @@ export function PartnerContactForm() {
           value={firstName}
           onChange={(event) => {
             setFirstName(event.target.value);
-            setSent(false);
+            resetStatus();
           }}
         />
         <label className="sr-only" htmlFor={`${fieldId}-last-name`}>
@@ -95,7 +121,7 @@ export function PartnerContactForm() {
           value={lastName}
           onChange={(event) => {
             setLastName(event.target.value);
-            setSent(false);
+            resetStatus();
           }}
         />
       </div>
@@ -111,7 +137,7 @@ export function PartnerContactForm() {
           value={interest}
           onValueChange={(nextInterest) => {
             setInterest(nextInterest);
-            setSent(false);
+            resetStatus();
           }}
         />
         <span>in</span>
@@ -126,7 +152,7 @@ export function PartnerContactForm() {
           value={city}
           onValueChange={(nextCity) => {
             setCity(nextCity);
-            setSent(false);
+            resetStatus();
           }}
         />
       </div>
@@ -136,7 +162,7 @@ export function PartnerContactForm() {
           Email address
         </label>
         <Input
-          className="min-w-[12rem] grow basis-[12rem]"
+          className="min-w-[12rem] grow basis-[12rem] max-[640px]:min-w-0 max-[640px]:basis-full"
           id={`${fieldId}-email`}
           name="email"
           type="email"
@@ -146,10 +172,32 @@ export function PartnerContactForm() {
           value={email}
           onChange={(event) => {
             setEmail(event.target.value);
-            setSent(false);
+            resetStatus();
           }}
         />
-        <Primary type="submit">Send</Primary>
+        <label className="sr-only" htmlFor={`${fieldId}-company`}>
+          Company
+        </label>
+        <input
+          className="hidden"
+          id={`${fieldId}-company`}
+          name="company"
+          tabIndex={-1}
+          autoComplete="off"
+          value={company}
+          onChange={(event) => {
+            setCompany(event.target.value);
+            resetStatus();
+          }}
+        />
+        <Primary
+          className="max-[640px]:w-full max-[640px]:justify-center"
+          type="submit"
+          disabled={status === "sending"}
+          loading={status === "sending"}
+        >
+          {status === "sending" ? "Sending..." : "Send"}
+        </Primary>
       </div>
       {/* w-0 keeps the confirmation out of the form's fit-content width so the
           rows above keep a shared right edge. */}
@@ -158,9 +206,11 @@ export function PartnerContactForm() {
         className="m-0 w-0 min-w-full text-pretty text-base text-muted empty:hidden"
         role="status"
       >
-        {sent
-          ? "Thanks — an email draft is ready in your mail app. Send it and we’ll reply soon."
-          : ""}
+        {status === "sent"
+          ? "Thanks — we received your note and emailed you a copy."
+          : status === "error"
+            ? "We couldn’t send that. Please try again."
+            : ""}
       </p>
     </form>
   );

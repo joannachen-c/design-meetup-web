@@ -19,7 +19,7 @@ const solidShapeProps = (filled: boolean) =>
 function CarouselViewIcon({ filled }: { filled: boolean }) {
   return (
     <svg
-      className="size-4"
+      className="size-[18px]"
       viewBox="0 0 16 16"
       fill="none"
       stroke="currentColor"
@@ -45,7 +45,7 @@ function GridViewIcon({ filled }: { filled: boolean }) {
 
   return (
     <svg
-      className="size-4"
+      className="size-[18px]"
       viewBox="0 0 16 16"
       fill="none"
       stroke="currentColor"

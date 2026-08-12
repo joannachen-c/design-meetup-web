@@ -566,8 +566,12 @@ h1 span {
   top: calc(100% + 10px);
 }
 
+/* Same offset as the rail's, plus the room the rail's focused cover opens under
+   itself by lifting 6px and painting 1.03x past its box. This cover sits flat,
+   so it carries that difference itself and the label lands the same distance
+   from the artwork's edge in both views. */
 .detail-cover-slot > .cover-luma-hint {
-  bottom: 0;
+  top: calc(100% + 13px);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -760,8 +764,13 @@ h1 span {
   order: 4;
 }
 
+/* The date sits above the heading's caps, which carry their own leading, while
+   the place sits under a baseline with descenders hanging into the gap below it.
+   An even gap therefore reads as more air over the title than under it, so the
+   eyebrow gives a few pixels back. */
 .events-layout[data-view="grid"] .detail-date {
   order: 1;
+  margin-bottom: -4px;
 }
 
 .events-layout[data-view="grid"] .detail-title > h2 {
@@ -812,7 +821,10 @@ h1 span {
   position: relative;
   width: min(100%, calc(var(--event-cover-size) * 1.03));
   margin-inline: auto;
-  padding-bottom: 30px;
+  /* Margin rather than padding: the label is offset from the slot's own height,
+     so padding here would measure it from the foot of the reserved line instead
+     of from the cover's bottom edge. */
+  margin-bottom: 26px;
 }
 
 .detail-cover {
@@ -1251,46 +1263,50 @@ h1 span {
 }
 
 .partner-logo--figma {
-  width: max(36px, 35.64%);
-  height: max(54px, 53.47%);
+  width: max(34px, 33.66%);
+  height: max(51px, 50.5%);
 }
 
 .partner-logo--cursor {
-  width: max(66px, 65.35%);
-  height: max(90px, 89.11%);
-}
-
-.partner-logo--notion,
-.partner-logo--rainbow {
   width: max(62px, 61.39%);
   height: max(62px, 61.39%);
 }
 
+.partner-logo--notion {
+  width: max(51px, 50.5%);
+  height: max(51px, 50.5%);
+}
+
 .partner-logo--ramp {
-  width: max(129px, 127.72%);
-  height: max(73px, 72.28%);
+  width: max(94px, 93.07%);
+  height: max(54px, 53.47%);
   transform: translateX(-2px);
 }
 
 .partner-logo--apple {
-  width: max(54px, 53.47%);
-  height: max(54px, 53.47%);
+  width: max(47px, 46.53%);
+  height: max(47px, 46.53%);
 }
 
 .partner-logo--tiktok {
-  width: max(72px, 71.29%);
-  height: max(72px, 71.29%);
+  width: max(66px, 65.35%);
+  height: max(66px, 65.35%);
 }
 
 .partner-logo--framer {
-  width: max(59px, 58.42%);
-  height: max(59px, 58.42%);
-  transform: translateY(5px);
+  width: max(54px, 53.47%);
+  height: max(54px, 53.47%);
+  transform: translateY(3px);
 }
 
 .partner-logo--google {
-  width: max(54px, 53.47%);
-  height: max(54px, 53.47%);
+  width: max(47px, 46.53%);
+  height: max(47px, 46.53%);
+}
+
+.partner-logo--rainbow {
+  width: max(58px, 57.43%);
+  height: max(52px, 51.49%);
 }
 
 footer {
@@ -1377,8 +1393,11 @@ footer {
     grid-column: 1;
   }
 
+  /* A quarter of the screen leaves a cover and a half to each side of the
+     focused one, which is what keeps the rail reading as a shelf on a phone
+     rather than as one cover with slivers behind it. */
   .events-layout {
-    --event-cover-size: min(52vw, 220px);
+    --event-cover-size: min(25vw, 130px);
   }
 
   /* Mobile stays on the carousel; the grid toggle only belongs on wider screens. */
@@ -1386,12 +1405,13 @@ footer {
     display: none;
   }
 
-  /* A phone only ever shows the focused cover and a sliver of its neighbours, so
-     the shelf stays much looser here than on desktop. The pitch tightens just
-     enough to absorb the wider part, which would otherwise push those slivers
-     off the edge of the screen. */
+  /* Looser than desktop, and it has to be: the part that carries the shelf clear
+     of the focused cover is the same 0.68 of a cover on a phone, where a cover
+     is a far bigger share of the screen. Pitching half a cover per slot spends
+     what a viewport half has left on one whole cover and half of the next, so
+     the cover after that never starts. */
   .gallery li + li {
-    margin-left: calc(var(--event-cover-size) * -0.35);
+    margin-left: calc(var(--event-cover-size) * -0.5);
   }
 
   .detail-grid {
@@ -1408,10 +1428,41 @@ footer {
     margin-left: 0;
   }
 
+  /* On a phone the date reads as the title's eyebrow, the same way it does in
+     grid view, so the fact line unwraps into the title's own flow and the stack
+     runs date, title, place. */
   .detail-title {
     grid-column: auto;
     grid-row: auto;
     order: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .detail-facts,
+  .detail-fact-line {
+    display: contents;
+  }
+
+  /* Keeps anything else the facts carry, sponsor pills included, below the
+     stack rather than ahead of the date. */
+  .detail-facts > * {
+    order: 4;
+  }
+
+  /* Same optical trim as grid view, scaled to this stack's tighter gap. */
+  .detail-date {
+    order: 1;
+    margin-bottom: -3px;
+  }
+
+  .detail-title > h2 {
+    order: 2;
+  }
+
+  .detail-place {
+    order: 3;
   }
 
   .detail-meta {
@@ -1539,8 +1590,10 @@ footer {
     gap: 7px;
   }
 
+  /* Floors the rail against a slow-loading cover rather than reserving room the
+     smaller phone covers never fill. */
   .gallery {
-    min-height: 390px;
+    min-height: 240px;
   }
 
   .event-detail {

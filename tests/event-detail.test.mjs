@@ -101,10 +101,12 @@ test("the hero gives the headline room to breathe under the logo", () => {
   assert.match(app, /px-\[clamp\(20px,6vw,96px\)\]/);
   assert.match(
     app,
-    /className="intro [^"]*pt-\[clamp\(18px,2\.5vw,40px\)\][^"]*pb-\[clamp\(14px,2vw,32px\)\]/,
+    /className="intro [^"]*pt-\[clamp\(18px,2\.5vw,40px\)\][^"]*pb-\[clamp\(12px,1\.6vw,24px\)\]/,
   );
   assert.match(app, /max-\[820px\]:pt-5/);
+  assert.match(app, /max-\[820px\]:pb-3/);
   assert.match(app, /max-\[520px\]:pt-4/);
+  assert.match(app, /max-\[520px\]:pb-2\.5/);
   assert.match(css, /\.intro\s*\{[^}]*row-gap:\s*clamp\(28px,\s*4vw,\s*56px\);/s);
 });
 
@@ -662,7 +664,7 @@ test("grid view pairs the covers and the detail into a master/detail split", () 
   // Detail stacks into one column instead of its own 12-column split.
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\] \.detail-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);[^}]*row-gap:\s*clamp\(14px,\s*1\.5vw,\s*22px\);/s,
+    /\.events-layout\[data-view="grid"\] \.detail-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);[^}]*row-gap:\s*clamp\(28px,\s*2\.8vw,\s*44px\);/s,
   );
   assert.match(
     css,
@@ -802,14 +804,15 @@ test("event metadata reads as three rows: facts, sponsor pills, then the link", 
   assert.ok(facts, "expected a detail-facts block");
 
   // Row one is plain text, not pills. Location leads, then date — same
-  // colours as the list rows, separated by a gap rather than a dot.
+  // colours as the list rows, separated by a gap rather than a dot. Classes
+  // let grid view reorder them into date / title / city.
   assert.match(
     facts,
-    /<p className="m-0 flex flex-wrap items-baseline gap-x-4 text-base leading-6">\s*\{selectedEvent\.location \? \(\s*<span className="text-muted">\s*<span className="sr-only">Location: /,
+    /<p className="detail-fact-line m-0 flex flex-wrap items-baseline gap-x-4 text-base leading-6">\s*\{selectedEvent\.location \? \(\s*<span className="detail-place text-muted">\s*<span className="sr-only">Location: /,
   );
   assert.match(
     facts,
-    /<span className="text-subtle">\s*<span className="sr-only">Date: <\/span>\s*\{selectedEvent\.date_label\}/,
+    /<span className="detail-date text-subtle">\s*<span className="sr-only">Date: <\/span>\s*\{selectedEvent\.date_label\}/,
   );
   assert.doesNotMatch(facts, /·/);
   assert.match(
@@ -831,6 +834,37 @@ test("event metadata reads as three rows: facts, sponsor pills, then the link", 
   assert.match(
     css,
     /\.detail-facts\s*\{[^}]*display:\s*grid;[^}]*justify-items:\s*start;/s,
+  );
+});
+
+test("grid view stacks detail as date, title, then city", () => {
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] \.detail-title\s*\{[^}]*flex-direction:\s*column;/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] \.detail-facts,\s*\.events-layout\[data-view="grid"\] \.detail-fact-line\s*\{\s*display:\s*contents;/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] \.detail-date\s*\{\s*order:\s*1;/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] \.detail-title > h2\s*\{\s*order:\s*2;/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] \.detail-place\s*\{\s*order:\s*3;/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] \.detail-facts > \*\s*\{\s*order:\s*4;/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] \.detail-chips\s*\{\s*display:\s*none;/s,
   );
 });
 

@@ -846,6 +846,27 @@ test("event metadata reads as two rows: facts, then sponsor pills", () => {
 
 test("View on Luma sits under the cover rather than in the facts", () => {
   // The cover itself opens Luma; the hint is a caption under it, not a link.
+  assert.match(
+    app,
+    /aria-label=\{`Open \$\{selectedEvent\.title\} on Luma`\}/,
+  );
+  assert.match(app, /onClick=\{\(\) => openLuma\(detailLumaUrl\)\}/);
+  assert.match(
+    app,
+    /className="cover-luma-hint text-base text-muted"\s*aria-hidden\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>/,
+  );
+  assert.doesNotMatch(
+    app,
+    /<Link[^>]*href=\{selectedEvent\.luma_url\}[^>]*>[\s\S]*View on Luma/,
+  );
+  assert.doesNotMatch(app, /<Chip[^>]*href=\{selectedEvent\.luma_url\}/);
+  assert.doesNotMatch(
+    app,
+    /<Primary[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*>[\s\S]*View on Luma/,
+  );
+  assert.doesNotMatch(app, /detail-facts[\s\S]*View on Luma/);
+});
+
 test("grid view stacks detail as date, title, then city", () => {
   assert.match(
     css,

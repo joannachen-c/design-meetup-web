@@ -121,6 +121,8 @@ const ABOUT_VIDEO_ARRIVED_SHADOW = aboutVideoShadowAt(1);
 // starts from and the end a reader scrolls towards.
 const DEFAULT_FOCUS_SLOT = 5;
 const SELECTED_TITLE_ID = "selected-event-title";
+const DETAIL_COVER_FRAME =
+  "detail-cover aspect-square overflow-hidden rounded-lg bg-surface-muted shadow-[0_12px_28px_rgba(0,0,0,0.18)]";
 
 function cardTransform({
   distance,
@@ -498,6 +500,21 @@ export default function HomePage({
   const summaryParagraphs =
     selectedEvent?.summary?.split(/\n{2,}/).filter(Boolean) ?? [];
   const summaryHtml = selectedEvent?.summary_html?.trim() ?? "";
+  const detailLumaUrl = selectedEvent?.luma_url ?? null;
+  // The frame paints the same whether or not it is the button that opens the
+  // event, so both spellings of the cover share one set of classes.
+  const detailCoverImage = selectedEvent ? (
+    <img
+      className="block size-full select-none border-0 object-cover outline-none"
+      // Matches .detail-cover: the cover size times the 1.03 the focused card
+      // is scaled by.
+      {...sizedImage(selectedEvent.image_url, { width: 280, quality: 76 })}
+      alt=""
+      draggable="false"
+      decoding="async"
+      onError={(event) => recoverImage(event.currentTarget)}
+    />
+  ) : null;
   // Shared seed placeholders live under /placeholders/ in storage. Hide that
   // default set until an event has its own photos.
   const selectedPhotoSources = useMemo(
@@ -671,6 +688,10 @@ export default function HomePage({
     [events.length],
   );
 
+  const openLuma = useCallback((lumaUrl: string) => {
+    window.open(lumaUrl, "_blank", "noopener,noreferrer");
+  }, []);
+
   // A cover out on the wings is a target to bring in; the centred one has
   // already been read, so hitting it again leaves for the event's Luma page.
   const activateEvent = useCallback(
@@ -679,12 +700,12 @@ export default function HomePage({
       pressedFromIndex.current = null;
       const lumaUrl = events[index]?.luma_url;
       if (centered === index && lumaUrl) {
-        window.open(lumaUrl, "_blank", "noopener,noreferrer");
+        openLuma(lumaUrl);
         return;
       }
       selectEvent(index);
     },
-    [events, selectEvent, selectedIndex],
+    [events, openLuma, selectEvent, selectedIndex],
   );
 
   const changeView = useCallback((nextView: GalleryView) => {
@@ -1077,7 +1098,9 @@ export default function HomePage({
               >
                 <div className="gallery-viewport">
                   <ul
-                    className="gallery px-[max(8vw,calc((100vw-1440px)/2))] pt-[clamp(36px,5vw,72px)] pb-[clamp(40px,4vw,56px)] max-[820px]:px-[18vw]"
+                    // The rail's vertical padding is tied to the underhang it
+                    // lends the covers, so it is set in CSS beside it.
+                    className="gallery px-[max(8vw,calc((100vw-1440px)/2))] max-[820px]:px-[18vw]"
                     ref={setGalleryRail}
                     aria-label="Choose a past event"
                     onPointerLeave={(event) =>
@@ -1209,6 +1232,21 @@ export default function HomePage({
                             />
                             <span className="event-card-sheen" aria-hidden />
                           </motion.button>
+                          {/* Sits outside the cover so it keeps its own
+                              upright box while the cover is scaled and
+                              sheared, and so the rail's hover rule can reach
+                              it as the cover's next sibling. The cover's own
+                              label already carries the destination for
+                              readers who never see this one. */}
+                          {selected && item.luma_url ? (
+                            <span
+                              className="cover-luma-hint text-base text-muted"
+                              aria-hidden
+                            >
+                              View on Luma
+                              <ArrowUpRightIcon />
+                            </span>
+                          ) : null}
                         </li>
                       );
                     })}
@@ -1313,20 +1351,31 @@ export default function HomePage({
               }}
             >
               {view === "grid" ? (
-                <div className="detail-cover aspect-square overflow-hidden rounded-lg bg-surface-muted shadow-[0_12px_28px_rgba(0,0,0,0.18)]">
-                  <img
-                    className="block size-full select-none border-0 object-cover outline-none"
-                    // Matches .detail-cover: the cover size times the 1.03 the
-                    // focused card is scaled by.
-                    {...sizedImage(selectedEvent.image_url, {
-                      width: 280,
-                      quality: 76,
-                    })}
-                    alt=""
-                    draggable="false"
-                    decoding="async"
-                    onError={(event) => recoverImage(event.currentTarget)}
-                  />
+                <div className="detail-cover-slot">
+                  {/* The cover reads the same as the focused one in the rail, so
+                      it takes the same click: an event with a Luma page hangs it
+                      on the frame itself rather than on a link elsewhere. */}
+                  {detailLumaUrl ? (
+                    <button
+                      className={`${DETAIL_COVER_FRAME} cursor-pointer appearance-none border-0 p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
+                      type="button"
+                      aria-label={`Open ${selectedEvent.title} on Luma`}
+                      onClick={() => openLuma(detailLumaUrl)}
+                    >
+                      {detailCoverImage}
+                    </button>
+                  ) : (
+                    <div className={DETAIL_COVER_FRAME}>{detailCoverImage}</div>
+                  )}
+                  {detailLumaUrl ? (
+                    <span
+                      className="cover-luma-hint text-base text-muted"
+                      aria-hidden
+                    >
+                      View on Luma
+                      <ArrowUpRightIcon />
+                    </span>
+                  ) : null}
                 </div>
               ) : null}
               <div className="detail-title">
@@ -1396,17 +1445,6 @@ export default function HomePage({
                       </li>
                     )}
                   </ul>
-                  {selectedEvent.luma_url ? (
-                    <Link
-                      className="inline-flex items-center gap-1.5"
-                      href={selectedEvent.luma_url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View on Luma
-                      <ArrowUpRightIcon />
-                    </Link>
-                  ) : null}
                 </div>
               </div>
               <div className="detail-meta">

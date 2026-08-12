@@ -290,6 +290,10 @@ h1 span {
   /* Add one quarter of the surrounding row gap without loosening the title
      and summary relationship above the photo rail. */
   --detail-extra-gap: clamp(8px, 0.75vw, 13px);
+  /* How far the covers are allowed to paint below the rail's content box: room
+     for the focused cover's shadow and for the Luma label that surfaces under
+     it. The ticker takes the same amount back, so neither shows up as space. */
+  --rail-underhang: 28px;
 }
 
 .gallery-viewport {
@@ -331,14 +335,27 @@ h1 span {
 .gallery-ticker {
   display: flex;
   justify-content: center;
+  /* Takes back the room the rail borrowed for its underhang, so the covers sit
+     the same distance from the ticks as they did before the rail made space to
+     paint outside itself. */
+  margin-top: calc(0px - var(--rail-underhang));
 }
 
+/* A horizontal scrollport has to clip vertically — overflow-y cannot stay
+   visible next to a scrolling axis — so the focused cover's shadow and the Luma
+   label under it would both be shaved off at the rail's edge. Clipping happens
+   at the padding edge, so the rail carries the room they need as its own
+   padding and the ticker pulls the layout back by the same amount. Only the
+   bottom needs it: the covers lift towards the light, so the shadow the rail
+   would cut is the one below them. */
 .gallery {
   display: flex;
   align-items: center;
   gap: 0;
   margin: 0;
   min-height: 0;
+  padding-top: clamp(36px, 5vw, 72px);
+  padding-bottom: calc(clamp(40px, 4vw, 56px) + var(--rail-underhang));
   overflow-x: auto;
   overflow-y: hidden;
   list-style: none;
@@ -521,6 +538,61 @@ h1 span {
    takes the light at full strength. */
 .event-card[aria-pressed="true"] .event-card-sheen {
   opacity: 1;
+}
+
+/* The cover itself is what opens the event on Luma, so the label belongs under
+   the cover rather than down in the facts. It is out of flow in both views: in
+   the rail it paints into the gap that already sits between the covers and the
+   ticks, so surfacing it never moves the ticker, and in grid view the slot
+   holds its line open whether or not it is showing. */
+.cover-luma-hint {
+  position: absolute;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  white-space: nowrap;
+  pointer-events: none;
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+/* Clears the focused cover's painted edge, which stands 1.03x past its layout
+   box, rather than the box itself. */
+.gallery li > .cover-luma-hint {
+  top: calc(100% + 10px);
+}
+
+.detail-cover-slot > .cover-luma-hint {
+  bottom: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .event-card[aria-pressed="true"]:hover + .cover-luma-hint,
+  .detail-cover:hover + .cover-luma-hint {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Keyboard reaches a cover without a pointer, so focus surfaces the label the
+   same way hover does. */
+.event-card[aria-pressed="true"]:focus-visible + .cover-luma-hint,
+.detail-cover:focus-visible + .cover-luma-hint {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* Touch has no hover to reveal it with, so the label stands as the focused
+   cover's caption instead of hiding the only sign the cover leads anywhere. */
+@media (hover: none) {
+  .cover-luma-hint {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 /* The video's edge is revealed by the shell as it reaches full width, so a
@@ -733,11 +805,20 @@ h1 span {
 
 /* Grid view has no rail to show the cover, so the detail carries it at the size
    the focused card paints in the carousel: its layout box times the 1.03 the
-   card is scaled by. */
-.detail-cover {
+   card is scaled by. The slot holds the cover and keeps a line open under it for
+   the Luma label, which costs a little white space while the label is hidden but
+   never moves the title stack when it arrives. */
+.detail-cover-slot {
   position: relative;
   width: min(100%, calc(var(--event-cover-size) * 1.03));
   margin-inline: auto;
+  padding-bottom: 30px;
+}
+
+.detail-cover {
+  position: relative;
+  display: block;
+  width: 100%;
 }
 
 .detail-title {
@@ -1036,8 +1117,8 @@ h1 span {
   display: none;
 }
 
-/* Three stacked rows: plain date and place, then sponsor pills, then the
-   outbound link. */
+/* Two stacked rows: plain date and place, then sponsor pills. The Luma link
+   lives under the cover it belongs to. */
 .detail-facts {
   display: grid;
   justify-items: start;
@@ -1483,7 +1564,8 @@ footer {
 
   .view-toggle-thumb,
   .event-grid-cover,
-  .recent-event-thumb {
+  .recent-event-thumb,
+  .cover-luma-hint {
     transition: none;
   }
 

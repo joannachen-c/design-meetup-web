@@ -1645,10 +1645,10 @@ export default function HomePage({
             </h2>
             <div className="about-lede grid gap-5 text-base leading-[1.6] text-body">
               <p className="m-0 text-pretty">
-                We are a community of the world’s most ambitious creatives in NYC, SF, & LA.
+                In December 2025 Design Meetup was just an idea. A month later, we hosted our first event with 50 designers. And now, we’ve brought together 10,000+ people across 30 events in NY, LA, and the Bay Area.
               </p>
               <p className="m-0 text-pretty">
-                We bring together designers who aspire to take their craft seriously while forming meaningful connections.
+                Building a community is a design challenge itself, and one of the most important ones to take on.
               </p>
             </div>
           </div>

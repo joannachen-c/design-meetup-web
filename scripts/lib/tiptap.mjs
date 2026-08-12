@@ -190,36 +190,58 @@ const LIABILITY_HEADING =
 const LIABILITY_BODY =
   /please be aware that this event will be photographed|reserves the right to use these images|by attending,?\s+you (give your )?consent|all .+ events are inclusive and welcoming|discrimination of any kind will not be tolerated|governed by .+ code of conduct/i;
 
+const PARTNER_INTRO_HEADING =
+  /^what is (figma for edu|design meetup)\??$/i;
+
+const PARTNER_INTRO_BODY =
+  /figma for education .+empowers educators and students|empowers educators and students to make the most out of figma|qualifying educators and students can access figma.?s professional tools for free|your role as a product, brand, and visual designer is changing with next-gen tools|continuously upskill while making meaningful friendships|we are your space to learn and define where design is heading/i;
+
+function stripInvisibleChars(text) {
+  return String(text ?? "").replace(/[\u200B\u200C\u200D\uFEFF]/g, "");
+}
+
 export function isLiabilityText(text) {
-  const normalized = String(text ?? "").trim();
+  const normalized = stripInvisibleChars(text).trim();
   if (!normalized) return false;
   if (LIABILITY_HEADING.test(firstMeaningfulLine(normalized))) return true;
   return LIABILITY_BODY.test(normalized);
 }
 
+export function isPartnerIntroText(text) {
+  const normalized = stripInvisibleChars(text).trim();
+  if (!normalized) return false;
+  if (PARTNER_INTRO_HEADING.test(firstMeaningfulLine(normalized))) return true;
+  return PARTNER_INTRO_BODY.test(normalized);
+}
+
+function isBoilerplateText(text) {
+  return isLiabilityText(text) || isPartnerIntroText(text);
+}
+
 function firstMeaningfulLine(text) {
-  return String(text)
+  return stripInvisibleChars(text)
     .split(/\n+/)
     .map((line) => line.trim())
     .find(Boolean) ?? "";
 }
 
-function isLiabilityNode(node) {
+function isBoilerplateNode(node) {
   if (!node || typeof node !== "object") return false;
   if (node.type === "horizontal_rule") return false;
-  return isLiabilityText(renderPlainBlock(node));
+  return isBoilerplateText(renderPlainBlock(node));
 }
 
 /**
- * Drop host liability / policy boilerplate from a Luma TipTap description
- * (photography consent, code of conduct, inclusivity legal copy, etc.).
+ * Drop host liability / policy boilerplate and recurring partner intro copy
+ * from a Luma TipTap description (photography consent, code of conduct,
+ * "What is Figma for Edu?", "What is Design Meetup?", etc.).
  */
 export function stripLiabilityContent(doc) {
   if (!doc || typeof doc !== "object") return doc;
   const content = Array.isArray(doc.content) ? doc.content : [];
-  const kept = content.filter((node) => !isLiabilityNode(node));
+  const kept = content.filter((node) => !isBoilerplateNode(node));
 
-  // Drop horizontal rules that only separated stripped liability blocks.
+  // Drop horizontal rules that only separated stripped boilerplate blocks.
   const withoutOrphanRules = [];
   for (let index = 0; index < kept.length; index += 1) {
     const node = kept[index];
@@ -243,7 +265,7 @@ export function stripLiabilityFromPlainText(text) {
   return text
     .split(/\n{2,}/)
     .map((block) => block.trim())
-    .filter((block) => block && !isLiabilityText(block))
+    .filter((block) => block && !isBoilerplateText(block))
     .join("\n\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -265,6 +287,16 @@ export function stripLiabilityFromHtml(html) {
     // Standalone consent paragraphs.
     .replace(
       /<p>(?:(?!<\/p>)[\s\S])*?\b(?:by attending,?\s+you (?:give your )?consent|please be aware that this event will be photographed|reserves the right to use these images|discrimination of any kind will not be tolerated)(?:(?!<\/p>)[\s\S])*?<\/p>/gi,
+      "",
+    )
+    // Figma Edu / Design Meetup partner intro headings + following body.
+    .replace(
+      /(?:<hr\s*\/?>\s*)*<(?:h[1-4]|p)>(?:(?!<\/(?:h[1-4]|p)>)[\s\S])*?What is (?:Figma for Edu|Design Meetup)\??(?:(?!<\/(?:h[1-4]|p)>)[\s\S])*?<\/(?:h[1-4]|p)>\s*(?:<(?:h[1-4]|p)>(?:(?!<\/(?:h[1-4]|p)>)[\s\S])*?(?:empowers educators and students|continuously upskill while making meaningful friendships|your role as a product, brand, and visual designer)(?:(?!<\/(?:h[1-4]|p)>)[\s\S])*?<\/(?:h[1-4]|p)>)?/gi,
+      "",
+    )
+    // Standalone partner intro body paragraphs (if heading already removed).
+    .replace(
+      /(?:<hr\s*\/?>\s*)*<p>(?:(?!<\/p>)[\s\S])*?(?:empowers educators and students to make the most out of Figma|qualifying educators and students can access Figma.?s professional tools for free|continuously upskill while making meaningful friendships|we are your space to learn and define where design is heading)(?:(?!<\/p>)[\s\S])*?<\/p>/gi,
       "",
     )
     .replace(/(?:<hr\s*\/?>\s*)+$/gi, "")

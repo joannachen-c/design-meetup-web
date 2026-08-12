@@ -171,6 +171,74 @@ test("Luma description parsing strips photography, safety, and consent liability
   assert.doesNotMatch(summaryHtml, /<hr\s*\/>\s*$/);
 });
 
+test("Luma description parsing strips Figma Edu and Design Meetup partner intros", () => {
+  const description = {
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Join us for an afternoon of making." }],
+      },
+      { type: "horizontal_rule" },
+      {
+        type: "heading",
+        attrs: { level: 2 },
+        content: [
+          {
+            type: "text",
+            text: "\u200bWhat is Figma for Edu?",
+            marks: [{ type: "bold" }],
+          },
+        ],
+      },
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "Figma for Education is the team at Figma that empowers educators and students to make the most out of Figma’s tools. Through the Figma for Education program, qualifying educators and students can access Figma’s professional tools for free.",
+          },
+        ],
+      },
+      { type: "horizontal_rule" },
+      {
+        type: "heading",
+        attrs: { level: 2 },
+        content: [
+          {
+            type: "text",
+            text: "\u200bWhat is Design Meetup?",
+            marks: [{ type: "bold" }],
+          },
+        ],
+      },
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "Your role as a product, brand, and visual designer is changing with next-gen tools. Design Meetup is a place for designers who want to continuously upskill while making meaningful friendships, bringing together the world’s most ambitious designers.",
+          },
+        ],
+      },
+    ],
+  };
+
+  const summary = tipTapToPlainText(description);
+  const summaryHtml = tipTapToHtml(description);
+
+  assert.match(summary, /Join us for an afternoon of making/);
+  assert.doesNotMatch(
+    summary,
+    /What is Figma for Edu|What is Design Meetup|empowers educators|continuously upskill/i,
+  );
+  assert.doesNotMatch(
+    summaryHtml,
+    /What is Figma for Edu|What is Design Meetup|empowers educators|continuously upskill/i,
+  );
+  assert.doesNotMatch(summaryHtml, /<hr\s*\/>\s*$/);
+});
+
 test("summary refresh updates plain and html summary fields in Supabase", () => {
   assert.match(migration, /add column if not exists summary_html text/);
   assert.match(seed, /\.from\("events"\)\s*\.update\(\{/);
@@ -188,11 +256,11 @@ test("all local event summaries contain retained line breaks and html", () => {
     assert.doesNotMatch(event.summary, /MadiJiabao|open6:00/);
     assert.doesNotMatch(
       event.summary,
-      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind/i,
+      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships/i,
     );
     assert.doesNotMatch(
       event.summary_html,
-      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind/i,
+      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships/i,
     );
   }
 });

@@ -1259,54 +1259,74 @@ h1 span {
 
 .partner-logo {
   display: block;
+  width: max(var(--partner-logo-min-width), var(--partner-logo-width));
+  height: max(var(--partner-logo-min-height), var(--partner-logo-height));
   object-fit: contain;
 }
 
 .partner-logo--figma {
-  width: max(34px, 33.66%);
-  height: max(51px, 50.5%);
+  --partner-logo-min-width: 31px;
+  --partner-logo-min-height: 46px;
+  --partner-logo-width: 30.69%;
+  --partner-logo-height: 45.54%;
 }
 
 .partner-logo--cursor {
-  width: max(62px, 61.39%);
-  height: max(62px, 61.39%);
+  --partner-logo-min-width: 62px;
+  --partner-logo-min-height: 62px;
+  --partner-logo-width: 61.39%;
+  --partner-logo-height: 61.39%;
 }
 
 .partner-logo--notion {
-  width: max(51px, 50.5%);
-  height: max(51px, 50.5%);
+  --partner-logo-min-width: 45px;
+  --partner-logo-min-height: 45px;
+  --partner-logo-width: 44.55%;
+  --partner-logo-height: 44.55%;
 }
 
 .partner-logo--ramp {
-  width: max(94px, 93.07%);
-  height: max(54px, 53.47%);
+  --partner-logo-min-width: 94px;
+  --partner-logo-min-height: 54px;
+  --partner-logo-width: 93.07%;
+  --partner-logo-height: 53.47%;
   transform: translateX(-2px);
 }
 
 .partner-logo--apple {
-  width: max(47px, 46.53%);
-  height: max(47px, 46.53%);
+  --partner-logo-min-width: 47px;
+  --partner-logo-min-height: 47px;
+  --partner-logo-width: 46.53%;
+  --partner-logo-height: 46.53%;
 }
 
 .partner-logo--tiktok {
-  width: max(66px, 65.35%);
-  height: max(66px, 65.35%);
+  --partner-logo-min-width: 87px;
+  --partner-logo-min-height: 49px;
+  --partner-logo-width: 86.14%;
+  --partner-logo-height: 48.51%;
 }
 
 .partner-logo--framer {
-  width: max(54px, 53.47%);
-  height: max(54px, 53.47%);
-  transform: translateY(3px);
+  --partner-logo-min-width: 48px;
+  --partner-logo-min-height: 48px;
+  --partner-logo-width: 47.52%;
+  --partner-logo-height: 47.52%;
+  transform: translateY(2px);
 }
 
 .partner-logo--google {
-  width: max(47px, 46.53%);
-  height: max(47px, 46.53%);
+  --partner-logo-min-width: 43px;
+  --partner-logo-min-height: 43px;
+  --partner-logo-width: 42.57%;
+  --partner-logo-height: 42.57%;
 }
 
 .partner-logo--rainbow {
-  width: max(58px, 57.43%);
-  height: max(52px, 51.49%);
+  --partner-logo-min-width: 51px;
+  --partner-logo-min-height: 45px;
+  --partner-logo-width: 50.5%;
+  --partner-logo-height: 44.55%;
 }
 
 footer {

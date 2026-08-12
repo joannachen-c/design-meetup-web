@@ -18,6 +18,18 @@ const form = await readFile(
   new URL("../src/components/PartnerContactForm.tsx", import.meta.url),
   "utf8",
 );
+const contactRoute = await readFile(
+  new URL("../app/api/contact/route.ts", import.meta.url),
+  "utf8",
+);
+const contactEmail = await readFile(
+  new URL("../src/lib/contact-email.ts", import.meta.url),
+  "utf8",
+);
+const envExample = await readFile(
+  new URL("../.env.example", import.meta.url),
+  "utf8",
+);
 const css = await readFile(
   new URL("../app/globals.css", import.meta.url),
   "utf8",
@@ -164,8 +176,8 @@ test("dropdown keeps visible focus and disabled affordances", () => {
 
 test("sentence form offers the requested interests and cities", () => {
   for (const [value, label] of [
-    ["sponsor", "sponsoring an event"],
-    ["panelist", "being a panelist"],
+    ["sponsor", "partnering on an event"],
+    ["panelist", "speaking at an event"],
     ["judge", "judging a makeathon"],
     ["venue", "providing a venue"],
   ]) {
@@ -177,7 +189,7 @@ test("sentence form offers the requested interests and cities", () => {
     );
   }
   assert.doesNotMatch(form, /attending events/);
-  assert.doesNotMatch(form, /sponsor-one|sponsor-series|sponsoring one event|sponsoring an event series/);
+  assert.doesNotMatch(form, /sponsor-one|sponsor-series|sponsoring one event|sponsoring an event series|being a panelist|sponsoring an event/);
   assert.match(
     form,
     /useState\(interestOptions\[0\]\.value\)/,
@@ -201,7 +213,9 @@ test("the name row collects a first and last name for the greeting", () => {
   assert.match(form, /name="last-name"/);
   assert.match(form, /autoComplete="given-name"/);
   assert.match(form, /autoComplete="family-name"/);
-  assert.match(form, /My name is \$\{fullName\}\./);
+  assert.match(contactEmail, /const fullName = `\$\{submission\.firstName\} \$\{submission\.lastName\}`;/);
+  assert.match(contactEmail, /`Name: \$\{fullName\}`/);
+  assert.match(contactEmail, /`Hi \$\{submission\.firstName\},`/);
 });
 
 test("every sentence field is labelled and the email field is validated", () => {
@@ -215,17 +229,62 @@ test("every sentence field is labelled and the email field is validated", () => 
   assert.match(form, /type="email"/);
   assert.match(form, /autoComplete="email"/);
   assert.match(form, /\brequired\b/);
-  assert.match(form, /<Primary type="submit">Send<\/Primary>/);
+  assert.match(form, /<Primary[\s\S]*type="submit"[\s\S]*>\s*\{status === "sending" \? "Sending\.\.\." : "Send"\}\s*<\/Primary>/);
 });
 
-test("submitting hands off to email without reloading the page", () => {
+test("submitting posts the form without leaving the page", () => {
   assert.match(form, /event\.preventDefault\(\);/);
-  assert.match(form, /mailto:\$\{CONTACT_EMAIL\}\?subject=\$\{encodeURIComponent\(/);
-  assert.match(form, /const CONTACT_EMAIL = "contactdesignmeetup@gmail\.com";/);
-  assert.match(form, /setSent\(true\);/);
+  assert.match(form, /await fetch\("\/api\/contact"/);
+  assert.match(form, /method: "POST"/);
+  assert.match(form, /"Content-Type": "application\/json"/);
+  assert.match(form, /firstName,\s*lastName,\s*interest,\s*city,\s*email,\s*company,\s*submissionId,/);
+  assert.doesNotMatch(form, /mailto:|window\.location/);
   assert.match(form, /aria-live="polite"/);
   assert.match(form, /role="status"/);
   assert.match(form, /\bempty:hidden\b/);
+});
+
+test("the form shows sending, success, and failure states in place", () => {
+  assert.match(form, /status === "sending"/);
+  assert.match(form, /disabled=\{status === "sending"\}/);
+  assert.match(form, /loading=\{status === "sending"\}/);
+  assert.match(form, /Sending\.\.\./);
+  assert.match(form, /Thanks — we received your note and emailed you a copy\./);
+  assert.match(form, /We couldn’t send that\. Please try again\./);
+  assert.match(form, /setStatus\(response\.ok \? "sent" : "error"\)/);
+  assert.match(form, /setStatus\("error"\)/);
+  assert.match(form, /const resetStatus = \(\) => \{/);
+  assert.match(form, /setSubmissionId\(createSubmissionId\(\)\)/);
+});
+
+test("contact route validates, ignores honeypots, and sends server mail", () => {
+  assert.match(contactRoute, /export async function POST\(request: Request\)/);
+  assert.match(contactRoute, /const MAX_BODY_BYTES = 4096;/);
+  assert.match(contactRoute, /await request\.text\(\)/);
+  assert.match(contactRoute, /JSON\.parse\(body\)/);
+  assert.match(contactRoute, /company[\s\S]*!== ""[\s\S]*NextResponse\.json\(\{ ok: true \}\)/);
+  assert.match(contactRoute, /validateContactSubmission\(payload\)/);
+  assert.match(contactRoute, /sendContactEmails\(submission\)/);
+  assert.match(contactRoute, /status: 400/);
+  assert.match(contactRoute, /status: result\.status/);
+});
+
+test("server email sends from Gmail to Design Meetup and the user", () => {
+  assert.match(contactEmail, /import \{ siteEmail, siteName \} from "@\/lib\/site"/);
+  assert.match(contactEmail, /const SMTP_HOST = "smtp\.gmail\.com";/);
+  assert.match(contactEmail, /const SMTP_PORT = 465;/);
+  assert.match(contactEmail, /process\.env\.GMAIL_USER/);
+  assert.match(contactEmail, /process\.env\.GMAIL_APP_PASSWORD/);
+  assert.match(contactEmail, /user\.toLowerCase\(\) !== siteEmail/);
+  assert.match(contactEmail, /`From: \$\{siteName\} <\$\{siteEmail\}>`/);
+  assert.match(contactEmail, /to: siteEmail/);
+  assert.match(contactEmail, /replyTo: submission\.email/);
+  assert.match(contactEmail, /to: submission\.email/);
+  assert.match(contactEmail, /replyTo: siteEmail/);
+  assert.match(contactEmail, /AUTH PLAIN/);
+  assert.doesNotMatch(contactEmail, /resend|RESEND_API_KEY|CONTACT_FROM_EMAIL/i);
+  assert.match(envExample, /GMAIL_USER=contactdesignmeetup@gmail\.com/);
+  assert.match(envExample, /GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx/);
 });
 
 test("sentence breaks into rows and wraps instead of overflowing", () => {
@@ -241,6 +300,11 @@ test("sentence breaks into rows and wraps instead of overflowing", () => {
   assert.match(form, /\bgap-3\b/);
   assert.match(form, /max-\[820px\]:gap-6/);
   assert.match(form, /\bgap-x-3\b/);
+  assert.match(form, /max-\[640px\]:basis-full/);
+  assert.match(
+    form,
+    /<Primary\s+className="max-\[640px\]:w-full max-\[640px\]:justify-center"\s+type="submit"/,
+  );
 });
 
 test("the selected checkmark matches the chevron stroke weight", () => {
@@ -258,7 +322,10 @@ test("every row shares one right edge so the city select lines up with Send", ()
     form,
     /<Select\s+className="min-w-\[8rem\] grow basis-\[8rem\]"\s+id=\{\`\$\{fieldId\}-city\`\}/,
   );
-  assert.match(form, /className="min-w-\[12rem\] grow basis-\[12rem\]"/);
+  assert.match(
+    form,
+    /className="min-w-\[12rem\] grow basis-\[12rem\] max-\[640px\]:min-w-0 max-\[640px\]:basis-full"/,
+  );
   assert.doesNotMatch(form, /\bmax-w-\[20rem\]\b/);
   assert.match(form, /role="status"/);
   assert.match(form, /\bw-0 min-w-full\b/);

@@ -256,7 +256,10 @@ test("newsletter form is accessible, non-reloading, and left aligned", () => {
   assert.match(newsletterForm, /type="email"/);
   assert.match(newsletterForm, /placeholder="Enter your email here"/);
   assert.match(newsletterForm, /type="submit"/);
-  assert.match(newsletterForm, /<Primary type="submit">Subscribe<\/Primary>/);
+  assert.match(
+    newsletterForm,
+    /<Primary[\s\S]*type="submit"[\s\S]*>\s*Subscribe\s*<\/Primary>/,
+  );
   assert.doesNotMatch(newsletterForm, /<Primary type="submit" fullWidth>/);
   assert.match(newsletterForm, /<Input[\s\S]*id="newsletter-email"/);
   assert.match(input, /\btext-left\b/);
@@ -265,12 +268,20 @@ test("newsletter form is accessible, non-reloading, and left aligned", () => {
     newsletterForm,
     /<form\s+className="[^"]*\bgrid-cols-\[minmax\(0,1fr\)_auto\][^"]*\bgap-3\b[^"]*"/,
   );
+  assert.match(newsletterForm, /max-\[640px\]:grid-cols-1/);
+  assert.match(
+    newsletterForm,
+    /<Primary\s+className="max-\[640px\]:w-full max-\[640px\]:justify-center"\s+type="submit"\s*>/,
+  );
   assert.doesNotMatch(css, /\.newsletter-form\s*\{/);
 });
 
 test("partner and newsletter CTAs share the Primary component", () => {
-  assert.match(partnerForm, /<Primary type="submit">Send<\/Primary>/);
-  assert.match(newsletterForm, /<Primary type="submit">Subscribe<\/Primary>/);
+  assert.match(partnerForm, /<Primary[\s\S]*type="submit"[\s\S]*>\s*\{status === "sending" \? "Sending\.\.\." : "Send"\}\s*<\/Primary>/);
+  assert.match(
+    newsletterForm,
+    /<Primary[\s\S]*type="submit"[\s\S]*>\s*Subscribe\s*<\/Primary>/,
+  );
   assert.match(primary, /export function Primary/);
   assert.match(primary, /href \?/);
   assert.match(primary, /variant === "primary"/);

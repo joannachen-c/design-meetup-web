@@ -33,3 +33,7 @@ test("Input pins its own weight so a bold label cannot cascade in", () => {
   assert.match(input, /\bfont-normal\b/);
   assert.doesNotMatch(input, /\bfont-(?:medium|semibold|bold)\b/);
 });
+
+test("Input can shrink inside mobile form rows", () => {
+  assert.match(input, /\bmin-w-0\b/);
+});

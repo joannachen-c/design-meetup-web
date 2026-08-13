@@ -70,7 +70,7 @@ Submitting no longer navigates to a `mailto:` URL.
 - While sending, the primary button displays `Sending…`, is disabled, and blocks
   duplicate submissions.
 - On success, the form preserves the selected values and displays:
-  `Thanks — we received your note and emailed you a copy.`
+  `Thanks! We received your note and emailed you a copy.`
 - On failure, the form preserves all values and displays:
   `We couldn’t send that. Please try again.`
 - Changing a value after success clears the stale success message.

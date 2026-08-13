@@ -46,9 +46,10 @@ test("footer uses the existing logo on the shared twelve-column grid", () => {
   assert.match(footer, /<h2[^>]*>\s*Contact\s*<\/h2>/);
   assert.match(footer, /contactdesignmeetup@gmail\.com/);
   assert.match(footer, /Substack/);
-  assert.match(footer, /aria-label="Instagram"/);
-  assert.match(footer, /aria-label="LinkedIn"/);
-  assert.match(footer, /aria-label="X"/);
+  assert.match(footer, /label: "Instagram"/);
+  assert.match(footer, /label: "LinkedIn"/);
+  assert.match(footer, /label: "X"/);
+  assert.match(footer, /aria-label=\{label\}/);
   assert.match(footer, /Join the newsletter/);
   assert.match(
     css,
@@ -200,18 +201,37 @@ test("footer contact links use the official destinations", () => {
     const escapedHref = href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     assert.match(
       footer,
+      new RegExp(`label: "${label}",\\s*href: "${escapedHref}",`),
+    );
+  }
+  assert.match(
+    footer,
+    /<div className="footer-contact-row[^"]*">[\s\S]*?<Tooltip key=\{label\} content=\{label\}>[\s\S]*?aria-label=\{label\}/,
+  );
+  assert.match(
+    footer,
+    /import \{\s*InstagramIcon,\s*LinkedInIcon,\s*SubstackIcon,\s*XIcon,\s*\} from "\.\/icons\/SocialIcons"/,
+  );
+  assert.match(
+    footer,
+    /import \{ Tooltip, TooltipProvider \} from "\.\/Tooltip"/,
+  );
+});
+
+test("footer social icons show tooltips on hover", () => {
+  assert.match(footer, /<TooltipProvider>/);
+  assert.match(footer, /<\/TooltipProvider>/);
+  for (const label of ["Substack", "Instagram", "LinkedIn", "X"]) {
+    assert.match(
+      footer,
       new RegExp(
-        `aria-label="${label}"[\\s\\S]*?href="${escapedHref}"[\\s\\S]*?target="_blank"[\\s\\S]*?rel="noreferrer"`,
+        `label: "${label}"[\\s\\S]*?href: "[^"]+"[\\s\\S]*?icon:`,
       ),
     );
   }
   assert.match(
     footer,
-    /<div className="footer-contact-row[^"]*">\s*<a\s+aria-label="Substack"/,
-  );
-  assert.match(
-    footer,
-    /import \{\s*InstagramIcon,\s*LinkedInIcon,\s*SubstackIcon,\s*XIcon,\s*\} from "\.\/icons\/SocialIcons"/,
+    /footerSocialLinks\.map\(\(\{ label, href, icon \}\) => \(\s*<Tooltip key=\{label\} content=\{label\}>/,
   );
 });
 
@@ -305,7 +325,8 @@ test("partner and newsletter CTAs share the Primary component", () => {
   );
   assert.match(primary, /export function Primary/);
   assert.match(primary, /href \?/);
-  assert.match(primary, /variant === "primary"/);
+  assert.match(primary, /variant = "primary"/);
+  assert.match(primary, /variantClassName\[variant\]/);
   assert.match(primary, /w-fit/);
   assert.match(primary, /rounded-\[10px\]/);
   assert.match(primary, /bg-accent-primary/);

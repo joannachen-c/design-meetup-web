@@ -249,7 +249,7 @@ test("the form shows sending, success, and failure states in place", () => {
   assert.match(form, /disabled=\{status === "sending"\}/);
   assert.match(form, /loading=\{status === "sending"\}/);
   assert.match(form, /Sending\.\.\./);
-  assert.match(form, /Thanks — we received your note and emailed you a copy\./);
+  assert.match(form, /Thanks! We received your note and emailed you a copy\./);
   assert.match(form, /We couldn’t send that\. Please try again\./);
   assert.match(form, /setStatus\(response\.ok \? "sent" : "error"\)/);
   assert.match(form, /setStatus\("error"\)/);

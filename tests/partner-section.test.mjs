@@ -67,6 +67,50 @@ test("partner logos use stable optical adjustment hooks", () => {
   );
 });
 
+test("partner logo tiles link out and scale subtly on hover", () => {
+  const expected = [
+    ["Figma", "https://www.figma.com/"],
+    ["Raycast", "https://www.raycast.com/"],
+    ["Notion", "https://www.notion.com/"],
+    ["Linear", "https://linear.app/"],
+    ["Apple", "https://www.apple.com/"],
+    ["TikTok", "https://www.tiktok.com/"],
+    ["Framer", "https://www.framer.com/"],
+    ["Google", "https://www.google.com/"],
+    ["Gumroad", "https://gumroad.com/"],
+  ];
+
+  for (const [name, href] of expected) {
+    assert.match(
+      app,
+      new RegExp(
+        `name:\\s*"${name}",\\s*href:\\s*"${href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`,
+      ),
+    );
+  }
+
+  assert.match(
+    app,
+    /<a\s+className="partner-tile rounded-\[10px\] bg-surface-muted"\s+href=\{partner\.href\}\s+target="_blank"\s+rel="noreferrer"\s+aria-label=\{partner\.name\}/,
+  );
+  assert.match(
+    css,
+    /\.partner-tile\s*\{[^}]*transition:\s*transform 150ms ease-out;/s,
+  );
+  assert.match(
+    css,
+    /@media \(hover: hover\) and \(pointer: fine\)\s*\{\s*\.partner-tile:hover\s*\{\s*transform:\s*scale\(1\.02\);/s,
+  );
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.partner-tile:hover\s*\{\s*transform:\s*none;/s,
+  );
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.partner-tile\s*\{\s*transition:\s*none;/s,
+  );
+});
+
 test("partner logo tiles preserve Figma geometry responsively", () => {
   assert.match(
     css,

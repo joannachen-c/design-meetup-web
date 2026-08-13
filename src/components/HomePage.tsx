@@ -56,15 +56,15 @@ import type { LumaEvent } from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
 
 const partnerLogos = [
-  { slug: "figma", src: "/partners/figma.png" },
-  { slug: "cursor", src: "/partners/cursor.png" },
-  { slug: "notion", src: "/partners/notion.png" },
-  { slug: "ramp", src: "/partners/partner-4.png" },
-  { slug: "apple", src: "/partners/apple.png" },
-  { slug: "tiktok", src: "/partners/tiktok.png" },
-  { slug: "framer", src: "/partners/framer.png" },
-  { slug: "google", src: "/partners/google.png" },
-  { slug: "rainbow", src: "/partners/partner-9.png" },
+  { slug: "figma", name: "Figma", href: "https://www.figma.com/", src: "/partners/figma.png" },
+  { slug: "cursor", name: "Raycast", href: "https://www.raycast.com/", src: "/partners/cursor.png" },
+  { slug: "notion", name: "Notion", href: "https://www.notion.com/", src: "/partners/notion.png" },
+  { slug: "ramp", name: "Linear", href: "https://linear.app/", src: "/partners/partner-4.png" },
+  { slug: "apple", name: "Apple", href: "https://www.apple.com/", src: "/partners/apple.png" },
+  { slug: "tiktok", name: "TikTok", href: "https://www.tiktok.com/", src: "/partners/tiktok.png" },
+  { slug: "framer", name: "Framer", href: "https://www.framer.com/", src: "/partners/framer.png" },
+  { slug: "google", name: "Google", href: "https://www.google.com/", src: "/partners/google.png" },
+  { slug: "rainbow", name: "Gumroad", href: "https://gumroad.com/", src: "/partners/partner-9.png" },
 ];
 
 const LUMA_CALENDAR_EMBED_SRC =
@@ -591,7 +591,10 @@ function ExpandableSummary({
       </div>
       {hasOverflow ? (
         <Link
-          className="mt-6 shrink-0 leading-none -translate-y-px"
+          // Stretch matches the photo-rail column, which ends on the size-8
+          // ghost hit targets. A light upward nudge meets the chevron path
+          // bottoms without floating the label above the arrow row.
+          className="mt-6 shrink-0 leading-none -translate-y-1.5"
           aria-expanded={isExpanded}
           aria-controls={contentId}
           onClick={toggleExpanded}
@@ -1672,7 +1675,12 @@ export default function HomePage({
                       );
                     })}
                   </ul>
-                  <div className="gallery-edge gallery-edge-start">
+                  <div
+                    className="gallery-edge gallery-edge-start"
+                    onPointerEnter={(event) =>
+                      hoverCard(null, event.pointerType)
+                    }
+                  >
                     <button
                       type="button"
                       className="gallery-edge-button bg-transparent p-0 text-muted"
@@ -1689,7 +1697,12 @@ export default function HomePage({
                       <ArrowIcon direction="left" />
                     </button>
                   </div>
-                  <div className="gallery-edge gallery-edge-end">
+                  <div
+                    className="gallery-edge gallery-edge-end"
+                    onPointerEnter={(event) =>
+                      hoverCard(null, event.pointerType)
+                    }
+                  >
                     <button
                       type="button"
                       className="gallery-edge-button bg-transparent p-0 text-muted"
@@ -1853,9 +1866,9 @@ export default function HomePage({
                 >
                   {selectedEvent.title}
                 </h2>
-                <div className="detail-facts pt-[clamp(12px,1.4vw,18px)]">
-                  {/* Same colour split as the list rows: place sits one step
-                      darker than the date, location first. */}
+                <div className="detail-facts">
+                  {/* Date reads as the title's eyebrow; place and chips follow.
+                      Classes let CSS reorder the stack without changing markup. */}
                   <p className="detail-fact-line m-0 flex flex-wrap items-baseline gap-x-4 text-base leading-6">
                     {selectedEvent.location ? (
                       <span className="detail-place text-muted">
@@ -1921,38 +1934,6 @@ export default function HomePage({
                   className="detail-photos"
                   aria-label="Event gallery"
                 >
-                  {isPhotoRailScrollable ? (
-                    <div className="detail-photo-arrows mb-[clamp(12px,1.5vw,20px)] flex items-center justify-end">
-                      <div
-                        className="flex gap-2"
-                        role="group"
-                        aria-label="Event photo controls"
-                      >
-                        <IconButton
-                          aria-label="Previous event photo"
-                          aria-controls="event-photo-rail"
-                          className="size-8 -ml-3"
-                          variant="ghost"
-                          tone="muted"
-                          disabled={photoRailLoops ? false : !canScrollPhotosLeft}
-                          onClick={() => scrollPhotoRail(-1)}
-                        >
-                          <ArrowIcon direction="left" />
-                        </IconButton>
-                        <IconButton
-                          aria-label="Next event photo"
-                          aria-controls="event-photo-rail"
-                          className="size-8 -mr-3"
-                          variant="ghost"
-                          tone="muted"
-                          disabled={photoRailLoops ? false : !canScrollPhotosRight}
-                          onClick={() => scrollPhotoRail(1)}
-                        >
-                          <ArrowIcon direction="right" />
-                        </IconButton>
-                      </div>
-                    </div>
-                  ) : null}
                   <div
                     className="detail-photo-viewport"
                     ref={setPhotoViewport}
@@ -2032,6 +2013,38 @@ export default function HomePage({
                     )}
                   </BlossomCarousel>
                   </div>
+                  {isPhotoRailScrollable ? (
+                    <div className="detail-photo-arrows mt-[clamp(12px,1.5vw,22px)] flex items-center justify-end">
+                      <div
+                        className="flex gap-2"
+                        role="group"
+                        aria-label="Event photo controls"
+                      >
+                        <IconButton
+                          aria-label="Previous event photo"
+                          aria-controls="event-photo-rail"
+                          className="size-8 -ml-3"
+                          variant="ghost"
+                          tone="muted"
+                          disabled={photoRailLoops ? false : !canScrollPhotosLeft}
+                          onClick={() => scrollPhotoRail(-1)}
+                        >
+                          <ArrowIcon direction="left" />
+                        </IconButton>
+                        <IconButton
+                          aria-label="Next event photo"
+                          aria-controls="event-photo-rail"
+                          className="size-8 -mr-3"
+                          variant="ghost"
+                          tone="muted"
+                          disabled={photoRailLoops ? false : !canScrollPhotosRight}
+                          onClick={() => scrollPhotoRail(1)}
+                        >
+                          <ArrowIcon direction="right" />
+                        </IconButton>
+                      </div>
+                    </div>
+                  ) : null}
                   <GalleryLightbox
                     photos={lightboxPhotos}
                     previews={selectedPhotos}
@@ -2091,10 +2104,11 @@ export default function HomePage({
               : "RSVP on Luma to join us at the next Design Meetup."}
           </p>
           <Primary
-            className="gap-2 !bg-ink font-bold !text-white hover:!bg-black"
+            className="gap-2 font-bold"
             href="https://luma.com/designmeetup"
             target="_blank"
             rel="noreferrer"
+            variant="ink"
           >
             <img
               className="size-5 brightness-0 invert"
@@ -2138,10 +2152,10 @@ export default function HomePage({
             </h2>
             <div className="about-lede grid gap-5 text-base leading-[1.6] text-body">
               <p className="m-0 text-pretty">
-                We are a community of the world’s most ambitious creatives.
+                We are a community of the world’s most ambitious young creatives.
               </p>
               <p className="m-0 text-pretty">
-                In December 2025 Design Meetup was just an idea. A month later, we hosted our first event with 50 designers. And now, we’ve brought together 10,000+ people across 30 events in NY, LA, and the Bay Area.
+                In December 2025, Design Meetup was just an idea. A month later, we hosted our first event with 50 designers. And now, we’ve brought together 10,000+ people across 30 events in NY, LA, and the Bay Area.
               </p>
             </div>
           </div>
@@ -2221,16 +2235,21 @@ export default function HomePage({
             aria-label="Selected partner companies"
           >
             {partnerLogos.map((partner) => (
-              <li
-                className="partner-tile rounded-[10px] bg-surface-muted"
-                key={partner.slug}
-              >
-                <img
-                  className={`partner-logo partner-logo--${partner.slug} border-0 outline-none`}
-                  src={partner.src}
-                  alt=""
-                  loading="lazy"
-                />
+              <li key={partner.slug}>
+                <a
+                  className="partner-tile rounded-[10px] bg-surface-muted"
+                  href={partner.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={partner.name}
+                >
+                  <img
+                    className={`partner-logo partner-logo--${partner.slug} border-0 outline-none`}
+                    src={partner.src}
+                    alt=""
+                    loading="lazy"
+                  />
+                </a>
               </li>
             ))}
           </ul>
@@ -2255,11 +2274,11 @@ export default function HomePage({
         <ScrollReveal className="apply-follow" delay={80}>
           <div className="grid w-full max-w-[54ch] gap-5 text-base leading-[1.6] text-body">
             <p className="m-0 text-pretty">
-              We'll be opening up applications for the next Design Meetup member cohort soon. If you're a student or early-career designer, we'd love to have you.
+              We'll be opening up applications for the next Design Meetup member cohort soon. If you're a student or early career designer, we'd love to meet you.
             </p>
             <div className="grid gap-3">
               <p className="m-0 text-pretty">
-                Drop your email and we'll let you know when applications open.
+                Drop your email, and we'll let you know when applications open.
               </p>
               <ApplyNotifyForm />
             </div>

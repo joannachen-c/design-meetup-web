@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import { ArrowUpRightIcon } from "./components/icons/ArrowUpRightIcon";
+import {
+  InstagramIcon,
+  LinkedInIcon,
+  SubstackIcon,
+  XIcon,
+} from "./components/icons/SocialIcons";
 import { IconButton } from "./components/IconButton";
 import { Input } from "./components/Input";
 import { Link } from "./components/Link";
@@ -157,7 +163,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>ink</SpecimenLabel>
                     <p className="m-0 mt-1 text-sm text-subtle">
-                      Primary text
+                      primary text
                     </p>
                   </div>
                 </div>
@@ -166,7 +172,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>muted</SpecimenLabel>
                     <p className="m-0 mt-1 text-sm text-subtle">
-                      Secondary text
+                      secondary text
                     </p>
                   </div>
                 </div>
@@ -175,7 +181,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>soft gray</SpecimenLabel>
                     <p className="m-0 mt-1 text-sm text-subtle">
-                      Controls and fields
+                      controls and fields
                     </p>
                   </div>
                 </div>
@@ -184,7 +190,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>meetup lime</SpecimenLabel>
                     <p className="m-0 mt-1 text-sm text-subtle">
-                      Primary actions
+                      primary actions
                     </p>
                   </div>
                 </div>
@@ -451,7 +457,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>media inset edge</SpecimenLabel>
                     <p className={specimenDescriptionClassName}>
-                      2px · shelf covers · 5%
+                      2px · shelf covers · event cards · 5%
                     </p>
                   </div>
                   <div
@@ -500,7 +506,7 @@ export default function DesignSystem() {
                 <div>
                   <SpecimenLabel>base</SpecimenLabel>
                   <p className={specimenDescriptionClassName}>
-                    Border only
+                    border only
                   </p>
                 </div>
                 <div
@@ -512,11 +518,11 @@ export default function DesignSystem() {
                 <div>
                   <SpecimenLabel>soft</SpecimenLabel>
                   <p className={specimenDescriptionClassName}>
-                    Event cards
+                    event cards · soft shadow + media inset edge
                   </p>
                 </div>
                 <div
-                  className="size-24 rounded-[11px] bg-white shadow-[0_3px_10px_rgba(0,0,0,0.12)]"
+                  className="media-inset-edge relative size-24 rounded-[11px] bg-white shadow-[0_3px_10px_rgba(0,0,0,0.12)]"
                   aria-hidden="true"
                 />
               </li>
@@ -524,7 +530,7 @@ export default function DesignSystem() {
                 <div>
                   <SpecimenLabel>raised</SpecimenLabel>
                   <p className={specimenDescriptionClassName}>
-                    Team cards
+                    team cards
                   </p>
                 </div>
                 <div
@@ -553,7 +559,11 @@ export default function DesignSystem() {
                     <ArrowUpRightIcon />
                   </Primary>
                   <Primary variant="ghost">Ghost</Primary>
+                  <Primary variant="ink">Ink</Primary>
                   <IconButton aria-label="Next item">
+                    <ArrowIcon />
+                  </IconButton>
+                  <IconButton aria-label="Ghost icon button" variant="ghost">
                     <ArrowIcon />
                   </IconButton>
                 </div>
@@ -566,6 +576,9 @@ export default function DesignSystem() {
                   <Primary variant="secondary" disabled>
                     Disabled
                   </Primary>
+                  <Primary variant="ink" disabled>
+                    Disabled
+                  </Primary>
                   <IconButton aria-label="Disabled icon button" disabled>
                     <ArrowIcon />
                   </IconButton>
@@ -576,7 +589,7 @@ export default function DesignSystem() {
 
           <section
             id="links"
-            className={sectionClassName}
+            className={`${sectionClassName} md:items-end`}
             aria-labelledby="links-title"
           >
             <h2 className={sectionTitleClassName} id="links-title">
@@ -636,17 +649,47 @@ export default function DesignSystem() {
               tooltips
             </h2>
             <div
-              className={`${specimenClassName} gap-3 bg-surface-muted p-5 sm:p-8`}
+              className={`${specimenClassName} items-start gap-8 bg-surface-muted p-5 sm:grid sm:grid-cols-2 sm:items-center sm:p-8`}
             >
-              <Tooltip content="Helpful context appears on hover or focus.">
-                <IconButton aria-label="More information">
-                  <HelpIcon />
-                </IconButton>
-              </Tooltip>
-              <p className="m-0 max-w-[36ch] text-pretty text-base text-muted">
-                Hover or focus the information button. Tooltips supplement a
-                clear label; they do not replace one.
-              </p>
+              <div className="grid gap-3">
+                <div className="flex items-center gap-2">
+                  <Tooltip content="Substack">
+                    <IconButton aria-label="Substack" variant="ghost">
+                      <SubstackIcon className="size-[18px]" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip content="Instagram">
+                    <IconButton aria-label="Instagram" variant="ghost">
+                      <InstagramIcon className="size-5" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip content="LinkedIn">
+                    <IconButton aria-label="LinkedIn" variant="ghost">
+                      <LinkedInIcon className="size-5" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip content="X">
+                    <IconButton aria-label="X" variant="ghost">
+                      <XIcon className="size-[18px]" />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+                <p className="m-0 max-w-[36ch] text-pretty text-base text-muted">
+                  Adjacent icon buttons each own a tooltip — same pattern as the
+                  footer contact icons.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Tooltip content="Helpful context appears on hover or focus.">
+                  <IconButton aria-label="More information">
+                    <HelpIcon />
+                  </IconButton>
+                </Tooltip>
+                <p className="m-0 max-w-[36ch] text-pretty text-base text-muted">
+                  Hover or focus the information button. Tooltips supplement a
+                  clear label; they do not replace one.
+                </p>
+              </div>
             </div>
           </section>
         </div>

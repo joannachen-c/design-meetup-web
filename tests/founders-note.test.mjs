@@ -46,15 +46,15 @@ test("the note carries the community copy in centered text", () => {
     ),
     "expected the note to invite partners",
   );
-  // Keep the colon glued to "curated" so mobile doesn't orphan the word alone.
+  // Keep the colon glued to "curated" on mobile; force a new line on desktop only.
   assert.match(
     note,
-    /existed:\{\s*"\\u00A0"\s*\}curated, ambitious, and focused on/,
+    /existed:\{\s*"\\u00A0"\s*\}\s*<br className="hidden min-\[821px\]:block" \/>\s*curated, ambitious, and focused on/,
   );
   assert.doesNotMatch(
     note,
     /existed:\s*<br\s*\/>/,
-    "expected no forced break after the colon",
+    "expected no unconditional break after the colon",
   );
   assert.ok(
     !note.includes(

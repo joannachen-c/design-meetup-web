@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -50,11 +51,12 @@ const PHOTO_ENTRANCE_Y_PX = 20;
 const PLACEHOLDER_DELAY_MS = 120;
 
 function ChevronIcon({ direction }: { direction: "left" | "right" }) {
-  // Same 1px optical nudge as the photo-rail ArrowIcon: mass sits on the
-  // open side, so a geometric center reads off-axis in a round ghost button.
+  // Same 20px glyph and 1px optical nudge as the photo-rail ArrowIcon.
   return (
     <svg
-      className={direction === "left" ? "-translate-x-px" : "translate-x-px"}
+      className={
+        direction === "left" ? "size-5 -translate-x-px" : "size-5 translate-x-px"
+      }
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
@@ -72,7 +74,7 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
 
 function CloseIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="size-5" viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M6 6l12 12M18 6L6 18"
         fill="none"
@@ -184,15 +186,29 @@ export function GalleryLightbox({
   );
 
   // A cached photo can finish before hydration attaches onLoad, which would
-  // leave the shimmer up for good.
+  // leave the shimmer up for good. Object refs + layout effects stay stable
+  // across renders; inline callback refs re-fire every commit in React 19 and
+  // loop setState into "Maximum update depth exceeded".
+  const baseImgRef = useRef<HTMLImageElement | null>(null);
+  const fullImgRef = useRef<HTMLImageElement | null>(null);
+
   const markLoadedIfComplete = useCallback(
-    (node: HTMLImageElement | null, url: string) => {
-      if (!node?.complete || node.naturalWidth <= 0) return;
+    (node: HTMLImageElement | null, url: string | null) => {
+      if (!url || !node?.complete || node.naturalWidth <= 0) return;
       markLoaded(url);
       rememberSize(url, sizeFromImage(node));
     },
     [markLoaded, rememberSize],
   );
+
+  useLayoutEffect(() => {
+    markLoadedIfComplete(baseImgRef.current, basePhoto);
+  }, [basePhoto, markLoadedIfComplete]);
+
+  useLayoutEffect(() => {
+    if (!photo || photo === basePhoto) return;
+    markLoadedIfComplete(fullImgRef.current, photo);
+  }, [basePhoto, markLoadedIfComplete, photo]);
 
   const step = useCallback(
     (direction: -1 | 1) => {
@@ -333,22 +349,25 @@ export function GalleryLightbox({
             }}
           >
             <div className="grid min-h-0 place-items-center">
-              <div
-                className="lightbox-frame relative inline-flex max-h-[78vh] max-w-[88vw] overflow-hidden rounded-md shadow-[0_24px_64px_rgba(0,0,0,0.22)]"
-                data-base-loaded={isBaseLoaded ? "true" : "false"}
-                data-has-aspect={frameSize ? "true" : "false"}
-                data-loaded={loadedPhotos[photo] ? "true" : "false"}
-                data-placeholder={
-                  isPlaceholderDue && !isBaseLoaded ? "true" : "false"
-                }
-                style={
-                  frameSize
-                    ? ({
-                        "--lightbox-aspect": `${frameSize.width} / ${frameSize.height}`,
-                      } as CSSProperties)
-                    : undefined
-                }
-              >
+              {/* Shadow lives outside the clipped photo so radius clipping
+                  cannot paint the same inset edge the event covers use. */}
+              <div className="inline-flex rounded-xl shadow-[0_24px_64px_rgba(0,0,0,0.22)]">
+                <div
+                  className="lightbox-frame relative inline-flex max-h-[78vh] max-w-[88vw] rounded-xl"
+                  data-base-loaded={isBaseLoaded ? "true" : "false"}
+                  data-has-aspect={frameSize ? "true" : "false"}
+                  data-loaded={loadedPhotos[photo] ? "true" : "false"}
+                  data-placeholder={
+                    isPlaceholderDue && !isBaseLoaded ? "true" : "false"
+                  }
+                  style={
+                    frameSize
+                      ? ({
+                          "--lightbox-aspect": `${frameSize.width} / ${frameSize.height}`,
+                        } as CSSProperties)
+                      : undefined
+                  }
+                >
                 <img
                   className="lightbox-photo max-h-[78vh] max-w-[88vw] border-0 object-contain"
                   key={basePhoto}
@@ -356,9 +375,7 @@ export function GalleryLightbox({
                   alt={`${label}, photo ${index + 1} of ${photos.length}`}
                   draggable="false"
                   decoding="sync"
-                  ref={(node) =>
-                    basePhoto ? markLoadedIfComplete(node, basePhoto) : undefined
-                  }
+                  ref={baseImgRef}
                   onLoad={(event) => {
                     if (!basePhoto) return;
                     markLoaded(basePhoto);
@@ -376,7 +393,7 @@ export function GalleryLightbox({
                     aria-hidden="true"
                     draggable="false"
                     decoding={isPhotoWarm ? "sync" : "async"}
-                    ref={(node) => markLoadedIfComplete(node, photo)}
+                    ref={fullImgRef}
                     onLoad={(event) => {
                       markLoaded(photo);
                       rememberSize(photo, sizeFromImage(event.currentTarget));
@@ -390,6 +407,7 @@ export function GalleryLightbox({
                   className="detail-photo-shimmer bg-skeleton"
                   aria-hidden="true"
                 />
+                </div>
               </div>
             </div>
             <figcaption className="m-0 self-start text-center text-sm leading-5 text-muted">
@@ -402,7 +420,7 @@ export function GalleryLightbox({
                 aria-label="Photo controls"
               >
                 <IconButton
-                  className="lightbox-arrow lightbox-arrow-prev"
+                  className="lightbox-arrow lightbox-arrow-prev size-8"
                   aria-label="Previous photo"
                   variant="ghost"
                   tone="muted"
@@ -412,7 +430,7 @@ export function GalleryLightbox({
                   <ChevronIcon direction="left" />
                 </IconButton>
                 <IconButton
-                  className="lightbox-arrow lightbox-arrow-next"
+                  className="lightbox-arrow lightbox-arrow-next size-8"
                   aria-label="Next photo"
                   variant="ghost"
                   tone="muted"
@@ -426,7 +444,7 @@ export function GalleryLightbox({
           </motion.figure>
 
           <IconButton
-            className="absolute top-[clamp(16px,3vw,32px)] right-[clamp(16px,3vw,32px)]"
+            className="absolute top-[clamp(16px,3vw,32px)] right-[clamp(16px,3vw,32px)] size-8"
             aria-label="Close gallery"
             variant="ghost"
             tone="muted"

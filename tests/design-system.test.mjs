@@ -97,6 +97,7 @@ test("design-system section and group headers are lowercase without changing spe
     /function SpecimenLabel[\s\S]*?className="[^"]*\buppercase\b/,
   );
   assert.match(designSystem, /<Primary>Primary<\/Primary>/);
+  assert.match(designSystem, /<Primary variant="ink">Ink<\/Primary>/);
   assert.match(designSystem, /Growth happens together\./);
   assert.match(designSystem, /Design Meetup website/);
 });
@@ -369,7 +370,11 @@ test("the media inset edges are documented at their production weights", () => {
   // Each specimen wears the production class, so the page paints whatever the
   // token paints and the three weights can be compared side by side.
   for (const [label, description, className] of [
-    ["media inset edge", "2px · shelf covers · 5%", "media-inset-edge relative size-20 rounded-lg bg-white"],
+    [
+      "media inset edge",
+      "2px · shelf covers · event cards · 5%",
+      "media-inset-edge relative size-20 rounded-lg bg-white",
+    ],
     [
       "media inset edge focused",
       "2px · focused cover · 2%",
@@ -402,10 +407,13 @@ test("shadow specimens use production elevation classes", () => {
   assert.match(shadowsSection, /shadow-none/);
   assert.match(
     shadowsSection,
-    /shadow-\[0_3px_10px_rgba\(0,0,0,0\.12\)\]/,
+    /media-inset-edge relative size-24 rounded-\[11px\] bg-white shadow-\[0_3px_10px_rgba\(0,0,0,0\.12\)\]/,
   );
   assert.match(shadowsSection, /shadow-lg/);
   assert.match(shadowsSection, /hover:shadow-xl/);
+  assert.match(shadowsSection, /event cards · soft shadow \+ media inset edge/);
+  assert.match(shadowsSection, /border only/);
+  assert.match(shadowsSection, /team cards/);
 });
 
 test("shadow specimens use equal white squares in an uncarded grid", () => {
@@ -563,6 +571,10 @@ test("button and link specimens use white surfaces", () => {
   );
   assert.match(
     designSystem,
+    /id="links"\s+className=\{`\$\{sectionClassName\} md:items-end`\}\s+aria-labelledby="links-title"/,
+  );
+  assert.match(
+    designSystem,
     /aria-labelledby="links-title"[\s\S]*className=\{linksSpecimenClassName\}/,
   );
 });
@@ -587,7 +599,7 @@ test("button and link specimen rows omit horizontal padding", () => {
   assert.doesNotMatch(linksSpecimenClassName, /\b(?:p|py)-/);
   assert.match(
     designSystem,
-    /className=\{`\$\{specimenClassName\} gap-3 bg-surface-muted p-5 sm:p-8`\}/,
+    /className=\{`\$\{specimenClassName\} items-start gap-8 bg-surface-muted p-5 sm:grid sm:grid-cols-2 sm:items-center sm:p-8`\}/,
   );
 });
 
@@ -601,10 +613,21 @@ test("responsive gutter content surface is white rather than cream", () => {
   assert.doesNotMatch(gutterContentClassName, /\bbg-surface(?:-muted)?\b/);
 });
 
-test("button states include a disabled icon button specimen", () => {
+test("button states include a disabled ink button and disabled icon button", () => {
+  assert.match(
+    designSystem,
+    /<Primary variant="ink" disabled>\s*Disabled\s*<\/Primary>/,
+  );
   assert.match(
     designSystem,
     /<IconButton aria-label="Disabled icon button" disabled>[\s\S]*<ArrowIcon \/>[\s\S]*<\/IconButton>/,
+  );
+});
+
+test("button variants include a ghost icon button specimen", () => {
+  assert.match(
+    designSystem,
+    /<IconButton aria-label="Ghost icon button" variant="ghost">\s*<ArrowIcon \/>\s*<\/IconButton>/,
   );
 });
 
@@ -620,6 +643,24 @@ test("tooltip specimen uses a centered SVG help icon", () => {
   assert.doesNotMatch(
     designSystem,
     /<IconButton aria-label="More information">\s*\?\s*<\/IconButton>/,
+  );
+});
+
+test("tooltips card documents adjacent icon tooltips beside the help specimen", () => {
+  const tooltipsSection =
+    designSystem.match(/<section\s+id="tooltips"[\s\S]*?<\/section>/)?.[0] ??
+    "";
+
+  assert.match(tooltipsSection, /sm:grid-cols-2/);
+  for (const label of ["Substack", "Instagram", "LinkedIn", "X"]) {
+    assert.match(
+      tooltipsSection,
+      new RegExp(`<Tooltip content="${label}">`),
+    );
+  }
+  assert.match(
+    tooltipsSection,
+    /footer contact icons/,
   );
 });
 

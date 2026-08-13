@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { ArrowUpRightIcon } from "./components/icons/ArrowUpRightIcon";
-import { ChevronDownIcon } from "./components/icons/ChevronDownIcon";
 import {
   InstagramIcon,
   LinkedInIcon,
   SubstackIcon,
   XIcon,
 } from "./components/icons/SocialIcons";
-import { SoundOffIcon, SoundOnIcon } from "./components/icons/SoundIcons";
 import { IconButton } from "./components/IconButton";
 import { Input } from "./components/Input";
 import { Link } from "./components/Link";
@@ -22,7 +20,7 @@ import { SiteHeader } from "./components/SiteHeader";
 import { Tooltip, TooltipProvider } from "./components/Tooltip";
 
 const sectionClassName =
-  "grid gap-8 py-14 md:grid-cols-[minmax(150px,0.32fr)_minmax(0,1fr)] md:gap-16 md:py-20";
+  "grid min-w-0 gap-8 py-14 md:grid-cols-[minmax(150px,0.32fr)_minmax(0,1fr)] md:gap-16 md:py-20";
 const sectionTitleClassName =
   "m-0 text-balance text-xl font-bold leading-tight tracking-[-0.04em]";
 const specimenClassName =
@@ -30,12 +28,16 @@ const specimenClassName =
 const whiteSpecimenClassName = `${specimenClassName} gap-3 bg-white py-5 sm:py-8`;
 const linksSpecimenClassName =
   "flex flex-wrap items-center gap-6 rounded-[11px] bg-white";
-const colorItemClassName = "grid gap-4";
+const colorItemClassName = "grid gap-3";
 const specimenDescriptionClassName =
   "m-0 mt-1 text-pretty text-sm leading-[1.5] text-muted";
-const iconSpecimenClassName =
-  "grid justify-items-start gap-3 text-ink";
 
+// Match SiteFooter social brand hovers (specimen-only; footer markup stays source).
+const dsSocialIconHoverClassName =
+  "transition-colors duration-150 ease-out motion-reduce:transition-none";
+
+// Every --color-* token from @theme, plus white (Tailwind default used for
+// cards/overlays). Hexes are the sRGB round-trip of the OKLCH theme values.
 const semanticColors = [
   {
     label: "ink",
@@ -47,19 +49,49 @@ const semanticColors = [
     label: "muted",
     description: "secondary text",
     className: "bg-muted",
-    hex: "#616d7a",
+    hex: "#6a7282",
   },
   {
-    label: "soft gray",
+    label: "subtle",
+    description: "tertiary text",
+    className: "bg-subtle",
+    hex: "#99a1af",
+  },
+  {
+    label: "white",
+    description: "cards · overlays",
+    className: "bg-white",
+    hex: "#ffffff",
+  },
+  {
+    label: "surface",
+    description: "page background",
+    className: "bg-surface",
+    hex: "#fcfdff",
+  },
+  {
+    label: "surface muted",
     description: "controls and fields",
     className: "bg-surface-muted",
     hex: "#f3f4f6",
+  },
+  {
+    label: "skeleton",
+    description: "image placeholders",
+    className: "bg-skeleton",
+    hex: "#e7e8eb",
   },
   {
     label: "meetup lime",
     description: "primary actions",
     className: "bg-accent-primary",
     hex: "#ecf26d",
+  },
+  {
+    label: "meetup lime hover",
+    description: "primary action hover",
+    className: "bg-accent-hover",
+    hex: "#e3e95f",
   },
 ] as const;
 
@@ -76,10 +108,10 @@ const sections = [
   { id: "typography", label: "typography" },
   { id: "layout", label: "layout" },
   { id: "borders", label: "borders" },
+  { id: "strokes", label: "strokes" },
   { id: "shadows", label: "shadows" },
   { id: "buttons", label: "buttons" },
   { id: "links", label: "links" },
-  { id: "icons", label: "icons" },
   { id: "inputs", label: "inputs" },
   { id: "tooltips", label: "tooltips" },
 ] as const;
@@ -167,9 +199,13 @@ function ColorSwatch({
         aria-label={`Copy ${label} ${hex}`}
         className={[
           className,
-          "border-0 p-0 transition-transform duration-150 ease-out active:scale-[0.97]",
+          // Inset edge so near-white swatches read on the surface page, and
+          // dark ones keep the same media treatment as production covers.
+          "media-inset-edge relative border-0 p-0 transition-transform duration-150 ease-out active:scale-[0.97]",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink",
-          size === "card" ? "aspect-[4/3] w-full rounded-[20px]" : "size-12 rounded-[11px]",
+          size === "card"
+            ? "size-16 rounded-[16px] sm:size-20 sm:rounded-[18px] lg:size-28 lg:rounded-[20px]"
+            : "size-12 rounded-[11px]",
         ]
           .filter(Boolean)
           .join(" ")}
@@ -179,7 +215,7 @@ function ColorSwatch({
   );
 }
 
-function ArrowIcon({ className = "size-[18px] translate-x-px" }: { className?: string }) {
+function ArrowIcon({ className = "size-5 translate-x-px" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
       <path
@@ -198,79 +234,23 @@ function HelpIcon({ className = "size-5" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
       <path
-        d="M9.2 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4"
+        d="M8 8.75a4 4 0 1 1 7.6 1.7c0 2.7-3.8 3-3.8 5.55"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="1.7"
+        strokeWidth="2"
       />
-      <circle cx="12" cy="18" r="1" fill="currentColor" />
+      <circle cx="12" cy="18.75" r="1.25" fill="currentColor" />
     </svg>
   );
 }
-
-// One footprint for every specimen. Stroke glyphs sit at 18px; filled brand
-// marks step down so their solid mass matches optically. Specimen-only stroke
-// weight (3px) — production icon components keep their own weights.
-const dsIconFrameClassName = "grid size-5 place-items-center";
-const dsStrokeWeightClassName =
-  "[&_circle]:[stroke-width:3px] [&_path]:[stroke-width:3px] [&_rect]:[stroke-width:3px]";
-const dsStrokeIconClassName = `size-[18px] ${dsStrokeWeightClassName}`;
-const dsBrandIconClassName = "size-4";
-
-const designSystemIcons = [
-  {
-    label: "arrow up right",
-    icon: <ArrowUpRightIcon className={dsStrokeIconClassName} />,
-  },
-  {
-    label: "arrow",
-    icon: <ArrowIcon className={dsStrokeIconClassName} />,
-  },
-  {
-    label: "chevron down",
-    icon: <ChevronDownIcon className={dsStrokeIconClassName} />,
-  },
-  {
-    label: "help",
-    icon: <HelpIcon className={dsStrokeIconClassName} />,
-  },
-  {
-    label: "sound on",
-    icon: <SoundOnIcon className={dsStrokeIconClassName} />,
-  },
-  {
-    label: "sound off",
-    icon: <SoundOffIcon className={dsStrokeIconClassName} />,
-  },
-  {
-    label: "substack",
-    icon: <SubstackIcon className={dsBrandIconClassName} />,
-  },
-  {
-    label: "instagram",
-    icon: (
-      <InstagramIcon
-        className={`${dsBrandIconClassName} ${dsStrokeWeightClassName}`}
-      />
-    ),
-  },
-  {
-    label: "linkedin",
-    icon: <LinkedInIcon className={dsBrandIconClassName} />,
-  },
-  {
-    label: "x",
-    icon: <XIcon className={dsBrandIconClassName} />,
-  },
-] as const;
 
 function SelectSpecimen() {
   const [city, setCity] = useState("sf");
 
   return (
-    <span className="flex flex-wrap items-center gap-2 text-base text-body">
+    <span className="flex flex-wrap items-center gap-2 text-base text-ink">
       Our next meetup is in
       <Select
         aria-label="City"
@@ -283,6 +263,118 @@ function SelectSpecimen() {
         onValueChange={setCity}
       />
     </span>
+  );
+}
+
+const GUTTER_DEMO_MIN_WIDTH_PX = 12 * 16;
+
+/** Mac-style column-resize grip: opposing triangles with a center rule. */
+function GutterResizeHandleIcon({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`inline-flex items-center gap-x-1 pr-2 text-current ${className ?? ""}`}
+    >
+      <svg
+        fill="currentColor"
+        viewBox="0 0 5 11"
+        width="5"
+        height="11"
+      >
+        <path d="M5 0 0 5.5 5 11V0Z" />
+      </svg>
+      <span className="h-3 w-[2px] bg-current opacity-40" />
+      <svg
+        fill="currentColor"
+        viewBox="0 0 5 11"
+        width="5"
+        height="11"
+      >
+        <path d="M0 0 5 5.5 0 11V0Z" />
+      </svg>
+    </span>
+  );
+}
+
+function GutterResizeDemo() {
+  const shellRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    const shell = shellRef.current;
+    const parent = shell?.parentElement;
+    if (!shell || !parent) return;
+
+    const clampToParent = () => {
+      const max = parent.clientWidth;
+      setWidth((current) => {
+        if (current == null) return max;
+        return Math.min(Math.max(current, GUTTER_DEMO_MIN_WIDTH_PX), max);
+      });
+    };
+
+    clampToParent();
+    const observer = new ResizeObserver(clampToParent);
+    observer.observe(parent);
+    return () => observer.disconnect();
+  }, []);
+
+  const handlePointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const shell = shellRef.current;
+    const parent = shell?.parentElement;
+    if (!shell || !parent) return;
+
+    const startX = event.clientX;
+    const startWidth = shell.getBoundingClientRect().width;
+    const target = event.currentTarget;
+    target.setPointerCapture(event.pointerId);
+
+    const onMove = (moveEvent: PointerEvent) => {
+      const max = parent.clientWidth;
+      const next = Math.min(
+        max,
+        Math.max(
+          GUTTER_DEMO_MIN_WIDTH_PX,
+          startWidth + (moveEvent.clientX - startX),
+        ),
+      );
+      setWidth(next);
+    };
+
+    const onUp = () => {
+      target.releasePointerCapture(event.pointerId);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+  };
+
+  return (
+    <div
+      ref={shellRef}
+      aria-label="Resizable page gutter demonstration"
+      className="@container relative mt-5 w-full min-w-0 max-w-full overflow-hidden rounded-[11px] bg-surface-muted"
+      style={{ width: width == null ? "100%" : width }}
+    >
+      <div className="px-[clamp(20px,6cqw,96px)] py-8 sm:py-12">
+        <div className="flex min-h-28 items-center justify-center rounded-[11px] bg-white text-sm font-bold text-muted sm:min-h-40">
+          Content
+        </div>
+      </div>
+      <button
+        type="button"
+        aria-label="Drag to resize gutter demonstration"
+        className="absolute inset-y-0 right-0 z-10 flex w-5 cursor-col-resize touch-none items-center justify-center border-0 bg-transparent p-0 text-subtle transition-colors duration-150 ease-out hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink active:text-muted"
+        onPointerDown={handlePointerDown}
+      >
+        <GutterResizeHandleIcon />
+      </button>
+    </div>
   );
 }
 
@@ -300,14 +392,14 @@ export default function DesignSystem() {
           reveal
         />
 
-        <div className="px-[clamp(20px,6vw,96px)] pb-24">
+        <div className="min-w-0 px-[clamp(20px,6vw,96px)] pb-24">
           <div className="grid grid-cols-12 items-end gap-x-[clamp(16px,2vw,28px)] gap-y-8 py-[clamp(32px,7vw,96px)] max-[820px]:grid-cols-1">
             {/* The grid placement rides the reveal wrapper, as it does on the
                 home page's intro: the wrapper is the grid item once the title
                 is wrapped, so leaving the spans on the heading would drop it
                 out of the twelve-column track. */}
-            <ScrollReveal className="col-span-8 max-[820px]:col-span-1">
-              <h1 className="m-0 whitespace-nowrap text-balance text-[clamp(3.25rem,7vw,7rem)] font-bold leading-[0.94] tracking-[-0.06em]">
+            <ScrollReveal className="col-span-8 min-w-0 max-[820px]:col-span-1">
+              <h1 className="m-0 text-balance text-[clamp(2.5rem,7vw,7rem)] font-bold leading-[0.94] tracking-[-0.06em] max-[820px]:whitespace-normal min-[821px]:whitespace-nowrap">
                 design system
               </h1>
             </ScrollReveal>
@@ -321,8 +413,8 @@ export default function DesignSystem() {
             <h2 className={sectionTitleClassName} id="colors-title">
               colors
             </h2>
-            <div className="grid gap-12">
-              <div className="grid gap-x-4 gap-y-8 grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-10">
+              <div className="grid grid-cols-3 gap-x-4 gap-y-5 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-6 lg:grid-cols-5">
                 {semanticColors.map((color) => (
                   <div className={colorItemClassName} key={color.label}>
                     <ColorSwatch
@@ -369,7 +461,7 @@ export default function DesignSystem() {
             <div className="grid gap-12">
               <div>
                 <SpecimenLabel>display</SpecimenLabel>
-                <p className="m-0 mt-4 whitespace-nowrap text-balance text-[clamp(1.125rem,4.5vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
+                <p className="m-0 mt-4 whitespace-normal text-balance text-[clamp(1.125rem,4.5vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] min-[821px]:whitespace-nowrap">
                   Growth happens together.
                 </p>
               </div>
@@ -399,25 +491,21 @@ export default function DesignSystem() {
             <h2 className={sectionTitleClassName} id="layout-title">
               layout
             </h2>
-            <div className="grid gap-16">
-              <div className="grid gap-8">
-                <div>
+            <div className="grid min-w-0 gap-16">
+              <div className="grid min-w-0 gap-8">
+                <div className="min-w-0">
                   <SpecimenLabel>responsive page gutter</SpecimenLabel>
-                  <p className="m-0 mt-2 max-w-[58ch] text-pretty text-base leading-[1.5] text-muted">
+                  <p className="m-0 mt-2 max-w-full text-pretty text-base leading-[1.5] text-muted sm:max-w-[58ch]">
                     20–96px, scaling with the viewport via{" "}
-                    <code className="text-sm text-ink">
+                    <code className="break-all text-sm text-ink">
                       px-[clamp(20px,6vw,96px)]
                     </code>
                     .
                   </p>
-                  <div className="mt-5 rounded-[11px] bg-surface-muted px-[clamp(20px,6vw,96px)] py-6">
-                    <div className="flex min-h-20 items-center justify-center rounded-[11px] bg-white text-sm font-bold text-muted">
-                      Content
-                    </div>
-                  </div>
+                  <GutterResizeDemo />
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <SpecimenLabel>spacing scale</SpecimenLabel>
                   <dl className="m-0 mt-5 grid gap-4">
                     {spacingScale.map((space) => (
@@ -428,9 +516,9 @@ export default function DesignSystem() {
                         <dt className="text-sm tabular-nums text-muted">
                           {space.label}
                         </dt>
-                        <dd className="m-0">
+                        <dd className="m-0 min-w-0">
                           <div
-                            className={`${space.className} h-3 rounded-sm bg-ink`}
+                            className={`${space.className} h-3 rounded-sm bg-gray-300`}
                             aria-hidden="true"
                           />
                         </dd>
@@ -440,19 +528,19 @@ export default function DesignSystem() {
                 </div>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <SpecimenLabel>12-column grid</SpecimenLabel>
-                <p className="m-0 mt-2 max-w-[62ch] text-pretty text-base leading-[1.5] text-muted">
+                <p className="m-0 mt-2 max-w-full text-pretty text-base leading-[1.5] text-muted sm:max-w-[62ch]">
                   Prominent heading and copy layouts use 8/4 columns, then
                   collapse to one column at 820px and below.
                 </p>
                 <ol
-                  className={`m-0 mt-5 grid list-none grid-cols-6 ${layoutGridGapClassName} p-0 min-[821px]:grid-cols-12`}
+                  className={`m-0 mt-5 grid list-none grid-cols-4 ${layoutGridGapClassName} p-0 min-[821px]:grid-cols-12`}
                   aria-label="Twelve-column responsive grid"
                 >
                   {layoutColumns.map((column) => (
                     <li
-                      className="flex aspect-[3/4] items-center justify-center rounded-[11px] bg-surface-muted text-sm tabular-nums text-muted"
+                      className="flex aspect-square items-center justify-center rounded-[11px] bg-surface-muted text-sm tabular-nums text-muted min-[821px]:aspect-[3/4]"
                       key={column}
                     >
                       {column}
@@ -463,7 +551,7 @@ export default function DesignSystem() {
                   className={`mt-6 grid grid-cols-1 ${layoutGridGapClassName} min-[821px]:grid-cols-12`}
                   aria-label="Eight-column display and four-column body layout"
                 >
-                  <div className="min-h-20 rounded-[11px] bg-ink px-4 py-16 text-white min-[821px]:col-span-8">
+                  <div className="min-h-20 rounded-[11px] bg-ink px-4 py-8 text-white sm:py-12 min-[821px]:col-span-8 min-[821px]:py-16">
                     <p className="m-0 text-2xl font-bold leading-[1.02] tracking-[-0.06em]">
                       Display
                     </p>
@@ -471,7 +559,7 @@ export default function DesignSystem() {
                       8 columns
                     </p>
                   </div>
-                  <div className="min-h-20 rounded-[11px] bg-surface-muted px-4 py-16 min-[821px]:col-span-4">
+                  <div className="min-h-20 rounded-[11px] bg-surface-muted px-4 py-8 sm:py-12 min-[821px]:col-span-4 min-[821px]:py-16">
                     <p className="m-0 text-base font-normal leading-[1.5] text-muted">
                       Body
                     </p>
@@ -492,82 +580,94 @@ export default function DesignSystem() {
             <h2 className={sectionTitleClassName} id="borders-title">
               borders
             </h2>
-            <div>
-              <ul className="m-0 grid list-none grid-cols-2 gap-x-8 gap-y-10 p-0 lg:grid-cols-6">
-                <li className="grid justify-items-start gap-4">
-                  <div>
-                    <SpecimenLabel>small</SpecimenLabel>
-                    <p className={specimenDescriptionClassName}>
-                      rounded-sm · 4px
-                    </p>
-                  </div>
-                  <div
-                    className="size-20 rounded-sm bg-gray-200"
-                    aria-hidden="true"
-                  />
-                </li>
-                <li className="grid justify-items-start gap-4">
-                  <div>
-                    <SpecimenLabel>medium</SpecimenLabel>
-                    <p className={specimenDescriptionClassName}>
-                      rounded-md · 6px
-                    </p>
-                  </div>
-                  <div
-                    className="size-20 rounded-md bg-gray-200"
-                    aria-hidden="true"
-                  />
-                </li>
-                <li className="grid justify-items-start gap-4">
-                  <div>
-                    <SpecimenLabel>large</SpecimenLabel>
-                    <p className={specimenDescriptionClassName}>
-                      rounded-lg · 8px
-                    </p>
-                  </div>
-                  <div
-                    className="size-20 rounded-lg bg-gray-200"
-                    aria-hidden="true"
-                  />
-                </li>
-                <li className="grid justify-items-start gap-4">
-                  <div>
-                    <SpecimenLabel>control</SpecimenLabel>
-                    <p className={specimenDescriptionClassName}>
-                      rounded-[10px]
-                    </p>
-                  </div>
-                  <div
-                    className="size-20 rounded-[10px] bg-gray-200"
-                    aria-hidden="true"
-                  />
-                </li>
-                <li className="grid justify-items-start gap-4">
-                  <div>
-                    <SpecimenLabel>surface</SpecimenLabel>
-                    <p className={specimenDescriptionClassName}>
-                      rounded-[11px]
-                    </p>
-                  </div>
-                  <div
-                    className="size-20 rounded-[11px] bg-gray-200"
-                    aria-hidden="true"
-                  />
-                </li>
-                <li className="grid justify-items-start gap-4">
-                  <div>
-                    <SpecimenLabel>full</SpecimenLabel>
-                    <p className={specimenDescriptionClassName}>
-                      rounded-full · pill
-                    </p>
-                  </div>
-                  <div
-                    className="size-20 rounded-full bg-gray-200"
-                    aria-hidden="true"
-                  />
-                </li>
-              </ul>
-              <ul className="m-0 mt-10 grid list-none grid-cols-2 gap-x-8 gap-y-10 p-0 lg:grid-cols-6">
+            <ul className="m-0 grid list-none grid-cols-2 gap-x-8 gap-y-10 p-0 lg:grid-cols-6">
+              <li className="grid justify-items-start gap-4">
+                <div>
+                  <SpecimenLabel>small</SpecimenLabel>
+                  <p className={specimenDescriptionClassName}>
+                    rounded-sm · 4px
+                  </p>
+                </div>
+                <div
+                  className="size-20 rounded-sm bg-gray-200"
+                  aria-hidden="true"
+                />
+              </li>
+              <li className="grid justify-items-start gap-4">
+                <div>
+                  <SpecimenLabel>medium</SpecimenLabel>
+                  <p className={specimenDescriptionClassName}>
+                    rounded-md · 6px
+                  </p>
+                </div>
+                <div
+                  className="size-20 rounded-md bg-gray-200"
+                  aria-hidden="true"
+                />
+              </li>
+              <li className="grid justify-items-start gap-4">
+                <div>
+                  <SpecimenLabel>large</SpecimenLabel>
+                  <p className={specimenDescriptionClassName}>
+                    rounded-lg · 8px
+                  </p>
+                </div>
+                <div
+                  className="size-20 rounded-lg bg-gray-200"
+                  aria-hidden="true"
+                />
+              </li>
+              <li className="grid justify-items-start gap-4">
+                <div>
+                  <SpecimenLabel>control</SpecimenLabel>
+                  <p className={specimenDescriptionClassName}>
+                    rounded-[10px]
+                  </p>
+                </div>
+                <div
+                  className="size-20 rounded-[10px] bg-gray-200"
+                  aria-hidden="true"
+                />
+              </li>
+              <li className="grid justify-items-start gap-4">
+                <div>
+                  <SpecimenLabel>surface</SpecimenLabel>
+                  <p className={specimenDescriptionClassName}>
+                    rounded-[11px]
+                  </p>
+                </div>
+                <div
+                  className="size-20 rounded-[11px] bg-gray-200"
+                  aria-hidden="true"
+                />
+              </li>
+              <li className="grid justify-items-start gap-4">
+                <div>
+                  <SpecimenLabel>full</SpecimenLabel>
+                  <p className={specimenDescriptionClassName}>
+                    rounded-full · pill
+                  </p>
+                </div>
+                <div
+                  className="size-20 rounded-full bg-gray-200"
+                  aria-hidden="true"
+                />
+              </li>
+            </ul>
+          </section>
+
+          <section
+            id="strokes"
+            className={sectionClassName}
+            aria-labelledby="strokes-title"
+          >
+            <h2 className={sectionTitleClassName} id="strokes-title">
+              strokes
+            </h2>
+            <div
+              className={`${specimenClassName} bg-surface-muted p-5 sm:p-8`}
+            >
+              <ul className="m-0 grid w-full list-none grid-cols-2 gap-x-8 gap-y-10 p-0 lg:grid-cols-3">
                 <li className="grid justify-items-start gap-4">
                   <div>
                     <SpecimenLabel>media inset edge</SpecimenLabel>
@@ -596,7 +696,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>media inset edge soft</SpecimenLabel>
                     <p className={specimenDescriptionClassName}>
-                      1px · 3% · fades in at full width
+                      1px · 3%
                     </p>
                   </div>
                   <div
@@ -633,7 +733,7 @@ export default function DesignSystem() {
                 <div>
                   <SpecimenLabel>soft</SpecimenLabel>
                   <p className={specimenDescriptionClassName}>
-                    event cards · soft shadow + media inset edge
+                    soft shadow + media inset edge
                   </p>
                 </div>
                 <div
@@ -736,24 +836,6 @@ export default function DesignSystem() {
           </section>
 
           <section
-            id="icons"
-            className={sectionClassName}
-            aria-labelledby="icons-title"
-          >
-            <h2 className={sectionTitleClassName} id="icons-title">
-              icons
-            </h2>
-            <ul className="m-0 grid list-none grid-cols-2 gap-x-8 gap-y-10 p-0 sm:grid-cols-3 lg:grid-cols-5">
-              {designSystemIcons.map(({ label, icon }) => (
-                <li className={iconSpecimenClassName} key={label}>
-                  <span className={dsIconFrameClassName}>{icon}</span>
-                  <SpecimenLabel weight="normal">{label}</SpecimenLabel>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section
             id="inputs"
             className={sectionClassName}
             aria-labelledby="inputs-title"
@@ -764,7 +846,7 @@ export default function DesignSystem() {
             <div className="grid gap-8">
               <div className="grid max-w-2xl gap-8 sm:grid-cols-2">
                 <label className="grid gap-2 text-base">
-                  <span className="font-bold">Email address</span>
+                  <SpecimenLabel>email address</SpecimenLabel>
                   <Input
                     type="email"
                     placeholder="you@example.com"
@@ -772,12 +854,12 @@ export default function DesignSystem() {
                   />
                 </label>
                 <label className="grid gap-2 text-base">
-                  <span className="font-bold">Disabled</span>
+                  <SpecimenLabel>disabled</SpecimenLabel>
                   <Input placeholder="Unavailable" disabled />
                 </label>
               </div>
               <div className="grid gap-2 text-base">
-                <span className="font-bold">Dropdown</span>
+                <SpecimenLabel>dropdown</SpecimenLabel>
                 <SelectSpecimen />
               </div>
             </div>
@@ -792,7 +874,7 @@ export default function DesignSystem() {
               tooltips
             </h2>
             <div
-              className={`${specimenClassName} items-start gap-8 bg-surface-muted p-5 sm:grid sm:grid-cols-2 sm:items-start sm:p-8`}
+              className={`${specimenClassName} items-start gap-8 bg-surface-muted px-5 py-4.5 sm:grid sm:grid-cols-2 sm:items-start sm:px-8 sm:py-7.5`}
             >
               <div className="grid gap-3">
                 <div className="-ml-4 w-fit">
@@ -809,23 +891,51 @@ export default function DesignSystem() {
               <div className="grid gap-3">
                 <div className="-ml-2 flex w-fit items-center gap-2">
                   <Tooltip content="Substack">
-                    <IconButton aria-label="Substack" variant="ghost">
-                      <SubstackIcon className="size-[18px]" />
+                    <IconButton
+                      aria-label="Substack"
+                      className="group"
+                      variant="ghost"
+                    >
+                      <SubstackIcon
+                        className={`${dsSocialIconHoverClassName} size-[18px] group-hover:text-[#FF6719] group-focus-visible:text-[#FF6719]`}
+                      />
                     </IconButton>
                   </Tooltip>
                   <Tooltip content="Instagram">
-                    <IconButton aria-label="Instagram" variant="ghost">
-                      <InstagramIcon className="size-5" />
+                    <IconButton
+                      aria-label="Instagram"
+                      className="group"
+                      variant="ghost"
+                    >
+                      <span className="relative size-5">
+                        <InstagramIcon className="size-5 transition-opacity duration-150 ease-out group-hover:opacity-0 group-focus-visible:opacity-0 motion-reduce:transition-none" />
+                        <InstagramIcon
+                          branded
+                          className="absolute inset-0 size-5 opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+                        />
+                      </span>
                     </IconButton>
                   </Tooltip>
                   <Tooltip content="LinkedIn">
-                    <IconButton aria-label="LinkedIn" variant="ghost">
-                      <LinkedInIcon className="size-5" />
+                    <IconButton
+                      aria-label="LinkedIn"
+                      className="group"
+                      variant="ghost"
+                    >
+                      <LinkedInIcon
+                        className={`${dsSocialIconHoverClassName} size-5 group-hover:text-[#0A66C2] group-focus-visible:text-[#0A66C2]`}
+                      />
                     </IconButton>
                   </Tooltip>
                   <Tooltip content="X">
-                    <IconButton aria-label="X" variant="ghost">
-                      <XIcon className="size-[18px]" />
+                    <IconButton
+                      aria-label="X"
+                      className="group"
+                      variant="ghost"
+                    >
+                      <XIcon
+                        className={`${dsSocialIconHoverClassName} size-[18px] group-hover:text-ink group-focus-visible:text-ink`}
+                      />
                     </IconButton>
                   </Tooltip>
                 </div>

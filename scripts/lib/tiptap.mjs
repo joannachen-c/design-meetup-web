@@ -470,8 +470,29 @@ function unwrapHeadingBold(node) {
 }
 
 /**
+ * True when a prior sibling is non-bold text on the same line (mid-sentence
+ * brand/venue emphasis like "at Clay's NYC office"). Leading bold — Featuring
+ * names, schedule times, When:/Where: — must stay.
+ */
+function hasPrecedingPlainText(nodes, index) {
+  for (let i = index - 1; i >= 0; i -= 1) {
+    const prev = nodes[i];
+    if (!prev) continue;
+    if (prev.type === "hard_break") return false;
+    if (prev.type === "text") {
+      if (!String(prev.text ?? "").trim()) continue;
+      return !hasBoldMark(prev);
+    }
+    // Linked/inline nodes count as preceding content on the same line.
+    return true;
+  }
+  return false;
+}
+
+/**
  * Unwrap mid-sentence brand/venue bold (e.g. "Clay's NYC office", "v0",
- * "Cursor") while keeping structural labels: speaker names, times, When:/Where:.
+ * "Cursor") while keeping leading structural bold: speaker names in Featuring
+ * lists ("Jennifer Jing, …"), times, and When:/Where: labels.
  */
 function unwrapIncidentalParagraphBold(node) {
   if (!node || node.type !== "paragraph" || !Array.isArray(node.content)) {
@@ -503,10 +524,11 @@ function unwrapIncidentalParagraphBold(node) {
       return child;
     }
 
-    const touchesPlainText =
-      (prev?.type === "text" && !hasBoldMark(prev)) ||
-      (next?.type === "text" && !hasBoldMark(next));
-    if (touchesPlainText) return withoutBoldMarks(child);
+    // Only strip mid-sentence emphasis (plain text before the bold run).
+    // Leading bold followed by a title (", Senior Designer…") must stay.
+    if (hasPrecedingPlainText(node.content, index)) {
+      return withoutBoldMarks(child);
+    }
     return child;
   });
 
@@ -539,7 +561,8 @@ function dropHorizontalRules(nodes = []) {
  * Drop host liability / policy boilerplate, sold-out notices, Figma Field Days
  * eligibility/RSVP footnotes, partner intros, social footers, redundant title
  * lines, and promo perk headings from a Luma TipTap description. Also unwraps
- * decorative bold inside headings and mid-sentence brand/venue emphasis.
+ * decorative bold inside headings and mid-sentence brand/venue emphasis, while
+ * keeping leading speaker-name bold in Featuring lists.
  */
 export function stripLiabilityContent(doc, options = {}) {
   if (!doc || typeof doc !== "object") return doc;
@@ -633,11 +656,22 @@ function unwrapIncidentalHtmlStrong(html) {
         continue;
       }
 
-      const prevIsPlain =
-        prev && !/^</.test(prev) && prev.replace(/\s+/g, "").length > 0;
-      const nextIsPlain =
-        next && !/^</.test(next) && next.replace(/\s+/g, "").length > 0;
-      if (prevIsPlain || nextIsPlain) {
+      // Mid-sentence only: plain text before the strong run.
+      // Leading names ("Jennifer Jing, …") keep their <strong>.
+      let prevIsPlain = false;
+      for (let i = index - 1; i >= 0; i -= 1) {
+        const candidate = tokens[i];
+        if (/^<br\s*\/?>$/i.test(candidate)) break;
+        if (/^</.test(candidate)) {
+          prevIsPlain = true;
+          break;
+        }
+        if (candidate.replace(/\s+/g, "").length > 0) {
+          prevIsPlain = true;
+          break;
+        }
+      }
+      if (prevIsPlain) {
         parts.push(strongMatch[1]);
         continue;
       }

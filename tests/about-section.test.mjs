@@ -21,7 +21,7 @@ test("about section introduces the community and how it grew", () => {
   );
   assert.match(
     app,
-    /In December 2025, Design Meetup was just an idea\. A month later, we hosted our first event with 50 designers\. And now, we’ve brought together over 10,000 people across countless events in NY, LA,\{\s*" "\s*\}\s*<br className="hidden min-\[821px\]:block" \/>\s*& the Bay Area\./,
+    /In December 2025, Design Meetup was just an idea\. A month later, we hosted our first event with 50 designers\. Now, we’ve brought together over 10,000 people across countless events in NYC, LA, and the Bay Area\./,
   );
 });
 

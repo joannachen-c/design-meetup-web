@@ -145,7 +145,7 @@ export function FoundersNote() {
           the travel and holds that resting angle, since the tilt is the card's
           posture and not movement. */}
       <motion.figure
-        className="founders-card m-0 mx-auto flex max-w-[720px] flex-col items-center rounded-[6px] border border-gray-100 bg-white px-[clamp(24px,5vw,56px)] pt-[clamp(36px,5vw,64px)] pb-[clamp(28px,4vw,52px)] text-center shadow-[0_4px_12px_4px_rgba(0,0,0,0.05)]"
+        className="founders-card relative m-0 mx-auto flex max-w-[720px] flex-col items-stretch overflow-hidden rounded-[6px] border border-gray-100 bg-white p-[clamp(24px,5vw,56px)] text-left shadow-[0_4px_12px_4px_rgba(0,0,0,0.05)]"
         initial={reduceMotion ? { rotate: -1 } : cardHidden}
         animate={
           reduceMotion ? { rotate: -1 } : inView ? cardShown : cardHidden
@@ -157,48 +157,54 @@ export function FoundersNote() {
           mass: 0.95,
         }}
       >
-        {/* The stamp waits for the card to settle before it appears, so it
-            reads as surfacing on a note already lying flat. It dissolves in
-            rather than landing: the blur clearing is what carries the entrance,
-            and the slow tail means the mark never overshoots or springs, which
-            at 100px is the difference between a mark appearing and a bounce.
-            Reduced motion keeps the mark and drops the dissolve. */}
-        <motion.img
-          className="mb-[clamp(28px,3.5vw,44px)] size-[100px]"
-          src="/design-meetup-stamp.png"
-          alt=""
-          width={100}
-          height={100}
-          loading="lazy"
-          decoding="async"
-          initial={reduceMotion ? { opacity: 0 } : stampHidden}
-          animate={
-            reduceMotion
-              ? { opacity: inView ? 1 : 0 }
-              : inView
-                ? stampShown
-                : stampHidden
-          }
-          transition={
-            reduceMotion
-              ? { duration: 0.3, ease: "easeOut" }
-              : { duration: 0.72, delay: 0.24, ease: dissolveEase }
-          }
-        />
-        <blockquote className="m-0 max-w-[44ch]">
-          <p className="m-0 text-pretty text-base leading-[1.7] text-body">
-            We created Design Meetup to build the design community our younger
-            selves wish existed:{"\u00A0"}
-            <br className="hidden min-[821px]:block" />
-            curated, ambitious, and focused on growth.
-          </p>
-          <p className="m-0 mt-4 text-pretty text-base leading-[1.7] text-body">
-            We’d love to grow it alongside partners who believe in the future of
-            design. Join us!
-          </p>
-        </blockquote>
-        {/* Heart sign-off ("from,") temporarily hidden — card max-width tightened without it. */}
-        <figcaption className="mt-[clamp(28px,3.5vw,44px)] flex w-full flex-wrap items-start justify-center gap-x-[clamp(24px,4vw,56px)] gap-y-[clamp(20px,3vw,32px)] min-[821px]:flex-nowrap">
+        {/* Story left, stamp right on desktop. On narrow widths the stamp leads
+            (order-first) so it sits above Our story. Figma parks the mark ~21px
+            above the card edge; the negative top margin cancels the card padding
+            plus that clip so overflow-hidden shears the circle at the top. */}
+        <div className="founders-card-top relative flex w-full flex-col items-end gap-0 min-[821px]:flex-row min-[821px]:items-start min-[821px]:justify-between min-[821px]:gap-2">
+          <blockquote className="m-0 w-full min-w-0 max-w-[24rem] text-left min-[821px]:pt-1">
+            <p className="m-0 text-base font-bold leading-[1.7] text-ink">
+              Our story
+            </p>
+            <p className="m-0 mt-4 text-pretty text-base leading-[1.7] text-ink">
+              We created Design Meetup to build the design community our younger
+              selves wish existed: curated, ambitious, and focused on growth.
+            </p>
+            <p className="m-0 mt-4 text-pretty text-base leading-[1.7] text-ink">
+              We’d love to grow it alongside partners who believe in the future of
+              design. Join us!
+            </p>
+          </blockquote>
+          {/* The stamp waits for the card to settle before it appears, so it
+              reads as surfacing on a note already lying flat. It dissolves in
+              rather than landing: the blur clearing is what carries the entrance,
+              and the slow tail means the mark never overshoots or springs, which
+              at this size is the difference between a mark appearing and a bounce.
+              Reduced motion keeps the mark and drops the dissolve. */}
+          <motion.img
+            className="founders-stamp relative order-first size-[clamp(112px,28vw,140px)] shrink-0 -mt-[calc(clamp(24px,5vw,56px)+1.25rem)] -mr-10 min-[821px]:order-last min-[821px]:size-[clamp(160px,42vw,280px)] min-[821px]:-mt-20 min-[821px]:-mr-2"
+            src="/design-meetup-stamp.png"
+            alt=""
+            width={280}
+            height={280}
+            loading="lazy"
+            decoding="async"
+            initial={reduceMotion ? { opacity: 0 } : stampHidden}
+            animate={
+              reduceMotion
+                ? { opacity: inView ? 1 : 0 }
+                : inView
+                  ? stampShown
+                  : stampHidden
+            }
+            transition={
+              reduceMotion
+                ? { duration: 0.3, ease: "easeOut" }
+                : { duration: 0.72, delay: 0.24, ease: dissolveEase }
+            }
+          />
+        </div>
+        <figcaption className="mt-[clamp(36px,7vw,60px)] flex w-full flex-wrap items-start justify-center gap-x-[clamp(24px,4vw,56px)] gap-y-[clamp(20px,3vw,32px)] min-[821px]:flex-nowrap">
           {signatureGroups.map((group) => (
             <div className="flex flex-col items-center" key={group.role}>
               <div className="flex items-end justify-center gap-x-[clamp(14px,2.5vw,28px)]">

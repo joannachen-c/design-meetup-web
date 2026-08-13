@@ -476,6 +476,19 @@ test("Luma parse drops redundant titles, perk headings, social footers, and inci
   assert.match(alreadyRendered, /Clay’s NYC office with lightning talks/);
   assert.match(alreadyRendered, /<h2>Schedule<\/h2>/);
   assert.match(alreadyRendered, /<strong>6:00 PM<\/strong>/);
+
+  const featuringHtml = stripLiabilityFromHtml(
+    `<p>Featuring:</p><ul><li><p><strong>Jennifer Jing</strong>, Senior Product Designer for GenAI Experiences @ YouTube</p></li><li><p><strong>Zhengnan Zhao</strong>, Designer, Creator, Builder @ YouTube</p></li></ul><p>Join us at <strong>Clay’s NYC office</strong> with lightning talks.</p>`,
+  );
+  assert.match(
+    featuringHtml,
+    /<strong>Jennifer Jing<\/strong>, Senior Product Designer/,
+  );
+  assert.match(
+    featuringHtml,
+    /<strong>Zhengnan Zhao<\/strong>, Designer, Creator, Builder/,
+  );
+  assert.doesNotMatch(featuringHtml, /<strong>Clay’s NYC office<\/strong>/);
 });
 
 test("summary refresh updates plain and html summary fields in Supabase", () => {
@@ -502,6 +515,15 @@ test("all local event summaries contain retained line breaks and html", () => {
       /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships|full capacity|subscribe to our calendars|verified Figma for Education|Figma for Education email|Capacity is limited to \d+ attendees[\s\S]{0,160}RSVPs? will be reviewed|Special Perk for Attendees|<h2>Design Meetup × Clay NYC|Instagram:\s*@designmeetup|<h2><strong>/i,
     );
   }
+
+  const google = events.find(
+    (event) => event.luma_event_id === "evt-je6T5n6VZCj2SoI",
+  );
+  assert.ok(google);
+  assert.match(
+    google.summary_html,
+    /<strong>Jennifer Jing<\/strong>, Senior Product Designer/,
+  );
 });
 
 test("bundled summary html matches the scraped events and reaches the app", () => {

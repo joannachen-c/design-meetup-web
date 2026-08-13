@@ -27,7 +27,7 @@ const variantClassName = {
     "bg-surface-muted text-ink hover:bg-gray-200 disabled:hover:bg-surface-muted aria-disabled:hover:bg-surface-muted",
   ghost:
     "bg-transparent text-gray-500 hover:bg-surface-muted active:bg-gray-200 disabled:hover:bg-transparent disabled:active:bg-transparent aria-disabled:hover:bg-transparent aria-disabled:active:bg-transparent",
-  ink: "bg-ink text-white hover:bg-gray-800 disabled:hover:bg-ink aria-disabled:hover:bg-ink",
+  ink: "bg-ink text-white hover:bg-gray-700 disabled:hover:bg-ink aria-disabled:hover:bg-ink",
 } as const;
 
 export function Primary({

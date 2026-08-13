@@ -27,15 +27,16 @@ test("the specimen page documents foundations and production components", () => 
     "typography",
     "layout",
     "borders",
+    "strokes",
     "shadows",
     "buttons",
     "links",
-    "icons",
     "inputs",
     "tooltips",
   ]) {
     assert.match(designSystem, new RegExp(`>\\s*${section}\\s*<`));
   }
+  assert.doesNotMatch(designSystem, />\s*icons\s*</);
   assert.match(designSystem, /<Primary/);
   assert.match(designSystem, /<Link/);
   assert.match(designSystem, /<Input/);
@@ -50,10 +51,10 @@ test("design-system section and group headers are lowercase without changing spe
     ["typography", "typography"],
     ["layout", "layout"],
     ["borders", "borders"],
+    ["strokes", "strokes"],
     ["shadows", "shadows"],
     ["buttons", "buttons"],
     ["links", "links"],
-    ["icons", "icons"],
     ["inputs", "inputs"],
     ["tooltips", "tooltips"],
   ]) {
@@ -64,6 +65,7 @@ test("design-system section and group headers are lowercase without changing spe
       ),
     );
   }
+  assert.doesNotMatch(designSystem, /id="icons-title"/);
 
   for (const label of [
     "tailwind neutrals",
@@ -83,6 +85,9 @@ test("design-system section and group headers are lowercase without changing spe
     "raised",
     "variants",
     "states",
+    "email address",
+    "disabled",
+    "dropdown",
   ]) {
     assert.match(
       designSystem,
@@ -90,9 +95,20 @@ test("design-system section and group headers are lowercase without changing spe
     );
   }
 
-  for (const label of ["ink", "muted", "soft gray", "meetup lime"]) {
+  for (const label of [
+    "ink",
+    "muted",
+    "subtle",
+    "white",
+    "surface",
+    "surface muted",
+    "skeleton",
+    "meetup lime",
+    "meetup lime hover",
+  ]) {
     assert.match(designSystem, new RegExp(`label: "${label}"`));
   }
+  assert.doesNotMatch(designSystem, /label: "body"/);
 
   assert.doesNotMatch(
     designSystem,
@@ -123,25 +139,28 @@ test("the inputs specimen documents the dropdown built on the input surface", ()
 
   assert.match(designSystem, /import \{ Select \} from "\.\/components\/Select"/);
   assert.match(inputsSection, /<SelectSpecimen \/>/);
-  assert.match(inputsSection, />\s*Dropdown\s*</);
+  assert.match(inputsSection, /<SpecimenLabel>dropdown<\/SpecimenLabel>/);
   assert.match(
     inputsSection,
-    /id="inputs-title"[\s\S]*?<div className="grid gap-8">[\s\S]*Email address[\s\S]*Dropdown/,
+    /id="inputs-title"[\s\S]*?<div className="grid gap-8">[\s\S]*email address[\s\S]*dropdown/,
   );
   assert.doesNotMatch(inputsSection, /Shares the input surface and radius/);
   assert.match(designSystem, /function SelectSpecimen\(\)[\s\S]*?<Select\b/);
   assert.doesNotMatch(designSystem, /<select[\s\n>]/);
 });
 
-test("inputs specimen field labels do not cascade bold into the control", () => {
+test("inputs specimen field labels use SpecimenLabel like other subsections", () => {
   const inputsSection =
     designSystem.match(/<section\s+id="inputs"[\s\S]*?<\/section>/)?.[0] ?? "";
 
   assert.doesNotMatch(inputsSection, /<label className="[^"]*\bfont-bold\b/);
-  assert.equal(
-    inputsSection.match(/<span className="font-bold">/g)?.length,
-    3,
-  );
+  assert.doesNotMatch(inputsSection, /<span className="font-bold">/);
+  for (const label of ["email address", "disabled", "dropdown"]) {
+    assert.match(
+      inputsSection,
+      new RegExp(`<SpecimenLabel>${label}<\\/SpecimenLabel>`),
+    );
+  }
   assert.match(input, /\bfont-normal\b/);
 });
 
@@ -167,7 +186,7 @@ test("sections omit horizontal dividers while preserving vertical rhythm", () =>
 
   assert.equal(
     sectionClassName,
-    "grid gap-8 py-14 md:grid-cols-[minmax(150px,0.32fr)_minmax(0,1fr)] md:gap-16 md:py-20",
+    "grid min-w-0 gap-8 py-14 md:grid-cols-[minmax(150px,0.32fr)_minmax(0,1fr)] md:gap-16 md:py-20",
   );
   assert.doesNotMatch(sectionClassName, /\bborder-(?:t|b)\b/);
 });
@@ -179,7 +198,7 @@ test("layout foundations show the responsive twelve-column 8/4 grid", () => {
   );
   assert.match(
     designSystem,
-    /grid-cols-6[^"]*min-\[821px\]:grid-cols-12/,
+    /grid-cols-4[^"]*min-\[821px\]:grid-cols-12/,
   );
   assert.match(
     designSystem,
@@ -223,27 +242,30 @@ test("the annotated 8/4 layout surfaces double vertical padding only", () => {
   for (const surface of [displaySurface, bodySurface]) {
     assert.match(surface, /\bmin-h-20\b/);
     assert.match(surface, /\bpx-4\b/);
-    assert.match(surface, /\bpy-16\b/);
+    assert.match(surface, /\bpy-8\b/);
+    assert.match(surface, /\bmin-\[821px\]:py-16\b/);
     assert.doesNotMatch(surface, /\bp-4\b/);
-    assert.doesNotMatch(surface, /\bpy-4\b/);
-    assert.doesNotMatch(surface, /\bpy-8\b/);
+    assert.doesNotMatch(surface, /(?:^|\s)py-16(?:\s|$)/);
   }
 });
 
 test("visible layout specimens share the tooltip card radius", () => {
   assert.match(
     designSystem,
-    /mt-5 rounded-\[11px\] bg-surface-muted px-\[clamp\(20px,6vw,96px\)\] py-6/,
+    /@container relative mt-5 w-full min-w-0 max-w-full overflow-hidden rounded-\[11px\] bg-surface-muted/,
   );
   assert.match(
     designSystem,
-    /min-h-20 items-center justify-center rounded-\[11px\] bg-white/,
+    /px-\[clamp\(20px,6cqw,96px\)\] py-8 sm:py-12/,
   );
   assert.match(
     designSystem,
-    /layoutColumns\.map\(\(column\) => \([\s\S]*aspect-\[3\/4\] items-center justify-center rounded-\[11px\] bg-surface-muted[\s\S]*\{column\}[\s\S]*\)\)/,
+    /min-h-28 items-center justify-center rounded-\[11px\] bg-white[\s\S]*sm:min-h-40/,
   );
-  assert.doesNotMatch(designSystem, /\bflex aspect-square items-center justify-center/);
+  assert.match(
+    designSystem,
+    /layoutColumns\.map\(\(column\) => \([\s\S]*aspect-square items-center justify-center rounded-\[11px\] bg-surface-muted[\s\S]*min-\[821px\]:aspect-\[3\/4\][\s\S]*\{column\}[\s\S]*\)\)/,
+  );
   assert.match(
     designSystem,
     /min-h-20 rounded-\[11px\] bg-ink[\s\S]*min-h-20 rounded-\[11px\] bg-surface-muted/,
@@ -253,17 +275,18 @@ test("visible layout specimens share the tooltip card radius", () => {
 test("layout spacing-scale bars use the smaller radius", () => {
   assert.match(
     designSystem,
-    /className=\{`\$\{space\.className\} h-3 rounded-sm bg-ink`\}/,
+    /className=\{`\$\{space\.className\} h-3 rounded-sm bg-gray-300`\}/,
   );
   assert.doesNotMatch(
     designSystem,
-    /className=\{`\$\{space\.className\} h-3 rounded-\[11px\] bg-ink`\}/,
+    /className=\{`\$\{space\.className\} h-3 rounded-\[11px\] bg-(?:ink|gray-300)`\}/,
   );
 });
 
-test("borders and shadows are linked foundations sections", () => {
+test("borders, strokes, and shadows are linked foundations sections", () => {
   for (const [label, id] of [
     ["borders", "borders"],
+    ["strokes", "strokes"],
     ["shadows", "shadows"],
   ]) {
     assert.match(
@@ -315,6 +338,8 @@ test("border specimens document production corner radii", () => {
 test("border metadata shares the shadow description typography", () => {
   const bordersSection =
     designSystem.match(/<section\s+id="borders"[\s\S]*?<\/section>/)?.[0] ?? "";
+  const strokesSection =
+    designSystem.match(/<section\s+id="strokes"[\s\S]*?<\/section>/)?.[0] ?? "";
   const shadowsSection =
     designSystem.match(/<section\s+id="shadows"[\s\S]*?<\/section>/)?.[0] ?? "";
 
@@ -326,7 +351,13 @@ test("border metadata shares the shadow description typography", () => {
     bordersSection.match(
       /<p className=\{specimenDescriptionClassName\}>/g,
     )?.length,
-    9,
+    6,
+  );
+  assert.equal(
+    strokesSection.match(
+      /<p className=\{specimenDescriptionClassName\}>/g,
+    )?.length,
+    3,
   );
   assert.equal(
     shadowsSection.match(
@@ -353,19 +384,20 @@ test("border specimens use equal gray squares in a responsive uncarded grid", ()
   assert.equal(
     bordersSection.match(/<li className="grid justify-items-start gap-4">/g)
       ?.length,
-    9,
+    6,
   );
   assert.doesNotMatch(
     bordersSection,
     /size-20[^"]*\bborder\b/,
   );
+  assert.doesNotMatch(bordersSection, /media-inset-edge/);
 });
 
-// Both edges are specimens of the production custom properties rather than
+// Stroke edges are specimens of the production custom properties rather than
 // re-spelled shadows, so the page cannot drift from what the covers paint.
 test("the media inset edges are documented at their production weights", () => {
-  const bordersSection =
-    designSystem.match(/<section\s+id="borders"[\s\S]*?<\/section>/)?.[0] ?? "";
+  const strokesSection =
+    designSystem.match(/<section\s+id="strokes"[\s\S]*?<\/section>/)?.[0] ?? "";
 
   // Each specimen wears the production class, so the page paints whatever the
   // token paints and the three weights can be compared side by side.
@@ -382,19 +414,23 @@ test("the media inset edges are documented at their production weights", () => {
     ],
     [
       "media inset edge soft",
-      "1px · 3% · fades in at full width",
+      "1px · 3%",
       "media-inset-edge-soft relative size-20 rounded-\\[20px\\] bg-white",
     ],
   ]) {
     assert.match(
-      bordersSection,
+      strokesSection,
       new RegExp(`<SpecimenLabel>${label}</SpecimenLabel>`),
     );
-    assert.match(bordersSection, new RegExp(description));
-    assert.match(bordersSection, new RegExp(`className="${className}"`));
+    assert.match(strokesSection, new RegExp(description));
+    assert.match(strokesSection, new RegExp(`className="${className}"`));
   }
 
-  assert.doesNotMatch(bordersSection, /box-shadow|inset 0 0 0/);
+  assert.match(
+    strokesSection,
+    /className=\{`\$\{specimenClassName\} bg-surface-muted p-5 sm:p-8`\}/,
+  );
+  assert.doesNotMatch(strokesSection, /box-shadow|inset 0 0 0/);
   assert.match(styles, /--media-inset-edge:\s*inset 0 0 0 2px/);
   assert.match(styles, /--media-inset-edge-focused:\s*inset 0 0 0 2px/);
   assert.match(styles, /--media-inset-edge-soft:\s*inset 0 0 0 1px/);
@@ -411,7 +447,7 @@ test("shadow specimens use production elevation classes", () => {
   );
   assert.match(shadowsSection, /shadow-lg/);
   assert.match(shadowsSection, /hover:shadow-xl/);
-  assert.match(shadowsSection, /event cards · soft shadow \+ media inset edge/);
+  assert.match(shadowsSection, /soft shadow \+ media inset edge/);
   assert.match(shadowsSection, /border only/);
   assert.match(shadowsSection, /team cards/);
 });
@@ -448,7 +484,7 @@ test("shadow specimens use equal white squares in an uncarded grid", () => {
 test("the page title is lowercase and stays on one line", () => {
   assert.match(
     designSystem,
-    /<h1 className="[^"]*\bwhitespace-nowrap\b[^"]*">\s*design system\s*<\/h1>/,
+    /<h1 className="[^"]*\bmax-\[820px\]:whitespace-normal\b[^"]*\bmin-\[821px\]:whitespace-nowrap\b[^"]*">\s*design system\s*<\/h1>/,
   );
   assert.doesNotMatch(
     designSystem,
@@ -485,22 +521,30 @@ test("semantic color tokens back shared component styling", () => {
     "--color-subtle",
     "--color-surface",
     "--color-surface-muted",
+    "--color-skeleton",
     "--color-accent-primary",
     "--color-accent-hover",
   ]) {
     assert.match(styles, new RegExp(token));
   }
+  assert.doesNotMatch(styles, /--color-body/);
 
   assert.match(designSystem, /bg-ink/);
+  assert.doesNotMatch(designSystem, /bg-body/);
   assert.match(designSystem, /bg-muted/);
+  assert.match(designSystem, /bg-subtle/);
+  assert.match(designSystem, /bg-white/);
+  assert.match(designSystem, /className: "bg-surface"/);
   assert.match(designSystem, /bg-surface-muted/);
+  assert.match(designSystem, /bg-skeleton/);
   assert.match(designSystem, /bg-accent-primary/);
+  assert.match(designSystem, /bg-accent-hover/);
 });
 
-test("color swatches use gap-4 before tightly grouped copy", () => {
+test("color swatches use gap-3 before tightly grouped copy", () => {
   assert.match(
     designSystem,
-    /const colorItemClassName = "grid gap-4"/,
+    /const colorItemClassName = "grid gap-3"/,
   );
   assert.match(
     designSystem,
@@ -513,19 +557,18 @@ test("color swatches use gap-4 before tightly grouped copy", () => {
   assert.equal(designSystem.match(/const semanticColors = \[/g)?.length, 1);
   assert.equal(
     [...designSystem.matchAll(/description: "/g)].length,
-    4,
+    9,
   );
 });
 
-test("semantic color swatches use two mobile columns and four desktop columns", () => {
+test("semantic color swatches use a denser responsive grid", () => {
   const colorsSection =
     designSystem.match(/<section\s+id="colors"[\s\S]*?<\/section>/)?.[0] ?? "";
 
   assert.match(
     colorsSection,
-    /className="grid[^"]*\bgrid-cols-2\b[^"]*\blg:grid-cols-4\b[^"]*"/,
+    /className="grid[^"]*\bgrid-cols-3\b[^"]*\bgap-x-4\b[^"]*\bsm:grid-cols-3\b[^"]*\blg:grid-cols-5\b[^"]*"/,
   );
-  assert.doesNotMatch(colorsSection, /\bsm:grid-cols-2\b/);
 });
 
 test("colors document only production Tailwind utility colors as small chips", () => {
@@ -570,22 +613,36 @@ test("color swatches show hex in a tooltip and copy on click", () => {
   );
   for (const hex of [
     "#121c26",
-    "#616d7a",
+    "#6a7282",
+    "#99a1af",
+    "#ffffff",
+    "#fcfdff",
     "#f3f4f6",
+    "#e7e8eb",
     "#ecf26d",
+    "#e3e95f",
     "#e5e7eb",
     "#d1d5dc",
-    "#99a1af",
-    "#6a7282",
   ]) {
     assert.match(designSystem, new RegExp(`hex: "${hex}"`));
   }
 });
 
+test("color swatches use the media inset edge on every chip", () => {
+  assert.match(
+    designSystem,
+    /media-inset-edge relative border-0 p-0/,
+  );
+  assert.match(
+    designSystem,
+    /size === "card"\s*\?\s*"size-16 rounded-\[16px\] sm:size-20 sm:rounded-\[18px\] lg:size-28 lg:rounded-\[20px\]"/,
+  );
+});
+
 test("the display specimen stays on one line without a narrow width cap", () => {
   assert.match(
     designSystem,
-    /<p className="[^"]*\bwhitespace-nowrap\b[^"]*">\s*Growth happens together\.\s*<\/p>/,
+    /<p className="[^"]*\bwhitespace-normal\b[^"]*\bmin-\[821px\]:whitespace-nowrap\b[^"]*">\s*Growth happens together\.\s*<\/p>/,
   );
   assert.doesNotMatch(
     designSystem,
@@ -643,18 +700,54 @@ test("button and link specimen rows omit horizontal padding", () => {
   );
   assert.match(
     designSystem,
-    /className=\{`\$\{specimenClassName\} items-start gap-8 bg-surface-muted p-5 sm:grid sm:grid-cols-2 sm:items-start sm:p-8`\}/,
+    /className=\{`\$\{specimenClassName\} items-start gap-8 bg-surface-muted px-5 py-4\.5 sm:grid sm:grid-cols-2 sm:items-start sm:px-8 sm:py-7\.5`\}/,
   );
 });
 
 test("responsive gutter content surface is white rather than cream", () => {
   const gutterContentClassName =
     designSystem.match(
-      /<div className="mt-5 rounded-\[11px\] bg-surface-muted px-\[clamp\(20px,6vw,96px\)\] py-6">\s*<div className="([^"]*)">\s*Content/,
+      /px-\[clamp\(20px,6cqw,96px\)\] py-8 sm:py-12">\s*<div className="([^"]*)">\s*Content/,
     )?.[1] ?? "";
 
   assert.match(gutterContentClassName, /\bbg-white\b/);
   assert.doesNotMatch(gutterContentClassName, /\bbg-surface(?:-muted)?\b/);
+});
+
+test("responsive gutter specimen is resizable with container-relative clamp", () => {
+  assert.match(designSystem, /px-\[clamp\(20px,6vw,96px\)\]/);
+  assert.match(designSystem, /px-\[clamp\(20px,6cqw,96px\)\]/);
+  assert.match(
+    designSystem,
+    /aria-label="Resizable page gutter demonstration"/,
+  );
+  assert.match(designSystem, /function GutterResizeDemo\(/);
+  assert.match(
+    designSystem,
+    /aria-label="Drag to resize gutter demonstration"/,
+  );
+  assert.match(designSystem, /cursor-col-resize/);
+  assert.doesNotMatch(designSystem, /\bresize-x\b/);
+  assert.match(designSystem, /@container/);
+  assert.match(designSystem, /\bpy-12\b[\s\S]*\bmin-h-40\b/);
+  assert.match(designSystem, /Math\.min\(\s*max,/);
+  assert.match(designSystem, /GUTTER_DEMO_MIN_WIDTH_PX/);
+  assert.match(
+    designSystem,
+    /function GutterResizeHandleIcon[\s\S]*?\bpr-2\b/,
+  );
+  assert.match(
+    designSystem,
+    /function GutterResizeHandleIcon[\s\S]*?\bh-3 w-\[2px\] /,
+  );
+  assert.doesNotMatch(
+    designSystem,
+    /Resize the frame to scrub width/,
+  );
+  assert.doesNotMatch(
+    designSystem,
+    /specimen mirrors that clamp/,
+  );
 });
 
 test("button states include disabled ghost, ink, and ghost icon buttons", () => {
@@ -683,6 +776,10 @@ test("tooltip specimen uses a centered SVG help icon", () => {
   assert.match(
     designSystem,
     /function HelpIcon\(\{ className = "size-5" \}[\s\S]*<svg className=\{className\}[\s\S]*aria-hidden="true"/,
+  );
+  assert.match(
+    designSystem,
+    /function HelpIcon[\s\S]*?strokeWidth="2"/,
   );
   assert.match(
     designSystem,
@@ -720,54 +817,30 @@ test("tooltips card stacks the help specimen and optically aligns icon glyphs", 
     /Adjacent icon buttons each own a tooltip/,
   );
   assert.doesNotMatch(tooltipsSection, /footer contact icons/);
+  // Same brand hover treatment as SiteFooter social icons.
+  assert.match(
+    tooltipsSection,
+    /<SubstackIcon[\s\S]*?group-hover:text-\[#FF6719\][\s\S]*?group-focus-visible:text-\[#FF6719\]/,
+  );
+  assert.match(tooltipsSection, /<InstagramIcon\s+branded/);
+  assert.match(
+    tooltipsSection,
+    /group-hover:opacity-0[\s\S]*?<InstagramIcon\s+branded[\s\S]*?group-hover:opacity-100/,
+  );
+  assert.match(
+    tooltipsSection,
+    /<LinkedInIcon[\s\S]*?group-hover:text-\[#0A66C2\][\s\S]*?group-focus-visible:text-\[#0A66C2\]/,
+  );
+  assert.match(
+    tooltipsSection,
+    /<XIcon[\s\S]*?group-hover:text-ink[\s\S]*?group-focus-visible:text-ink/,
+  );
 });
 
-test("icons section lists production icons with a single label each", () => {
-  const iconsSection =
-    designSystem.match(/<section\s+id="icons"[\s\S]*?<\/section>/)?.[0] ?? "";
-
-  assert.match(iconsSection, /id="icons-title"[^>]*>\s*icons\s*<\/h2>/);
-  assert.match(designSystem, /const designSystemIcons = \[/);
-  for (const label of [
-    "arrow up right",
-    "arrow",
-    "chevron down",
-    "help",
-    "sound on",
-    "sound off",
-    "substack",
-    "instagram",
-    "linkedin",
-    "x",
-  ]) {
-    assert.match(designSystem, new RegExp(`label: "${label}"`));
-  }
-  assert.match(iconsSection, /designSystemIcons\.map/);
-  assert.match(
-    iconsSection,
-    /<SpecimenLabel weight="normal">\{label\}<\/SpecimenLabel>/,
-  );
-  // Shared footprint; stroke glyphs and filled brands are sized to match optically.
-  // Specimen-only 3px stroke so mixed production weights read consistently in DS.
-  assert.match(designSystem, /const dsIconFrameClassName = "grid size-5 place-items-center"/);
-  assert.match(
-    designSystem,
-    /const dsStrokeWeightClassName =\s*"\[&_circle\]:\[stroke-width:3px\] \[&_path\]:\[stroke-width:3px\] \[&_rect\]:\[stroke-width:3px\]"/,
-  );
-  assert.match(
-    designSystem,
-    /const dsStrokeIconClassName = `size-\[18px\] \$\{dsStrokeWeightClassName\}`/,
-  );
-  assert.match(designSystem, /const dsBrandIconClassName = "size-4"/);
-  assert.match(
-    designSystem,
-    /InstagramIcon\s*\n\s*className=\{`\$\{dsBrandIconClassName\} \$\{dsStrokeWeightClassName\}`\}/,
-  );
-  assert.match(
-    iconsSection,
-    /<span className=\{dsIconFrameClassName\}>\{icon\}<\/span>/,
-  );
-  assert.doesNotMatch(iconsSection, /text-subtle|description/);
+test("icons section is omitted from the design system page", () => {
+  assert.doesNotMatch(designSystem, /<section\s+id="icons"/);
+  assert.doesNotMatch(designSystem, /const designSystemIcons = \[/);
+  assert.doesNotMatch(designSystem, /\{ id: "icons", label: "icons" \}/);
 });
 
 // The two pages link to each other, so an entrance on one and none on the
@@ -803,10 +876,10 @@ test("design system header logo links home and sections have sub-nav anchors", (
     ["typography", "typography"],
     ["layout", "layout"],
     ["borders", "borders"],
+    ["strokes", "strokes"],
     ["shadows", "shadows"],
     ["buttons", "buttons"],
     ["links", "links"],
-    ["icons", "icons"],
     ["inputs", "inputs"],
     ["tooltips", "tooltips"],
   ]) {

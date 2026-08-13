@@ -89,7 +89,7 @@ test("footer logo destination depends on the page that renders it", () => {
   );
   const logoAnchor =
     footer.match(
-      /<a\s+aria-label=\{logoAriaLabel\}[\s\S]*?className="[^"]*\bfooter-logo\b[^"]*"[\s\S]*?<\/a>/,
+      /<a\s+(?:ref=\{logoRef\}\s+)?aria-label=\{logoAriaLabel\}[\s\S]*?className="[^"]*\bfooter-logo\b[^"]*"[\s\S]*?<\/a>/,
     )?.[0] ?? "";
   assert.match(logoAnchor, /href=\{logoHref\}/);
   assert.doesNotMatch(logoAnchor, /instagram\.com/);
@@ -121,6 +121,10 @@ test("footer logo is a vector that fills its four-column track", async () => {
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*\.footer-logo\s*\{[^}]*max-width:\s*min\(32vw,\s*130px\);/s,
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 820px\)[\s\S]*\.footer-logo\s*\{[^}]*filter:\s*drop-shadow\(0 4px 10px rgb\(0 0 0 \/ 0\.12\)\);/s,
   );
 });
 
@@ -179,12 +183,46 @@ test("footer logo pops up from below on every scroll into view", () => {
 });
 
 test("footer logo lifts slightly on desktop hover only", () => {
-  // translate stays off the entrance transform so the pop-in curve is untouched.
-  assert.match(css, /\.footer-logo\s*\{[^}]*translate:\s*0 0;[^}]*translate 150ms ease-out;/s);
+  // translate stays off the entrance transform so the pop-in curve is untouched,
+  // and composes with the scroll-off clearance variable.
   assert.match(
     css,
-    /@media \(hover: hover\) and \(pointer: fine\)\s*\{[^}]*\.footer-brand\.is-visible \.footer-logo:hover\s*\{[^}]*translate:\s*0 -3px;/s,
+    /\.footer-logo\s*\{[^}]*--footer-logo-lift:\s*0px;[^}]*translate:\s*0 var\(--footer-logo-lift\);[^}]*translate 150ms ease-out;/s,
   );
+  assert.match(
+    css,
+    /@media \(hover: hover\) and \(pointer: fine\)\s*\{[^}]*\.footer-brand\.is-visible \.footer-logo:hover\s*\{[^}]*translate:\s*0 calc\(var\(--footer-logo-lift\) - 3px\);/s,
+  );
+});
+
+test("footer logo clears its bleed only while overscrolling off the page", () => {
+  // Rest keeps the crop. Lift only when already near the bottom (not arriving
+  // from high on the page), capped small, then a short ease back.
+  assert.match(footer, /FOOTER_LOGO_OVERSCROLL_GAIN/);
+  assert.match(footer, /FOOTER_LOGO_OVERSCROLL_RELEASE_MS/);
+  assert.match(footer, /FOOTER_LOGO_ARRIVAL_FROM_PX/);
+  assert.match(footer, /FOOTER_LOGO_LIFT_MAX_PX/);
+  assert.doesNotMatch(footer, /FOOTER_LOGO_OVERSCROLL_DECAY_MS/);
+  assert.doesNotMatch(footer, /FOOTER_LOGO_OVERSCROLL_IDLE_MS/);
+  assert.match(footer, /addEventListener\("wheel"/);
+  assert.match(footer, /requestAnimationFrame\(tick\)/);
+  assert.match(footer, /gestureMaxRemaining/);
+  assert.match(footer, /logoRef/);
+  assert.match(footer, /--footer-logo-lift/);
+  assert.match(footer, /is-overscrolling/);
+  assert.match(footer, /is-settling/);
+  assert.doesNotMatch(footer, /is-clearing/);
+  assert.match(footer, /naturalClipPx|offsetHeight/);
+  assert.match(
+    css,
+    /\.footer-logo\.is-overscrolling\s*\{[^}]*translate 0ms;/s,
+  );
+  assert.match(
+    css,
+    /\.footer-logo\.is-settling\s*\{[^}]*translate 240ms cubic-bezier\(0\.22, 1, 0\.36, 1\);/s,
+  );
+  // Stacked mobile keeps the mark whole, so clearance is a desktop-only concern.
+  assert.match(footer, /max-width:\s*820px/);
 });
 
 test("footer contact links use the official destinations", () => {
@@ -361,7 +399,7 @@ test("mobile footer places the newsletter above contact", () => {
 test("footer uses the cream surface with dark, readable text", () => {
   assert.match(
     footer,
-    /<footer[\s\S]*className="[^"]*\bbg-surface\b[^"]*\btext-body(?:\s|")/,
+    /<footer[\s\S]*className="[^"]*\bbg-surface\b[^"]*\btext-ink(?:\s|")/,
   );
   assert.match(
     footer,
@@ -390,7 +428,6 @@ test("footer ends with a right-aligned gray technology credit", () => {
     ["Next.js", "https://nextjs.org/"],
     ["Cursor", "https://cursor.com/"],
     ["Supabase", "https://supabase.com/"],
-    ["Design System", "/design-system"],
   ]) {
     const escapedHref = href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     assert.match(
@@ -400,6 +437,15 @@ test("footer ends with a right-aligned gray technology credit", () => {
       ),
     );
   }
+  // Same-site promo stays in this tab.
+  assert.match(
+    footer,
+    /className=\{footerCreditLinkClassName\}\s+href="\/design-system"\s*>\s*Design System\s*</,
+  );
+  assert.doesNotMatch(
+    footer,
+    /href="\/design-system"[\s\S]*?target="_blank"/,
+  );
   assert.match(
     footer,
     /Website built in[\s\S]*Next\.js[\s\S]*with[\s\S]*Cursor[\s\S]*and[\s\S]*Supabase[\s\S]*\./,

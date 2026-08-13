@@ -7,9 +7,6 @@ const LUMA_PAST_CALENDAR_URL = "https://luma.com/designmeetup?period=past";
 export function RecentEventsPanel({ events }: { events: LumaEvent[] }) {
   return (
     <div className="recent-events flex h-full flex-col gap-4 rounded-[20px] bg-surface-muted p-[clamp(20px,2.4vw,32px)] max-[820px]:gap-3">
-      <h3 className="m-0 pl-3 pt-2 text-2xl font-bold tracking-[-0.06em] text-black">
-        Past events
-      </h3>
       <ul className="m-0 grid list-none gap-1 p-0">
         {events.map((event) => (
           <li key={event.id}>

@@ -154,3 +154,81 @@ test("stripHorizontalRules removes hrs and leftover gap spacers", () => {
     '<p>A</p><hr /><div class="detail-summary-gap" aria-hidden="true"></div><p>B</p>';
   assert.equal(stripHorizontalRules(html), "<p>A</p><p>B</p>");
 });
+
+test("TipTap HTML keeps Featuring list speaker name bold", () => {
+  const html = tipTapToHtml({
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Featuring:" }],
+      },
+      {
+        type: "bullet_list",
+        content: [
+          {
+            type: "list_item",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "Jennifer Jing",
+                    marks: [{ type: "bold" }],
+                  },
+                  {
+                    type: "text",
+                    text: ", Senior Product Designer for GenAI Experiences @ YouTube",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            type: "list_item",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "Sönke Rohde",
+                    marks: [{ type: "bold" }],
+                  },
+                  {
+                    type: "text",
+                    text: ", Principal UX Designer @ Cloud AI",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Join us at " },
+          {
+            type: "text",
+            text: "Clay’s NYC office",
+            marks: [{ type: "bold" }],
+          },
+          { type: "text", text: " tonight." },
+        ],
+      },
+    ],
+  });
+
+  assert.match(
+    html,
+    /<li><p><strong>Jennifer Jing<\/strong>, Senior Product Designer/,
+  );
+  assert.match(
+    html,
+    /<li><p><strong>Sönke Rohde<\/strong>, Principal UX Designer/,
+  );
+  assert.doesNotMatch(html, /<strong>Clay’s NYC office<\/strong>/);
+  assert.match(html, /Join us at Clay’s NYC office tonight/);
+});

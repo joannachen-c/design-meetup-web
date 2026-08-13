@@ -65,7 +65,7 @@ test("Primary supports a typed ink variant with a visible gray hover", () => {
   assert.match(primary, /variant\?: "primary" \| "secondary" \| "ghost" \| "ink"/);
   assert.match(
     primary,
-    /ink: "bg-ink text-white hover:bg-gray-800 disabled:hover:bg-ink aria-disabled:hover:bg-ink"/,
+    /ink: "bg-ink text-white hover:bg-gray-700 disabled:hover:bg-ink aria-disabled:hover:bg-ink"/,
   );
   assert.match(primary, /variantClassName\[variant\]/);
 });

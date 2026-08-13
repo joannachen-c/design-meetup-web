@@ -33,7 +33,8 @@ test("the apply CTA leaves a short inset above the photo marquee", () => {
   assert.equal(applyPadding, "[clamp(48px,6vw,80px)]");
 });
 
-test("the note carries the community copy in centered text", () => {
+test("the note carries Our story copy in left-aligned text", () => {
+  assert.match(note, />\s*Our story\s*</);
   assert.ok(
     note.includes(
       "We created Design Meetup to build the design community our younger",
@@ -46,15 +47,12 @@ test("the note carries the community copy in centered text", () => {
     ),
     "expected the note to invite partners",
   );
-  // Keep the colon glued to "curated" on mobile; force a new line on desktop only.
-  assert.match(
-    note,
-    /existed:\{\s*"\\u00A0"\s*\}\s*<br className="hidden min-\[821px\]:block" \/>\s*curated, ambitious, and focused on/,
-  );
+  // Figma wraps the story naturally in a narrow column — no forced break.
+  assert.match(note, /existed: curated, ambitious, and focused on/);
   assert.doesNotMatch(
     note,
-    /existed:\s*<br\s*\/>/,
-    "expected no unconditional break after the colon",
+    /existed:\s*<br/,
+    "expected no forced break after the colon",
   );
   assert.ok(
     !note.includes(
@@ -62,7 +60,11 @@ test("the note carries the community copy in centered text", () => {
     ),
     "expected the world-might-change tagline to be removed",
   );
-  assert.match(note, /text-center/);
+  assert.match(note, /<blockquote className="[^"]*\btext-left\b/);
+  assert.match(
+    note,
+    /<motion\.figure[\s\S]*?className="founders-card[^"]*\btext-left\b/,
+  );
 });
 
 test("each signature links out to LinkedIn and darkens on hover", () => {
@@ -148,24 +150,43 @@ test("the heart asset remains available for when the sign-off returns", async ()
   await access(new URL("../public/heart.png", import.meta.url));
 });
 
-test("the stamp sits centered above the quote at 100x100", () => {
+test("the stamp sits large beside the story on desktop", () => {
   const stamp = note.match(/<motion\.img[\s\S]*?\/>/)?.[0] ?? "";
   assert.match(stamp, /src="\/design-meetup-stamp\.png"/);
-  assert.match(stamp, /size-\[100px\]/);
-  assert.match(stamp, /width=\{100\}/);
-  assert.match(stamp, /height=\{100\}/);
+  // Phone keeps a smaller right-aligned mark; desktop restores the large size.
+  assert.match(stamp, /size-\[clamp\(112px,28vw,140px\)\]/);
+  assert.match(stamp, /min-\[821px\]:size-\[clamp\(160px,42vw,280px\)\]/);
+  assert.match(stamp, /width=\{280\}/);
+  assert.match(stamp, /height=\{280\}/);
   // Decorative mark, so it stays out of the accessibility tree.
   assert.match(stamp, /alt=""/);
-  // The card centers its children and reads tighter without the heart row,
-  // while staying wide enough for both signature groups on desktop.
+  // Mobile: -40px right pull; desktop keeps -mr-2.
+  assert.match(stamp, /-mr-10/);
+  assert.match(stamp, /min-\[821px\]:-mr-2/);
+  // Even padding on all sides; card stays wide enough for both signature groups.
+  assert.match(note, /className="founders-card[^"]*\bp-\[clamp\(24px,5vw,56px\)\]/);
   assert.match(note, /className="founders-card[^"]*\bmax-w-\[720px\]/);
-  assert.match(note, /<motion\.figure[\s\S]*?className="founders-card[^"]*\bitems-center\b/);
-  // Stamp → quote → signatures, all inside the card.
+  assert.match(
+    note,
+    /<motion\.figure[\s\S]*?className="founders-card[^"]*\bitems-stretch\b/,
+  );
+  // Story left, stamp right on desktop; stack on narrow viewports.
+  // Mobile aligns the mark to the right edge of the card.
+  assert.match(
+    note,
+    /founders-card-top[^"]*\bitems-end\b[^"]*\bmin-\[821px\]:flex-row\b/,
+  );
+  // No vertical spacer between stamp and story on mobile; desktop keeps its row gap.
+  assert.match(note, /founders-card-top[^"]*\bgap-0\b[^"]*\bmin-\[821px\]:gap-2\b/);
+  // Mobile: stamp above Our story. Desktop: stamp after the quote in the row.
+  assert.match(stamp, /\border-first\b/);
+  assert.match(stamp, /\bmin-\[821px\]:order-last\b/);
+  // Quote and stamp both live inside the card ahead of the signatures.
   assert.ok(
-    note.indexOf("design-meetup-stamp") < note.indexOf("<blockquote") &&
-      note.indexOf("<blockquote") < note.indexOf("signatureGroups.map") &&
-      note.indexOf("design-meetup-stamp") > note.indexOf("<motion.figure"),
-    "expected the stamp above the quote and inside the card",
+    note.indexOf("design-meetup-stamp") < note.indexOf("signatureGroups.map") &&
+      note.indexOf("design-meetup-stamp") > note.indexOf("<motion.figure") &&
+      note.indexOf("<blockquote") > note.indexOf("<motion.figure"),
+    "expected the stamp and quote inside the card ahead of the signatures",
   );
 });
 
@@ -238,15 +259,27 @@ test("the stamp dissolves in instead of pressing down", () => {
   assert.match(stamp, /\{ duration: 0\.3, ease: "easeOut" \}/);
 });
 
-test("the stamp clears the copy by the same gap as the signatures", () => {
-  const stamp = note.match(/<motion\.img[\s\S]*?\/>/)?.[0] ?? "";
-  const captionGap = note.match(/<figcaption className="mt-\[([^\]]+)\]/)?.[1];
-  assert.ok(captionGap, "expected the signatures to set their own top margin");
-  // The quote sits evenly between the mark above it and the signatures below.
-  assert.ok(
-    stamp.includes(`mb-[${captionGap}]`),
-    `expected the stamp to hold ${captionGap} above the copy, matching the signatures`,
+test("the card uses even padding and space before the signatures", () => {
+  assert.match(
+    note,
+    /className="founders-card[^"]*\bp-\[clamp\(24px,5vw,56px\)\]/,
   );
+  // Asymmetric top/bottom padding utilities would fight the even inset.
+  assert.doesNotMatch(
+    note,
+    /className="founders-card[^"]*\b(?:pt|pb|px|py)-\[/,
+  );
+  const captionGap = note.match(/<figcaption className="mt-\[([^\]]+)\]/)?.[1];
+  assert.equal(captionGap, "clamp(36px,7vw,60px)");
+  // Clip the stamp at the card edge (Figma parks it ~21px above the top).
+  assert.match(note, /className="founders-card[^"]*\boverflow-hidden\b/);
+  assert.doesNotMatch(note, /className="founders-card[^"]*\boverflow-visible\b/);
+  // Mobile: cancel top padding plus ~20px. Desktop: -mt-20 (−80px).
+  assert.match(
+    note,
+    /-mt-\[calc\(clamp\(24px,5vw,56px\)\+1\.25rem\)\]/,
+  );
+  assert.match(note, /min-\[821px\]:-mt-20/);
 });
 
 test("the stamp is served from the app", async () => {

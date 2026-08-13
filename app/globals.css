@@ -497,13 +497,14 @@ h1 span {
 }
 
 /* Mobile-only caption under the ticks; hidden until the phone layout moves it
-   out from under the focused cover. */
+   out from under the focused cover. The cover still opens Luma; this is the
+   same destination for a tap that lands on the words instead of the artwork. */
 .gallery-luma-hint {
   display: none;
   align-items: center;
   gap: 6px;
+  font: inherit;
   white-space: nowrap;
-  pointer-events: none;
 }
 
 /* A horizontal scrollport has to clip vertically — overflow-y cannot stay

@@ -1528,15 +1528,17 @@ test("View on Luma is a link rather than a pill", () => {
 
 test("the phone View on Luma caption opens the event", () => {
   // Desktop: the cover is the control and the under-cover words are a caption.
-  // Phone: those words sit under the ticks, so they have to be a control too.
+  // Phone: those words sit under the ticks, so they have to be a control too —
+  // shared Link owns the pointer affordance (HomePage must not hand-roll it).
   assert.match(
     app,
-    /<button\s+type="button"\s+className="gallery-luma-hint[^"]*"\s+onClick=\{\(\) => openLuma\(detailLumaUrl\)\}/,
+    /<Link\s+className="gallery-luma-hint"\s+href=\{detailLumaUrl\}\s+target="_blank"\s+rel="noopener noreferrer"/,
   );
   assert.doesNotMatch(
     app,
     /className="gallery-luma-hint[^"]*"\s*aria-hidden/,
   );
+  assert.doesNotMatch(app, /gallery-luma-hint[^"]*\bcursor-pointer\b/);
   assert.match(
     css,
     /\.gallery-luma-hint\s*\{[^}]*display:\s*none;/,

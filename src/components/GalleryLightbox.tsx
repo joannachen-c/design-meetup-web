@@ -1,10 +1,46 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { createPortal } from "react-dom";
 import { IconButton } from "./IconButton";
 import { isImageWarm, recoverImage, warmImages } from "@/lib/image";
+
+type PhotoSize = { width: number; height: number };
+
+function sizeFromImage(image: HTMLImageElement): PhotoSize | null {
+  if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+    return { width: image.naturalWidth, height: image.naturalHeight };
+  }
+  const width = Number(image.getAttribute("width"));
+  const height = Number(image.getAttribute("height"));
+  if (width > 0 && height > 0) return { width, height };
+  return null;
+}
+
+// The rail has usually already decoded this photo, so its natural size is
+// sitting on an <img> in the document even before the overlay's own request
+// finishes. Walking those nodes (then a cache probe) is how a landscape
+// frame can be ready on the same step that changes the index.
+function readPhotoSize(url: string | null | undefined): PhotoSize | null {
+  if (!url || typeof document === "undefined") return null;
+
+  for (const image of document.images) {
+    if (image.src !== url && image.currentSrc !== url) continue;
+    const size = sizeFromImage(image);
+    if (size) return size;
+  }
+
+  const probe = new Image();
+  probe.src = url;
+  return sizeFromImage(probe);
+}
 
 const OVERLAY_DURATION_S = 0.2;
 const PHOTO_ENTRANCE_DURATION_S = 0.42;
@@ -14,15 +50,21 @@ const PHOTO_ENTRANCE_Y_PX = 20;
 const PLACEHOLDER_DELAY_MS = 120;
 
 function ChevronIcon({ direction }: { direction: "left" | "right" }) {
+  // Same 1px optical nudge as the photo-rail ArrowIcon: mass sits on the
+  // open side, so a geometric center reads off-axis in a round ghost button.
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      className={direction === "left" ? "-translate-x-px" : "translate-x-px"}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         d={direction === "left" ? "M15 5l-7 7 7 7" : "M9 5l7 7-7 7"}
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="1.7"
+        strokeWidth="2"
       />
     </svg>
   );
@@ -72,17 +114,23 @@ export function GalleryLightbox({
   const reduceMotion = useReducedMotion();
   const [mounted, setMounted] = useState(false);
   const [loadedPhotos, setLoadedPhotos] = useState<Record<string, true>>({});
+  const [photoSizes, setPhotoSizes] = useState<Record<string, PhotoSize>>({});
   const [isPlaceholderDue, setIsPlaceholderDue] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const isOpen = index !== null && index >= 0 && index < photos.length;
-  const hasPrevious = isOpen && index > 0;
-  const hasNext = isOpen && index < photos.length - 1;
+  const hasPrevious = isOpen && photos.length > 1;
+  const hasNext = isOpen && photos.length > 1;
   const photo = isOpen ? photos[index] : null;
   // The layer that sizes the frame: the rail's render when we have one, so the
   // photo's own shape is known before the full-size version lands.
   const basePhoto = (isOpen ? previews?.[index] : null) ?? photo;
   const isBaseLoaded = Boolean(basePhoto && loadedPhotos[basePhoto]);
+  const frameSize =
+    (basePhoto && photoSizes[basePhoto]) ||
+    (photo && photoSizes[photo]) ||
+    readPhotoSize(basePhoto) ||
+    readPhotoSize(photo);
 
   useEffect(() => setMounted(true), []);
 
@@ -106,21 +154,50 @@ export function GalleryLightbox({
     );
   }, []);
 
+  // Preview and full-size are the same photograph, so a size learned from
+  // either one is enough to keep the frame still while the other decodes.
+  const rememberSize = useCallback(
+    (url: string, size: PhotoSize | null) => {
+      if (!size) return;
+      const paired =
+        url === photo ? basePhoto : url === basePhoto ? photo : null;
+      setPhotoSizes((previous) => {
+        const urls = [url, paired].filter((value): value is string =>
+          Boolean(value),
+        );
+        let changed = false;
+        const next = { ...previous };
+        for (const key of urls) {
+          if (
+            next[key]?.width === size.width &&
+            next[key]?.height === size.height
+          ) {
+            continue;
+          }
+          next[key] = size;
+          changed = true;
+        }
+        return changed ? next : previous;
+      });
+    },
+    [basePhoto, photo],
+  );
+
   // A cached photo can finish before hydration attaches onLoad, which would
   // leave the shimmer up for good.
   const markLoadedIfComplete = useCallback(
     (node: HTMLImageElement | null, url: string) => {
-      if (node?.complete && node.naturalWidth > 0) markLoaded(url);
+      if (!node?.complete || node.naturalWidth <= 0) return;
+      markLoaded(url);
+      rememberSize(url, sizeFromImage(node));
     },
-    [markLoaded],
+    [markLoaded, rememberSize],
   );
 
   const step = useCallback(
     (direction: -1 | 1) => {
-      if (index === null) return;
-      const next = index + direction;
-      if (next < 0 || next > photos.length - 1) return;
-      onIndexChange(next);
+      if (index === null || photos.length === 0) return;
+      onIndexChange((index + direction + photos.length) % photos.length);
     },
     [index, onIndexChange, photos.length],
   );
@@ -129,13 +206,15 @@ export function GalleryLightbox({
   // time the arrow is pressed. Warming reaches two deep because a held-down
   // arrow outruns a single neighbour.
   useEffect(() => {
-    if (index === null) return;
+    if (index === null || photos.length === 0) return;
+    const wrap = (offset: number) =>
+      photos[(index + offset + photos.length) % photos.length];
     warmImages([
       photos[index],
-      photos[index + 1],
-      photos[index - 1],
-      photos[index + 2],
-      photos[index - 2],
+      wrap(1),
+      wrap(-1),
+      wrap(2),
+      wrap(-2),
     ]);
   }, [index, photos]);
 
@@ -223,14 +302,14 @@ export function GalleryLightbox({
             // inside it. Everything but the photo, caption and controls counts
             // as clicking off the image.
             const target = event.target as HTMLElement;
-            if (target.closest("img, figcaption, button")) return;
+            if (target.closest("img, figcaption, button, .lightbox-arrows")) return;
             onClose();
           }}
         >
           {/* This wrapper mounts only when the overlay opens, so stepping keeps
               the site's entrance motion from replaying on every photo. */}
           <motion.figure
-            className="m-0 grid h-[calc(78vh+44px)] w-[88vw] grid-rows-[78vh_20px] gap-6"
+            className="lightbox-figure"
             initial={
               reduceMotion
                 ? false
@@ -257,9 +336,17 @@ export function GalleryLightbox({
               <div
                 className="lightbox-frame relative inline-flex max-h-[78vh] max-w-[88vw] overflow-hidden rounded-md shadow-[0_24px_64px_rgba(0,0,0,0.22)]"
                 data-base-loaded={isBaseLoaded ? "true" : "false"}
+                data-has-aspect={frameSize ? "true" : "false"}
                 data-loaded={loadedPhotos[photo] ? "true" : "false"}
                 data-placeholder={
                   isPlaceholderDue && !isBaseLoaded ? "true" : "false"
+                }
+                style={
+                  frameSize
+                    ? ({
+                        "--lightbox-aspect": `${frameSize.width} / ${frameSize.height}`,
+                      } as CSSProperties)
+                    : undefined
                 }
               >
                 <img
@@ -272,7 +359,11 @@ export function GalleryLightbox({
                   ref={(node) =>
                     basePhoto ? markLoadedIfComplete(node, basePhoto) : undefined
                   }
-                  onLoad={() => basePhoto && markLoaded(basePhoto)}
+                  onLoad={(event) => {
+                    if (!basePhoto) return;
+                    markLoaded(basePhoto);
+                    rememberSize(basePhoto, sizeFromImage(event.currentTarget));
+                  }}
                   onError={() => basePhoto && markLoaded(basePhoto)}
                 />
                 {/* Fades in over the stand-in once the sharper render arrives. */}
@@ -286,7 +377,10 @@ export function GalleryLightbox({
                     draggable="false"
                     decoding={isPhotoWarm ? "sync" : "async"}
                     ref={(node) => markLoadedIfComplete(node, photo)}
-                    onLoad={() => markLoaded(photo)}
+                    onLoad={(event) => {
+                      markLoaded(photo);
+                      rememberSize(photo, sizeFromImage(event.currentTarget));
+                    }}
                     onError={(event) => {
                       if (!recoverImage(event.currentTarget)) markLoaded(photo);
                     }}
@@ -301,6 +395,34 @@ export function GalleryLightbox({
             <figcaption className="m-0 self-start text-center text-sm leading-5 text-muted">
               {title}
             </figcaption>
+            {photos.length > 1 ? (
+              <div
+                className="lightbox-arrows"
+                role="group"
+                aria-label="Photo controls"
+              >
+                <IconButton
+                  className="lightbox-arrow lightbox-arrow-prev"
+                  aria-label="Previous photo"
+                  variant="ghost"
+                  tone="muted"
+                  disabled={!hasPrevious}
+                  onClick={() => step(-1)}
+                >
+                  <ChevronIcon direction="left" />
+                </IconButton>
+                <IconButton
+                  className="lightbox-arrow lightbox-arrow-next"
+                  aria-label="Next photo"
+                  variant="ghost"
+                  tone="muted"
+                  disabled={!hasNext}
+                  onClick={() => step(1)}
+                >
+                  <ChevronIcon direction="right" />
+                </IconButton>
+              </div>
+            ) : null}
           </motion.figure>
 
           <IconButton
@@ -312,31 +434,6 @@ export function GalleryLightbox({
           >
             <CloseIcon />
           </IconButton>
-
-          {photos.length > 1 ? (
-            <>
-              <IconButton
-                className="absolute top-1/2 left-[clamp(12px,3vw,32px)] -translate-y-1/2"
-                aria-label="Previous photo"
-                variant="ghost"
-                tone="muted"
-                disabled={!hasPrevious}
-                onClick={() => step(-1)}
-              >
-                <ChevronIcon direction="left" />
-              </IconButton>
-              <IconButton
-                className="absolute top-1/2 right-[clamp(12px,3vw,32px)] -translate-y-1/2"
-                aria-label="Next photo"
-                variant="ghost"
-                tone="muted"
-                disabled={!hasNext}
-                onClick={() => step(1)}
-              >
-                <ChevronIcon direction="right" />
-              </IconButton>
-            </>
-          ) : null}
         </motion.div>
       ) : null}
     </AnimatePresence>,

@@ -47,7 +47,7 @@ export function Primary({
       ? "bg-transparent text-gray-500 hover:bg-surface-muted active:bg-gray-200 disabled:hover:bg-transparent disabled:active:bg-transparent aria-disabled:hover:bg-transparent aria-disabled:active:bg-transparent"
       : variant === "primary"
         ? "bg-accent-primary text-ink hover:bg-accent-hover disabled:hover:bg-accent-primary aria-disabled:hover:bg-accent-primary"
-        : "bg-surface-muted text-ink hover:bg-gray-300 disabled:hover:bg-surface-muted aria-disabled:hover:bg-surface-muted",
+        : "bg-gray-200 text-ink hover:bg-gray-300 disabled:hover:bg-gray-200 aria-disabled:hover:bg-gray-200",
     variant === "secondary" && hasLeadingIcon ? "pl-[14px]" : "",
     variant === "secondary" && hasTrailingIcon ? "pr-[14px]" : "",
     fullWidth ? "w-full" : "",

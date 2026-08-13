@@ -28,7 +28,7 @@ test("Primary has polished hover focus loading and disabled visuals", () => {
   assert.match(primary, /hover:bg-gray-300/);
   assert.match(
     primary,
-    /disabled:hover:bg-surface-muted/,
+    /disabled:hover:bg-gray-200/,
   );
   assert.match(primary, /focus-visible:outline-2/);
   assert.match(primary, /disabled:cursor-not-allowed/);

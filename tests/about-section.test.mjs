@@ -15,10 +15,10 @@ test("about section appears immediately before the partner section", () => {
   );
 });
 
-test("about section introduces the community in two lines of copy", () => {
+test("about section introduces the community and how it grew", () => {
   for (const copy of [
-    "We are a community of the world’s most ambitious creatives in NYC, SF, & LA.",
-    "We bring together designers who aspire to take their craft seriously while forming meaningful connections.",
+    "We are a community of the world’s most ambitious creatives.",
+    "In December 2025, Design Meetup was just an idea. A month later, we hosted our first event with 50 designers. And now, we’ve brought together 10,000+ people across 30 events in NY, LA, and the Bay Area.",
   ]) {
     assert.ok(app.includes(copy), `expected about section to include “${copy}”`);
   }

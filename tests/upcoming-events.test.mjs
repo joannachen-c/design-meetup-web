@@ -47,7 +47,11 @@ test("Upcoming events links to the Luma calendar with the supplied logo", () => 
 test("Luma calendar embed clips to rounded corners", () => {
   assert.match(
     app,
-    /className="[^"]*\bupcoming-events-embed\b[^"]*\boverflow-hidden\b[^"]*rounded-\[11px\][^"]*"/,
+    /className="[^"]*\bupcoming-events-embed\b[^"]*\boverflow-hidden\b[^"]*rounded-\[20px\][^"]*"/,
+  );
+  assert.match(
+    panel,
+    /className="[^"]*\brecent-events\b[^"]*rounded-\[20px\][^"]*\bbg-surface-muted\b/,
   );
 });
 

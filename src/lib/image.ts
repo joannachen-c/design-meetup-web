@@ -93,6 +93,51 @@ export function sizedImageUrl(
 
 export type SizedImage = { src: string; srcSet?: string };
 
+/** Matches the cover `<img>`: 272 is the --event-cover-size ceiling. */
+export const EVENT_COVER_RENDER = { width: 272, quality: 74 } as const;
+
+// Desktop fits four whole covers either side of the focused one; phone shows
+// fewer, but the extras are the next covers a flick would reveal.
+export const VISIBLE_COVER_RADIUS = 4;
+
+// The rail opens on the sixth cover so the shelf reads as a shelf from the
+// first frame. Keep the server preload on this same slot or it would warm a
+// different set than the one that deals in after the loader.
+export const DEFAULT_FOCUS_SLOT = 5;
+
+export function initialFocusIndex(eventCount: number) {
+  return eventCount > DEFAULT_FOCUS_SLOT ? DEFAULT_FOCUS_SLOT : 0;
+}
+
+export function eventCoverImage(url: string | null | undefined): SizedImage {
+  return sizedImage(url, EVENT_COVER_RENDER);
+}
+
+/**
+ * Cover art for the shelf that is on screen when the page first opens.
+ *
+ * `focusIndex` must match the rail's opening slot (`DEFAULT_FOCUS_SLOT`),
+ * otherwise we would warm a different set than the one that deals in after
+ * the loader.
+ */
+export function firstPaintCoverImages(
+  events: Array<{ image_url: string }>,
+  focusIndex: number,
+  radius = VISIBLE_COVER_RADIUS,
+): SizedImage[] {
+  const from = Math.max(0, focusIndex - radius);
+  const to = Math.min(events.length, focusIndex + radius + 1);
+  return events.slice(from, to).map((event) => eventCoverImage(event.image_url));
+}
+
+function sizedImageParts(
+  entry: SizedImage | string | null | undefined,
+): SizedImage | null {
+  if (!entry) return null;
+  const image = typeof entry === "string" ? { src: entry } : entry;
+  return image.src ? image : null;
+}
+
 /**
  * Build a `src`/`srcSet` pair for an image that paints `width` CSS pixels wide.
  *
@@ -154,16 +199,15 @@ export function preloadImages(
   if (typeof window === "undefined") return () => {};
   const loaders: HTMLImageElement[] = [];
   for (const entry of images) {
-    if (!entry) continue;
-    const { src, srcSet } = typeof entry === "string" ? { src: entry, srcSet: undefined } : entry;
-    if (!src) continue;
+    const parts = sizedImageParts(entry);
+    if (!parts) continue;
     const image = new Image();
     image.decoding = "async";
     // Before `src`, so the browser resolves the same candidate the rendered
     // `<img>` will. Warming a different variant would fetch bytes nothing goes
     // on to use and still leave the real image cold.
-    if (srcSet) image.srcset = srcSet;
-    image.src = src;
+    if (parts.srcSet) image.srcset = parts.srcSet;
+    image.src = parts.src;
     loaders.push(image);
   }
   return () => {
@@ -171,6 +215,45 @@ export function preloadImages(
       image.src = "";
     }
   };
+}
+
+/**
+ * Resolve once every image has been fetched and decoded, or has failed.
+ *
+ * Used to hold the page loader until the first-paint covers have pixels, so
+ * the shelf does not deal in as empty white cards. Failures still resolve:
+ * a missing cover should not strand the curtain.
+ */
+export function whenImagesReady(
+  images: Array<SizedImage | string | null | undefined>,
+): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+
+  const pending = images.flatMap((entry) => {
+    const parts = sizedImageParts(entry);
+    if (!parts) return [];
+    return [
+      new Promise<void>((resolve) => {
+        const image = new Image();
+        const settle = () => resolve();
+        image.onload = () => {
+          image.decode().then(settle, settle);
+        };
+        image.onerror = settle;
+        if (parts.srcSet) image.srcset = parts.srcSet;
+        image.src = parts.src;
+        if (image.complete) {
+          if (image.naturalWidth > 0) {
+            image.decode().then(settle, settle);
+          } else {
+            settle();
+          }
+        }
+      }),
+    ];
+  });
+
+  return pending.length === 0 ? Promise.resolve() : Promise.all(pending).then(() => {});
 }
 
 const warmedUrls = new Set<string>();

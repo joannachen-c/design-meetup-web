@@ -30,6 +30,14 @@ test("design system nav links are hidden on mobile while logo stays visible", ()
     designSystem,
     /<SiteHeader[\s\S]*navClassName="design-system-navigation max-\[820px\]:hidden"/,
   );
+  assert.match(
+    css,
+    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.design-system-navigation\s*\{[^}]*display:\s*none;/,
+  );
+  assert.doesNotMatch(
+    css,
+    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.primary-navigation\s*\{[^}]*display:\s*none;/,
+  );
   assert.doesNotMatch(designSystem, /<div className="max-\[820px\]:hidden">\s*<SiteHeader/);
   assert.doesNotMatch(home, /max-\[820px\]:hidden[\s\S]*<SiteHeader\b/);
   assert.doesNotMatch(home, /<SiteHeader[\s\S]*max-\[820px\]:hidden/);

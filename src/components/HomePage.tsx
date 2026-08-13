@@ -1,5 +1,6 @@
 "use client";
 
+import { BlossomCarousel } from "@blossom-carousel/react";
 import type MuxPlayerElement from "@mux/mux-player";
 import MuxPlayer from "@mux/mux-player-react";
 import {
@@ -20,8 +21,11 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
 } from "react";
 import { ArrowUpRightIcon } from "./icons/ArrowUpRightIcon";
+import { InstagramIcon, SubstackIcon } from "./icons/SocialIcons";
+import { ApplyNotifyForm } from "./ApplyNotifyForm";
 import { Chip } from "./Chip";
 import { FilmTickerLines, type FilmTickerFocus } from "./FilmTickerLines";
 import { FoundersNote } from "./FoundersNote";
@@ -32,12 +36,22 @@ import { IconButton } from "./IconButton";
 import { Link } from "./Link";
 import { PageLoader } from "./PageLoader";
 import { PartnerContactForm } from "./PartnerContactForm";
+import { PhotoMarquee } from "./PhotoMarquee";
 import { Primary } from "./Primary";
 import { RecentEventsPanel } from "./RecentEventsPanel";
 import { ScrollReveal } from "./ScrollReveal";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
-import { preloadImages, recoverImage, sizedImage, sizedImageUrl } from "@/lib/image";
+import {
+  eventCoverImage,
+  firstPaintCoverImages,
+  initialFocusIndex,
+  preloadImages,
+  recoverImage,
+  sizedImage,
+  sizedImageUrl,
+  VISIBLE_COVER_RADIUS,
+} from "@/lib/image";
 import type { LumaEvent } from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
 
@@ -64,8 +78,9 @@ const LUMA_CALENDAR_EMBED_SRC =
 // alone carries the shelf; the size difference comes from the resting scale.
 const CARD_SQUEEZE = 1;
 // A shear, not a rotation, so the covers keep vertical left and right edges
-// while their top and bottom edges run on the diagonal.
-const CARD_SHEAR_DEG = 15;
+// while their top and bottom edges run on the diagonal. Kept shallow so the
+// focused cover doesn't sit in a harsh 3D contrast with its neighbours.
+const CARD_SHEAR_DEG = 8;
 // Percentages of the cover's own width, so the shelf holds its proportions at
 // every cover size. The part clears the focused cover: the shelf is pitched at
 // 0.41 of a cover and the focused cover paints 1.03x its layout box, so its
@@ -114,12 +129,6 @@ function aboutVideoShadowAt(scale: number) {
 // A reader who has asked for no motion gets the far end of the travel outright.
 const ABOUT_VIDEO_ARRIVED_SHADOW = aboutVideoShadowAt(1);
 
-// The rail opens on the sixth cover so the shelf reads as a shelf from the
-// first frame, with covers tucked behind the focused one on both sides. An
-// archive too short to have a sixth cover opens on the newest instead of the
-// oldest: the covers then run to the right, which is the end the entrance sweep
-// starts from and the end a reader scrolls towards.
-const DEFAULT_FOCUS_SLOT = 5;
 const SELECTED_TITLE_ID = "selected-event-title";
 const DETAIL_COVER_FRAME =
   "detail-cover aspect-square overflow-hidden rounded-lg bg-surface-muted shadow-[0_12px_28px_rgba(0,0,0,0.18)]";
@@ -141,7 +150,7 @@ function cardTransform({
   const squeeze = selected ? 1 : CARD_SQUEEZE;
   const shearRest = selected ? 0 : CARD_SHEAR_DEG;
   const shear = entering ? shearRest + CARD_ENTRANCE_SHEAR_DEG : shearRest;
-  const depth = selected ? 26 : hovered ? 2 : -14;
+  const depth = selected ? 12 : hovered ? 2 : -6;
   // The focused cover is the only one painted over its layout box. Shelf covers
   // rest under it and hover stays under it too, so nothing on the shelf ever
   // reads as large as the cover in focus.
@@ -169,7 +178,7 @@ function cardTransform({
     : away * CARD_PART_PCT + (hovered ? CARD_PULL_PCT : 0);
   const part = entering ? shelf + CARD_ENTRANCE_SHIFT_PCT : shelf;
 
-  return `perspective(2200px) translateX(${part}%) translateZ(${depth}px) scaleX(${squeeze}) skewY(${shear}deg) scale(${scale}) translate(0px, ${lift}px)`;
+  return `perspective(2800px) translateX(${part}%) translateZ(${depth}px) scaleX(${squeeze}) skewY(${shear}deg) scale(${scale}) translate(0px, ${lift}px)`;
 }
 
 // The shelf deals itself out right to left: every cover starts a slot right of
@@ -245,6 +254,214 @@ const GRID_TILE_STAGGER_S = 0.022;
 const GRID_TILE_MAX_DELAY_S = 0.22;
 const GRID_TILE_DURATION_S = 0.42;
 const GRID_TILE_RISE_PX = 12;
+const PHOTO_RAIL_LOOP_COPIES = 3;
+// Portrait steps are ~240px; hold that cruise so a wide landscape doesn't
+// dump its whole travel in the first frames of a 420ms ease-out.
+const PHOTO_RAIL_GLIDE_MS = 420;
+const PHOTO_RAIL_GLIDE_REF_PX = 240;
+const PHOTO_RAIL_GLIDE_MAX_MS = 720;
+// Ease-out is wall-clock. A long frame (decode, React) would otherwise dump
+// the missed distance in one paint — the landscape teleport in grid view.
+const PHOTO_RAIL_GLIDE_MAX_PX = 36;
+
+function photoRailCycleWidth(rail: HTMLUListElement, count: number) {
+  const items = rail.querySelectorAll(":scope > li");
+  if (count <= 0 || items.length < count * 2) return 0;
+  const mid = items[count] as HTMLElement;
+  const nextCopy = items[count * 2] as HTMLElement | undefined;
+  // Middle copy is the one on screen; clone copies stay lazy placeholders
+  // and would under-report the cycle until they decode.
+  if (nextCopy) return nextCopy.offsetLeft - mid.offsetLeft;
+  return mid.offsetLeft - (items[0] as HTMLElement).offsetLeft;
+}
+
+function photoRailLoopScrollLeft(rail: HTMLUListElement, count: number) {
+  const cycleWidth = photoRailCycleWidth(rail, count);
+  if (cycleWidth <= 0) return null;
+  let left = rail.scrollLeft;
+  for (
+    let step = 0;
+    step < PHOTO_RAIL_LOOP_COPIES && left < cycleWidth * 0.5;
+    step += 1
+  ) {
+    left += cycleWidth;
+  }
+  for (
+    let step = 0;
+    step < PHOTO_RAIL_LOOP_COPIES && left > cycleWidth * 1.5;
+    step += 1
+  ) {
+    left -= cycleWidth;
+  }
+  return { cycleWidth, left };
+}
+
+function photoRailItems(rail: HTMLUListElement) {
+  return [...rail.querySelectorAll(":scope > li")] as HTMLElement[];
+}
+
+function photoRailItemRight(item: HTMLElement) {
+  return item.offsetLeft + item.offsetWidth;
+}
+
+function photoRailAlignLeft(
+  rail: HTMLUListElement,
+  item: HTMLElement,
+  align: "start" | "end",
+) {
+  // Visual edges, not offsetLeft/clientWidth: the rail bleeds by the page
+  // gutter, and CSS end-snap uses the snapport's painted box. Mixing those
+  // left the ease 86px short, then restoring snap jumped the rest.
+  const itemBox = item.getBoundingClientRect();
+  const port = rail.getBoundingClientRect();
+  return align === "start"
+    ? rail.scrollLeft + (itemBox.left - port.left)
+    : rail.scrollLeft + (itemBox.right - port.right);
+}
+
+function photoRailEndAlignLeft(rail: HTMLUListElement, item: HTMLElement) {
+  return photoRailAlignLeft(rail, item, "end");
+}
+
+function photoRailSnappedItem(
+  rail: HTMLUListElement,
+  align: "start" | "end" = "end",
+) {
+  const items = photoRailItems(rail);
+  if (items.length === 0) return null;
+  const port = rail.getBoundingClientRect();
+  const portEdge = align === "end" ? port.right : port.left;
+  let best = items[0];
+  let bestDist = Infinity;
+  for (const item of items) {
+    const box = item.getBoundingClientRect();
+    const edge = align === "end" ? box.right : box.left;
+    const dist = Math.abs(edge - portEdge);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = item;
+    }
+  }
+  return best;
+}
+
+function photoRailStepItem(
+  items: HTMLElement[],
+  current: HTMLElement,
+  direction: -1 | 1,
+) {
+  const index = items.indexOf(current);
+  if (index < 0) return null;
+  const next = index + direction;
+  return next < 0 || next >= items.length ? null : items[next];
+}
+
+function photoRailSeedScrollLeft(
+  rail: HTMLUListElement,
+  count: number,
+  align: "start" | "end" = "end",
+) {
+  const items = photoRailItems(rail);
+  const start = items[count] ? count : 0;
+  const origin = items[start];
+  if (!origin) return 0;
+  let target = origin;
+  if (align === "end") {
+    const limit = origin.offsetLeft + rail.clientWidth;
+    for (let index = start; index < items.length; index += 1) {
+      target = items[index];
+      if (photoRailItemRight(target) >= limit - 1) break;
+    }
+  }
+  let left = photoRailAlignLeft(rail, target, align);
+  const cycleWidth = photoRailCycleWidth(rail, count);
+  if (cycleWidth > 0) {
+    while (left > cycleWidth * 1.5) left -= cycleWidth;
+    while (left < cycleWidth * 0.5) left += cycleWidth;
+  }
+  return left;
+}
+
+function restorePhotoRailChrome(rail: HTMLUListElement) {
+  rail.style.removeProperty("scroll-snap-type");
+  rail.style.removeProperty("scroll-behavior");
+}
+
+function jumpPhotoRailScroll(rail: HTMLUListElement, left: number) {
+  if (Math.abs(rail.scrollLeft - left) <= 1) return;
+  // Instant wrap has to ignore snap or the jump lands on a neighbour instead
+  // of the matching photo in the next copy. Blossom sets scroll-behavior:
+  // smooth on the carousel, which would animate this jump as auto-scroll.
+  rail.style.setProperty("scroll-snap-type", "none", "important");
+  rail.style.setProperty("scroll-behavior", "auto", "important");
+  rail.scrollLeft = left;
+  restorePhotoRailChrome(rail);
+}
+
+let photoRailGlideFrame = 0;
+
+function cancelPhotoRailGlide() {
+  cancelAnimationFrame(photoRailGlideFrame);
+  photoRailGlideFrame = 0;
+}
+
+// Chevron-only ease with snap held off for the whole motion. Native
+// behavior:"smooth" still hitch-jumped at the end once mandatory snap
+// returned — Chrome retargets the glide, fires scrollend early, then snaps.
+function glidePhotoRailScroll(
+  rail: HTMLUListElement,
+  leftOrGet: number | (() => number),
+  reduceMotion: boolean,
+  onDone: () => void,
+) {
+  const destination = () =>
+    typeof leftOrGet === "function" ? leftOrGet() : leftOrGet;
+  cancelPhotoRailGlide();
+  const left0 = destination();
+  if (Math.abs(rail.scrollLeft - left0) <= 1) return false;
+  if (reduceMotion) {
+    jumpPhotoRailScroll(rail, left0);
+    return false;
+  }
+  // Stop Blossom's rAF physics so it cannot write scrollLeft during the ease.
+  rail.scrollTo({ left: rail.scrollLeft, behavior: "auto" });
+  // [blossom-carousel][has-snap=true] applies --snap-type with !important.
+  // Drop the attribute so that rule is inert, then pin snap off for the ease.
+  rail.setAttribute("has-snap", "false");
+  rail.style.setProperty("scroll-snap-type", "none", "important");
+  rail.style.setProperty("scroll-behavior", "auto", "important");
+  void rail.offsetWidth;
+  const start = rail.scrollLeft;
+  const initialDelta = left0 - start;
+  const duration = Math.min(
+    PHOTO_RAIL_GLIDE_MAX_MS,
+    Math.max(
+      PHOTO_RAIL_GLIDE_MS,
+      (Math.abs(initialDelta) * PHOTO_RAIL_GLIDE_MS) / PHOTO_RAIL_GLIDE_REF_PX,
+    ),
+  );
+  const origin = performance.now();
+  const step = (now: number) => {
+    const left = destination();
+    const t = Math.min(1, (now - origin) / duration);
+    const eased = 1 - (1 - t) ** 3;
+    const desired = t < 1 ? start + (left - start) * eased : left;
+    const remaining = desired - rail.scrollLeft;
+    const delta =
+      Math.sign(remaining) *
+      Math.min(Math.abs(remaining), PHOTO_RAIL_GLIDE_MAX_PX);
+    rail.scrollLeft += delta;
+    if (Math.abs(rail.scrollLeft - left) > 1) {
+      photoRailGlideFrame = requestAnimationFrame(step);
+      return;
+    }
+    photoRailGlideFrame = 0;
+    rail.scrollLeft = left;
+    onDone();
+  };
+  photoRailGlideFrame = requestAnimationFrame(step);
+  return true;
+}
 
 function gridTileDelay(index: number) {
   return Math.min(index * GRID_TILE_STAGGER_S, GRID_TILE_MAX_DELAY_S);
@@ -264,15 +481,23 @@ const detailSummaryClassName = [
 const SUMMARY_COLLAPSE_SCROLL_MARGIN = 24;
 
 function ArrowIcon({ direction }: { direction: "left" | "right" }) {
+  // A chevron's mass sits on the open side, so geometric centering in a
+  // round ghost button reads off-axis. Nudge each glyph 1px toward its tip.
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      className={
+        direction === "left" ? "size-5 -translate-x-px" : "size-5 translate-x-px"
+      }
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         d={direction === "left" ? "M15 5l-7 7 7 7" : "M9 5l7 7-7 7"}
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="1.7"
+        strokeWidth="2"
       />
     </svg>
   );
@@ -290,6 +515,7 @@ function ExpandableSummary({
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasOverflow, setHasOverflow] = useState(false);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const clampRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const contentId = `event-summary-${eventId}-${useId().replace(/:/g, "")}`;
   const reduceMotion = useReducedMotion();
@@ -312,27 +538,32 @@ function ExpandableSummary({
 
   useLayoutEffect(() => {
     const content = contentRef.current;
-    if (!content) return;
+    const clamp = clampRef.current;
+    if (!content || !clamp) return;
 
     const updateOverflow = () => {
-      const contentHeight = content.getBoundingClientRect().height;
-      // Keep in step with the max-h-[220px] clamp below.
-      setHasOverflow(contentHeight > 220);
+      // Expanding grows the clamp to the content, so measuring then would
+      // hide "See less". Only the collapsed box tells us if copy is clipped.
+      if (isExpanded) return;
+      setHasOverflow(content.scrollHeight > clamp.clientHeight + 1);
     };
 
     updateOverflow();
     const observer = new ResizeObserver(updateOverflow);
     observer.observe(content);
+    observer.observe(clamp);
 
     return () => observer.disconnect();
-  }, [summaryHtml, summaryParagraphs]);
+  }, [summaryHtml, summaryParagraphs, isExpanded]);
 
   return (
     <>
-      <div className="relative" ref={containerRef}>
+      <div className="detail-summary-shell relative" ref={containerRef}>
         <div
-          className={isExpanded ? "overflow-visible" : "max-h-[220px] overflow-hidden"}
+          className="detail-summary-clamp"
+          data-expanded={isExpanded ? "" : undefined}
           id={contentId}
+          ref={clampRef}
         >
           <div ref={contentRef}>
             {summaryHtml ? (
@@ -360,7 +591,7 @@ function ExpandableSummary({
       </div>
       {hasOverflow ? (
         <Link
-          className="mt-2"
+          className="mt-6 shrink-0 leading-none -translate-y-px"
           aria-expanded={isExpanded}
           aria-controls={contentId}
           onClick={toggleExpanded}
@@ -386,8 +617,16 @@ export default function HomePage({
 }: HomePageProps) {
   const events = initialEvents;
   const showRecentEvents = recentEvents.length > 0;
-  const initialIndex =
-    initialEvents.length > DEFAULT_FOCUS_SLOT ? DEFAULT_FOCUS_SLOT : 0;
+  // The rail opens on the sixth cover so the shelf reads as a shelf from the
+  // first frame, with covers tucked behind the focused one on both sides. An
+  // archive too short to have a sixth cover opens on the newest instead of the
+  // oldest: the covers then run to the right, which is the end the entrance sweep
+  // starts from and the end a reader scrolls towards.
+  const initialIndex = initialFocusIndex(initialEvents.length);
+  const firstPaintCovers = useMemo(
+    () => firstPaintCoverImages(events, initialIndex),
+    [events, initialIndex],
+  );
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [view, setView] = useState<GalleryView>("carousel");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -430,11 +669,19 @@ export default function HomePage({
     useState<HTMLUListElement | null>(null);
   const [canScrollPhotosLeft, setCanScrollPhotosLeft] = useState(false);
   const [canScrollPhotosRight, setCanScrollPhotosRight] = useState(false);
-  // The rail only overflows once the photos are wider than their column, and a
-  // gallery that fits has nothing for the arrows to do.
+  const [photoRailLoops, setPhotoRailLoops] = useState(false);
+  const photoRailLoopsRef = useRef(false);
+  const photoRailAnimatingRef = useRef(false);
+  // One silent jump into the middle copy; after that the rail only moves on
+  // user scroll, drag, or chevrons.
+  const photoRailPlacedRef = useRef(false);
+  const photoRailMidStartRef = useRef(0);
+  // True once there is a next photo to scroll to. A short gallery can still
+  // fit the column, so arrows follow the loop, not a one-copy overflow check.
   const [isPhotoRailScrollable, setIsPhotoRailScrollable] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [loadedPhotos, setLoadedPhotos] = useState<Record<string, true>>({});
+  const [photoAspects, setPhotoAspects] = useState<Record<string, string>>({});
   const reduceMotion = useReducedMotion();
   const aboutVideoRef = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress: aboutVideoProgress } = useScroll({
@@ -553,6 +800,7 @@ export default function HomePage({
     [selectedPhotoSources],
   );
   const showEventGallery = selectedPhotos.length > 0;
+  const photoRailCopies = photoRailLoops ? PHOTO_RAIL_LOOP_COPIES : 1;
   const tickerItems = useMemo(
     () =>
       events.map((item) => ({
@@ -569,23 +817,82 @@ export default function HomePage({
     setGalleryElement(rail);
   }, []);
 
-  const setDetailPhotoRail = useCallback(
-    (rail: HTMLUListElement | null) => {
-      detailPhotoRailRef.current = rail;
-      setPhotoRailElement(rail);
-    },
-    [],
-  );
+  const setPhotoViewport = useCallback((node: HTMLDivElement | null) => {
+    const rail =
+      (node?.querySelector("#event-photo-rail") as HTMLUListElement | null) ??
+      null;
+    detailPhotoRailRef.current = rail;
+    setPhotoRailElement(rail);
+  }, []);
 
   const updatePhotoRailBounds = useCallback(
-    (rail: HTMLUListElement) => {
-      setIsPhotoRailScrollable(rail.scrollWidth > rail.clientWidth + 1);
-      setCanScrollPhotosLeft(rail.scrollLeft > 1);
+    (rail: HTMLUListElement, wrap = false) => {
+      const count = selectedPhotoRenders.length;
+      const align = view === "grid" ? "start" : "end";
+      const items = rail.querySelectorAll(":scope > li");
+      if (count === 0 || items.length < count) {
+        photoRailLoopsRef.current = false;
+        photoRailPlacedRef.current = false;
+        photoRailMidStartRef.current = 0;
+        setPhotoRailLoops(false);
+        setIsPhotoRailScrollable(false);
+        setCanScrollPhotosLeft(false);
+        setCanScrollPhotosRight(false);
+        return;
+      }
+
+      const copies = Math.round(items.length / count);
+      const cycleWidth = photoRailCycleWidth(rail, count);
+      const overflows =
+        copies > 1
+          ? cycleWidth > rail.clientWidth + 1
+          : rail.scrollWidth > rail.clientWidth + 1;
+      // One copy of a short gallery can fit the column and hide the arrows.
+      // Loop as soon as there is a next photo so both views can scroll and snap.
+      const shouldLoop = count > 1;
+
+      if (shouldLoop !== photoRailLoopsRef.current) {
+        photoRailLoopsRef.current = shouldLoop;
+        setPhotoRailLoops(shouldLoop);
+      }
+
+      setIsPhotoRailScrollable(shouldLoop);
+
+      if (shouldLoop && copies > 1 && cycleWidth > 0) {
+        const midStart = (items[count] as HTMLElement).offsetLeft;
+        if (!photoRailPlacedRef.current) {
+          jumpPhotoRailScroll(
+            rail,
+            photoRailSeedScrollLeft(rail, count, align),
+          );
+          photoRailPlacedRef.current = true;
+          photoRailMidStartRef.current = (items[count] as HTMLElement)
+            .offsetLeft;
+        } else {
+          const shift = midStart - photoRailMidStartRef.current;
+          photoRailMidStartRef.current = midStart;
+          // Clone copies expand from 3/4 placeholders to landscape and push
+          // the middle copy. Hold the visual still unless a chevron ease is
+          // already chasing the live target.
+          if (shift && !photoRailAnimatingRef.current) {
+            rail.scrollLeft += shift;
+          }
+          if (wrap && !photoRailAnimatingRef.current) {
+            const looped = photoRailLoopScrollLeft(rail, count);
+            if (looped) jumpPhotoRailScroll(rail, looped.left);
+          }
+        }
+        setCanScrollPhotosLeft(true);
+        setCanScrollPhotosRight(true);
+        return;
+      }
+
+      setCanScrollPhotosLeft(overflows && rail.scrollLeft > 1);
       setCanScrollPhotosRight(
-        rail.scrollLeft < rail.scrollWidth - rail.clientWidth - 1,
+        overflows && rail.scrollLeft < rail.scrollWidth - rail.clientWidth - 1,
       );
     },
-    [],
+    [selectedPhotoRenders.length, view],
   );
 
   const updatePhotoRailBoundsFromRef = useCallback(() => {
@@ -594,16 +901,45 @@ export default function HomePage({
   }, [updatePhotoRailBounds]);
 
   // Keyed by URL so photos stay revealed when you move between events instead
-  // of shimmering again.
-  const markPhotoLoaded = useCallback((photoUrl: string) => {
-    setLoadedPhotos((previous) =>
-      previous[photoUrl] ? previous : { ...previous, [photoUrl]: true },
-    );
+  // of shimmering again. Aspect is stored separately so loop clones can reserve
+  // landscape width before their own <img> decodes.
+  const pendingPhotoAspects = useRef<Record<string, string>>({});
+  const photoAspectFlush = useRef(0);
+  const recordPhotoAspect = useCallback((src: string, width: number, height: number) => {
+    if (width <= 0 || height <= 0) return;
+    pendingPhotoAspects.current[src] = `${width} / ${height}`;
+    if (photoAspectFlush.current) return;
+    photoAspectFlush.current = requestAnimationFrame(() => {
+      photoAspectFlush.current = 0;
+      const batch = pendingPhotoAspects.current;
+      pendingPhotoAspects.current = {};
+      setPhotoAspects((previous) => {
+        let changed = false;
+        const next = { ...previous };
+        for (const [url, aspect] of Object.entries(batch)) {
+          if (next[url] !== aspect) {
+            next[url] = aspect;
+            changed = true;
+          }
+        }
+        return changed ? next : previous;
+      });
+    });
   }, []);
+  const markPhotoLoaded = useCallback(
+    (photoUrl: string, image?: HTMLImageElement | null) => {
+      setLoadedPhotos((previous) =>
+        previous[photoUrl] ? previous : { ...previous, [photoUrl]: true },
+      );
+      if (image) recordPhotoAspect(photoUrl, image.naturalWidth, image.naturalHeight);
+    },
+    [recordPhotoAspect],
+  );
 
   // Warm the current event's photos right away and prefetch the neighbouring
   // events' first few, so moving through the carousel opens galleries without
-  // waiting on a fresh download each time.
+  // waiting on a fresh download each time. Read natural size off the same
+  // fetch so every loop copy can reserve landscape width up front.
   useEffect(() => {
     const neighbourPhotos = [selectedIndex - 1, selectedIndex + 1]
       .filter((index) => index >= 0 && index < events.length)
@@ -614,24 +950,55 @@ export default function HomePage({
           .slice(0, 4)
           .map((url) => sizedImage(url, { width: 460, quality: 68 })),
       );
-    return preloadImages([...selectedPhotoRenders, ...neighbourPhotos]);
-  }, [selectedPhotoRenders, selectedIndex, events]);
+    const stop = preloadImages([...selectedPhotoRenders, ...neighbourPhotos]);
+    let cancelled = false;
+    for (const photo of selectedPhotoRenders) {
+      const image = new Image();
+      const record = () => {
+        if (cancelled) return;
+        recordPhotoAspect(photo.src, image.naturalWidth, image.naturalHeight);
+      };
+      image.onload = record;
+      if (photo.srcSet) image.srcset = photo.srcSet;
+      image.src = photo.src;
+      if (image.complete) record();
+    }
+    return () => {
+      cancelled = true;
+      stop();
+    };
+  }, [selectedPhotoRenders, selectedIndex, events, recordPhotoAspect]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    photoRailPlacedRef.current = false;
+    photoRailMidStartRef.current = 0;
     if (!photoRailElement) {
+      photoRailLoopsRef.current = false;
+      setPhotoRailLoops(false);
       setIsPhotoRailScrollable(false);
       setCanScrollPhotosLeft(false);
       setCanScrollPhotosRight(false);
       return;
     }
+    updatePhotoRailBounds(photoRailElement);
+  }, [photoRailElement, selectedEvent?.id, view, updatePhotoRailBounds]);
+
+  useLayoutEffect(() => {
+    if (photoRailElement) updatePhotoRailBounds(photoRailElement);
+  }, [photoRailLoops, photoRailElement, updatePhotoRailBounds]);
+
+  useEffect(() => {
+    if (!photoRailElement) return;
 
     const updateBounds = () => updatePhotoRailBounds(photoRailElement);
-    const frame = requestAnimationFrame(updateBounds);
+    const onScrollEnd = () => {
+      // Chevron rAF owns restore + wrap. Drag/trackpad wrap here after idle.
+      if (photoRailAnimatingRef.current) return;
+      updatePhotoRailBounds(photoRailElement, true);
+    };
     const observer = new ResizeObserver(updateBounds);
 
-    photoRailElement.addEventListener("scroll", updateBounds, {
-      passive: true,
-    });
+    photoRailElement.addEventListener("scrollend", onScrollEnd);
     // A photo claims its width only once it decodes, and the rail's own box is
     // sized by the column around it, so watching the rail alone never sees the
     // content grow past it. Watching the items too is what catches an
@@ -645,26 +1012,52 @@ export default function HomePage({
     photoRailElement.addEventListener("load", updateBounds, { capture: true });
 
     return () => {
-      cancelAnimationFrame(frame);
-      photoRailElement.removeEventListener("scroll", updateBounds);
+      cancelPhotoRailGlide();
+      photoRailElement.removeEventListener("scrollend", onScrollEnd);
       photoRailElement.removeEventListener("load", updateBounds, {
         capture: true,
       });
       observer.disconnect();
     };
-  }, [photoRailElement, selectedEvent?.id, updatePhotoRailBounds]);
+  }, [
+    photoRailElement,
+    selectedEvent?.id,
+    photoRailLoops,
+    updatePhotoRailBounds,
+  ]);
 
   const scrollPhotoRail = useCallback(
     (direction: -1 | 1) => {
       const rail = detailPhotoRailRef.current;
-      if (!rail) return;
+      if (!rail || photoRailAnimatingRef.current) return;
 
-      rail.scrollBy({
-        left: direction * Math.max(rail.clientWidth * 0.8, 240),
-        behavior: reduceMotion ? "auto" : "smooth",
-      });
+      const align = view === "grid" ? "start" : "end";
+      const items = photoRailItems(rail);
+      const current = photoRailSnappedItem(rail, align);
+      if (!current) return;
+      const next = photoRailStepItem(items, current, direction);
+      if (!next) return;
+
+      // Always glide to the next photo, even across a copy boundary. Wrapping
+      // mid-step was the instant teleport. Loop fold happens after the ease.
+      photoRailAnimatingRef.current = true;
+      const gliding = glidePhotoRailScroll(
+        rail,
+        () => photoRailAlignLeft(rail, next, align),
+        Boolean(reduceMotion),
+        () => {
+          photoRailAnimatingRef.current = false;
+          rail.setAttribute("has-snap", "true");
+          restorePhotoRailChrome(rail);
+          updatePhotoRailBounds(rail, true);
+        },
+      );
+      if (!gliding) {
+        photoRailAnimatingRef.current = false;
+        updatePhotoRailBounds(rail, true);
+      }
     },
-    [reduceMotion],
+    [reduceMotion, updatePhotoRailBounds, view],
   );
 
   const openLightbox = useCallback((photoIndex: number) => {
@@ -1026,7 +1419,7 @@ export default function HomePage({
 
   return (
     <main className="min-h-dvh w-full overflow-hidden rounded-none border-0 bg-surface font-['Alte_Haas_Grotesk',sans-serif] text-body shadow-none antialiased [font-synthesis:none] [text-rendering:optimizeLegibility]">
-      <PageLoader onDone={revealGallery} />
+      <PageLoader onDone={revealGallery} waitForImages={firstPaintCovers} />
 
       <SiteHeader reveal />
 
@@ -1101,6 +1494,7 @@ export default function HomePage({
                     // The rail's vertical padding is tied to the underhang it
                     // lends the covers, so it is set in CSS beside it.
                     className="gallery px-[max(8vw,calc((100vw-1440px)/2))] max-[820px]:px-[18vw]"
+                    id="event-carousel"
                     ref={setGalleryRail}
                     aria-label="Choose a past event"
                     onPointerLeave={(event) =>
@@ -1219,15 +1613,18 @@ export default function HomePage({
                           >
                             <img
                               className="rounded-[inherit] border-0 outline-none"
-                              // 272 is the --event-cover-size ceiling.
-                              {...sizedImage(item.image_url, {
-                                width: 272,
-                                quality: 74,
-                              })}
+                              {...eventCoverImage(item.image_url)}
                               alt=""
                               draggable="false"
                               decoding="async"
-                              loading={Math.abs(distance) > 3 ? "lazy" : "eager"}
+                              loading={
+                                Math.abs(distance) > VISIBLE_COVER_RADIUS
+                                  ? "lazy"
+                                  : "eager"
+                              }
+                              fetchPriority={
+                                Math.abs(distance) <= 1 ? "high" : "auto"
+                              }
                               onError={(event) => recoverImage(event.currentTarget)}
                             />
                             <span className="event-card-sheen" aria-hidden />
@@ -1240,7 +1637,7 @@ export default function HomePage({
                               readers who never see this one. */}
                           {selected && item.luma_url ? (
                             <span
-                              className="cover-luma-hint text-base text-muted"
+                              className="cover-luma-hint text-medium text-base text-muted"
                               aria-hidden
                             >
                               View on Luma
@@ -1251,6 +1648,40 @@ export default function HomePage({
                       );
                     })}
                   </ul>
+                  <div className="gallery-edge gallery-edge-start">
+                    <button
+                      type="button"
+                      className="gallery-edge-button"
+                      aria-label="Previous event"
+                      aria-controls="event-carousel"
+                      disabled={selectedIndex <= 0}
+                      onClick={(event) => {
+                        selectEvent(selectedIndex - 1);
+                        if (event.detail > 0) {
+                          event.currentTarget.blur();
+                        }
+                      }}
+                    >
+                      <ArrowIcon direction="left" />
+                    </button>
+                  </div>
+                  <div className="gallery-edge gallery-edge-end">
+                    <button
+                      type="button"
+                      className="gallery-edge-button"
+                      aria-label="Next event"
+                      aria-controls="event-carousel"
+                      disabled={selectedIndex >= events.length - 1}
+                      onClick={(event) => {
+                        selectEvent(selectedIndex + 1);
+                        if (event.detail > 0) {
+                          event.currentTarget.blur();
+                        }
+                      }}
+                    >
+                      <ArrowIcon direction="right" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="gallery-ticker px-[clamp(20px,6vw,96px)] pb-[clamp(32px,4vw,56px)]">
@@ -1261,6 +1692,18 @@ export default function HomePage({
                     onSelect={selectEvent}
                     label="Past event timeline"
                   />
+                  {/* Mobile only: the under-cover hint sits between the rail and
+                      the ticks on wider screens, but a phone puts the ticks
+                      right under the covers, so the caption drops below them. */}
+                  {detailLumaUrl ? (
+                    <span
+                      className="gallery-luma-hint text-medium text-base text-muted"
+                      aria-hidden
+                    >
+                      View on Luma
+                      <ArrowUpRightIcon />
+                    </span>
+                  ) : null}
                 </div>
               </motion.div>
             ) : (
@@ -1369,7 +1812,7 @@ export default function HomePage({
                   )}
                   {detailLumaUrl ? (
                     <span
-                      className="cover-luma-hint text-base text-muted"
+                      className="cover-luma-hint text-medium text-base text-muted"
                       aria-hidden
                     >
                       View on Luma
@@ -1378,6 +1821,7 @@ export default function HomePage({
                   ) : null}
                 </div>
               ) : null}
+              <div className="detail-primary">
               <div className="detail-title">
                 <h2
                   className="m-0 text-balance text-[clamp(1.75rem,2.6vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.06em] text-black"
@@ -1401,7 +1845,7 @@ export default function HomePage({
                     </span>
                   </p>
                   <ul
-                    className="detail-chips m-0 gap-2.5 p-0"
+                    className="detail-chips m-0 gap-2.5 p-0 max-[820px]:mt-0.5"
                     aria-label="Sponsors"
                   >
                     {sponsors.length > 0 ? (
@@ -1411,7 +1855,7 @@ export default function HomePage({
                             <span className="sr-only">Sponsor: </span>
                             {sponsor.logo_url ? (
                               <img
-                                className="sponsor-logo border-0 outline-none"
+                                className="sponsor-logo overflow-hidden rounded-sm border-0 outline-none"
                                 src={sponsor.logo_url}
                                 alt=""
                                 loading="lazy"
@@ -1447,13 +1891,6 @@ export default function HomePage({
                   </ul>
                 </div>
               </div>
-              <div className="detail-meta">
-                <ExpandableSummary
-                  summaryHtml={summaryHtml}
-                  summaryParagraphs={summaryParagraphs}
-                  eventId={selectedEvent.id}
-                />
-              </div>
               {showEventGallery ? (
               <div className="detail-extras pt-[var(--detail-extra-gap)]">
                 <section
@@ -1461,7 +1898,7 @@ export default function HomePage({
                   aria-label="Event gallery"
                 >
                   {isPhotoRailScrollable ? (
-                    <div className="mb-[clamp(24px,3vw,40px)] flex items-center justify-end">
+                    <div className="detail-photo-arrows mb-[clamp(12px,1.5vw,20px)] flex items-center justify-end">
                       <div
                         className="flex gap-2"
                         role="group"
@@ -1470,8 +1907,10 @@ export default function HomePage({
                         <IconButton
                           aria-label="Previous event photo"
                           aria-controls="event-photo-rail"
+                          className="size-8 -ml-3"
                           variant="ghost"
-                          disabled={!canScrollPhotosLeft}
+                          tone="muted"
+                          disabled={photoRailLoops ? false : !canScrollPhotosLeft}
                           onClick={() => scrollPhotoRail(-1)}
                         >
                           <ArrowIcon direction="left" />
@@ -1479,8 +1918,10 @@ export default function HomePage({
                         <IconButton
                           aria-label="Next event photo"
                           aria-controls="event-photo-rail"
+                          className="size-8 -mr-3"
                           variant="ghost"
-                          disabled={!canScrollPhotosRight}
+                          tone="muted"
+                          disabled={photoRailLoops ? false : !canScrollPhotosRight}
                           onClick={() => scrollPhotoRail(1)}
                         >
                           <ArrowIcon direction="right" />
@@ -1490,42 +1931,60 @@ export default function HomePage({
                   ) : null}
                   <div
                     className="detail-photo-viewport"
-                    data-fade-left={canScrollPhotosLeft ? "" : undefined}
-                    data-fade-right={canScrollPhotosRight ? "" : undefined}
+                    ref={setPhotoViewport}
                   >
-                  <ul
-                    className="detail-photo-list m-0 touch-pan-x p-0 pb-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink"
+                  <BlossomCarousel
+                    as="ul"
+                    className="detail-photo-list m-0 touch-pan-x p-0 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink"
                     id="event-photo-rail"
-                    ref={setDetailPhotoRail}
                     tabIndex={0}
                     aria-label={`${selectedEvent.title} gallery, horizontally scrollable`}
                   >
-                    {selectedPhotoRenders.map((photo, photoIndex) => (
-                      <li key={`${selectedEvent.id}-${photoIndex}`}>
+                    {Array.from({ length: photoRailCopies }, (_, copy) =>
+                    selectedPhotoRenders.map((photo, photoIndex) => {
+                      const isClone = photoRailCopies > 1 && copy !== 1;
+                      return (
+                      <li
+                        key={`${selectedEvent.id}-${copy}-${photoIndex}`}
+                        data-blossom-slide=""
+                        aria-hidden={isClone ? true : undefined}
+                      >
                         <button
                           type="button"
-                          className="detail-photo-frame relative inline-flex overflow-hidden rounded-md border-0 bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                          className="detail-photo-frame relative flex overflow-hidden rounded-md border-0 bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                           data-loaded={loadedPhotos[photo.src] ? "true" : "false"}
+                          style={
+                            photoAspects[photo.src]
+                              ? ({
+                                  "--photo-aspect": photoAspects[photo.src],
+                                } as CSSProperties)
+                              : undefined
+                          }
+                          tabIndex={isClone ? -1 : undefined}
                           aria-label={`Open photo ${photoIndex + 1} of ${selectedPhotoRenders.length} at full size`}
-                          onClick={() => openLightbox(photoIndex)}
+                          onClick={() =>
+                            openLightbox(
+                              photoIndex % selectedPhotoRenders.length,
+                            )
+                          }
                         >
                           <img
-                            className="detail-photo h-[clamp(240px,62vw,320px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(260px,22vw,340px)] min-[821px]:max-w-none"
+                            className="detail-photo h-[clamp(230px,58vw,300px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(240px,20vw,310px)] min-[821px]:max-w-none"
                             src={photo.src}
                             srcSet={photo.srcSet}
                             alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotoRenders.length}`}
-                            loading={photoIndex < 3 ? "eager" : "lazy"}
+                            loading={isClone || photoIndex >= 3 ? "lazy" : "eager"}
                             decoding="async"
                             // A cached photo can finish before hydration
                             // attaches onLoad, which would leave the
                             // placeholder up for good.
                             ref={(node) => {
                               if (node?.complete && node.naturalWidth > 0) {
-                                markPhotoLoaded(photo.src);
+                                markPhotoLoaded(photo.src, node);
                               }
                             }}
-                            onLoad={() => {
-                              markPhotoLoaded(photo.src);
+                            onLoad={(event) => {
+                              markPhotoLoaded(photo.src, event.currentTarget);
                               updatePhotoRailBoundsFromRef();
                             }}
                             // Only give up on a photo once the original has
@@ -1543,8 +2002,10 @@ export default function HomePage({
                           />
                         </button>
                       </li>
-                    ))}
-                  </ul>
+                      );
+                    })
+                    )}
+                  </BlossomCarousel>
                   </div>
                   <GalleryLightbox
                     photos={lightboxPhotos}
@@ -1558,6 +2019,14 @@ export default function HomePage({
                 </section>
               </div>
               ) : null}
+              </div>
+              <div className="detail-meta">
+                <ExpandableSummary
+                  summaryHtml={summaryHtml}
+                  summaryParagraphs={summaryParagraphs}
+                  eventId={selectedEvent.id}
+                />
+              </div>
             </motion.div>
             </AnimatePresence>
           ) : (
@@ -1593,18 +2062,17 @@ export default function HomePage({
           </h2>
           <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-body">
             {showRecentEvents
-              ? "Stay tuned on Luma to hear about the next one first!"
+              ? "We keep our Luma updated with all of our latest events. Stay tuned to be the first to hear about the next one!"
               : "RSVP on Luma to join us at the next Design Meetup."}
           </p>
           <Primary
-            className="gap-2"
+            className="gap-2 !bg-ink font-bold !text-white hover:!bg-black"
             href="https://luma.com/designmeetup"
             target="_blank"
             rel="noreferrer"
-            variant="secondary"
           >
             <img
-              className="size-5"
+              className="size-5 brightness-0 invert"
               src="/luma-logo.svg"
               alt=""
               aria-hidden="true"
@@ -1613,7 +2081,7 @@ export default function HomePage({
           </Primary>
         </ScrollReveal>
         <ScrollReveal
-          className="upcoming-events-embed overflow-hidden rounded-[11px]"
+          className="upcoming-events-embed overflow-hidden rounded-[20px]"
           delay={80}
         >
           {showRecentEvents ? (
@@ -1645,10 +2113,10 @@ export default function HomePage({
             </h2>
             <div className="about-lede grid gap-5 text-base leading-[1.6] text-body">
               <p className="m-0 text-pretty">
-                We are a community of the world’s most ambitious creatives in NYC, SF, & LA.
+                We are a community of the world’s most ambitious creatives.
               </p>
               <p className="m-0 text-pretty">
-                We bring together designers who aspire to take their craft seriously while forming meaningful connections.
+                In December 2025 Design Meetup was just an idea. A month later, we hosted our first event with 50 designers. And now, we’ve brought together 10,000+ people across 30 events in NY, LA, and the Bay Area.
               </p>
             </div>
           </div>
@@ -1745,6 +2213,67 @@ export default function HomePage({
       </section>
 
       <FoundersNote />
+
+      <section
+        className="apply-cta bg-surface px-[clamp(20px,6vw,96px)] pt-[80px] pb-[clamp(48px,6vw,80px)] text-black max-[820px]:pt-[40px]"
+        id="apply"
+        aria-labelledby="apply-cta-title"
+      >
+        <ScrollReveal className="apply-copy">
+          <h2
+            className="m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
+            id="apply-cta-title"
+          >
+            Applications opening soon
+          </h2>
+        </ScrollReveal>
+        <ScrollReveal className="apply-follow" delay={80}>
+          <div className="grid w-full max-w-[54ch] gap-5 text-base leading-[1.6] text-body">
+            <p className="m-0 text-pretty">
+              We'll be opening up applications for the next Design Meetup member cohort soon. If you're a student or early-career designer, we'd love to have you.
+            </p>
+            <div className="grid gap-3">
+              <p className="m-0 text-pretty">
+                Drop your email and we'll let you know when applications open.
+              </p>
+              <ApplyNotifyForm />
+            </div>
+            <p className="m-0 mt-5 text-pretty">
+              Follow us on Instagram and Substack to stay updated!
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Primary
+              className="group gap-2"
+              variant="secondary"
+              href="https://www.instagram.com/designmeetup/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span className="relative size-5">
+                <InstagramIcon className="size-5 transition-opacity duration-150 ease-out group-hover:opacity-0 group-focus-visible:opacity-0 motion-reduce:transition-none" />
+                <InstagramIcon
+                  branded
+                  className="absolute inset-0 size-5 opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+                />
+              </span>
+              Instagram
+            </Primary>
+            <Primary
+              className="group gap-2"
+              variant="secondary"
+              href="https://designmeetup.substack.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <SubstackIcon className="size-5 transition-colors duration-150 ease-out group-hover:text-[#FF6719] group-focus-visible:text-[#FF6719] motion-reduce:transition-none" />
+              Substack
+            </Primary>
+          </div>
+        </ScrollReveal>
+      </section>
+
+      <PhotoMarquee events={events} />
 
       <SiteFooter />
     </main>

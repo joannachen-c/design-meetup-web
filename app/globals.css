@@ -61,6 +61,7 @@
 
 html {
   scroll-behavior: smooth;
+  background-color: var(--color-surface);
 }
 
 body {
@@ -94,9 +95,11 @@ main {
 html.is-loading,
 html.is-loading body {
   overflow: hidden;
+  background-color: var(--color-surface);
 }
 
 .page-loader {
+  background-color: var(--color-surface);
   transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -252,6 +255,7 @@ h1 span {
 .view-toggle {
   position: relative;
   display: inline-flex;
+  gap: 2px;
 }
 
 /* Width and offset are measured from the active button so each option can hug
@@ -332,6 +336,154 @@ h1 span {
   );
 }
 
+/* Desktop hover: a stronger white wash with blur, and chevrons on top. Hidden
+   on phones and coarse pointers, where the rail is already a swipe. Hovering
+   any cover keeps the wash at hover strength; it lightens when the pointer
+   leaves the cards. Opacity lives on the fade and the button, not the edge
+   itself: an ancestor with opacity less than 1 would stop backdrop-filter
+   sampling the covers. */
+.gallery-edge {
+  display: none;
+}
+
+@media (min-width: 821px) {
+  @media (hover: hover) and (pointer: fine) {
+    .gallery-edge {
+      position: absolute;
+      z-index: 5;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: stretch;
+      width: clamp(88px, 14vw, 240px);
+      pointer-events: none;
+    }
+
+    .gallery-edge-start {
+      left: 0;
+      justify-content: flex-start;
+      padding-left: clamp(8px, 0.8vw, 14px);
+      /* The rail's extra bottom pad for the underhang sits the covers above
+         the viewport centre; match that so the chevron lands on the shelf. */
+      padding-bottom: var(--rail-underhang);
+    }
+
+    .gallery-edge-end {
+      right: 0;
+      justify-content: flex-end;
+      padding-right: clamp(8px, 0.8vw, 14px);
+      padding-bottom: var(--rail-underhang);
+    }
+
+    .gallery-edge::before {
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      opacity: 0;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: opacity 180ms ease;
+    }
+
+    .gallery-edge-start::before {
+      background-image: linear-gradient(
+        to right,
+        var(--color-surface),
+        color-mix(in oklab, var(--color-surface) 62%, transparent) 48%,
+        transparent
+      );
+      mask-image: linear-gradient(
+        to right,
+        #000 18%,
+        rgb(0 0 0 / 0.4) 58%,
+        transparent
+      );
+      -webkit-mask-image: linear-gradient(
+        to right,
+        #000 18%,
+        rgb(0 0 0 / 0.4) 58%,
+        transparent
+      );
+    }
+
+    .gallery-edge-end::before {
+      background-image: linear-gradient(
+        to left,
+        var(--color-surface),
+        color-mix(in oklab, var(--color-surface) 62%, transparent) 48%,
+        transparent
+      );
+      mask-image: linear-gradient(
+        to left,
+        #000 18%,
+        rgb(0 0 0 / 0.4) 58%,
+        transparent
+      );
+      -webkit-mask-image: linear-gradient(
+        to left,
+        #000 18%,
+        rgb(0 0 0 / 0.4) 58%,
+        transparent
+      );
+    }
+
+    .gallery-edge-button {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      flex: 0 0 auto;
+      width: 44px;
+      min-height: 44px;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--color-muted);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: auto;
+      transition:
+        opacity 180ms ease,
+        transform 160ms ease-out,
+        color 150ms ease;
+    }
+
+    .gallery-edge-button:disabled {
+      pointer-events: none;
+    }
+
+    .gallery-edge-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .gallery-edge-button svg path {
+      stroke-width: 2.25;
+    }
+
+    .gallery-edge-button:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    .gallery-edge-button:focus-visible {
+      outline: 2px solid var(--color-ink);
+      outline-offset: 2px;
+    }
+
+    .gallery-viewport:hover .gallery-edge::before,
+    .gallery-edge:has(.gallery-edge-button:focus-visible)::before {
+      opacity: 1;
+    }
+
+    .gallery-viewport:hover .gallery-edge-button:not(:disabled),
+    .gallery-edge-button:focus-visible:not(:disabled) {
+      opacity: 1;
+    }
+  }
+}
+
 .gallery-ticker {
   display: flex;
   justify-content: center;
@@ -339,6 +491,16 @@ h1 span {
      the same distance from the ticks as they did before the rail made space to
      paint outside itself. */
   margin-top: calc(0px - var(--rail-underhang));
+}
+
+/* Mobile-only caption under the ticks; hidden until the phone layout moves it
+   out from under the focused cover. */
+.gallery-luma-hint {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 /* A horizontal scrollport has to clip vertically — overflow-y cannot stay
@@ -359,7 +521,7 @@ h1 span {
   overflow-x: auto;
   overflow-y: hidden;
   list-style: none;
-  perspective: 2400px;
+  perspective: 2800px;
   perspective-origin: center;
   scroll-padding-inline: calc(50% - (var(--event-cover-size) / 2));
   scroll-snap-type: x proximity;
@@ -381,7 +543,7 @@ h1 span {
   position: relative;
   flex: 0 0 var(--event-cover-size);
   /* Long throw: the covers should read as one tilted plane, not a fisheye. */
-  perspective: 2200px;
+  perspective: 2800px;
   scroll-snap-align: center;
   transform-style: preserve-3d;
   /* The slots overlap ~59% and carry the stacking order, so a bare slot
@@ -735,10 +897,28 @@ h1 span {
   row-gap: clamp(28px, 2.8vw, 44px);
 }
 
+.events-layout[data-view="grid"] .detail-primary {
+  display: contents;
+}
+
 .events-layout[data-view="grid"] .detail-title,
-.events-layout[data-view="grid"] .detail-meta {
+.events-layout[data-view="grid"] .detail-meta,
+.events-layout[data-view="grid"] .detail-extras,
+.events-layout[data-view="grid"] .detail-grid:has(.detail-extras) .detail-meta {
   grid-column: auto;
   grid-row: auto;
+}
+
+.events-layout[data-view="grid"] .detail-title {
+  order: 1;
+}
+
+.events-layout[data-view="grid"] .detail-meta {
+  order: 2;
+}
+
+.events-layout[data-view="grid"] .detail-extras {
+  order: 3;
 }
 
 /* Under the cover the date reads as the heading's eyebrow, so grid view stacks
@@ -787,21 +967,29 @@ h1 span {
   display: none;
 }
 
-/* The rail bleeds to the page edge at full width; inside a column it has to
-   stay put or it would run back under the covers. */
+/* Covers occupy the left. Photos pin to the detail column's start (with the
+   chevrons) and bleed through the page gutter off the right edge. One row. */
 .events-layout[data-view="grid"] .detail-photo-list {
-  --page-gutter: 0px;
+  --page-gutter-start: 0px;
+  --page-gutter-end: var(--page-gutter);
 }
 
-/* Portrait recap posts tower over the cover grid beside them, so the rail runs
-   a notch shorter here than it does at full width. */
+.events-layout[data-view="grid"] .detail-photo-list li {
+  scroll-snap-align: start;
+}
+
+.events-layout[data-view="grid"] .detail-photo-arrows {
+  justify-content: flex-start;
+}
+
+/* A notch shorter than the carousel rail so recaps don't tower over covers. */
 .events-layout[data-view="grid"] .detail-photo {
-  height: clamp(220px, 57vw, 292px);
+  height: clamp(210px, 54vw, 276px);
 }
 
 @media (min-width: 821px) {
   .events-layout[data-view="grid"] .detail-photo {
-    height: clamp(236px, 20vw, 308px);
+    height: clamp(220px, 18vw, 288px);
   }
 }
 
@@ -833,9 +1021,22 @@ h1 span {
   width: 100%;
 }
 
+.detail-primary {
+  /* Title + gallery stack; the summary sits in the other column so expanding
+     it cannot stretch these rows and shove the photos down. */
+  grid-column: 1 / span 7;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 3vw, 52px);
+  min-width: 0;
+}
+
 .detail-title {
   /* Spans up to the meta column so long titles like "Design Meetup x Reve
-     Makeathon" wrap with enough breathing room before the summary column. */
+     Makeathon" wrap with enough breathing room before the summary column.
+     Inside .detail-primary this placement is ignored; it still applies to
+     the empty state, which has no wrapper. */
   grid-column: 1 / span 7;
   grid-row: 1;
 }
@@ -844,6 +1045,66 @@ h1 span {
   /* Same four columns as the partner logo grid and the About lede. */
   grid-column: 9 / span 4;
   grid-row: 1;
+}
+
+/* Stretch the collapsed summary to the title+gallery stack so "See more"
+   can sit on the same edge as the photos. The rail has to end on the
+   image, not on leftover padding, or that stretch hangs the label low. */
+.detail-grid:has(.detail-extras) .detail-meta {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.detail-grid:has(.detail-extras) .detail-meta > .detail-summary-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-summary-clamp {
+  overflow: hidden;
+  /* Fallback when the summary isn't stretched beside a photo rail. */
+  max-height: 560px;
+}
+
+/* Grid view has no rail to stretch against, and 560px hangs See more under
+   the cover stack. Keep the collapsed copy short so the text column doesn't
+   run the height of the cover grid. */
+.events-layout[data-view="grid"] .detail-summary-clamp:not([data-expanded]) {
+  max-height: 220px;
+}
+
+.detail-summary-clamp[data-expanded] {
+  overflow: visible;
+  max-height: none;
+}
+
+@media (min-width: 821px) {
+  /* Height 0 so the summary column doesn't inflate the left stack with its
+     copy; min-height 100% then stretches it to that stack. */
+  .events-layout:not([data-view="grid"])
+    .detail-grid:has(.detail-extras):not(:has(.detail-summary-clamp[data-expanded]))
+    .detail-meta {
+    height: 0;
+    min-height: 100%;
+    overflow: hidden;
+  }
+
+  .events-layout:not([data-view="grid"])
+    .detail-grid:has(.detail-extras)
+    .detail-summary-clamp:not([data-expanded]) {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  /* Expanded copy grows the grid downward; the left stack stays at the top. */
+  .events-layout:not([data-view="grid"])
+    .detail-grid:has(.detail-summary-clamp[data-expanded]) {
+    align-items: start;
+  }
 }
 
 .about-copy {
@@ -949,7 +1210,6 @@ h1 span {
 
 .detail-extras {
   display: grid;
-  grid-column: 1 / -1;
   grid-template-columns: minmax(0, 1fr);
   gap: clamp(28px, 5vw, 72px);
 }
@@ -958,61 +1218,48 @@ h1 span {
   position: relative;
 }
 
-/* Photos blur out into the page at whichever side the rail can still scroll
-   towards. Only in grid view: the carousel's rail bleeds past the page gutters
-   to the viewport edge, so a band pinned to the column would float mid-photo. */
-.events-layout[data-view="grid"] .detail-photo-viewport[data-fade-left]::before,
-.events-layout[data-view="grid"] .detail-photo-viewport[data-fade-right]::after {
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  bottom: 0;
-  width: 56px;
-  content: "";
-  pointer-events: none;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.events-layout[data-view="grid"]
-  .detail-photo-viewport[data-fade-left]::before {
-  left: 0;
-  background-image: linear-gradient(to left, rgb(255 255 255 / 0), var(--color-surface));
-  mask-image: linear-gradient(to left, rgb(0 0 0 / 0), #000 65%);
-  -webkit-mask-image: linear-gradient(to left, rgb(0 0 0 / 0), #000 65%);
-}
-
-.events-layout[data-view="grid"]
-  .detail-photo-viewport[data-fade-right]::after {
-  right: 0;
-  background-image: linear-gradient(to right, rgb(255 255 255 / 0), var(--color-surface));
-  mask-image: linear-gradient(to right, rgb(0 0 0 / 0), #000 65%);
-  -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0), #000 65%);
-}
-
 .detail-photo-list {
   --photo-gap: clamp(8px, 1.4vw, 18px);
   --page-gutter: clamp(20px, 6vw, 96px);
+  /* Break out of the section padding on the start side so photos sit on the
+     viewport edge. The end side stops at the summary column. */
+  --page-gutter-start: var(--page-gutter);
+  --page-gutter-end: 0px;
+  /* Blossom restores snap after a drag from this token. */
+  --snap-type: x mandatory;
 
   display: flex;
-  width: calc(100% + var(--page-gutter) + var(--page-gutter));
-  margin-inline: calc(0px - var(--page-gutter));
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  width: calc(100% + var(--page-gutter-start) + var(--page-gutter-end));
+  max-inline-size: none;
+  margin-inline: calc(0px - var(--page-gutter-start))
+    calc(0px - var(--page-gutter-end));
   overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-inline: contain;
-  scroll-padding-inline: var(--page-gutter);
+  /* Blossom's [blossom-carousel] rule sets smooth; that would animate the
+     silent middle-copy seed and every loop wrap into a visible auto-scroll. */
+  scroll-behavior: auto;
+  /* No start inset: leftover space hangs off the left (page bleed). End
+     padding stays 0 so a photo's right edge can sit on the gallery edge. */
+  scroll-padding-inline: 0;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
 
-.detail-photo-list::before,
 .detail-photo-list::after {
-  flex: 0 0 var(--page-gutter);
+  flex: 0 0 var(--page-gutter-end);
   content: "";
 }
 
 .detail-photo-list li {
+  display: flex;
   flex: 0 0 auto;
-  scroll-snap-align: start;
+  line-height: 0;
+  /* End-align keeps the rightmost photo flush. `always` stops momentum
+     then plays a second snap — the pause-then-jump, worse on wide slides. */
+  scroll-snap-align: end;
 }
 
 .detail-photo-list li + li {
@@ -1026,16 +1273,17 @@ h1 span {
 }
 
 /* Gallery photos have no stored dimensions, so an unloaded image would collapse
-   to zero width and leave nothing for the placeholder to fill. Holding a
-   portrait box until decode gives the shimmer a shape, and releasing it lets
-   the real aspect ratio take over. */
-.detail-photo-frame[data-loaded="false"] .detail-photo {
-  aspect-ratio: 3 / 4;
-  opacity: 0;
+   to zero width and leave nothing for the placeholder to fill. Hold a portrait
+   box until we know the real ratio; `--photo-aspect` lets every loop copy
+   reserve landscape width before its own image decodes. */
+.detail-photo-frame .detail-photo {
+  aspect-ratio: var(--photo-aspect, auto);
+  transition: opacity 320ms ease-out;
 }
 
-.detail-photo-frame .detail-photo {
-  transition: opacity 320ms ease-out;
+.detail-photo-frame[data-loaded="false"] .detail-photo {
+  aspect-ratio: var(--photo-aspect, 3 / 4);
+  opacity: 0;
 }
 
 .detail-photo-shimmer {
@@ -1081,10 +1329,21 @@ h1 span {
 /* The overlay borrows the rail's shimmer, so a photo it has to fetch reads the
    same way as one the rail is still loading. The stand-in below is usually the
    render the rail already decoded, so this only shows for photos the reader
-   never scrolled past. */
+   never scrolled past.
+
+   Size the slot from the photo's own aspect when we have it, so a landscape
+   still sits in a landscape box while it decodes. 3/4 is only the fallback
+   for a photo whose dimensions are still unknown. Fitting with width rather
+   than a forced 78vh height is what keeps a wide photo from becoming a tall
+   empty column. */
+.lightbox-frame[data-base-loaded="false"] .lightbox-photo,
+.lightbox-frame[data-has-aspect="true"] .lightbox-photo {
+  aspect-ratio: var(--lightbox-aspect, 3 / 4);
+  width: min(88vw, calc(78vh * var(--lightbox-aspect, 3 / 4)));
+  height: auto;
+}
+
 .lightbox-frame[data-base-loaded="false"] .lightbox-photo {
-  height: 78vh;
-  aspect-ratio: 3 / 4;
   opacity: 0;
 }
 
@@ -1111,6 +1370,37 @@ h1 span {
 
 .lightbox-frame[data-loaded="true"] .lightbox-photo-full {
   opacity: 1;
+}
+
+.lightbox-figure {
+  display: grid;
+  width: 88vw;
+  height: calc(78vh + 44px);
+  grid-template-rows: 78vh 20px;
+  gap: 1.5rem;
+  margin: 0;
+}
+
+/* Desktop: the wrapper disappears so each arrow can sit on the overlay, which
+   is the nearest positioned ancestor. Mobile puts the group back in the
+   figure so the arrows land under the caption instead of on the photo. */
+.lightbox-arrows {
+  display: contents;
+}
+
+.lightbox-arrow-prev,
+.lightbox-arrow-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox-arrow-prev {
+  left: clamp(12px, 3vw, 32px);
+}
+
+.lightbox-arrow-next {
+  right: clamp(12px, 3vw, 32px);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1224,6 +1514,65 @@ h1 span {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: clamp(16px, 2vw, 28px);
   min-height: 460px;
+}
+
+.apply-cta {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 28px);
+  align-items: start;
+}
+
+.apply-copy {
+  grid-column: 1 / span 8;
+}
+
+.apply-follow {
+  grid-column: 9 / span 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 19px;
+}
+
+/* Full-bleed autoscroll strip between apply and the footer. Overflow is
+   clipped, never a scrollport: motion is a transform on the track only. */
+.photo-marquee {
+  pointer-events: none;
+}
+
+.photo-marquee-viewport {
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: photo-marquee var(--marquee-duration, 56s) linear infinite;
+}
+
+.photo-marquee-track[data-paused] {
+  animation-play-state: paused;
+}
+
+.photo-marquee-set {
+  display: flex;
+  flex-shrink: 0;
+  list-style: none;
+}
+
+.photo-marquee-item {
+  flex-shrink: 0;
+  width: min(282.75px, 54vw);
+  height: min(282.75px, 54vw);
+  overflow: hidden;
+}
+
+@keyframes photo-marquee {
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .partner-copy {
@@ -1404,6 +1753,12 @@ footer {
 }
 
 @media (max-width: 820px) {
+  /* DS section links only; the marketing header nav stays. Unlayered
+     .primary-navigation { display: flex } beats Tailwind hidden. */
+  .design-system-navigation {
+    display: none;
+  }
+
   .intro {
     grid-template-columns: 1fr;
     gap: 18px;
@@ -1418,11 +1773,48 @@ footer {
      rather than as one cover with slivers behind it. */
   .events-layout {
     --event-cover-size: min(25vw, 130px);
+    /* Shadow only: the Luma caption lives under the ticks on a phone, so the
+       rail no longer has to hold a line open for it. */
+    --rail-underhang: 14px;
   }
 
   /* Mobile stays on the carousel; the grid toggle only belongs on wider screens. */
   .gallery-toolbar {
     display: none;
+  }
+
+  /* Phone: ticks sit under the covers; the Luma caption follows the ticks. */
+  .gallery li > .cover-luma-hint {
+    display: none;
+  }
+
+  /* Drop the desktop bottom pad that reserved room for the under-cover label,
+     and pull the tick row up into the headroom it keeps for tall ticks so the
+     short marks sit nearer the covers. */
+  .gallery {
+    padding-bottom: var(--rail-underhang);
+  }
+
+  .gallery-ticker {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-top: calc(0px - var(--rail-underhang) - 32px);
+  }
+
+  /* The pull overlaps the covers with the tick row's empty headroom; let
+     clicks fall through that band onto the covers. */
+  .film-ticker {
+    pointer-events: none;
+  }
+
+  .film-ticker button {
+    pointer-events: auto;
+  }
+
+  .gallery-luma-hint {
+    display: inline-flex;
+    align-self: center;
   }
 
   /* Looser than desktop, and it has to be: the part that carries the shelf clear
@@ -1451,6 +1843,10 @@ footer {
   /* On a phone the date reads as the title's eyebrow, the same way it does in
      grid view, so the fact line unwraps into the title's own flow and the stack
      runs date, title, place. */
+  .detail-primary {
+    display: contents;
+  }
+
   .detail-title {
     grid-column: auto;
     grid-row: auto;
@@ -1491,10 +1887,32 @@ footer {
     order: 2;
   }
 
+  .detail-grid:has(.detail-extras) .detail-meta {
+    grid-row: auto;
+  }
+
   .detail-extras {
     grid-column: auto;
+    grid-row: auto;
     grid-template-columns: minmax(0, 1fr);
     order: 3;
+  }
+
+  /* Stacked under the title, 560px eats the viewport before the photos.
+     Keep the collapsed copy short so the gallery arrives sooner. */
+  .detail-summary-clamp:not([data-expanded]) {
+    max-height: 160px;
+  }
+
+  /* Full-bleed both sides — unlike desktop, where the rail stops at the
+     summary column. Zero the end spacer so a photo can sit on the edge. */
+  .detail-photo-list {
+    --page-gutter-start: var(--page-gutter);
+    --page-gutter-end: var(--page-gutter);
+  }
+
+  .detail-photo-list::after {
+    flex-basis: 0;
   }
 
   .about-grid {
@@ -1542,6 +1960,16 @@ footer {
     grid-template-columns: 1fr;
     row-gap: 96px;
     min-height: auto;
+  }
+
+  .apply-cta {
+    grid-template-columns: 1fr;
+    row-gap: 32px;
+  }
+
+  .apply-copy,
+  .apply-follow {
+    grid-column: 1;
   }
 
   .partner-copy,
@@ -1623,10 +2051,47 @@ footer {
   .detail-photo-list {
     --photo-gap: 8px;
   }
+
+  /* A phone photo fills the width, so side arrows sit on the image. Keep them
+     under the caption and shrink the frame so the stack still fits. */
+  .lightbox-figure {
+    width: min(88vw, calc(100% - 32px));
+    height: auto;
+    max-height: calc(100dvh - 24px);
+    grid-template-rows: auto auto auto;
+    gap: 12px;
+    padding-bottom: max(4px, env(safe-area-inset-bottom));
+  }
+
+  .lightbox-figure .lightbox-frame,
+  .lightbox-figure .lightbox-photo {
+    max-height: calc(100dvh - 140px);
+    max-width: 100%;
+  }
+
+  .lightbox-frame[data-base-loaded="false"] .lightbox-photo,
+  .lightbox-frame[data-has-aspect="true"] .lightbox-photo {
+    width: min(100%, calc((100dvh - 140px) * var(--lightbox-aspect, 3 / 4)));
+    max-height: calc(100dvh - 140px);
+    height: auto;
+  }
+
+  .lightbox-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .lightbox-arrow-prev,
+  .lightbox-arrow-next {
+    position: static;
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
+  html,
+  .detail-photo-list {
     scroll-behavior: auto;
   }
 
@@ -1638,7 +2103,9 @@ footer {
   .view-toggle-thumb,
   .event-grid-cover,
   .recent-event-thumb,
-  .cover-luma-hint {
+  .cover-luma-hint,
+  .gallery-edge::before,
+  .gallery-edge-button {
     transition: none;
   }
 
@@ -1672,5 +2139,9 @@ footer {
     translate: none;
     transform: none;
     transition: none;
+  }
+
+  .photo-marquee-track {
+    animation: none;
   }
 }

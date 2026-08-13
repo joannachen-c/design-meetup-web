@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-const { sizedImageUrl } = await import("../src/lib/image.ts");
+const { sizedImageUrl, firstPaintCoverImages, eventCoverImage, VISIBLE_COVER_RADIUS, initialFocusIndex, DEFAULT_FOCUS_SLOT } = await import("../src/lib/image.ts");
 
 const SUPABASE_COVER =
   "https://example.supabase.co/storage/v1/object/public/event-covers/evt-abc.jpg";
@@ -43,4 +43,23 @@ test("unknown hosts and empty values pass through untouched", () => {
     "https://cdn.example.com/cover.jpg",
   );
   assert.equal(sizedImageUrl(null, { width: 420 }), "");
+});
+
+test("first-paint covers are the focused slot plus the visible radius", () => {
+  const events = Array.from({ length: 12 }, (_, index) => ({
+    image_url: LUMA_COVER.replace("cover.png", `cover-${index}.png`),
+  }));
+  const focus = initialFocusIndex(events.length);
+  assert.equal(focus, DEFAULT_FOCUS_SLOT);
+  const covers = firstPaintCoverImages(events, focus);
+  assert.equal(covers.length, VISIBLE_COVER_RADIUS * 2 + 1);
+  assert.match(covers[0].src, /cover-1\.png/);
+  assert.match(covers.at(-1).src, /cover-9\.png/);
+  assert.deepEqual(covers[VISIBLE_COVER_RADIUS], eventCoverImage(events[focus].image_url));
+});
+
+test("a short archive still preloads every cover around the opening slot", () => {
+  const events = [{ image_url: LUMA_COVER }, { image_url: LUMA_COVER }];
+  assert.equal(initialFocusIndex(events.length), 0);
+  assert.equal(firstPaintCoverImages(events, 0).length, 2);
 });

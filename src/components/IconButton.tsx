@@ -20,6 +20,7 @@ const variantClassName = {
 const toneClassName = {
   ink: "text-ink",
   muted: "text-muted hover:not-disabled:text-ink",
+  subtle: "text-subtle hover:not-disabled:text-ink",
 } as const;
 
 type IconButtonVariant = keyof typeof variantClassName;
@@ -32,10 +33,13 @@ export function IconButton({
   type = "button",
   variant = "solid",
   tone = "ink",
+  onClick,
   ...props
 }: IconButtonProps) {
   const buttonClassName = [
-    "grid size-9 cursor-pointer place-items-center rounded-full border-0 p-2",
+    "grid appearance-none cursor-pointer place-items-center rounded-full border-0 p-0 leading-none",
+    // Drop the default when the caller passes a size utility; both would fight.
+    /(?:^|\s)size-/.test(className) ? "" : "size-9",
     variantClassName[variant],
     toneClassName[tone],
     "transition-[background-color,color,transform,opacity] duration-150 ease-out active:not-disabled:scale-[0.96]",
@@ -52,6 +56,12 @@ export function IconButton({
       aria-label={ariaLabel}
       className={buttonClassName}
       type={type}
+      onClick={(event) => {
+        onClick?.(event);
+        if (event.detail > 0) {
+          event.currentTarget.blur();
+        }
+      }}
     >
       {children}
     </button>

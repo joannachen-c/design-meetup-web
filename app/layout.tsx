@@ -8,6 +8,7 @@ import {
   siteTitle,
   siteUrl,
 } from "@/lib/site";
+import "@blossom-carousel/react/style.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

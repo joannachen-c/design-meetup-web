@@ -6,8 +6,8 @@ const LUMA_PAST_CALENDAR_URL = "https://luma.com/designmeetup?period=past";
 
 export function RecentEventsPanel({ events }: { events: LumaEvent[] }) {
   return (
-    <div className="recent-events flex h-full flex-col gap-6 bg-surface-muted p-[clamp(20px,2.4vw,32px)]">
-      <h3 className="m-0 pl-3 pt-3 text-2xl font-bold tracking-[-0.06em] text-black">
+    <div className="recent-events flex h-full flex-col gap-6 rounded-[20px] bg-surface-muted p-[clamp(20px,2.4vw,32px)]">
+      <h3 className="m-0 pl-3 pt-2.5 text-2xl font-bold tracking-[-0.06em] text-black">
         Past events
       </h3>
       <ul className="m-0 grid list-none gap-1 p-0">
@@ -48,7 +48,7 @@ export function RecentEventsPanel({ events }: { events: LumaEvent[] }) {
         ))}
       </ul>
       <Link
-        className="mt-auto inline-flex items-center gap-1.5 px-3 pb-3"
+        className="mt-auto inline-flex items-center gap-1.5 px-3 py-2.5"
         href={LUMA_PAST_CALENDAR_URL}
         target="_blank"
         rel="noreferrer"

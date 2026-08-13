@@ -6,6 +6,7 @@ import {
   buildSummaryBundle,
   normalizeTipTapDescription,
   stripLiabilityContent,
+  stripLiabilityFromHtml,
   tipTapToHtml,
   tipTapToPlainText,
 } from "../scripts/refresh-event-summaries.mjs";
@@ -239,6 +240,112 @@ test("Luma description parsing strips Figma Edu and Design Meetup partner intros
   assert.doesNotMatch(summaryHtml, /<hr\s*\/>\s*$/);
 });
 
+test("Luma description parsing strips full-capacity calendar notices", () => {
+  const description = {
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "We're at full capacity for this event, please subscribe to our calendars for future gatherings from Notion NY & Design Meetup.",
+            marks: [{ type: "italic" }],
+          },
+        ],
+      },
+      { type: "horizontal_rule" },
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "In this candid panel, designers will share:",
+            marks: [{ type: "bold" }],
+          },
+        ],
+      },
+    ],
+  };
+
+  const summary = tipTapToPlainText(description);
+  const summaryHtml = tipTapToHtml(description);
+
+  assert.match(summary, /In this candid panel/);
+  assert.doesNotMatch(summary, /full capacity|subscribe to our calendars/i);
+  assert.doesNotMatch(
+    summaryHtml,
+    /full capacity|subscribe to our calendars|<hr\s*\/>/i,
+  );
+
+  const alreadyRendered = stripLiabilityFromHtml(
+    `<p><em>We're at full capacity for this event, please subscribe to our calendars for future gatherings from <a href="https://luma.com/notion-ny">Notion NY</a> &amp; Design Meetup.</em></p><hr /><p><strong>In this candid panel, designers will share:</strong></p>`,
+  );
+  assert.match(alreadyRendered, /In this candid panel/);
+  assert.doesNotMatch(
+    alreadyRendered,
+    /full capacity|subscribe to our calendars|<hr\s*\/>/i,
+  );
+});
+
+test("Luma description parsing strips Figma Edu eligibility and capacity RSVP footnotes", () => {
+  const description = {
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "Speakers will share short talks about the behind-the-scenes process.",
+          },
+        ],
+      },
+      { type: "horizontal_rule" },
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "This event is open to current interns and students based in the Bay Area. A verified Figma for Education email is required to register. Visit https://www.figma.com/education/apply to verify your email.",
+          },
+        ],
+      },
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "Capacity is limited to 100 attendees. RSVPs will be reviewed and selected based on the quality of responses, so take a moment to share a little about your background!",
+          },
+        ],
+      },
+    ],
+  };
+
+  const summary = tipTapToPlainText(description);
+  const summaryHtml = tipTapToHtml(description);
+
+  assert.match(summary, /Speakers will share short talks/);
+  assert.doesNotMatch(
+    summary,
+    /Figma for Education|Capacity is limited|RSVPs will be reviewed|education\/apply/i,
+  );
+  assert.doesNotMatch(
+    summaryHtml,
+    /Figma for Education|Capacity is limited|RSVPs will be reviewed|education\/apply|<hr\s*\/>/i,
+  );
+
+  const alreadyRendered = stripLiabilityFromHtml(
+    `<p>Speakers will share short talks about the behind-the-scenes process.</p><hr /><p>This event is open to current interns and students based in the Bay Area. A verified Figma for Education email is required to register. Visit <a href="https://www.figma.com/education/apply">https://www.figma.com/education/apply</a> to verify your email.</p><p>Capacity is limited to 100 attendees. RSVPs will be reviewed and selected based on the quality of responses, so take a moment to share a little about your background!</p>`,
+  );
+  assert.match(alreadyRendered, /Speakers will share short talks/);
+  assert.doesNotMatch(
+    alreadyRendered,
+    /Figma for Education|Capacity is limited|RSVPs will be reviewed|education\/apply|<hr\s*\/>/i,
+  );
+});
+
 test("summary refresh updates plain and html summary fields in Supabase", () => {
   assert.match(migration, /add column if not exists summary_html text/);
   assert.match(seed, /\.from\("events"\)\s*\.update\(\{/);
@@ -256,11 +363,11 @@ test("all local event summaries contain retained line breaks and html", () => {
     assert.doesNotMatch(event.summary, /MadiJiabao|open6:00/);
     assert.doesNotMatch(
       event.summary,
-      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships/i,
+      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships|full capacity|subscribe to our calendars|verified Figma for Education|Figma for Education email|Capacity is limited to \d+ attendees[\s\S]{0,160}RSVPs? will be reviewed/i,
     );
     assert.doesNotMatch(
       event.summary_html,
-      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships/i,
+      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships|full capacity|subscribe to our calendars|verified Figma for Education|Figma for Education email|Capacity is limited to \d+ attendees[\s\S]{0,160}RSVPs? will be reviewed/i,
     );
   }
 });

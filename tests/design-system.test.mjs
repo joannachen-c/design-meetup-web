@@ -632,6 +632,7 @@ test("the design system page opens with the same entrance as the home page", () 
     /import \{ PageLoader \} from "\.\/components\/PageLoader"/,
   );
   assert.match(designSystem, /<PageLoader \/>/);
+  assert.match(designSystem, /<main className="[^"]*\bbg-surface\b/);
   assert.match(designSystem, /<SiteHeader[\s\S]*?\breveal\b[\s\S]*?\/>/);
   assert.match(
     designSystem,
@@ -681,6 +682,6 @@ test("design system page reuses the shared footer with a home logo link", () => 
   );
   assert.match(
     designSystem,
-    /<SiteFooter logoHref="\/" logoAriaLabel="Design Meetup home" \/>/,
+    /<SiteFooter\s+logoHref="\/"\s+logoAriaLabel="Design Meetup home"\s+hideDesignSystemPromo\s+\/>/,
   );
 });

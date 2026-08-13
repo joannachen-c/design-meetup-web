@@ -5,10 +5,10 @@ import test from "node:test";
 const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
-test("Figma partner section appears immediately before the founders note and footer", () => {
+test("Figma partner section appears immediately before the founders note, apply CTA, and footer", () => {
   assert.match(
     app,
-    /<section[\s\S]*className="[^"]*\bpartner-cta\b[^"]*"[\s\S]*Partner with us[\s\S]*<PartnerContactForm \/>[\s\S]*<\/section>\s*<FoundersNote \/>\s*<SiteFooter \/>/,
+    /<section[\s\S]*className="[^"]*\bpartner-cta\b[^"]*"[\s\S]*Partner with us[\s\S]*<PartnerContactForm \/>[\s\S]*<\/section>\s*<FoundersNote \/>\s*<section[\s\S]*className="[^"]*\bapply-cta\b[^"]*"[\s\S]*<\/section>\s*<PhotoMarquee events=\{events\} \/>\s*<SiteFooter \/>/,
   );
   assert.match(app, /className="[^"]*\bpartner-grid\b[^"]*"/);
   assert.match(app, /\/partners\/figma\.png/);

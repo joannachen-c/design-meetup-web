@@ -111,6 +111,7 @@ export async function fetchLumaCalendarEvents(
     const response = await fetch(`${LUMA_ITEMS_ENDPOINT}?${params}`, {
       headers: { accept: "application/json" },
       next: { revalidate: 300 },
+      signal: AbortSignal.timeout(8_000),
     });
 
     if (!response.ok) return null;

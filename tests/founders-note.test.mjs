@@ -10,32 +10,27 @@ const note = await readFile(
   new URL("../src/components/FoundersNote.tsx", import.meta.url),
   "utf8",
 );
-const footer = await readFile(
-  new URL("../src/components/SiteFooter.tsx", import.meta.url),
-  "utf8",
-);
 const css = await readFile(
   new URL("../app/globals.css", import.meta.url),
   "utf8",
 );
 
-test("the founders note sits between the partner section and the footer", () => {
-  assert.match(app, /<FoundersNote \/>\s*<SiteFooter \/>/);
+test("the founders note sits between the partner CTA and the apply CTA", () => {
+  assert.match(
+    app,
+    /<FoundersNote \/>\s*<section[\s\S]*className="[^"]*\bapply-cta\b/,
+  );
   assert.match(app, /import \{ FoundersNote \} from "\.\/FoundersNote";/);
 });
 
-// The footer's hairline sits on its top edge, so the note's bottom padding is
-// the whole gap above the line and the footer's top padding the whole gap
-// below. They have to stay equal for the line to read as centered.
-test("the note and the footer pad the hairline by the same amount", () => {
-  const notePadding = note.match(
-    /className="founders-note[^"]*\spb-(\[[^\]]+\])/,
+// The photo marquee now occupies the gap above the footer hairline, so
+// apply only needs a short inset before the strip rather than the
+// doubled padding that used to hold the follow CTAs off the line.
+test("the apply CTA leaves a short inset above the photo marquee", () => {
+  const applyPadding = app.match(
+    /className="[^"]*\bapply-cta\b[^"]*\spb-(\[[^\]]+\])/,
   )?.[1];
-  const footerPadding = footer.match(
-    /<footer\s+className="[^"]*\spt-(\[[^\]]+\])/,
-  )?.[1];
-  assert.ok(notePadding, "founders note declares a bottom padding");
-  assert.equal(footerPadding, notePadding);
+  assert.equal(applyPadding, "[clamp(48px,6vw,80px)]");
 });
 
 test("the note carries the community copy in centered text", () => {

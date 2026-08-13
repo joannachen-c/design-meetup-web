@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/joannachen-c/design-meetup-web#readme",
   "dependencies": {
+    "@blossom-carousel/react": "^1.5.2",
     "@mux/mux-player-react": "^3.13.2",
     "@radix-ui/react-select": "^2.3.7",
     "@radix-ui/react-tooltip": "^1.2.16",

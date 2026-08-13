@@ -98,8 +98,8 @@ test("apply waitlist form posts emails to a private supabase table", () => {
   assert.match(form, /We’ll email you when applications open\./);
   assert.match(form, /name="company"/);
   assert.match(form, /className="hidden"/);
-  assert.match(applyRoute, /from\("application_emails"\)\.upsert/);
-  assert.match(applyRoute, /onConflict: "email"/);
+  assert.match(applyRoute, /from\("application_emails"\)\.insert/);
+  assert.match(applyRoute, /error\.code === "23505"/);
   assert.match(applyRoute, /SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(applyRoute, /NEXT_PUBLIC_SUPABASE_ANON_KEY/);
   assert.match(migration, /Anyone can add an application email/);

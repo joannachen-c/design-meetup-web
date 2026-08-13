@@ -43,7 +43,7 @@ export function NewsletterForm() {
         className="m-0 text-base text-muted"
         role="status"
       >
-        Thank you for signing up!
+        Thank you for signing up! :)
       </p>
     );
   }

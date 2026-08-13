@@ -163,7 +163,8 @@ async function sendWithGmailSmtp(
     await client.connect();
     await client.command(`EHLO ${siteName.replace(/\s+/g, "-").toLowerCase()}`);
     await client.command(
-      `AUTH PLAIN ${Buffer.from(`\0${user}\0${password}`).toString("base64")}`,
+      `AUTH PLAIN ${Buffer.from(`\0${user}\0${password.replace(/\s+/g, "")}`).toString("base64")}`,
+      235,
     );
 
     for (const email of emails) {
@@ -173,7 +174,7 @@ async function sendWithGmailSmtp(
       await client.writeData(buildRawEmail(email));
     }
 
-    await client.command("QUIT");
+    await client.command("QUIT", 221);
   } finally {
     client.close();
   }
@@ -213,7 +214,7 @@ class SmtpClient {
     });
   }
 
-  async command(command: string, expectedCode = 250) {
+  async command(command: string, expectedCode: number | number[] = 250) {
     this.write(`${command}\r\n`);
     return this.readResponse(expectedCode);
   }
@@ -233,13 +234,17 @@ class SmtpClient {
     this.socket.write(value);
   }
 
-  private readResponse(expectedCode: number) {
+  private readResponse(expectedCode: number | number[]) {
+    const expected = Array.isArray(expectedCode)
+      ? expectedCode
+      : [expectedCode];
+
     return new Promise<string>((resolve, reject) => {
       this.pending = {
         resolve: (response) => {
           const code = Number(response.slice(0, 3));
 
-          if (code !== expectedCode) {
+          if (!expected.includes(code)) {
             reject(new Error(`Unexpected SMTP response: ${response}`));
             return;
           }

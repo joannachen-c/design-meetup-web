@@ -57,7 +57,7 @@ test("text fields keep the text caret and never take a pointer", () => {
 
 test("the clickable event card carries an explicit pointer", () => {
   const eventCard =
-    app.match(/className="event-card[^"]*"/)?.[0] ?? "";
+    app.match(/className=\{`event-card[\s\S]*?`\}/)?.[0] ?? "";
 
   assert.match(eventCard, /\bcursor-pointer\b/);
 });

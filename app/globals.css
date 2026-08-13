@@ -731,7 +731,9 @@ h1 span {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .event-card[aria-pressed="true"]:hover + .cover-luma-hint,
+  /* Rail: class from pointerover on the settled focused cover, not :hover —
+     scrolling the shelf under a parked cursor must not surface the label. */
+  .event-card[aria-pressed="true"].is-center-hovered + .cover-luma-hint,
   .detail-cover:hover + .cover-luma-hint {
     opacity: 1;
     transform: translate(-50%, 0);

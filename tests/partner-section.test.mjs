@@ -114,7 +114,7 @@ test("partner logo tiles link out and scale subtly on hover", () => {
 test("partner logo tiles preserve Figma geometry responsively", () => {
   assert.match(
     css,
-    /\.partner-grid\s*\{[^}]*width:\s*100%;[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);[^}]*gap:\s*clamp\(20px,\s*2vw,\s*44px\)/s,
+    /\.partner-grid\s*\{[^}]*width:\s*100%;[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);[^}]*gap:\s*clamp\(12px,\s*1\.2vw,\s*20px\)/s,
   );
   assert.doesNotMatch(css, /\.partner-grid\s*\{[^}]*max-width:/s);
   assert.match(

@@ -45,7 +45,7 @@ const HOVER_HEIGHT = 10;
 
 // Ticks are colored through inline styles, so they read the design system
 // variables directly rather than duplicating the values.
-const ACTIVE_COLOR = "var(--color-ink)";
+const ACTIVE_COLOR = "var(--color-gray-500)";
 const IDLE_COLOR = "var(--color-gray-300)";
 const DISTANCE_LIMIT = 6;
 const HOVER_DISTANCE_LIMIT = 4;

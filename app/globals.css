@@ -2,8 +2,7 @@
 
 @theme {
   --color-ink: oklch(22% 0.025 250);
-  --color-body: #202020;
-  --color-muted: oklch(53% 0.025 250);
+  --color-muted: #6a7282;
   --color-subtle: oklch(70.7% 0.022 261.325);
   --color-surface: oklch(99.4% 0.003 264.542);
   --color-surface-muted: oklch(96.7% 0.003 264.542);
@@ -458,7 +457,7 @@ h1 span {
     }
 
     .gallery-edge-button svg path {
-      stroke-width: 2.25;
+      stroke-width: 2;
     }
 
     .gallery-edge-button:active:not(:disabled) {
@@ -1593,9 +1592,15 @@ h1 span {
   display: grid;
   width: 100%;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(20px, 2vw, 44px);
+  /* Keep room for the 1.02 hover scale without the loose pre-link mosaic. */
+  gap: clamp(12px, 1.2vw, 20px);
   align-content: start;
   list-style: none;
+}
+
+.partner-grid > li {
+  min-width: 0;
+  display: grid;
 }
 
 .partner-tile {
@@ -1603,7 +1608,7 @@ h1 span {
   width: 100%;
   height: auto;
   aspect-ratio: 1;
-  overflow: hidden;
+  overflow: visible;
   place-items: center;
   transition: transform 150ms ease-out;
 }
@@ -1738,14 +1743,33 @@ footer {
   aspect-ratio: 1;
   object-fit: contain;
   opacity: 0;
-  /* Separate from transform so hover can lift without rewriting the entrance. */
-  translate: 0 0;
+  /* Separate from transform so hover / scroll-off clearance can lift without
+     rewriting the entrance. Defaults to 0; JS writes the clearance amount. */
+  --footer-logo-lift: 0px;
+  translate: 0 var(--footer-logo-lift);
   transform: translateY(clamp(48px, 8vw, 96px)) scale(0.96);
   transition:
     opacity 420ms ease-out,
     /* Overshooting curve so the mark pops up rather than slides. */
     transform 760ms cubic-bezier(0.22, 1.2, 0.36, 1),
+    /* Hover stays on this short curve; clearance overrides below. */
     translate 150ms ease-out;
+}
+
+/* RAF drives lift while the finger is down — no easing lag on the way up. */
+.footer-logo.is-overscrolling {
+  transition:
+    opacity 420ms ease-out,
+    transform 760ms cubic-bezier(0.22, 1.2, 0.36, 1),
+    translate 0ms;
+}
+
+/* Gesture quiet: soft ease so the small nudge melts back into the bleed. */
+.footer-logo.is-settling {
+  transition:
+    opacity 420ms ease-out,
+    transform 760ms cubic-bezier(0.22, 1.2, 0.36, 1),
+    translate 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .footer-brand.is-visible .footer-logo {
@@ -1756,7 +1780,7 @@ footer {
 /* Desktop / fine pointer only — avoids sticky lifts on touch. */
 @media (hover: hover) and (pointer: fine) {
   .footer-brand.is-visible .footer-logo:hover {
-    translate: 0 -3px;
+    translate: 0 calc(var(--footer-logo-lift) - 3px);
   }
 }
 
@@ -2010,6 +2034,8 @@ footer {
   .footer-logo {
     position: static;
     max-width: min(32vw, 130px);
+    /* Soft lift so the mark reads off the stacked cream surface. */
+    filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.12));
   }
 
   .footer-newsletter {

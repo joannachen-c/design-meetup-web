@@ -308,9 +308,9 @@ test("sentence breaks into rows and wraps instead of overflowing", () => {
 });
 
 test("the selected checkmark matches the chevron stroke weight", () => {
-  assert.match(select, /strokeWidth="1\.5"/);
+  assert.match(select, /strokeWidth="2"/);
   assert.doesNotMatch(select, /strokeWidth="1\.6"/);
-  assert.match(chevron, /strokeWidth="1\.5"/);
+  assert.match(chevron, /strokeWidth="2"/);
 });
 
 test("every row shares one right edge so the city select lines up with Send", () => {

@@ -12,6 +12,7 @@ import {
   tipTapToHtml,
   tipTapToPlainText,
 } from "./lib/tiptap.mjs";
+import { applyPastTenseToEvent, eventHasEnded } from "./lib/past-tense.mjs";
 
 config({ path: ".env.local" });
 config();
@@ -34,6 +35,13 @@ export {
   tipTapToHtml,
   tipTapToPlainText,
 };
+
+export {
+  applyPastTenseToEvent,
+  eventHasEnded,
+  rewritePastEventSummary,
+  rewritePastEventSummaryHtml,
+} from "./lib/past-tense.mjs";
 
 export function buildSummaryBundle(events) {
   return Object.fromEntries(
@@ -129,9 +137,11 @@ async function refreshLocalSummaries() {
       event.luma_url,
       event.title,
     );
-    refreshed.push({ ...event, summary, summary_html });
+    refreshed.push(applyPastTenseToEvent({ ...event, summary, summary_html }));
     console.log(
-      `ok (${summary.split("\n").length} lines, ${summary_html.length} html chars)`,
+      `ok (${summary.split("\n").length} lines, ${summary_html.length} html chars${
+        eventHasEnded(event) ? ", past tense" : ""
+      })`,
     );
   }
 

@@ -286,14 +286,37 @@ test("the gallery stays hidden while an event still uses the shared placeholders
   assert.match(app, /url\.includes\("\/placeholders\/"\)/);
   assert.match(app, /const showEventGallery = selectedPhotos\.length > 0/);
   // The extras wrapper goes with it, so a gallery-less event doesn't leave an
-  // empty grid row and its gap under the detail.
+  // empty grid row and its gap under the detail — unless the event is past and
+  // we reserve the slot for a "Photos coming soon!" note.
   assert.match(
     app,
-    /\{showEventGallery \? \(\s*<div className="detail-extras pt-\[var\(--detail-extra-gap\)\]">/,
+    /\{showEventGallery \|\| showPhotosComingSoon \? \(\s*<div className="detail-extras pt-\[var\(--detail-extra-gap\)\]">/,
   );
   assert.doesNotMatch(
     app,
     /gallery_images\?\.length > 0[\s\S]*\? selectedEvent\.image_url/,
+  );
+});
+
+test("past events without photos promise a recap in the gallery slot", () => {
+  assert.match(
+    app,
+    /const showPhotosComingSoon = !showEventGallery && selectedEventHasEnded/,
+  );
+  assert.match(
+    app,
+    /new Date\(selectedEvent\.ends_at \?\? selectedEvent\.starts_at\)\.getTime\(\) <\s*Date\.now\(\)/,
+  );
+  assert.match(
+    app,
+    /className="detail-photos-empty[^"]*text-subtle"[^>]*>\s*Photos coming soon!/,
+  );
+  // Same gray as the date eyebrow, and it stays inside the section gutters
+  // (no bleed like the photo rail).
+  assert.match(app, /<span className="detail-date text-subtle">/);
+  assert.doesNotMatch(
+    app,
+    /detail-photos-empty[^"]*detail-photo-list|page-gutter-start/,
   );
 });
 
@@ -436,6 +459,12 @@ test("event photo controls scroll right forever and loop in the middle copy", ()
   assert.match(app, /itemBox\.left - port\.left/);
   assert.match(app, /function photoRailSnappedItem\(/);
   assert.match(app, /function photoRailSeedScrollLeft\(/);
+  assert.match(app, /PHOTO_RAIL_LANDING_PAIR_EVENT_IDS/);
+  assert.match(app, /fillFromStart/);
+  assert.match(
+    app,
+    /photoRailSeedScrollLeft\(\s*rail,\s*count,\s*align,\s*PHOTO_RAIL_LANDING_PAIR_EVENT_IDS\.has\(selectedEvent\?\.id \?\? ""\),\s*\)/,
+  );
   assert.match(app, /function photoRailStepItem\(/);
   assert.doesNotMatch(app, /function photoRailCopyLength\(/);
   assert.match(app, /while \(left > cycleWidth \* 1\.5\) left -= cycleWidth/);
@@ -443,7 +472,7 @@ test("event photo controls scroll right forever and loop in the middle copy", ()
   assert.match(app, /const shouldLoop = count > 1/);
   assert.match(
     app,
-    /if \(!photoRailPlacedRef\.current\) \{\s*jumpPhotoRailScroll\(\s*rail,\s*photoRailSeedScrollLeft\(rail, count, align\),\s*\);/,
+    /if \(!photoRailPlacedRef\.current\) \{\s*jumpPhotoRailScroll\(\s*rail,\s*photoRailSeedScrollLeft\(\s*rail,\s*count,\s*align,\s*PHOTO_RAIL_LANDING_PAIR_EVENT_IDS\.has\(selectedEvent\?\.id \?\? ""\),\s*\),\s*\);/,
   );
   assert.match(app, /if \(wrap && !photoRailAnimatingRef\.current\)/);
   assert.match(app, /setCanScrollPhotosLeft\(true\)/);
@@ -523,7 +552,7 @@ test("the event photo rail uses Blossom Carousel for drag snapping", () => {
 test("event photos shimmer gray until each one decodes", () => {
   assert.match(
     app,
-    /detail-photo-frame[^"]*relative[^"]*overflow-hidden[^"]*rounded-md[^"]*"\s*\n\s*data-loaded=\{loadedPhotos\[photo\.src\] \? "true" : "false"\}/,
+    /detail-photo-frame[^"]*relative[^"]*overflow-hidden[^"]*rounded-lg[^"]*"\s*\n\s*data-loaded=\{loadedPhotos\[photo\.src\] \? "true" : "false"\}/,
   );
   assert.match(app, /className="detail-photo-shimmer bg-skeleton"/);
   assert.match(app, /aria-hidden="true"/);
@@ -818,7 +847,7 @@ test("event photo rail sits still until the reader moves it", () => {
   assert.doesNotMatch(app, /photoRailPinnedScrollLeft/);
   assert.match(
     app,
-    /if \(!photoRailPlacedRef\.current\) \{\s*jumpPhotoRailScroll\(\s*rail,\s*photoRailSeedScrollLeft\(rail, count, align\),\s*\);\s*photoRailPlacedRef\.current = true;/,
+    /if \(!photoRailPlacedRef\.current\) \{\s*jumpPhotoRailScroll\(\s*rail,\s*photoRailSeedScrollLeft\(\s*rail,\s*count,\s*align,\s*PHOTO_RAIL_LANDING_PAIR_EVENT_IDS\.has\(selectedEvent\?\.id \?\? ""\),\s*\),\s*\);\s*photoRailPlacedRef\.current = true;/,
   );
   assert.match(
     app,
@@ -1175,14 +1204,14 @@ test("collapsing a long summary scrolls back to its top, honouring reduced motio
   assert.match(app, /if \(top < SUMMARY_COLLAPSE_SCROLL_MARGIN\)/);
 });
 
-test("event detail body copy is dark gray with no uppercase gray labels", () => {
+test("event detail body copy uses ink with no uppercase gray labels", () => {
   assert.match(
     app,
-    /"detail-summary max-w-\[62ch\] text-base leading-\[1\.7\] text-body"/,
+    /"detail-summary max-w-\[62ch\] text-base leading-\[1\.7\] text-ink"/,
   );
   assert.doesNotMatch(app, /\buppercase\b/);
   assert.doesNotMatch(app, /\btext-gray-400\b/);
-  assert.match(css, /--color-body:\s*#202020;/);
+  assert.doesNotMatch(css, /--color-body/);
 });
 
 test("event metadata reads as two rows: facts, then sponsor pills", () => {
@@ -1383,7 +1412,7 @@ test("mobile detail tracks floor at zero so the bleeding photo rail cannot widen
 
 test("all image surfaces are borderless", () => {
   assert.match(app, /event-card[^"]*border-0/);
-  assert.match(app, /detail-photo[^`]*rounded-md border-0/);
+  assert.match(app, /detail-photo[^`]*rounded-lg border-0/);
   assert.match(app, /sponsor-logo overflow-hidden rounded-sm border-0 outline-none/);
 });
 

@@ -61,7 +61,7 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
       aria-hidden="true"
     >
       <path
-        d={direction === "left" ? "M15 5l-7 7 7 7" : "M9 5l7 7-7 7"}
+        d={direction === "left" ? "M14 6l-6 6 6 6" : "M10 6l6 6-6 6"}
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -81,7 +81,7 @@ function CloseIcon() {
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="1.7"
+        strokeWidth="2"
       />
     </svg>
   );

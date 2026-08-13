@@ -73,7 +73,7 @@ test("Empty Luma calendar falls back to the past events list", () => {
     /\{showRecentEvents \? \(\s*<RecentEventsPanel events=\{recentEvents\} \/>\s*\) : \(\s*<iframe/,
   );
   assert.match(panel, /https:\/\/luma\.com\/designmeetup\?period=past/);
-  assert.match(panel, /Past events/);
+  assert.doesNotMatch(panel, />\s*Past events\s*</);
 });
 
 test("Past events fallback holds the embed's block in the layout", () => {

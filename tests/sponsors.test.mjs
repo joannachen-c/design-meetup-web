@@ -112,7 +112,7 @@ test("the shared tooltip primitive keeps its styling for other surfaces", () => 
   assert.match(tooltip, /@radix-ui\/react-tooltip/);
   assert.match(tooltip, /delayDuration=\{300\}/);
   assert.match(tooltip, /sideOffset=\{4\}/);
-  assert.match(tooltip, /rounded-md/);
+  assert.match(tooltip, /rounded-\[10px\]/);
   assert.match(tooltip, /bg-ink/);
   assert.match(tooltip, /text-sm/);
   assert.match(tooltip, /text-surface/);

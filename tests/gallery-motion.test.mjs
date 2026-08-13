@@ -238,7 +238,7 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
     css,
     /\.gallery-edge-button svg\s*\{[^}]*width:\s*20px;[^}]*height:\s*20px;/s,
   );
-  assert.match(css, /\.gallery-edge-button svg path\s*\{[^}]*stroke-width:\s*2\.25;/s);
+  assert.match(css, /\.gallery-edge-button svg path\s*\{[^}]*stroke-width:\s*2;/s);
   // Chevrons sit in the outer fade, not centered across the whole edge band.
   assert.match(
     css,
@@ -844,7 +844,7 @@ test("carousel hover tracks the cover under the pointer, not a sticky enter", ()
 // cover. Scroll clears it; settle re-applies pending hover so a parked cursor
 // can start the wait without a mouse twitch.
 test("View on Luma waits for a still hover on the focused cover", () => {
-  assert.match(app, /const CENTER_HOVER_REVEAL_MS = 600;/);
+  assert.match(app, /const CENTER_HOVER_REVEAL_MS = 200;/);
   assert.match(app, /const centerHovered = selected && centerHoverRevealed;/);
   assert.match(app, /centerHovered \? " is-center-hovered" : ""/);
   assert.match(

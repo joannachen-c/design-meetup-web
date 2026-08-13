@@ -249,7 +249,7 @@ const CARD_SWAP_TOTAL_MS =
 const PROGRAMMATIC_SCROLL_MAX_MS = 900;
 // Still hover on the focused cover before the Luma hint (and edge-chrome
 // suppression) arm. Scroll and selection changes cancel the wait.
-const CENTER_HOVER_REVEAL_MS = 600;
+const CENTER_HOVER_REVEAL_MS = 200;
 
 // The pack has far more covers than the rail, so its wave steps in smaller
 // increments and caps well short of the rail's.
@@ -359,17 +359,28 @@ function photoRailStepItem(
   return next < 0 || next >= items.length ? null : items[next];
 }
 
+// Galleries whose first photos are a curated landing pair (first leftmost),
+// rather than the default where the first loaded photo sits rightmost.
+const PHOTO_RAIL_LANDING_PAIR_EVENT_IDS = new Set([
+  "acba9eab-6c36-45ac-ab80-1c94ff778048", // Figma Field Days: SF Picnic & Bouquets
+]);
+
 function photoRailSeedScrollLeft(
   rail: HTMLUListElement,
   count: number,
   align: "start" | "end" = "end",
+  // true: fill the viewport forward from the first photo (first is leftmost).
+  // false: end-align the first photo so it is the rightmost visible frame —
+  // matching scroll-snap-align: end and putting "the first image I loaded"
+  // on the right.
+  fillFromStart = false,
 ) {
   const items = photoRailItems(rail);
   const start = items[count] ? count : 0;
   const origin = items[start];
   if (!origin) return 0;
   let target = origin;
-  if (align === "end") {
+  if (align === "end" && fillFromStart) {
     const limit = origin.offsetLeft + rail.clientWidth;
     for (let index = start; index < items.length; index += 1) {
       target = items[index];
@@ -471,7 +482,7 @@ function gridTileDelay(index: number) {
 }
 
 const detailSummaryClassName = [
-  "detail-summary max-w-[62ch] text-base leading-[1.7] text-body",
+  "detail-summary max-w-[62ch] text-base leading-[1.7] text-ink",
   "[&_p]:whitespace-pre-line [&_p]:text-pretty [&_li]:whitespace-pre-line [&_li]:text-pretty [&_blockquote]:whitespace-pre-line [&_blockquote]:text-pretty",
   "[&_h2]:text-xl [&_h2]:font-bold [&_h2]:leading-[1.35] [&_h2]:tracking-[-0.06em] [&_h2]:text-black",
   "[&_h3]:text-xl [&_h3]:font-bold [&_h3]:leading-[1.35] [&_h3]:tracking-[-0.06em] [&_h3]:text-black",
@@ -495,7 +506,7 @@ function ArrowIcon({ direction }: { direction: "left" | "right" }) {
       aria-hidden="true"
     >
       <path
-        d={direction === "left" ? "M15 5l-7 7 7 7" : "M9 5l7 7-7 7"}
+        d={direction === "left" ? "M14 6l-6 6 6 6" : "M10 6l6 6-6 6"}
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -815,6 +826,13 @@ export default function HomePage({
     [selectedPhotoSources],
   );
   const showEventGallery = selectedPhotos.length > 0;
+  const selectedEventHasEnded = selectedEvent
+    ? new Date(selectedEvent.ends_at ?? selectedEvent.starts_at).getTime() <
+      Date.now()
+    : false;
+  // Past events without their own photos still reserve the gallery slot so the
+  // detail layout doesn't collapse — promise the recap instead of a blank.
+  const showPhotosComingSoon = !showEventGallery && selectedEventHasEnded;
   const photoRailCopies = photoRailLoops ? PHOTO_RAIL_LOOP_COPIES : 1;
   const tickerItems = useMemo(
     () =>
@@ -878,7 +896,12 @@ export default function HomePage({
         if (!photoRailPlacedRef.current) {
           jumpPhotoRailScroll(
             rail,
-            photoRailSeedScrollLeft(rail, count, align),
+            photoRailSeedScrollLeft(
+              rail,
+              count,
+              align,
+              PHOTO_RAIL_LANDING_PAIR_EVENT_IDS.has(selectedEvent?.id ?? ""),
+            ),
           );
           photoRailPlacedRef.current = true;
           photoRailMidStartRef.current = (items[count] as HTMLElement)
@@ -907,7 +930,7 @@ export default function HomePage({
         overflows && rail.scrollLeft < rail.scrollWidth - rail.clientWidth - 1,
       );
     },
-    [selectedPhotoRenders.length, view],
+    [selectedPhotoRenders.length, view, selectedEvent?.id],
   );
 
   const updatePhotoRailBoundsFromRef = useCallback(() => {
@@ -1493,7 +1516,7 @@ export default function HomePage({
   }, [events.length, lightboxIndex]);
 
   return (
-    <main className="min-h-dvh w-full overflow-hidden rounded-none border-0 bg-surface font-['Alte_Haas_Grotesk',sans-serif] text-body shadow-none antialiased [font-synthesis:none] [text-rendering:optimizeLegibility]">
+    <main className="min-h-dvh w-full overflow-hidden rounded-none border-0 bg-surface font-['Alte_Haas_Grotesk',sans-serif] text-ink shadow-none antialiased [font-synthesis:none] [text-rendering:optimizeLegibility]">
       <PageLoader onDone={revealGallery} waitForImages={firstPaintCovers} />
 
       <SiteHeader reveal />
@@ -1979,8 +2002,9 @@ export default function HomePage({
                   </ul>
                 </div>
               </div>
-              {showEventGallery ? (
+              {showEventGallery || showPhotosComingSoon ? (
               <div className="detail-extras pt-[var(--detail-extra-gap)]">
+                {showEventGallery ? (
                 <section
                   className="detail-photos"
                   aria-label="Event gallery"
@@ -2008,7 +2032,7 @@ export default function HomePage({
                       >
                         <button
                           type="button"
-                          className="detail-photo-frame relative flex overflow-hidden rounded-md border-0 bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                          className="detail-photo-frame relative flex overflow-hidden rounded-lg border-0 bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                           data-loaded={loadedPhotos[photo.src] ? "true" : "false"}
                           style={
                             photoAspects[photo.src]
@@ -2026,7 +2050,7 @@ export default function HomePage({
                           }
                         >
                           <img
-                            className="detail-photo h-[clamp(230px,58vw,300px)] w-auto max-w-none rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(240px,20vw,310px)]"
+                            className="detail-photo h-[clamp(230px,58vw,300px)] w-auto max-w-none rounded-lg border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(240px,20vw,310px)]"
                             src={photo.src}
                             srcSet={photo.srcSet}
                             alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotoRenders.length}`}
@@ -2106,6 +2130,11 @@ export default function HomePage({
                     onClose={closeLightbox}
                   />
                 </section>
+                ) : (
+                  <p className="detail-photos-empty m-0 max-w-[62ch] text-base leading-6 text-subtle">
+                    Photos coming soon!
+                  </p>
+                )}
               </div>
               ) : null}
               </div>
@@ -2126,7 +2155,7 @@ export default function HomePage({
                 </h2>
               </div>
               <div className="detail-meta">
-                <p className="m-0 max-w-[62ch] text-pretty text-base leading-[1.7] text-body">
+                <p className="m-0 max-w-[62ch] text-pretty text-base leading-[1.7] text-ink">
                   Once Supabase is seeded, each square opens the full event
                   details here.
                 </p>
@@ -2149,7 +2178,7 @@ export default function HomePage({
           >
             Calendar
           </h2>
-          <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-body">
+          <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-ink">
             {showRecentEvents
               ? "We keep our Luma updated with all of our latest events. Stay tuned to be the first to hear about the next one!"
               : "RSVP on Luma to join us at the next Design Meetup."}
@@ -2201,14 +2230,12 @@ export default function HomePage({
             >
               About
             </h2>
-            <div className="about-lede grid gap-5 text-base leading-[1.6] text-body">
+            <div className="about-lede grid gap-5 text-base leading-[1.6] text-ink">
               <p className="m-0 text-pretty">
                 We are a community of the world’s most ambitious young creatives.
               </p>
               <p className="m-0 text-pretty">
-                In December 2025, Design Meetup was just an idea. A month later, we hosted our first event with 50 designers. And now, we’ve brought together over 10,000 people across countless events in NY, LA,{" "}
-                <br className="hidden min-[821px]:block" />
-                & the Bay Area.
+                In December 2025, Design Meetup was just an idea. A month later, we hosted our first event with 50 designers. Now, we’ve brought together over 10,000 people across countless events in NYC, LA, and the Bay Area.
               </p>
             </div>
           </div>
@@ -2241,7 +2268,7 @@ export default function HomePage({
                 nohotkeys
                 playsInline
                 preload="auto"
-                title="Design Meetup community gathering around tables to make and connect"
+                title="Video of Design Meetup community gathering around tables to make and connect"
                 style={{
                   aspectRatio: "16 / 9",
                   "--controls": "none",
@@ -2325,7 +2352,7 @@ export default function HomePage({
           </h2>
         </ScrollReveal>
         <ScrollReveal className="apply-follow" delay={80}>
-          <div className="grid w-full max-w-[54ch] gap-5 text-base leading-[1.6] text-body">
+          <div className="grid w-full max-w-[54ch] gap-5 text-base leading-[1.6] text-ink">
             <p className="m-0 text-pretty">
               We'll be opening up applications for the next Design Meetup member cohort soon. If you're a student or early career designer, we'd love to meet you.
             </p>

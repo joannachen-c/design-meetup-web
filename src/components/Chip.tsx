@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 const baseClassName =
-  "inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-base leading-6 text-body";
+  "inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-base leading-6 text-ink";
 
 const variantClassName = {
   solid: "bg-surface-muted",

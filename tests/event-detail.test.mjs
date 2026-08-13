@@ -1072,8 +1072,12 @@ test("long event summaries collapse with an accessible expansion control", () =>
   // Inline frames leave a descender gap under the photos; that extra height
   // is what the summary column stretches to, so See more hangs a tad low.
   assert.match(
+    app,
+    /<li[\s\S]*?className="leading-none"[\s\S]*?data-blossom-slide=""/,
+  );
+  assert.doesNotMatch(
     css,
-    /\.detail-photo-list li\s*\{[^}]*display:\s*flex;[^}]*line-height:\s*0;/s,
+    /\.detail-photo-list li\s*\{[^}]*line-height:\s*0;/s,
   );
   // Compare the copy to the collapsed box, not the expanded one — expanding
   // grows the clamp to the content and would hide "See less".

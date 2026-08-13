@@ -61,7 +61,6 @@
 
 html {
   scroll-behavior: smooth;
-  background-color: var(--color-surface);
 }
 
 body {
@@ -95,11 +94,9 @@ main {
 html.is-loading,
 html.is-loading body {
   overflow: hidden;
-  background-color: var(--color-surface);
 }
 
 .page-loader {
-  background-color: var(--color-surface);
   transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -437,10 +434,7 @@ h1 span {
       width: 44px;
       min-height: 44px;
       place-items: center;
-      padding: 0;
       border: 0;
-      background: transparent;
-      color: var(--color-muted);
       cursor: pointer;
       opacity: 0;
       pointer-events: auto;
@@ -1256,7 +1250,6 @@ h1 span {
 .detail-photo-list li {
   display: flex;
   flex: 0 0 auto;
-  line-height: 0;
   /* End-align keeps the rightmost photo flush. `always` stops momentum
      then plays a second snap — the pause-then-jump, worse on wide slides. */
   scroll-snap-align: end;
@@ -2060,7 +2053,6 @@ footer {
     max-height: calc(100dvh - 24px);
     grid-template-rows: auto auto auto;
     gap: 12px;
-    padding-bottom: max(4px, env(safe-area-inset-bottom));
   }
 
   .lightbox-figure .lightbox-frame,

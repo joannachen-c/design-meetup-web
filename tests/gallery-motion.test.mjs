@@ -10,6 +10,7 @@ const loader = await readFile(
   "utf8",
 );
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
 test("cards retain perspective through the list wrapper", () => {
   assert.match(
@@ -38,15 +39,13 @@ test("page uses the cream surface background without an outer frame", () => {
 test("the loader curtain uses the same surface as the page", () => {
   assert.match(loader, /className="page-loader[^"]*\bbg-surface\b/);
   assert.doesNotMatch(loader, /\bbg-white\b/);
-  assert.match(
+  assert.match(layout, /<html[^>]*\bclassName="[^"]*\bbg-surface\b/);
+  assert.match(layout, /<body[^>]*\bclassName="[^"]*\bbg-surface\b/);
+  assert.doesNotMatch(
     css,
     /html\s*\{[^}]*background-color:\s*var\(--color-surface\)/s,
   );
-  assert.match(
-    css,
-    /html\.is-loading,\s*html\.is-loading body\s*\{[^}]*background-color:\s*var\(--color-surface\)/s,
-  );
-  assert.match(
+  assert.doesNotMatch(
     css,
     /\.page-loader\s*\{[^}]*background-color:\s*var\(--color-surface\)/s,
   );
@@ -212,12 +211,12 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
     /\.gallery-edge-end::before\s*\{[^}]*background-image:\s*linear-gradient\(\s*to left,\s*var\(--color-surface\)/s,
   );
   assert.match(
-    css,
-    /\.gallery-edge-button\s*\{[^}]*color:\s*var\(--color-muted\);/s,
+    app,
+    /className="gallery-edge-button bg-transparent p-0 text-muted"/,
   );
   assert.doesNotMatch(
     css,
-    /\.gallery-edge-button\s*\{[^}]*color:\s*var\(--color-(?:body|ink)\);/s,
+    /\.gallery-edge-button\s*\{[^}]*color:\s*var\(--color-(?:body|ink|muted)\);/s,
   );
   assert.match(
     css,
@@ -306,21 +305,21 @@ test("the selected title id lives on the detail heading the region points at", (
 test("focused cover projection still uses the measured stacked perspectives", () => {
   assert.doesNotMatch(css, /--event-cover-scale/);
 
-  // Depth and scale were measured against these three stacked perspectives.
+  // Depth and scale were measured against these stacked perspectives.
   // Changing any of them requires re-measuring the painted cover.
-  assert.match(css, /\.gallery\s*\{[^}]*perspective:\s*2400px;/s);
-  assert.match(css, /\.gallery li\s*\{[^}]*perspective:\s*2200px;/s);
-  assert.match(app, /const depth = selected \? 26 : hovered \? 2 : -14;/);
+  assert.match(css, /\.gallery\s*\{[^}]*perspective:\s*2800px;/s);
+  assert.match(css, /\.gallery li\s*\{[^}]*perspective:\s*2800px;/s);
+  assert.match(app, /const depth = selected \? 12 : hovered \? 2 : -6;/);
   assert.match(app, /const rest = selected \? 1\.03 : hovered \? 0\.93 : 0\.9;/);
   assert.match(
     app,
-    /`perspective\(2200px\) translateX\(\$\{part\}%\) translateZ\(\$\{depth\}px\) scaleX\(\$\{squeeze\}\) skewY\(\$\{shear\}deg\) scale\(\$\{scale\}\) translate\(0px, \$\{lift\}px\)`/,
+    /`perspective\(2800px\) translateX\(\$\{part\}%\) translateZ\(\$\{depth\}px\) scaleX\(\$\{squeeze\}\) skewY\(\$\{shear\}deg\) scale\(\$\{scale\}\) translate\(0px, \$\{lift\}px\)`/,
   );
 });
 
 test("every unfocused cover faces the same way on a shared diagonal", () => {
   assert.match(app, /const CARD_SQUEEZE = 1;/);
-  assert.match(app, /const CARD_SHEAR_DEG = 15;/);
+  assert.match(app, /const CARD_SHEAR_DEG = 8;/);
   assert.match(app, /const squeeze = selected \? 1 : CARD_SQUEEZE;/);
   assert.match(app, /const shearRest = selected \? 0 : CARD_SHEAR_DEG;/);
   // A shear keeps the covers' vertical edges vertical; a rotation would tip

@@ -309,7 +309,7 @@ export function GalleryLightbox({
           {/* This wrapper mounts only when the overlay opens, so stepping keeps
               the site's entrance motion from replaying on every photo. */}
           <motion.figure
-            className="lightbox-figure"
+            className="lightbox-figure max-[520px]:pb-[max(4px,env(safe-area-inset-bottom))]"
             initial={
               reduceMotion
                 ? false

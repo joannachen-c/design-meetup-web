@@ -1651,7 +1651,7 @@ export default function HomePage({
                   <div className="gallery-edge gallery-edge-start">
                     <button
                       type="button"
-                      className="gallery-edge-button"
+                      className="gallery-edge-button bg-transparent p-0 text-muted"
                       aria-label="Previous event"
                       aria-controls="event-carousel"
                       disabled={selectedIndex <= 0}
@@ -1668,7 +1668,7 @@ export default function HomePage({
                   <div className="gallery-edge gallery-edge-end">
                     <button
                       type="button"
-                      className="gallery-edge-button"
+                      className="gallery-edge-button bg-transparent p-0 text-muted"
                       aria-label="Next event"
                       aria-controls="event-carousel"
                       disabled={selectedIndex >= events.length - 1}
@@ -1946,6 +1946,7 @@ export default function HomePage({
                       return (
                       <li
                         key={`${selectedEvent.id}-${copy}-${photoIndex}`}
+                        className="leading-none"
                         data-blossom-slide=""
                         aria-hidden={isClone ? true : undefined}
                       >

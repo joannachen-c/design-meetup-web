@@ -423,7 +423,11 @@ test("lightbox chevrons are optically centered in the solid circle", () => {
   // Close stays geometrically centered; it has no fill to optically correct.
   assert.match(
     lightbox,
-    /direction === "left"\s*\? "size-5 translate-x-\[0\.25px\]"\s*: "size-5 -translate-x-\[0\.25px\]"/,
+    /direction === "left"\s*\? "block size-5 shrink-0 translate-x-\[0\.25px\]"\s*: "block size-5 shrink-0 -translate-x-\[0\.25px\]"/,
+  );
+  assert.match(
+    lightbox,
+    /function ChevronIcon[\s\S]*?preserveAspectRatio="xMidYMid meet"/,
   );
   assert.doesNotMatch(
     lightbox,
@@ -432,6 +436,19 @@ test("lightbox chevrons are optically centered in the solid circle", () => {
   assert.doesNotMatch(
     lightbox,
     /function CloseIcon[\s\S]*?translate-/,
+  );
+});
+
+test("mobile lightbox arrows keep a square hit target", () => {
+  // height:auto under the caption flexed the size-8 width against a shorter
+  // content box and squashed the chevron in an oval.
+  assert.match(
+    css,
+    /@media \(max-width:\s*520px\)\s*\{[\s\S]*?button\.lightbox-arrow-prev,\s*button\.lightbox-arrow-next\s*\{[^}]*width:\s*2rem;[^}]*height:\s*2rem;/s,
+  );
+  assert.doesNotMatch(
+    css,
+    /@media \(max-width:\s*520px\)\s*\{[\s\S]*?button\.lightbox-arrow-prev,\s*button\.lightbox-arrow-next\s*\{[^}]*height:\s*auto;/s,
   );
 });
 

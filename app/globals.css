@@ -1223,6 +1223,40 @@ h1 span {
   position: relative;
 }
 
+.gallery-grid {
+  position: relative;
+}
+
+/* Desktop: same resting fade as the cover rail, not the stronger hover wash.
+   The photo rail bleeds through the page gutter; the cover pack meets the
+   detail column. Phones keep a clean swipe with no overlay. */
+@media (min-width: 821px) {
+  .detail-photo-viewport::before,
+  .gallery-grid::before {
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    bottom: 0;
+    width: clamp(64px, 13vw, 220px);
+    content: "";
+    pointer-events: none;
+    background-image: linear-gradient(
+      to right,
+      color-mix(in oklab, var(--color-surface) 45%, transparent) 20%,
+      color-mix(in oklab, var(--color-surface) 18%, transparent) 55%,
+      transparent
+    );
+  }
+
+  .detail-photo-viewport::before {
+    left: calc(0px - clamp(20px, 6vw, 96px));
+  }
+
+  .gallery-grid::before {
+    left: 0;
+  }
+}
+
 .detail-photo-list {
   --photo-gap: clamp(8px, 1.4vw, 18px);
   --page-gutter: clamp(20px, 6vw, 96px);

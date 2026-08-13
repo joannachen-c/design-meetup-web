@@ -1219,18 +1219,39 @@ test("the cover grid stands at its full height rather than scrolling in a box", 
   assert.doesNotMatch(css, /\.event-grid\s*\{[^}]*max-width:/s);
 });
 
-test("the photo rail has no edge fade or blur", () => {
+test("desktop photo rail and cover grid fade off the left edge", () => {
   assert.doesNotMatch(app, /gridEdges|data-fade-top|data-fade-bottom/);
   assert.doesNotMatch(app, /data-fade-left=/);
   assert.doesNotMatch(app, /data-fade-right=/);
   assert.doesNotMatch(css, /\.detail-photo-viewport\[data-fade-right\]/);
-  assert.doesNotMatch(
+  // Viewport, not the scrolling list, so the wash stays pinned to the page.
+  // Resting carousel fade (45% → 18%), not the hover wash (opaque + blur).
+  assert.match(
     css,
-    /\.detail-photo-(?:viewport|list)[^{]*\{[^}]*backdrop-filter/s,
+    /@media \(min-width:\s*821px\)\s*\{[\s\S]*?\.detail-photo-viewport::before,\s*\.gallery-grid::before\s*\{[^}]*width:\s*clamp\(64px,\s*13vw,\s*220px\);/s,
+  );
+  assert.match(
+    css,
+    /\.detail-photo-viewport::before,\s*\.gallery-grid::before\s*\{[^}]*background-image:\s*linear-gradient\(\s*to right,\s*color-mix\(in oklab,\s*var\(--color-surface\) 45%,\s*transparent\) 20%,\s*color-mix\(in oklab,\s*var\(--color-surface\) 18%,\s*transparent\) 55%/s,
   );
   assert.doesNotMatch(
     css,
-    /\.detail-photo-(?:viewport|list)[^{]*::after[^{]*\{[^}]*backdrop-filter/s,
+    /\.detail-photo-viewport::before,\s*\.gallery-grid::before\s*\{[^}]*backdrop-filter/s,
+  );
+  assert.match(
+    css,
+    /\.detail-photo-viewport::before\s*\{[^}]*left:\s*calc\(0px - clamp\(20px,\s*6vw,\s*96px\)\);/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-grid::before\s*\{[^}]*left:\s*0;/s,
+  );
+  // Flush on the right; no matching end wash.
+  assert.doesNotMatch(css, /\.detail-photo-viewport::after/);
+  assert.doesNotMatch(css, /\.gallery-grid::after/);
+  assert.doesNotMatch(
+    css,
+    /\.detail-photo-list::before[^{]*\{[^}]*backdrop-filter/s,
   );
 });
 

@@ -339,9 +339,10 @@ h1 span {
    Opacity lives on the fade and the button, not the edge itself: an ancestor
    with opacity less than 1 would stop backdrop-filter sampling the covers.
 
-   The edge captures the pointer so a cover under the wash cannot lift while
-   the reader aims for a chevron. Only the button used to pass events; the
-   rest of the band fell through to the shelf. */
+   The band itself passes events through so the second and third covers from
+   either edge stay clickable under the wash; only the chevron catches the
+   pointer. Clearing shelf hover on the edge still fires when the pointer
+   enters the button, which is the only hit target in the band. */
 .gallery-edge {
   display: none;
 }
@@ -356,7 +357,7 @@ h1 span {
       display: flex;
       align-items: stretch;
       width: clamp(88px, 14vw, 240px);
-      pointer-events: auto;
+      pointer-events: none;
     }
 
     .gallery-edge-start {
@@ -800,27 +801,19 @@ h1 span {
   filter: none;
 }
 
-.event-card:focus,
-.event-card:focus-visible,
-.event-card[aria-pressed="true"] {
-  z-index: 2;
-}
-
 .gallery-status {
   display: grid;
   min-height: 220px;
   place-items: center;
 }
 
-/* Covers carry the events on their own, so the grid packs as many per row as
-   the column can hold at a readable size rather than to a fixed count. Nothing
-   wraps it in a scrollport: the selected and hovered covers paint past their
-   cells, so an overflow box would shave the outer rows and columns. */
+/* Covers pack four to a row and grow with the column, matching production
+   rather than auto-filling extra cells that overflow the page. */
 .event-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(clamp(96px, 9vw, 132px), 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(10px, 1.2vw, 18px);
-  max-width: min(100%, 900px);
+  width: 100%;
   list-style: none;
 }
 
@@ -871,29 +864,42 @@ h1 span {
   min-height: 390px;
 }
 
-/* Grid view reads as master/detail: the covers hold the left seven columns and
-   the selected event stacks into the right five. The sections keep their own
-   page padding, so the left column's right padding is what spaces the two. */
+/* Grid view reads as master/detail: the selected event holds the left five
+   columns and the covers pack into the right seven. Explicit rows pin both
+   columns under the toolbar so auto-placement cannot drop the detail under
+   the pack. The sections keep their own page padding, so the left column's
+   right padding is what spaces the two. */
 .events-layout[data-view="grid"] {
   /* Match the tighter detail rhythm used beside the cover grid. */
   --detail-extra-gap: clamp(4px, 0.375vw, 6px);
 
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-rows: auto auto;
   align-items: start;
 }
 
 /* The toolbar spans the split so the toggle lands against the page edge in
    both views rather than the gallery column's edge. */
 .events-layout[data-view="grid"] > .gallery-toolbar {
-  grid-column: 1 / -1;
+  grid-column: 1 / span 2;
+  grid-row: 1;
+}
+
+.events-layout[data-view="grid"] > .gallery-section {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  /* Pulls the pack back over its own left gutter so the single gap between
+     the columns is the detail's right padding, not two stacked gutters. */
+  margin-left: calc(0px - clamp(20px, 6vw, 96px));
 }
 
 .events-layout[data-view="grid"] > .event-detail {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
   min-height: 0;
-  /* Pulls the detail back over its own left gutter so the single gap between
-     the columns is the grid's right padding, not two stacked gutters. */
-  margin-left: calc(0px - clamp(20px, 6vw, 96px));
 }
 
 .events-layout[data-view="grid"] .detail-grid {
@@ -931,24 +937,18 @@ h1 span {
   display: none;
 }
 
-/* Covers occupy the left. Photos pin to the detail column's start (with the
-   chevrons) and bleed through the page gutter off the right edge. One row. */
+/* Same rail as carousel: photos snap to the end so a frame sits flush on the
+   right, leftover hangs off the left page edge, and the chevrons stay at the
+   end of the rail. */
 .events-layout[data-view="grid"] .detail-photo-list {
-  --page-gutter-start: 0px;
-  --page-gutter-end: var(--page-gutter);
+  --page-gutter-start: var(--page-gutter);
+  --page-gutter-end: 0px;
 }
 
-.events-layout[data-view="grid"] .detail-photo-list li {
-  scroll-snap-align: start;
-}
-
-.events-layout[data-view="grid"] .detail-photo-arrows {
-  justify-content: flex-start;
-}
-
-/* A notch shorter than the carousel rail so recaps don't tower over covers. */
+/* Match the shared rail height so a landscape still leaves a peek of the next
+   frame on a phone. Desktop stays a notch shorter than the carousel. */
 .events-layout[data-view="grid"] .detail-photo {
-  height: clamp(210px, 54vw, 276px);
+  height: clamp(150px, 46vw, 200px);
 }
 
 @media (min-width: 821px) {
@@ -1243,6 +1243,11 @@ h1 span {
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-inline: contain;
+  /* Native pan on touch: Blossom only boots its drag physics for fine
+     pointers, so a phone has to scroll this overflow itself. Buttons inside
+     would otherwise eat the swipe. */
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
   /* Blossom's [blossom-carousel] rule sets smooth; that would animate the
      silent middle-copy seed and every loop wrap into a visible auto-scroll. */
   scroll-behavior: auto;
@@ -1261,8 +1266,8 @@ h1 span {
 .detail-photo-list li {
   display: flex;
   flex: 0 0 auto;
-  /* End-align keeps the rightmost photo flush. `always` stops momentum
-     then plays a second snap — the pause-then-jump, worse on wide slides. */
+  /* End-align keeps the rightmost photo flush with the gallery column.
+     Mobile clears this so a landscape cannot pin the viewport to one crop. */
   scroll-snap-align: end;
 }
 
@@ -1274,6 +1279,7 @@ h1 span {
    the whole affordance. */
 .detail-photo-frame {
   cursor: pointer;
+  touch-action: pan-x;
 }
 
 /* Gallery photos have no stored dimensions, so an unloaded image would collapse
@@ -1351,18 +1357,20 @@ h1 span {
   height: auto;
 }
 
-.lightbox-frame[data-base-loaded="false"] .lightbox-photo {
-  opacity: 0;
-}
-
 /* Hidden by default rather than on load: the placeholder has to earn its place
-   by the photo still being missing after a beat. */
+   by the photo still being missing after a beat. Snap, don't fade: a 320ms
+   wash over a photo that just arrived is the shimmer stepping used to show. */
 .lightbox-frame .detail-photo-shimmer {
   opacity: 0;
+  transition: none;
 }
 
 .lightbox-frame[data-placeholder="true"] .detail-photo-shimmer {
   opacity: 1;
+}
+
+.lightbox-frame[data-placeholder="true"] .lightbox-photo {
+  opacity: 0;
 }
 
 .lightbox-frame:not([data-placeholder="true"]) .detail-photo-shimmer::after {
@@ -1380,6 +1388,29 @@ h1 span {
   opacity: 1;
 }
 
+.lightbox-photo-held.lightbox-photo-full {
+  opacity: 1;
+  transition: none;
+}
+
+/* Incoming photos keep their layout so they can decode, but they must not
+   size the frame or paint over the last photo while we hold it. */
+.lightbox-frame[data-holding="true"]
+  > .lightbox-photo:not(.lightbox-photo-held) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lightbox-frame[data-holding="true"]
+  > .lightbox-photo-full:not(.lightbox-photo-held) {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .lightbox-figure {
   display: grid;
   width: 88vw;
@@ -1389,25 +1420,61 @@ h1 span {
   margin: 0;
 }
 
-/* Desktop: the wrapper disappears so each arrow can sit on the overlay, which
-   is the nearest positioned ancestor. Mobile puts the group back in the
-   figure so the arrows land under the caption instead of on the photo. */
+/* Desktop: a full-shell layer so the buttons pin to the overlay, not the
+   Motion figure. The figure's entrance transform (and the frame growing into
+   its aspect) used to be their containing block — absolute/fixed children
+   travelled outward with it on first open. pointer-events stay on the buttons
+   so the wash still closes the lightbox. */
 .lightbox-arrows {
-  display: contents;
-}
-
-.lightbox-arrow-prev,
-.lightbox-arrow-next {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
 }
 
-.lightbox-arrow-prev {
+button.lightbox-arrow-prev,
+button.lightbox-arrow-next {
+  --lightbox-arrow-bg: color-mix(
+    in oklab,
+    var(--color-muted) 18%,
+    var(--color-surface)
+  );
+  --lightbox-arrow-bg-press: color-mix(
+    in oklab,
+    var(--color-muted) 28%,
+    var(--color-surface)
+  );
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 2rem;
+  margin-block: auto;
+  pointer-events: auto;
+  background-color: var(--lightbox-arrow-bg) !important;
+  /* IconButton also transitions transform; keep ours off so mount never tweens
+     a positioning transform into place. */
+  transition-property: background-color, color, opacity !important;
+}
+
+/* Fine pointers only — tap :hover must not desync the pair. */
+@media (hover: hover) and (pointer: fine) {
+  button.lightbox-arrow-prev:hover:not(:disabled),
+  button.lightbox-arrow-next:hover:not(:disabled) {
+    background-color: var(--lightbox-arrow-bg-press) !important;
+  }
+}
+
+button.lightbox-arrow-prev:active:not(:disabled),
+button.lightbox-arrow-next:active:not(:disabled) {
+  background-color: var(--lightbox-arrow-bg-press) !important;
+  transform: scale(0.96);
+}
+
+button.lightbox-arrow-prev {
   left: clamp(12px, 3vw, 32px);
 }
 
-.lightbox-arrow-next {
+button.lightbox-arrow-next {
   right: clamp(12px, 3vw, 32px);
 }
 
@@ -1866,9 +1933,17 @@ footer {
   /* Too narrow to split, so the detail drops back under the grid. */
   .events-layout[data-view="grid"] {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
   }
 
+  .events-layout[data-view="grid"] > .gallery-toolbar,
+  .events-layout[data-view="grid"] > .gallery-section,
   .events-layout[data-view="grid"] > .event-detail {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .events-layout[data-view="grid"] > .gallery-section {
     margin-left: 0;
   }
 
@@ -1920,9 +1995,11 @@ footer {
     --page-gutter-end: var(--page-gutter);
     /* Wide landscape slides + mandatory snap fights finger momentum on
        touch. Blossom's [has-snap=true] rule reads --snap-type with
-       !important, so clear the token too. */
+       !important, so clear the token too. Force a scroll layer: auto can
+       report no overflow while main's overflow:hidden clips the peek. */
     --snap-type: none;
     scroll-snap-type: none;
+    overflow-x: scroll;
   }
 
   .detail-photo-list li {
@@ -2078,13 +2155,21 @@ footer {
   }
 
   /* A phone photo fills the width, so side arrows sit on the image. Keep them
-     under the caption and shrink the frame so the stack still fits. */
+     under the caption and shrink the frame so the stack still fits. The shell
+     gaps caption→chevrons; the figure gaps photo→caption — both 48px. */
+  .lightbox-shell {
+    align-content: center;
+    justify-items: center;
+    gap: 48px;
+    padding-block: 12px;
+  }
+
   .lightbox-figure {
     width: min(88vw, calc(100% - 32px));
     height: auto;
     max-height: calc(100dvh - 24px);
-    grid-template-rows: auto auto auto;
-    gap: 12px;
+    grid-template-rows: auto auto;
+    gap: 48px;
   }
 
   .lightbox-figure .lightbox-frame,
@@ -2101,14 +2186,26 @@ footer {
   }
 
   .lightbox-arrows {
+    position: static;
+    inset: auto;
+    z-index: auto;
     display: flex;
     justify-content: center;
     gap: 12px;
+    pointer-events: auto;
   }
 
   .lightbox-arrow-prev,
-  .lightbox-arrow-next {
+  .lightbox-arrow-next,
+  button.lightbox-arrow-prev,
+  button.lightbox-arrow-next {
     position: static;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    height: auto;
+    margin-block: 0;
     transform: none;
   }
 }

@@ -11,9 +11,21 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { IconButton } from "./IconButton";
-import { isImageWarm, recoverImage, warmImages } from "@/lib/image";
+import {
+  isImageWarm,
+  recoverImage,
+  warmImages,
+  type SizedImage,
+} from "@/lib/image";
 
 type PhotoSize = { width: number; height: number };
+type Preview = string | SizedImage;
+
+function previewParts(entry: Preview | null | undefined): SizedImage | null {
+  if (!entry) return null;
+  if (typeof entry === "string") return entry ? { src: entry } : null;
+  return entry.src ? entry : null;
+}
 
 function sizeFromImage(image: HTMLImageElement): PhotoSize | null {
   if (image.naturalWidth > 0 && image.naturalHeight > 0) {
@@ -51,11 +63,12 @@ const PHOTO_ENTRANCE_Y_PX = 20;
 const PLACEHOLDER_DELAY_MS = 120;
 
 function ChevronIcon({ direction }: { direction: "left" | "right" }) {
-  // Same 20px glyph and 1px optical nudge as the photo-rail ArrowIcon.
   return (
     <svg
       className={
-        direction === "left" ? "size-5 -translate-x-px" : "size-5 translate-x-px"
+        direction === "left"
+          ? "size-5 translate-x-[0.25px]"
+          : "size-5 -translate-x-[0.25px]"
       }
       viewBox="0 0 24 24"
       aria-hidden="true"
@@ -87,14 +100,21 @@ function CloseIcon() {
   );
 }
 
+type PaintedPhoto = {
+  base: string;
+  srcSet?: string;
+  photo: string;
+  size: PhotoSize | null;
+};
+
 export type GalleryLightboxProps = {
   photos: string[];
   /**
-   * The rail's renders of the same photos, in the same order. The rail has
-   * already decoded these, so they paint immediately and stand in for the
-   * full-size version instead of leaving the overlay empty.
+   * The rail's renders of the same photos, in the same order. Pass the same
+   * `src`/`srcSet` the rail used: a retina visitor already decoded the 2x
+   * candidate, and a 1x-only stand-in would miss that cache and shimmer.
    */
-  previews?: string[];
+  previews?: Preview[];
   /** Index of the open photo, or null while the overlay is closed. */
   index: number | null;
   label: string;
@@ -124,20 +144,42 @@ export function GalleryLightbox({
   const hasPrevious = isOpen && photos.length > 1;
   const hasNext = isOpen && photos.length > 1;
   const photo = isOpen ? photos[index] : null;
+  const basePreview = isOpen ? previewParts(previews?.[index]) : null;
   // The layer that sizes the frame: the rail's render when we have one, so the
   // photo's own shape is known before the full-size version lands.
-  const basePhoto = (isOpen ? previews?.[index] : null) ?? photo;
+  const basePhoto = basePreview?.src ?? photo;
+  const baseSrcSet = basePreview?.srcSet;
   const isBaseLoaded = Boolean(basePhoto && loadedPhotos[basePhoto]);
-  const frameSize =
+  const isFullLoaded = Boolean(
+    photo && (loadedPhotos[photo] || isImageWarm(photo)),
+  );
+  const incomingSize =
     (basePhoto && photoSizes[basePhoto]) ||
     (photo && photoSizes[photo]) ||
     readPhotoSize(basePhoto) ||
     readPhotoSize(photo);
 
+  // Stepping remounts the incoming img. Until it has pixels, keep the last
+  // painted photo on screen so a gray wash never replaces it.
+  const paintedRef = useRef<PaintedPhoto | null>(null);
+  if (!isOpen) {
+    paintedRef.current = null;
+  } else if (isBaseLoaded && basePhoto && photo) {
+    paintedRef.current = {
+      base: basePhoto,
+      srcSet: baseSrcSet,
+      photo,
+      size: incomingSize,
+    };
+  }
+  const painted = paintedRef.current;
+  const holding = Boolean(painted && !isBaseLoaded);
+  const frameSize = holding ? painted?.size : incomingSize;
+
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!isOpen || isBaseLoaded) {
+    if (!isOpen || isBaseLoaded || holding) {
       setIsPlaceholderDue(false);
       return;
     }
@@ -147,7 +189,7 @@ export function GalleryLightbox({
       PLACEHOLDER_DELAY_MS,
     );
     return () => window.clearTimeout(timer);
-  }, [basePhoto, isBaseLoaded, isOpen]);
+  }, [basePhoto, holding, isBaseLoaded, isOpen]);
 
   // Keyed by URL so stepping back to a photo doesn't shimmer it again.
   const markLoaded = useCallback((url: string) => {
@@ -300,7 +342,7 @@ export function GalleryLightbox({
     <AnimatePresence>
       {isOpen && photo ? (
         <motion.div
-          className="fixed inset-0 z-50 grid place-items-center bg-white/88 backdrop-blur-md"
+          className="lightbox-shell fixed inset-0 z-50 grid place-items-center bg-white/88 font-['Alte_Haas_Grotesk',sans-serif] text-ink antialiased backdrop-blur-md [font-synthesis:none]"
           role="dialog"
           aria-modal="true"
           aria-label={`${label}, photo ${index + 1} of ${photos.length}`}
@@ -354,11 +396,14 @@ export function GalleryLightbox({
               <div className="inline-flex rounded-xl shadow-[0_24px_64px_rgba(0,0,0,0.22)]">
                 <div
                   className="lightbox-frame relative inline-flex max-h-[78vh] max-w-[88vw] rounded-xl"
-                  data-base-loaded={isBaseLoaded ? "true" : "false"}
+                  data-base-loaded={isBaseLoaded || holding ? "true" : "false"}
                   data-has-aspect={frameSize ? "true" : "false"}
-                  data-loaded={loadedPhotos[photo] ? "true" : "false"}
+                  data-holding={holding ? "true" : "false"}
+                  data-loaded={isFullLoaded ? "true" : "false"}
                   data-placeholder={
-                    isPlaceholderDue && !isBaseLoaded ? "true" : "false"
+                    isPlaceholderDue && !isBaseLoaded && !holding
+                      ? "true"
+                      : "false"
                   }
                   style={
                     frameSize
@@ -372,6 +417,7 @@ export function GalleryLightbox({
                   className="lightbox-photo max-h-[78vh] max-w-[88vw] border-0 object-contain"
                   key={basePhoto}
                   src={basePhoto ?? undefined}
+                  srcSet={baseSrcSet}
                   alt={`${label}, photo ${index + 1} of ${photos.length}`}
                   draggable="false"
                   decoding="sync"
@@ -403,6 +449,27 @@ export function GalleryLightbox({
                     }}
                   />
                 )}
+                {holding && painted ? (
+                  <>
+                    <img
+                      className="lightbox-photo lightbox-photo-held max-h-[78vh] max-w-[88vw] border-0 object-contain"
+                      src={painted.base}
+                      srcSet={painted.srcSet}
+                      alt=""
+                      aria-hidden="true"
+                      draggable="false"
+                    />
+                    {painted.photo === painted.base ? null : (
+                      <img
+                        className="lightbox-photo-full lightbox-photo-held absolute inset-0 size-full border-0 object-contain"
+                        src={painted.photo}
+                        alt=""
+                        aria-hidden="true"
+                        draggable="false"
+                      />
+                    )}
+                  </>
+                ) : null}
                 <span
                   className="detail-photo-shimmer bg-skeleton"
                   aria-hidden="true"
@@ -413,35 +480,40 @@ export function GalleryLightbox({
             <figcaption className="m-0 self-start text-center text-sm leading-5 text-muted">
               {title}
             </figcaption>
-            {photos.length > 1 ? (
-              <div
-                className="lightbox-arrows"
-                role="group"
-                aria-label="Photo controls"
-              >
-                <IconButton
-                  className="lightbox-arrow lightbox-arrow-prev size-8"
-                  aria-label="Previous photo"
-                  variant="ghost"
-                  tone="muted"
-                  disabled={!hasPrevious}
-                  onClick={() => step(-1)}
-                >
-                  <ChevronIcon direction="left" />
-                </IconButton>
-                <IconButton
-                  className="lightbox-arrow lightbox-arrow-next size-8"
-                  aria-label="Next photo"
-                  variant="ghost"
-                  tone="muted"
-                  disabled={!hasNext}
-                  onClick={() => step(1)}
-                >
-                  <ChevronIcon direction="right" />
-                </IconButton>
-              </div>
-            ) : null}
           </motion.figure>
+
+          {/* Outside the figure on purpose: Motion's entrance transform (and the
+              frame growing to its aspect) make the figure a containing block, so
+              absolute/fixed arrows nested inside it travel outward on first open.
+              As siblings of the figure they pin to the full-screen overlay. */}
+          {photos.length > 1 ? (
+            <div
+              className="lightbox-arrows"
+              role="group"
+              aria-label="Photo controls"
+            >
+              <IconButton
+                className="lightbox-arrow lightbox-arrow-prev size-8"
+                aria-label="Previous photo"
+                variant="ghost"
+                tone="ink"
+                disabled={!hasPrevious}
+                onClick={() => step(-1)}
+              >
+                <ChevronIcon direction="left" />
+              </IconButton>
+              <IconButton
+                className="lightbox-arrow lightbox-arrow-next size-8"
+                aria-label="Next photo"
+                variant="ghost"
+                tone="ink"
+                disabled={!hasNext}
+                onClick={() => step(1)}
+              >
+                <ChevronIcon direction="right" />
+              </IconButton>
+            </div>
+          ) : null}
 
           <IconButton
             className="absolute top-[clamp(16px,3vw,32px)] right-[clamp(16px,3vw,32px)] size-8"

@@ -651,6 +651,17 @@ export default function DesignSystem() {
             <div
               className={`${specimenClassName} items-start gap-8 bg-surface-muted p-5 sm:grid sm:grid-cols-2 sm:items-center sm:p-8`}
             >
+              <div className="flex flex-wrap items-center gap-3">
+                <Tooltip content="Helpful context appears on hover or focus.">
+                  <IconButton aria-label="More information">
+                    <HelpIcon />
+                  </IconButton>
+                </Tooltip>
+                <p className="m-0 max-w-[36ch] text-pretty text-base text-muted">
+                  Hover or focus the information button. Tooltips supplement a
+                  clear label; they do not replace one.
+                </p>
+              </div>
               <div className="grid gap-3">
                 <div className="flex items-center gap-2">
                   <Tooltip content="Substack">
@@ -677,17 +688,6 @@ export default function DesignSystem() {
                 <p className="m-0 max-w-[36ch] text-pretty text-base text-muted">
                   Adjacent icon buttons each own a tooltip — same pattern as the
                   footer contact icons.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Tooltip content="Helpful context appears on hover or focus.">
-                  <IconButton aria-label="More information">
-                    <HelpIcon />
-                  </IconButton>
-                </Tooltip>
-                <p className="m-0 max-w-[36ch] text-pretty text-base text-muted">
-                  Hover or focus the information button. Tooltips supplement a
-                  clear label; they do not replace one.
                 </p>
               </div>
             </div>

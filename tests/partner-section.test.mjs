@@ -70,14 +70,14 @@ test("partner logos use stable optical adjustment hooks", () => {
 test("partner logo tiles link out and scale subtly on hover", () => {
   const expected = [
     ["Figma", "https://www.figma.com/"],
-    ["Raycast", "https://www.raycast.com/"],
+    ["Cursor", "https://cursor.com/"],
     ["Notion", "https://www.notion.com/"],
-    ["Linear", "https://linear.app/"],
+    ["Ramp", "https://ramp.com/"],
     ["Apple", "https://www.apple.com/"],
     ["TikTok", "https://www.tiktok.com/"],
     ["Framer", "https://www.framer.com/"],
     ["Google", "https://www.google.com/"],
-    ["Gumroad", "https://gumroad.com/"],
+    ["Clay", "https://www.clay.com/"],
   ];
 
   for (const [name, href] of expected) {

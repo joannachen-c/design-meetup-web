@@ -57,14 +57,14 @@ import type { MeetupEvent } from "@/lib/supabase";
 
 const partnerLogos = [
   { slug: "figma", name: "Figma", href: "https://www.figma.com/", src: "/partners/figma.png" },
-  { slug: "cursor", name: "Raycast", href: "https://www.raycast.com/", src: "/partners/cursor.png" },
+  { slug: "cursor", name: "Cursor", href: "https://cursor.com/", src: "/partners/cursor.png" },
   { slug: "notion", name: "Notion", href: "https://www.notion.com/", src: "/partners/notion.png" },
-  { slug: "ramp", name: "Linear", href: "https://linear.app/", src: "/partners/partner-4.png" },
+  { slug: "ramp", name: "Ramp", href: "https://ramp.com/", src: "/partners/partner-4.png" },
   { slug: "apple", name: "Apple", href: "https://www.apple.com/", src: "/partners/apple.png" },
   { slug: "tiktok", name: "TikTok", href: "https://www.tiktok.com/", src: "/partners/tiktok.png" },
   { slug: "framer", name: "Framer", href: "https://www.framer.com/", src: "/partners/framer.png" },
   { slug: "google", name: "Google", href: "https://www.google.com/", src: "/partners/google.png" },
-  { slug: "rainbow", name: "Gumroad", href: "https://gumroad.com/", src: "/partners/partner-9.png" },
+  { slug: "rainbow", name: "Clay", href: "https://www.clay.com/", src: "/partners/partner-9.png" },
 ];
 
 const LUMA_CALENDAR_EMBED_SRC =
@@ -2104,7 +2104,7 @@ export default function HomePage({
               : "RSVP on Luma to join us at the next Design Meetup."}
           </p>
           <Primary
-            className="gap-2 font-bold"
+            className="gap-2"
             href="https://luma.com/designmeetup"
             target="_blank"
             rel="noreferrer"

@@ -124,6 +124,22 @@ test("programmatic centering never feeds back into scroll-driven selection", () 
   assert.match(app, /selectionSource\.current === "scroll"/);
 });
 
+// Switching to the pack shrinks the rail into the left column before the
+// scroll effect re-runs. Layout scroll would otherwise pick a new centre and
+// rewrite the event the reader just carried over from the carousel.
+test("leaving the carousel freezes scroll-driven selection", () => {
+  assert.match(app, /const viewRef = useRef<GalleryView>\(view\);/);
+  assert.match(app, /viewRef\.current = view;/);
+  assert.match(
+    app,
+    /viewRef\.current = nextView;\s*pendingHoverIndex\.current = null;/s,
+  );
+  const handler = app.match(
+    /const handleScroll = \(\) => \{[\s\S]*?\n {4}\};/,
+  )[0];
+  assert.match(handler, /if \(viewRef\.current !== "carousel"\) return;/);
+});
+
 // A smooth centre outlasts one settle window, so the rail's own scroll frames
 // extend the suppression that keeps the centre from reading as a selection.
 // That extension used to be unconditional, and a flick that landed while the

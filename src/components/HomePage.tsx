@@ -646,6 +646,11 @@ export default function HomePage({
   );
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [view, setView] = useState<GalleryView>("carousel");
+  // Scroll listeners outlive the view state by a frame: the pack split shrinks
+  // the rail before the effect tears them down. A ref the render updates lets
+  // those layout scrolls see that the carousel has already left.
+  const viewRef = useRef<GalleryView>(view);
+  viewRef.current = view;
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   // Armed after CENTER_HOVER_REVEAL_MS of continuous hover on the focused cover.
   const [centerHoverRevealed, setCenterHoverRevealed] = useState(false);
@@ -1144,6 +1149,9 @@ export default function HomePage({
     // animating the scrollport across the whole rail.
     hasCenteredInitial.current = false;
     selectionSource.current = "control";
+    // Pin before React commits: the split that follows can scroll the still-
+    // mounted rail, and that scroll must not rewrite the event we carried in.
+    viewRef.current = nextView;
     pendingHoverIndex.current = null;
     setHoveredIndex(null);
     setCenterHoverRevealed(false);
@@ -1438,6 +1446,12 @@ export default function HomePage({
 
       frame = requestAnimationFrame(() => {
         frame = 0;
+        // Opening the pack turns the page into a two-column split while the
+        // rail is still exiting. That shrink scrolls the scrollport, and the
+        // listener is still attached until this effect cleans up — without the
+        // guard, the narrower centre rewrites the selected event (Notion in
+        // the rail becoming a Figma cover a few slots earlier in the pack).
+        if (viewRef.current !== "carousel") return;
         railScrolling.current = true;
         setCenterHoverRevealed(false);
         setHoveredIndex((current) => (current === null ? current : null));

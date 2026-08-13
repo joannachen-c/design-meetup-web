@@ -70,7 +70,14 @@ test("requested style categories live in Tailwind utilities", () => {
       .replace(/\.gallery\s*\{[\s\S]*?\n\}/g, "")
       // Edge chrome padding tracks --rail-underhang so the chevrons sit on the
       // shelf rather than the underhang band.
-      .replace(/\.gallery-edge-(?:start|end)\s*\{[\s\S]*?\n\}/g, ""),
+      .replace(/\.gallery-edge-(?:start|end)\s*\{[\s\S]*?\n\}/g, "")
+      // Lightbox arrows !important-override IconButton's ghost fill so both
+      // sides match; hover is fine-pointer only so a stuck tap :hover cannot
+      // leave one arrow darker than the other.
+      .replace(
+        /^\s*background-color:\s*var\(--lightbox-arrow-bg(?:-press)?\)\s*!important;$/gm,
+        "",
+      ),
     /^\s*(?:padding(?:-(?:top|right|bottom|left|block|inline))?|border-radius|color|background(?:-color)?|font-size|font-weight|line-height|letter-spacing|text-align|text-decoration|text-transform)\s*:/m,
   );
 });

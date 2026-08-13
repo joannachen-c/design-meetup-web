@@ -342,7 +342,7 @@ export function GalleryLightbox({
     <AnimatePresence>
       {isOpen && photo ? (
         <motion.div
-          className="lightbox-shell fixed inset-0 z-50 grid place-items-center bg-white/88 font-['Alte_Haas_Grotesk',sans-serif] text-ink antialiased backdrop-blur-md [font-synthesis:none]"
+          className="lightbox-shell fixed inset-0 z-50 grid place-items-center bg-white/88 font-['Alte_Haas_Grotesk',sans-serif] text-ink antialiased backdrop-blur-md max-[520px]:py-3 [font-synthesis:none]"
           role="dialog"
           aria-modal="true"
           aria-label={`${label}, photo ${index + 1} of ${photos.length}`}

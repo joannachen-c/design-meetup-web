@@ -2161,7 +2161,6 @@ footer {
     align-content: center;
     justify-items: center;
     gap: 48px;
-    padding-block: 12px;
   }
 
   .lightbox-figure {

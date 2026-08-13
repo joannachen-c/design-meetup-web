@@ -2225,6 +2225,7 @@ footer {
     z-index: auto;
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: 12px;
     pointer-events: auto;
   }
@@ -2238,9 +2239,13 @@ footer {
     bottom: auto;
     left: auto;
     right: auto;
-    height: auto;
+    /* Keep the size-8 square. height:auto collapsed to the size-5 glyph and
+       flattened the circle, which made the chevron look vertically smushed. */
+    width: 2rem;
+    height: 2rem;
     margin-block: 0;
     transform: none;
+    flex-shrink: 0;
   }
 }
 

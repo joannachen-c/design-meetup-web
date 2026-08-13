@@ -67,10 +67,11 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
     <svg
       className={
         direction === "left"
-          ? "size-5 translate-x-[0.25px]"
-          : "size-5 -translate-x-[0.25px]"
+          ? "block size-5 shrink-0 translate-x-[0.25px]"
+          : "block size-5 shrink-0 -translate-x-[0.25px]"
       }
       viewBox="0 0 24 24"
+      preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
     >
       <path

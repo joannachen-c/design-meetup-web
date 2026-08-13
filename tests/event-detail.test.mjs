@@ -1522,8 +1522,35 @@ test("View on Luma is a link rather than a pill", () => {
   );
   assert.match(app, /import \{ Chip \} from "\.\/Chip"/);
   assert.doesNotMatch(app, /<span aria-hidden="true">↗<\/span>/);
-  // Once in the rail, once under the ticker cover, once under the grid detail cover.
+  // Once in the rail, once under the ticker, once under the grid detail cover.
   assert.equal((app.match(/View on Luma/g) ?? []).length, 3);
+});
+
+test("the phone View on Luma caption opens the event", () => {
+  // Desktop: the cover is the control and the under-cover words are a caption.
+  // Phone: those words sit under the ticks, so they have to be a control too —
+  // shared Link owns the pointer affordance (HomePage must not hand-roll it).
+  assert.match(
+    app,
+    /<Link\s+className="gallery-luma-hint"\s+href=\{detailLumaUrl\}\s+target="_blank"\s+rel="noopener noreferrer"/,
+  );
+  assert.doesNotMatch(
+    app,
+    /className="gallery-luma-hint[^"]*"\s*aria-hidden/,
+  );
+  assert.doesNotMatch(app, /gallery-luma-hint[^"]*\bcursor-pointer\b/);
+  assert.match(
+    css,
+    /\.gallery-luma-hint\s*\{[^}]*display:\s*none;/,
+  );
+  assert.doesNotMatch(
+    css,
+    /\.gallery-luma-hint\s*\{[^}]*pointer-events:\s*none;/,
+  );
+  assert.match(
+    css,
+    /@media \(max-width:\s*820px\)[\s\S]*\.gallery-luma-hint\s*\{[^}]*display:\s*inline-flex;/,
+  );
 });
 
 test("the event name stacks above its metadata on mobile", () => {

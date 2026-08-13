@@ -1826,13 +1826,15 @@ export default function HomePage({
                       the ticks on wider screens, but a phone puts the ticks
                       right under the covers, so the caption drops below them. */}
                   {detailLumaUrl ? (
-                    <span
-                      className="gallery-luma-hint text-medium text-base text-muted"
-                      aria-hidden
+                    <Link
+                      className="gallery-luma-hint"
+                      href={detailLumaUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       View on Luma
                       <ArrowUpRightIcon />
-                    </span>
+                    </Link>
                   ) : null}
                 </div>
               </motion.div>

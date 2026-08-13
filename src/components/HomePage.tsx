@@ -247,7 +247,7 @@ const CARD_SWAP_TOTAL_MS =
 // runs out from under it. Longer than the longest centre the rail can animate,
 // short enough that a stuck latch frees within a frame or two of a flick.
 const PROGRAMMATIC_SCROLL_MAX_MS = 900;
-// Still hover on the focused cover before View on Luma (and edge-chrome
+// Still hover on the focused cover before the Luma hint (and edge-chrome
 // suppression) arm. Scroll and selection changes cancel the wait.
 const CENTER_HOVER_REVEAL_MS = 600;
 
@@ -1178,7 +1178,7 @@ export default function HomePage({
     setCenterHoverRevealed(false);
   }, [selectedIndex]);
 
-  // View on Luma and edge-chrome suppression share is-center-hovered. Arm only
+  // The Luma hint and edge-chrome suppression share is-center-hovered. Arm only
   // after the pointer has stayed on the focused cover without scroll or index
   // change for CENTER_HOVER_REVEAL_MS.
   useEffect(() => {

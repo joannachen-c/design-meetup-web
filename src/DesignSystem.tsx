@@ -167,7 +167,7 @@ function ColorSwatch({
         aria-label={`Copy ${label} ${hex}`}
         className={[
           className,
-          "cursor-pointer border-0 p-0 transition-transform duration-150 ease-out active:scale-[0.97]",
+          "border-0 p-0 transition-transform duration-150 ease-out active:scale-[0.97]",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink",
           size === "card" ? "aspect-[4/3] w-full rounded-[20px]" : "size-12 rounded-[11px]",
         ]

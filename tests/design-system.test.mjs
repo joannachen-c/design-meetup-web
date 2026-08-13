@@ -101,7 +101,10 @@ test("design-system section and group headers are lowercase without changing spe
   assert.match(designSystem, /<Primary>Primary<\/Primary>/);
   assert.match(designSystem, /<Primary variant="ink">Ink<\/Primary>/);
   assert.match(designSystem, /Growth happens together\./);
-  assert.match(designSystem, /Design Meetup website/);
+  assert.doesNotMatch(
+    designSystem,
+    /The foundations behind the Design Meetup website/,
+  );
 });
 
 test("the inputs specimen renders the shared production Input component", () => {

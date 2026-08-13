@@ -39,7 +39,7 @@ test("Upcoming events section sits above the partner CTA with a Luma calendar em
 test("Upcoming events links to the Luma calendar with the supplied logo", () => {
   assert.match(
     app,
-    /<Primary[\s\S]*href="https:\/\/luma\.com\/designmeetup"[\s\S]*variant="secondary"[\s\S]*className="size-5"[\s\S]*src="\/luma-logo\.svg"[\s\S]*alt=""[\s\S]*Follow our Luma[\s\S]*<\/Primary>/,
+    /<Primary[\s\S]*className="gap-2 !bg-ink font-bold !text-white hover:!bg-black"[\s\S]*href="https:\/\/luma\.com\/designmeetup"[\s\S]*className="size-5 brightness-0 invert"[\s\S]*src="\/luma-logo\.svg"[\s\S]*alt=""[\s\S]*Follow our Luma[\s\S]*<\/Primary>/,
   );
   assert.doesNotMatch(app, /src="\/luma-logo\.svg"[^>]*\b(?:bg-|p-)/);
 });
@@ -47,7 +47,11 @@ test("Upcoming events links to the Luma calendar with the supplied logo", () => 
 test("Luma calendar embed clips to rounded corners", () => {
   assert.match(
     app,
-    /className="[^"]*\bupcoming-events-embed\b[^"]*\boverflow-hidden\b[^"]*rounded-\[11px\][^"]*"/,
+    /className="[^"]*\bupcoming-events-embed\b[^"]*\boverflow-hidden\b[^"]*rounded-\[20px\][^"]*"/,
+  );
+  assert.match(
+    panel,
+    /className="[^"]*\brecent-events\b[^"]*rounded-\[20px\][^"]*\bbg-surface-muted\b/,
   );
 });
 

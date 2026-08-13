@@ -10,32 +10,32 @@ const galleryViewOptions: Array<{ value: GalleryView; label: string }> = [
   { value: "grid", label: "Grid" },
 ];
 
-// A solid shape carrying the full 1.4 outline sits 0.7 units wider than the
-// outline alone, so the filled state halves its stroke: the silhouette lands
-// between the outline's inner and outer edge and neither state reads heavier.
+// Same 24x24 / stroke 2 as the photo-rail and gallery-edge chevrons. A solid
+// shape carrying the full outline sits 1 unit wider than the outline alone, so
+// the filled state halves its stroke: the silhouette lands between the
+// outline's inner and outer edge and neither state reads heavier.
 const solidShapeProps = (filled: boolean) =>
-  filled ? { fill: "currentColor", strokeWidth: 0.7 } : undefined;
+  filled ? { fill: "currentColor", strokeWidth: 1 } : undefined;
 
 function CarouselViewIcon({ filled }: { filled: boolean }) {
+  const center = solidShapeProps(filled);
+  // Prod's 16×16 hairlines (M3.5 5.25v5.5 / M12.5 5.25v5.5, stroke 1.4) scaled
+  // 1.5× into filled capsules so they stay solid when idle without the fat bars.
+  const side = { fill: "currentColor", stroke: "none" };
+
   return (
     <svg
-      className="size-[18px]"
-      viewBox="0 0 16 16"
+      className="size-5"
+      viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
-      strokeWidth="1.4"
+      strokeWidth="2"
       aria-hidden="true"
     >
-      <rect
-        x="6"
-        y="3.25"
-        width="4"
-        height="9.5"
-        rx="1"
-        {...solidShapeProps(filled)}
-      />
-      <path d="M3.5 5.25v5.5M12.5 5.25v5.5" />
+      <rect x="4.2" y="6.825" width="2.1" height="10.35" rx="1.05" {...side} />
+      <rect x="9" y="5" width="6" height="14" rx="1.5" {...center} />
+      <rect x="17.7" y="6.825" width="2.1" height="10.35" rx="1.05" {...side} />
     </svg>
   );
 }
@@ -45,18 +45,18 @@ function GridViewIcon({ filled }: { filled: boolean }) {
 
   return (
     <svg
-      className="size-[18px]"
-      viewBox="0 0 16 16"
+      className="size-5"
+      viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
-      strokeWidth="1.4"
+      strokeWidth="2"
       aria-hidden="true"
     >
-      <rect x="3" y="3" width="4" height="4" rx="0.9" {...square} />
-      <rect x="9" y="3" width="4" height="4" rx="0.9" {...square} />
-      <rect x="3" y="9" width="4" height="4" rx="0.9" {...square} />
-      <rect x="9" y="9" width="4" height="4" rx="0.9" {...square} />
+      <rect x="4" y="4" width="6" height="6" rx="1.5" {...square} />
+      <rect x="14" y="4" width="6" height="6" rx="1.5" {...square} />
+      <rect x="4" y="14" width="6" height="6" rx="1.5" {...square} />
+      <rect x="14" y="14" width="6" height="6" rx="1.5" {...square} />
     </svg>
   );
 }

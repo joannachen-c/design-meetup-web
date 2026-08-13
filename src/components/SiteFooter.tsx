@@ -13,15 +13,20 @@ import { ScrollReveal } from "./ScrollReveal";
 const footerLinkClassName =
   "rounded-sm text-muted no-underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
 const footerCreditLinkClassName = `${footerLinkClassName} text-medium`;
+const footerSocialLinkClassName = `${footerLinkClassName} group inline-flex rounded-sm focus-visible:outline-offset-4`;
+const footerSocialIconClassName =
+  "transition-colors duration-150 ease-out motion-reduce:transition-none";
 
 type SiteFooterProps = {
   logoHref?: string;
   logoAriaLabel?: string;
+  hideDesignSystemPromo?: boolean;
 };
 
 export function SiteFooter({
   logoHref = "/design-system",
   logoAriaLabel = "Design Meetup design system",
+  hideDesignSystemPromo = false,
 }: SiteFooterProps) {
   return (
     <footer
@@ -29,8 +34,8 @@ export function SiteFooter({
       id="contact"
     >
       {/* Out of the grid flow so the hairline sits on the footer's top edge
-          without adding a row. The top padding above mirrors the founders
-          note's bottom padding, which is what centers the hairline. */}
+          without adding a row. The top padding mirrors the marquee's bottom
+          padding, which is what centers the hairline. */}
       <div
         aria-hidden="true"
         className="absolute inset-x-[clamp(20px,6vw,96px)] top-0 h-px bg-skeleton"
@@ -69,39 +74,51 @@ export function SiteFooter({
           <div className="footer-contact-row flex items-center gap-6">
             <a
               aria-label="Substack"
-              className={`${footerLinkClassName} inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4`}
+              className={footerSocialLinkClassName}
               href="https://designmeetup.substack.com/"
               target="_blank"
               rel="noreferrer"
             >
-              <SubstackIcon />
+              <SubstackIcon
+                className={`${footerSocialIconClassName} size-[18px] group-hover:text-[#FF6719] group-focus-visible:text-[#FF6719]`}
+              />
             </a>
             <a
               aria-label="Instagram"
-              className={`${footerLinkClassName} inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4`}
+              className={footerSocialLinkClassName}
               href="https://www.instagram.com/designmeetup/"
               target="_blank"
               rel="noreferrer"
             >
-              <InstagramIcon />
+              <span className="relative size-5">
+                <InstagramIcon className="size-5 transition-opacity duration-150 ease-out group-hover:opacity-0 group-focus-visible:opacity-0 motion-reduce:transition-none" />
+                <InstagramIcon
+                  branded
+                  className="absolute inset-0 size-5 opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+                />
+              </span>
             </a>
             <a
               aria-label="LinkedIn"
-              className={`${footerLinkClassName} inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4`}
+              className={footerSocialLinkClassName}
               href="https://www.linkedin.com/company/design-meetup/"
               target="_blank"
               rel="noreferrer"
             >
-              <LinkedInIcon />
+              <LinkedInIcon
+                className={`${footerSocialIconClassName} size-5 group-hover:text-[#0A66C2] group-focus-visible:text-[#0A66C2]`}
+              />
             </a>
             <a
               aria-label="X"
-              className={`${footerLinkClassName} inline-flex rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4`}
+              className={footerSocialLinkClassName}
               href="https://x.com/designmeetuphq"
               target="_blank"
               rel="noreferrer"
             >
-              <XIcon />
+              <XIcon
+                className={`${footerSocialIconClassName} size-[18px] group-hover:text-ink group-focus-visible:text-ink`}
+              />
             </a>
           </div>
         </nav>
@@ -144,18 +161,20 @@ export function SiteFooter({
             </a>
             .
           </p>
-          <p className="m-0">
-            Check out our{" "}
-            <a
-              className={footerCreditLinkClassName}
-              href="/design-system"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Design System
-            </a>
-            !
-          </p>
+          {!hideDesignSystemPromo && (
+            <p className="m-0">
+              Check out our{" "}
+              <a
+                className={footerCreditLinkClassName}
+                href="/design-system"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Design System
+              </a>
+              !
+            </p>
+          )}
         </div>
       </ScrollReveal>
     </footer>

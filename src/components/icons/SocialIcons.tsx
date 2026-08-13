@@ -1,4 +1,4 @@
-import type { SVGProps } from "react";
+import { useId, type SVGProps } from "react";
 
 type SocialIconProps = SVGProps<SVGSVGElement>;
 
@@ -21,8 +21,13 @@ export function SubstackIcon({
 
 export function InstagramIcon({
   className = "size-5",
+  branded = false,
   ...props
-}: SocialIconProps) {
+}: SocialIconProps & { branded?: boolean }) {
+  const gradientId = `instagram-brand-gradient-${useId().replace(/:/g, "")}`;
+  const stroke = branded ? `url(#${gradientId})` : "currentColor";
+  const fill = branded ? `url(#${gradientId})` : "currentColor";
+
   return (
     <svg
       aria-hidden="true"
@@ -31,17 +36,32 @@ export function InstagramIcon({
       viewBox="0 0 24 24"
       {...props}
     >
+      {branded ? (
+        <defs>
+          <radialGradient
+            id={gradientId}
+            cx="30%"
+            cy="107%"
+            r="150%"
+          >
+            <stop offset="0%" stopColor="#fccc63" />
+            <stop offset="45%" stopColor="#fd5949" />
+            <stop offset="60%" stopColor="#d6249f" />
+            <stop offset="90%" stopColor="#285AEB" />
+          </radialGradient>
+        </defs>
+      ) : null}
       <rect
         x="3"
         y="3"
         width="18"
         height="18"
         rx="5"
-        stroke="currentColor"
+        stroke={stroke}
         strokeWidth="2"
       />
-      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
-      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
+      <circle cx="12" cy="12" r="4" stroke={stroke} strokeWidth="2" />
+      <circle cx="17.5" cy="6.5" r="1" fill={fill} />
     </svg>
   );
 }

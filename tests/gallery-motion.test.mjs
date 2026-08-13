@@ -4,6 +4,13 @@ import test from "node:test";
 
 const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+const image = await readFile(new URL("../src/lib/image.ts", import.meta.url), "utf8");
+const loader = await readFile(
+  new URL("../src/components/PageLoader.tsx", import.meta.url),
+  "utf8",
+);
+const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
 test("cards retain perspective through the list wrapper", () => {
   assert.match(
@@ -25,6 +32,23 @@ test("page uses the cream surface background without an outer frame", () => {
   assert.match(css, /main\s*\{[^}]*width:\s*100%;/s);
   assert.match(css, /main\s*\{[^}]*margin:\s*0;/s);
   assert.match(app, /<main className="[^"]*\bborder-0\b[^"]*\bshadow-none\b/);
+});
+
+// A white curtain over the cream page reads as a flash on load; the overlay,
+// html canvas, and is-loading body all have to share the surface token.
+test("the loader curtain uses the same surface as the page", () => {
+  assert.match(loader, /className="page-loader[^"]*\bbg-surface\b/);
+  assert.doesNotMatch(loader, /\bbg-white\b/);
+  assert.match(layout, /<html[^>]*\bclassName="[^"]*\bbg-surface\b/);
+  assert.match(layout, /<body[^>]*\bclassName="[^"]*\bbg-surface\b/);
+  assert.doesNotMatch(
+    css,
+    /html\s*\{[^}]*background-color:\s*var\(--color-surface\)/s,
+  );
+  assert.doesNotMatch(
+    css,
+    /\.page-loader\s*\{[^}]*background-color:\s*var\(--color-surface\)/s,
+  );
 });
 
 test("cards use a pronounced perspective transform and spring to flat", () => {
@@ -154,6 +178,99 @@ test("the rail fades into the page instead of hard-cutting at the edges", () => 
   );
 });
 
+test("desktop hover washes the carousel edges and overlays muted chevrons", () => {
+  assert.match(app, /id="event-carousel"/);
+  assert.match(
+    app,
+    /className="gallery-edge gallery-edge-start"[\s\S]*?aria-label="Previous event"[\s\S]*?aria-controls="event-carousel"[\s\S]*?disabled=\{selectedIndex <= 0\}[\s\S]*?<ArrowIcon direction="left" \/>/,
+  );
+  assert.match(
+    app,
+    /className="gallery-edge gallery-edge-end"[\s\S]*?aria-label="Next event"[\s\S]*?aria-controls="event-carousel"[\s\S]*?disabled=\{selectedIndex >= events\.length - 1\}[\s\S]*?<ArrowIcon direction="right" \/>/,
+  );
+  assert.match(app, /onClick=\{\(event\) => \{\s*selectEvent\(selectedIndex - 1\);/);
+  assert.match(app, /onClick=\{\(event\) => \{\s*selectEvent\(selectedIndex \+ 1\);/);
+  assert.match(app, /if \(event\.detail > 0\) \{\s*event\.currentTarget\.blur\(\);/);
+
+  // Phones and coarse pointers keep the swipe; the overlay is a desktop hover.
+  assert.match(css, /\.gallery-edge\s*\{[^}]*display:\s*none;/s);
+  assert.match(
+    css,
+    /@media \(min-width:\s*821px\)\s*\{[\s\S]*?@media \(hover: hover\) and \(pointer: fine\)\s*\{[\s\S]*?\.gallery-edge\s*\{[^}]*pointer-events:\s*none;/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-edge::before\s*\{[^}]*opacity:\s*0;[^}]*backdrop-filter:\s*blur\(8px\);[^}]*transition:\s*opacity 180ms ease;/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-edge-start::before\s*\{[^}]*background-image:\s*linear-gradient\(\s*to right,\s*var\(--color-surface\)/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-edge-end::before\s*\{[^}]*background-image:\s*linear-gradient\(\s*to left,\s*var\(--color-surface\)/s,
+  );
+  assert.match(
+    app,
+    /className="gallery-edge-button bg-transparent p-0 text-muted"/,
+  );
+  assert.doesNotMatch(
+    css,
+    /\.gallery-edge-button\s*\{[^}]*color:\s*var\(--color-(?:body|ink|muted)\);/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-edge-button svg\s*\{[^}]*width:\s*20px;[^}]*height:\s*20px;/s,
+  );
+  assert.match(css, /\.gallery-edge-button svg path\s*\{[^}]*stroke-width:\s*2\.25;/s);
+  // Chevrons sit in the outer fade, not centered across the whole edge band.
+  assert.match(
+    css,
+    /\.gallery-edge\s*\{[^}]*z-index:\s*5;/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-edge-start\s*\{[^}]*padding-left:\s*clamp\(8px, 0\.8vw, 14px\);/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-edge-end\s*\{[^}]*padding-right:\s*clamp\(8px, 0\.8vw, 14px\);/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-edge-button\s*\{[^}]*flex:\s*0 0 auto;[^}]*width:\s*44px;/s,
+  );
+  assert.doesNotMatch(
+    css,
+    /\.gallery-edge-button\s*\{[^}]*width:\s*100%;/s,
+  );
+  // Opacity on the fade itself, not an ancestor, so backdrop-filter still
+  // samples the covers. Hovering any cover keeps the wash at hover strength;
+  // it lightens when the pointer leaves the cards. Do not require hovering
+  // the edge for the wash. Viewport focus-within would stick after a click.
+  assert.doesNotMatch(
+    css,
+    /\.gallery-viewport:hover \.gallery-edge\s*\{[^}]*opacity:\s*1;/s,
+  );
+  assert.doesNotMatch(css, /\.gallery-viewport:focus-within/);
+  assert.doesNotMatch(
+    css,
+    /\.gallery-edge:hover:has\(\.gallery-edge-button:not\(:disabled\)\)::before/,
+  );
+  assert.match(
+    css,
+    /\.gallery-viewport:hover \.gallery-edge::before,[\s\S]*?\.gallery-edge:has\(\.gallery-edge-button:focus-visible\)::before\s*\{[^}]*opacity:\s*1;/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-viewport:hover \.gallery-edge-button:not\(:disabled\),[\s\S]*?\.gallery-edge-button:focus-visible:not\(:disabled\)\s*\{[^}]*opacity:\s*1;/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-edge-button:disabled\s*\{[^}]*pointer-events:\s*none;/s,
+  );
+});
+
 test("gallery title and date live only in the detail section below", () => {
   assert.doesNotMatch(app, /\bgallery-caption\b/);
   assert.doesNotMatch(css, /\.gallery-caption\b/);
@@ -188,21 +305,21 @@ test("the selected title id lives on the detail heading the region points at", (
 test("focused cover projection still uses the measured stacked perspectives", () => {
   assert.doesNotMatch(css, /--event-cover-scale/);
 
-  // Depth and scale were measured against these three stacked perspectives.
+  // Depth and scale were measured against these stacked perspectives.
   // Changing any of them requires re-measuring the painted cover.
-  assert.match(css, /\.gallery\s*\{[^}]*perspective:\s*2400px;/s);
-  assert.match(css, /\.gallery li\s*\{[^}]*perspective:\s*2200px;/s);
-  assert.match(app, /const depth = selected \? 26 : hovered \? 2 : -14;/);
+  assert.match(css, /\.gallery\s*\{[^}]*perspective:\s*2800px;/s);
+  assert.match(css, /\.gallery li\s*\{[^}]*perspective:\s*2800px;/s);
+  assert.match(app, /const depth = selected \? 12 : hovered \? 2 : -6;/);
   assert.match(app, /const rest = selected \? 1\.03 : hovered \? 0\.93 : 0\.9;/);
   assert.match(
     app,
-    /`perspective\(2200px\) translateX\(\$\{part\}%\) translateZ\(\$\{depth\}px\) scaleX\(\$\{squeeze\}\) skewY\(\$\{shear\}deg\) scale\(\$\{scale\}\) translate\(0px, \$\{lift\}px\)`/,
+    /`perspective\(2800px\) translateX\(\$\{part\}%\) translateZ\(\$\{depth\}px\) scaleX\(\$\{squeeze\}\) skewY\(\$\{shear\}deg\) scale\(\$\{scale\}\) translate\(0px, \$\{lift\}px\)`/,
   );
 });
 
 test("every unfocused cover faces the same way on a shared diagonal", () => {
   assert.match(app, /const CARD_SQUEEZE = 1;/);
-  assert.match(app, /const CARD_SHEAR_DEG = 15;/);
+  assert.match(app, /const CARD_SHEAR_DEG = 8;/);
   assert.match(app, /const squeeze = selected \? 1 : CARD_SQUEEZE;/);
   assert.match(app, /const shearRest = selected \? 0 : CARD_SHEAR_DEG;/);
   // A shear keeps the covers' vertical edges vertical; a rotation would tip
@@ -330,11 +447,8 @@ test("hovering a cover never pulls its sliver out from under the pointer", () =>
 // than a shelf: the focused cover needs covers tucked behind it on both sides
 // from the first frame.
 test("the rail opens on the sixth cover, or the newest when there is no sixth", () => {
-  assert.match(app, /const DEFAULT_FOCUS_SLOT = 5;/);
-  assert.match(
-    app,
-    /const initialIndex =\s*initialEvents\.length > DEFAULT_FOCUS_SLOT \? DEFAULT_FOCUS_SLOT : 0;/s,
-  );
+  assert.match(image, /export const DEFAULT_FOCUS_SLOT = 5;/);
+  assert.match(app, /const initialIndex = initialFocusIndex\(initialEvents\.length\);/);
   // The shelf, the ticker and the detail all read the selection from here, so
   // none of them can open on a different cover than the others.
   assert.match(app, /useState\(initialIndex\)/);
@@ -351,7 +465,10 @@ test("covers deal in from under their right-hand neighbour, right to left", () =
     app,
     /const entranceDelay = settled\s*\?\s*0\s*:\s*cardEntranceDelay\(distance\) \* pace;/s,
   );
-  assert.match(app, /<PageLoader onDone=\{revealGallery\} \/>/);
+  assert.match(
+    app,
+    /<PageLoader onDone=\{revealGallery\} waitForImages=\{firstPaintCovers\} \/>/,
+  );
 
   assert.match(
     app,
@@ -422,7 +539,7 @@ test("the entrance is a staggered deal rather than a spring", () => {
   // has to bite before the cover at the far end of it or the deal outlasts the
   // hand-off to the selection spring.
   const lead = Number(app.match(/const CARD_ENTRANCE_LEAD_SLOTS = ([\d.]+);/)[1]);
-  const focusSlot = Number(app.match(/const DEFAULT_FOCUS_SLOT = ([\d.]+);/)[1]);
+  const focusSlot = Number(image.match(/export const DEFAULT_FOCUS_SLOT = ([\d.]+);/)[1]);
   assert.ok(
     (lead + focusSlot) * stagger > maxDelay,
     "the cap has to bite before the cover furthest left of the opening focus",
@@ -712,4 +829,25 @@ test("centering targets the selected slide's layout box, not the transformed cov
 test("grid view never scrolls anything to reveal the selected cover", () => {
   assert.doesNotMatch(app, /coverRefs/);
   assert.doesNotMatch(app, /gridScrollElement/);
+});
+
+// The cards sit at opacity 0 behind the loader, so the browser otherwise treats
+// their images as low-priority and the shelf deals in as empty white squares.
+test("first-paint covers are preloaded and hold the loader until they decode", () => {
+  assert.match(page, /preloadFirstPaintCovers\(pastResult\.events\)/);
+  assert.match(page, /from ["']react-dom["']/);
+  assert.match(page, /preload\(cover\.src, \{/);
+  assert.match(page, /as: "image"/);
+  assert.match(page, /fetchPriority: "high"/);
+  assert.match(page, /imageSrcSet: cover\.srcSet/);
+
+  assert.match(app, /firstPaintCoverImages\(events, initialIndex\)/);
+  assert.match(app, /waitForImages=\{firstPaintCovers\}/);
+  assert.match(app, /eventCoverImage\(item\.image_url\)/);
+  assert.match(app, /VISIBLE_COVER_RADIUS/);
+  assert.match(app, /fetchPriority=\{/);
+
+  assert.match(loader, /whenImagesReady\(waitForImages\)/);
+  assert.match(loader, /MAX_VISIBLE_WITH_IMAGES_MS/);
+  assert.match(image, /export const VISIBLE_COVER_RADIUS = 4;/);
 });

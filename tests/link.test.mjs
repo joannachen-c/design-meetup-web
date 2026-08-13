@@ -49,5 +49,5 @@ test("View on Luma is no longer a Link in the metadata rows", () => {
   );
   assert.doesNotMatch(app, /<Chip[^>]*href=\{selectedEvent\.luma_url\}/);
   assert.match(app, /cover-luma-hint/);
-  assert.equal((app.match(/View on Luma/g) ?? []).length, 2);
+  assert.equal((app.match(/View on Luma/g) ?? []).length, 3);
 });

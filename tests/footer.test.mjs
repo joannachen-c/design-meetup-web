@@ -100,7 +100,7 @@ test("footer logo destination depends on the page that renders it", () => {
   );
   assert.match(
     designSystem,
-    /<SiteFooter logoHref="\/" logoAriaLabel="Design Meetup home" \/>/,
+    /<SiteFooter\s+logoHref="\/"\s+logoAriaLabel="Design Meetup home"\s+hideDesignSystemPromo\s+\/>/,
   );
 });
 
@@ -191,17 +191,17 @@ test("footer contact links use the official destinations", () => {
     footer,
     /href="mailto:contactdesignmeetup@gmail\.com"[\s\S]*?>[\s\S]*?contactdesignmeetup@gmail\.com[\s\S]*?<ArrowUpRightIcon[\s\S]*?<\/a>/,
   );
-  for (const [label, href, icon] of [
-    ["Substack", "https://designmeetup.substack.com/", "SubstackIcon"],
-    ["Instagram", "https://www.instagram.com/designmeetup/", "InstagramIcon"],
-    ["LinkedIn", "https://www.linkedin.com/company/design-meetup/", "LinkedInIcon"],
-    ["X", "https://x.com/designmeetuphq", "XIcon"],
+  for (const [label, href] of [
+    ["Substack", "https://designmeetup.substack.com/"],
+    ["Instagram", "https://www.instagram.com/designmeetup/"],
+    ["LinkedIn", "https://www.linkedin.com/company/design-meetup/"],
+    ["X", "https://x.com/designmeetuphq"],
   ]) {
     const escapedHref = href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     assert.match(
       footer,
       new RegExp(
-        `aria-label="${label}"[\\s\\S]*?href="${escapedHref}"[\\s\\S]*?target="_blank"[\\s\\S]*?rel="noreferrer"[\\s\\S]*?>\\s*<${icon} \\/>\\s*<\\/a>`,
+        `aria-label="${label}"[\\s\\S]*?href="${escapedHref}"[\\s\\S]*?target="_blank"[\\s\\S]*?rel="noreferrer"`,
       ),
     );
   }
@@ -215,8 +215,29 @@ test("footer contact links use the official destinations", () => {
   );
 });
 
+test("footer social icons take on their brand color on hover", () => {
+  assert.match(footer, /const footerSocialLinkClassName = `\$\{footerLinkClassName\} group/);
+  assert.match(
+    footer,
+    /<SubstackIcon[\s\S]*?group-hover:text-\[#FF6719\][\s\S]*?group-focus-visible:text-\[#FF6719\]/,
+  );
+  assert.match(footer, /<InstagramIcon\s+branded/);
+  assert.match(
+    footer,
+    /group-hover:opacity-0[\s\S]*?<InstagramIcon\s+branded[\s\S]*?group-hover:opacity-100/,
+  );
+  assert.match(
+    footer,
+    /<LinkedInIcon[\s\S]*?group-hover:text-\[#0A66C2\][\s\S]*?group-focus-visible:text-\[#0A66C2\]/,
+  );
+  assert.match(
+    footer,
+    /<XIcon[\s\S]*?group-hover:text-ink[\s\S]*?group-focus-visible:text-ink/,
+  );
+});
+
 test("social icons are optically balanced", () => {
-  assert.match(footer, /<SubstackIcon \/>/);
+  assert.match(footer, /<SubstackIcon/);
   assert.match(
     socialIcons,
     /export function SubstackIcon[\s\S]*?className = "size-\[18px\]"/,
@@ -268,10 +289,10 @@ test("newsletter form is accessible, non-reloading, and left aligned", () => {
     newsletterForm,
     /<form\s+className="[^"]*\bgrid-cols-\[minmax\(0,1fr\)_auto\][^"]*\bgap-3\b[^"]*"/,
   );
-  assert.match(newsletterForm, /max-\[640px\]:grid-cols-1/);
+  assert.doesNotMatch(newsletterForm, /max-\[640px\]:grid-cols-1/);
   assert.match(
     newsletterForm,
-    /<Primary\s+className="max-\[640px\]:w-full max-\[640px\]:justify-center"\s+type="submit"\s*>/,
+    /<Primary\s+className="shrink-0"\s+type="submit"\s*>/,
   );
   assert.doesNotMatch(css, /\.newsletter-form\s*\{/);
 });
@@ -364,12 +385,30 @@ test("footer ends with a right-aligned gray technology credit", () => {
   );
   assert.match(
     footer,
-    /Check out our[\s\S]*Design System[\s\S]*!/,
+    /!hideDesignSystemPromo && \([\s\S]*Check out our[\s\S]*Design System[\s\S]*!/,
   );
   assert.match(
     footer,
     /<footer[\s\S]*className="[^"]*pt-\[clamp\(48px,6\.5vw,96px\)\][^"]*pb-\[clamp\(40px,5vw,72px\)\]/,
   );
+});
+
+test("design system page footer omits the design system promo", () => {
+  assert.match(footer, /hideDesignSystemPromo = false/);
+  assert.match(
+    footer,
+    /!hideDesignSystemPromo && \([\s\S]*Check out our[\s\S]*Design System[\s\S]*!/,
+  );
+  assert.match(
+    designSystem,
+    /<SiteFooter\s+logoHref="\/"\s+logoAriaLabel="Design Meetup home"\s+hideDesignSystemPromo\s+\/>/,
+  );
+  assert.doesNotMatch(
+    designSystem,
+    /Check out our[\s\S]*Design System[\s\S]*!/,
+  );
+  assert.match(home, /<SiteFooter \/>/);
+  assert.doesNotMatch(home, /hideDesignSystemPromo/);
 });
 
 test("footer links have no underlines and the credit has no team attribution", () => {

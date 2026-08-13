@@ -57,14 +57,14 @@ function SpecimenLabel({ children }: { children: string }) {
 
 function ArrowIcon() {
   return (
-    <svg className="size-[18px]" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="size-[18px] translate-x-px" viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M9 5l7 7-7 7"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth="1.7"
+        strokeWidth="2"
       />
     </svg>
   );
@@ -651,7 +651,11 @@ export default function DesignSystem() {
           </section>
         </div>
 
-        <SiteFooter logoHref="/" logoAriaLabel="Design Meetup home" />
+        <SiteFooter
+          logoHref="/"
+          logoAriaLabel="Design Meetup home"
+          hideDesignSystemPromo
+        />
       </main>
     </TooltipProvider>
   );

@@ -58,7 +58,7 @@ export function NewsletterForm() {
         aria-hidden="true"
       />
       <form
-        className="newsletter-form grid grid-cols-[minmax(0,1fr)_auto] gap-3 max-[640px]:grid-cols-1"
+        className="newsletter-form grid grid-cols-[minmax(0,1fr)_auto] gap-3"
         action={SUBSTACK_SUBSCRIBE_URL}
         method="post"
         target={frameName}
@@ -81,10 +81,7 @@ export function NewsletterForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
-        <Primary
-          className="max-[640px]:w-full max-[640px]:justify-center"
-          type="submit"
-        >
+        <Primary className="shrink-0" type="submit">
           Subscribe
         </Primary>
       </form>

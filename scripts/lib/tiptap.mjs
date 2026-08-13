@@ -190,6 +190,16 @@ const LIABILITY_HEADING =
 const LIABILITY_BODY =
   /please be aware that this event will be photographed|reserves the right to use these images|by attending,?\s+you (give your )?consent|all .+ events are inclusive and welcoming|discrimination of any kind will not be tolerated|governed by .+ code of conduct/i;
 
+const CAPACITY_NOTICE_BODY =
+  /(?:we(?:'re| are) at full capacity|this event is (?:at |sold out|full capacity)|sold out)[\s\S]{0,240}(?:subscribe to our calendars|for future gatherings)/i;
+
+// Figma Field Days eligibility + selective RSVP footnotes.
+const FIGMA_ELIGIBILITY_BODY =
+  /(?:this event is open to (?:current |all )?interns and students|verified figma for education email is required|figma\.com\/education\/apply)/i;
+
+const FIGMA_CAPACITY_RSVP_BODY =
+  /capacity is limited to \d+\s+attendees[\s\S]{0,200}rsvps? will be reviewed/i;
+
 const PARTNER_INTRO_HEADING =
   /^what is (figma for edu|design meetup)\??$/i;
 
@@ -207,6 +217,21 @@ export function isLiabilityText(text) {
   return LIABILITY_BODY.test(normalized);
 }
 
+export function isCapacityNoticeText(text) {
+  const normalized = stripInvisibleChars(text).trim();
+  if (!normalized) return false;
+  return CAPACITY_NOTICE_BODY.test(normalized);
+}
+
+export function isFigmaEligibilityText(text) {
+  const normalized = stripInvisibleChars(text).trim();
+  if (!normalized) return false;
+  return (
+    FIGMA_ELIGIBILITY_BODY.test(normalized) ||
+    FIGMA_CAPACITY_RSVP_BODY.test(normalized)
+  );
+}
+
 export function isPartnerIntroText(text) {
   const normalized = stripInvisibleChars(text).trim();
   if (!normalized) return false;
@@ -215,7 +240,12 @@ export function isPartnerIntroText(text) {
 }
 
 function isBoilerplateText(text) {
-  return isLiabilityText(text) || isPartnerIntroText(text);
+  return (
+    isLiabilityText(text) ||
+    isCapacityNoticeText(text) ||
+    isFigmaEligibilityText(text) ||
+    isPartnerIntroText(text)
+  );
 }
 
 function firstMeaningfulLine(text) {
@@ -232,9 +262,9 @@ function isBoilerplateNode(node) {
 }
 
 /**
- * Drop host liability / policy boilerplate and recurring partner intro copy
- * from a Luma TipTap description (photography consent, code of conduct,
- * "What is Figma for Edu?", "What is Design Meetup?", etc.).
+ * Drop host liability / policy boilerplate, sold-out notices, Figma Field Days
+ * eligibility/RSVP footnotes, and recurring partner intro copy from a Luma
+ * TipTap description.
  */
 export function stripLiabilityContent(doc) {
   if (!doc || typeof doc !== "object") return doc;
@@ -287,6 +317,21 @@ export function stripLiabilityFromHtml(html) {
     // Standalone consent paragraphs.
     .replace(
       /<p>(?:(?!<\/p>)[\s\S])*?\b(?:by attending,?\s+you (?:give your )?consent|please be aware that this event will be photographed|reserves the right to use these images|discrimination of any kind will not be tolerated)(?:(?!<\/p>)[\s\S])*?<\/p>/gi,
+      "",
+    )
+    // Sold-out / full-capacity calendar notices (+ trailing divider).
+    .replace(
+      /<p>(?:(?!<\/p>)[\s\S])*?(?:we(?:&#39;|'|’)re at full capacity|we are at full capacity|this event is (?:at |sold out|full capacity)|sold out)(?:(?!<\/p>)[\s\S])*?(?:subscribe to our calendars|for future gatherings)(?:(?!<\/p>)[\s\S])*?<\/p>\s*(?:<hr\s*\/?>\s*)?/gi,
+      "",
+    )
+    // Figma Field Days eligibility footnotes (+ leading divider).
+    .replace(
+      /(?:<hr\s*\/?>\s*)*<p>(?:(?!<\/p>)[\s\S])*?(?:this event is open to (?:current |all )?interns and students|verified Figma for Education email is required|figma\.com\/education\/apply)(?:(?!<\/p>)[\s\S])*?<\/p>/gi,
+      "",
+    )
+    // Capacity + selective RSVP footnotes (+ leading divider).
+    .replace(
+      /(?:<hr\s*\/?>\s*)*<p>(?:(?!<\/p>)[\s\S])*?Capacity is limited to \d+\s+attendees(?:(?!<\/p>)[\s\S])*?RSVPs? will be reviewed(?:(?!<\/p>)[\s\S])*?<\/p>/gi,
       "",
     )
     // Figma Edu / Design Meetup partner intro headings + following body.

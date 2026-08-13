@@ -29,6 +29,7 @@ test("major page sections share one responsive horizontal gutter", () => {
     "event-detail",
     "upcoming-events",
     "partner-cta",
+    "apply-cta",
   ]) {
     assert.match(
       app,
@@ -63,6 +64,7 @@ test("every top-level content region uses the shared twelve-column grid", () => 
     "upcoming-events",
     "about-grid",
     "partner-cta",
+    "apply-cta",
   ]) {
     assert.match(
       css,
@@ -105,5 +107,14 @@ test("major marketing sections use 80px block padding at the mobile breakpoint",
     app,
     /className="[^"]*\babout-section\b[^"]*pt-\[160px\][^"]*pb-\[80px\][^"]*max-\[820px\]:pt-\[80px\][^"]*max-\[820px\]:pb-\[40px\][^"]*"/,
     "about-section should keep 160px top padding and half the bottom padding",
+  );
+
+  // Founders note already carries the gap above this section, so apply only
+  // adds a short top inset. Bottom padding is a shorter inset now that the
+  // photo marquee sits between apply and the footer.
+  assert.match(
+    app,
+    /className="[^"]*\bapply-cta\b[^"]*pt-\[80px\][^"]*pb-\[clamp\(48px,6vw,80px\)\][^"]*max-\[820px\]:pt-\[40px\][^"]*"/,
+    "apply-cta should use 80px top padding and a short bottom inset above the marquee",
   );
 });

@@ -8,6 +8,7 @@ import {
   siteTitle,
   siteUrl,
 } from "@/lib/site";
+import "@blossom-carousel/react/style.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -75,7 +76,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   // Browser extensions inject attributes onto html and body before React
   // hydrates, which otherwise reports a mismatch on every page load.
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="bg-surface" suppressHydrationWarning>
       <body className="bg-surface" suppressHydrationWarning>
         {children}
         {process.env.NODE_ENV === "development" ? <AgentationDev /> : null}

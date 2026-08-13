@@ -97,7 +97,7 @@ function extractDescriptionMirror(html) {
   throw new Error("Failed to parse description_mirror JSON");
 }
 
-async function scrapeDescription(lumaUrl) {
+async function scrapeDescription(lumaUrl, eventTitle = "") {
   const response = await fetch(lumaUrl, {
     headers: {
       "user-agent":
@@ -109,9 +109,10 @@ async function scrapeDescription(lumaUrl) {
     throw new Error(`Failed to fetch ${lumaUrl}: ${response.status}`);
   }
   const html = await response.text();
-  const doc = stripLiabilityContent(extractDescriptionMirror(html));
-  const summary = tipTapToPlainText(doc);
-  const summary_html = tipTapToHtml(doc);
+  const options = { eventTitle };
+  const doc = stripLiabilityContent(extractDescriptionMirror(html), options);
+  const summary = tipTapToPlainText(doc, options);
+  const summary_html = tipTapToHtml(doc, options);
   if (!summary || !summary_html) {
     throw new Error(`Empty summary for ${lumaUrl}`);
   }
@@ -124,7 +125,10 @@ async function refreshLocalSummaries() {
 
   for (const event of events) {
     process.stdout.write(`Scraping ${event.title}... `);
-    const { summary, summary_html } = await scrapeDescription(event.luma_url);
+    const { summary, summary_html } = await scrapeDescription(
+      event.luma_url,
+      event.title,
+    );
     refreshed.push({ ...event, summary, summary_html });
     console.log(
       `ok (${summary.split("\n").length} lines, ${summary_html.length} html chars)`,

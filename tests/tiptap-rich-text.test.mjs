@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  stripHorizontalRules,
   tipTapToHtml,
   tipTapToPlainText,
 } from "../scripts/lib/tiptap.mjs";
@@ -121,4 +122,35 @@ test("TipTap plain text retains agenda line breaks and bold section titles as te
   assert.match(plain, /6:00 PM: Doors open\n6:00 - 6:30 PM: Light bites/);
   assert.doesNotMatch(plain, /MadiJiabao|open6:00/);
   assert.match(plain, /• Food and drinks/);
+});
+
+test("TipTap horizontal rules are omitted (no line, no gap)", () => {
+  const html = tipTapToHtml({
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Intro." }],
+      },
+      { type: "horizontal_rule" },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Featured Speakers", marks: [{ type: "bold" }] },
+        ],
+      },
+    ],
+  });
+
+  assert.equal(
+    html,
+    "<p>Intro.</p><p><strong>Featured Speakers</strong></p>",
+  );
+  assert.doesNotMatch(html, /<hr\s*\/?>|detail-summary-gap/);
+});
+
+test("stripHorizontalRules removes hrs and leftover gap spacers", () => {
+  const html =
+    '<p>A</p><hr /><div class="detail-summary-gap" aria-hidden="true"></div><p>B</p>';
+  assert.equal(stripHorizontalRules(html), "<p>A</p><p>B</p>");
 });

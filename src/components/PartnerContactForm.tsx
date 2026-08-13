@@ -87,7 +87,7 @@ export function PartnerContactForm() {
 
   return (
     <form
-      className="partner-form flex w-fit max-w-full flex-col gap-3 text-base leading-[1.2] text-body max-[820px]:gap-6"
+      className="partner-form flex w-fit max-w-full flex-col gap-3 text-base leading-[1.2] text-body max-[820px]:gap-y-3"
       onSubmit={handleSubmit}
     >
       <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-3">

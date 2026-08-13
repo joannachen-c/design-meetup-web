@@ -9,6 +9,7 @@ export const homeHeaderLinks: SiteHeaderLink[] = [
   { href: "#calendar", label: "Calendar" },
   { href: "#about", label: "About" },
   { href: "#sponsor", label: "Sponsor" },
+  { href: "#apply", label: "Join Us" },
 ];
 
 const navLinkClassName =

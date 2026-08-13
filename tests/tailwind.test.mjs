@@ -90,8 +90,13 @@ test("design system colors are referenced by token, never re-spelled as literals
   );
   assert.ok(tokens.length >= 8);
 
+  // The specimen page documents hex values for copy-to-clipboard; production
+  // components must still go through token utilities.
+  const productionPaths = componentPaths.filter(
+    (path) => path !== "src/DesignSystem.tsx",
+  );
   const sources = await Promise.all(
-    componentPaths.map((path) => readFile(new URL(path, root), "utf8")),
+    productionPaths.map((path) => readFile(new URL(path, root), "utf8")),
   );
 
   for (const { name, value } of tokens) {
@@ -100,7 +105,7 @@ test("design system colors are referenced by token, never re-spelled as literals
       for (const [index, source] of sources.entries()) {
         assert.ok(
           !source.includes(spelling),
-          `${componentPaths[index]} hardcodes ${spelling}; use the --color-${name} token utility instead`,
+          `${productionPaths[index]} hardcodes ${spelling}; use the --color-${name} token utility instead`,
         );
       }
     }

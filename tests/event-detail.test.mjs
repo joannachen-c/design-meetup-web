@@ -315,11 +315,13 @@ test("event photos use an accessible horizontally scrollable rail", () => {
     /\.detail-photo-list li\s*\{[^}]*flex:\s*0 0 auto;/s,
   );
   // One height for both layouts: the utility is on the shared photo element, so
-  // carousel and grid view cannot drift apart.
+  // carousel and grid view cannot drift apart. No mobile max-width — an 82vw
+  // cap was shrinking landscapes below the rail height via aspect-ratio.
   assert.match(
     app,
-    /detail-photo[^"]*h-\[clamp\(230px,58vw,300px\)\][^"]*w-auto[^"]*max-w-\[min\(82vw,640px\)\][^"]*object-contain[^"]*min-\[821px\]:h-\[clamp\(240px,20vw,310px\)\][^"]*min-\[821px\]:max-w-none/,
+    /detail-photo[^"]*h-\[clamp\(230px,58vw,300px\)\][^"]*w-auto[^"]*max-w-none[^"]*object-contain[^"]*min-\[821px\]:h-\[clamp\(240px,20vw,310px\)\]/,
   );
+  assert.doesNotMatch(app, /detail-photo[^"]*max-w-\[min\(82vw/);
 });
 
 test("the photo arrows only appear once the rail can actually scroll", () => {
@@ -333,7 +335,7 @@ test("the photo arrows only appear once the rail can actually scroll", () => {
   );
   assert.match(
     app,
-    /\{isPhotoRailScrollable \? \(\s*<div className="detail-photo-arrows mt-\[clamp\(12px,1\.5vw,22px\)\] flex items-center justify-end">\s*<div\s*\n?\s*className="flex gap-2"/,
+    /\{isPhotoRailScrollable \? \(\s*<div className="detail-photo-arrows mt-\[clamp\(12px,1\.5vw,22px\)\] flex translate-y-1 items-center justify-end">\s*<div\s*\n?\s*className="flex gap-2"/,
   );
   // Chevrons sit under the rail so they don't steal height from the photos.
   assert.match(
@@ -505,6 +507,16 @@ test("the event photo rail uses Blossom Carousel for drag snapping", () => {
   assert.doesNotMatch(
     css,
     /\.detail-photo-list li\s*\{[^}]*scroll-snap-stop:\s*always;/s,
+  );
+  // Mobile: free-scroll. Snap on wide landscapes reads as hitching; desktop
+  // keeps end/start snap. --snap-type none so Blossom's !important rule stays off.
+  assert.match(
+    css,
+    /@media \(max-width:\s*820px\)[\s\S]*\.detail-photo-list\s*\{[^}]*--snap-type:\s*none;[^}]*scroll-snap-type:\s*none;/s,
+  );
+  assert.match(
+    css,
+    /@media \(max-width:\s*820px\)[\s\S]*\.detail-photo-list li\s*\{[^}]*scroll-snap-align:\s*none;/s,
   );
 });
 

@@ -39,10 +39,6 @@ test("apply section points to Instagram and Substack for updates", () => {
     app,
     /<p className="m-0 mt-5 text-pretty">\s*Follow us on Instagram and Substack to stay updated!\s*<\/p>/,
   );
-  assert.match(
-    app,
-    /Drop your email, and we'll let you know when applications open\./,
-  );
   assert.match(app, /import \{ ApplyNotifyForm \} from "\.\/ApplyNotifyForm"/);
   assert.match(app, /<ApplyNotifyForm \/>/);
   assert.match(

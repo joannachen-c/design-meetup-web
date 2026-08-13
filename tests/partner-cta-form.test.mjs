@@ -290,15 +290,15 @@ test("server email sends from Gmail to Design Meetup and the user", () => {
 test("sentence breaks into rows and wraps instead of overflowing", () => {
   assert.match(
     form,
-    /className="partner-form flex w-fit max-w-full flex-col gap-3[^"]*max-\[820px\]:gap-6/,
+    /className="partner-form flex w-fit max-w-full flex-col gap-3[^"]*max-\[820px\]:gap-y-3/,
   );
   assert.equal(
     form.match(/flex w-full flex-wrap items-center gap-x-3 gap-y-3/g)?.length,
     3,
   );
-  // Desktop keeps the tight row gap; mobile opens it up for touch.
+  // Same vertical rhythm on mobile as desktop — gap-6 was too open on a phone.
   assert.match(form, /\bgap-3\b/);
-  assert.match(form, /max-\[820px\]:gap-6/);
+  assert.match(form, /max-\[820px\]:gap-y-3/);
   assert.match(form, /\bgap-x-3\b/);
   assert.match(form, /max-\[640px\]:basis-full/);
   assert.match(

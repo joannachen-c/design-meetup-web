@@ -8,6 +8,8 @@ type TooltipProviderProps = {
 type TooltipProps = {
   children: ReactNode;
   content: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function TooltipProvider({ children }: TooltipProviderProps) {
@@ -18,9 +20,14 @@ export function TooltipProvider({ children }: TooltipProviderProps) {
   );
 }
 
-export function Tooltip({ children, content }: TooltipProps) {
+export function Tooltip({
+  children,
+  content,
+  open,
+  onOpenChange,
+}: TooltipProps) {
   return (
-    <TooltipPrimitive.Root>
+    <TooltipPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content

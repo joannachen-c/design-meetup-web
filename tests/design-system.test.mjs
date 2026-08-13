@@ -30,6 +30,7 @@ test("the specimen page documents foundations and production components", () => 
     "shadows",
     "buttons",
     "links",
+    "icons",
     "inputs",
     "tooltips",
   ]) {
@@ -52,6 +53,7 @@ test("design-system section and group headers are lowercase without changing spe
     ["shadows", "shadows"],
     ["buttons", "buttons"],
     ["links", "links"],
+    ["icons", "icons"],
     ["inputs", "inputs"],
     ["tooltips", "tooltips"],
   ]) {
@@ -64,10 +66,6 @@ test("design-system section and group headers are lowercase without changing spe
   }
 
   for (const label of [
-    "ink",
-    "muted",
-    "soft gray",
-    "meetup lime",
     "tailwind neutrals",
     "display",
     "heading",
@@ -90,6 +88,10 @@ test("design-system section and group headers are lowercase without changing spe
       designSystem,
       new RegExp(`<SpecimenLabel>${label}<\\/SpecimenLabel>`),
     );
+  }
+
+  for (const label of ["ink", "muted", "soft gray", "meetup lime"]) {
+    assert.match(designSystem, new RegExp(`label: "${label}"`));
   }
 
   assert.doesNotMatch(
@@ -153,12 +155,7 @@ test("layout foundations document gutters and the practical spacing scale", () =
     assert.match(designSystem, new RegExp(`label: "${value}"`));
   }
 
-  assert.match(designSystem, /56px vertical padding/);
-  assert.match(designSystem, /80px at tablet widths/);
-  assert.match(
-    designSystem,
-    /text-pretty text-base leading-\[1\.5\] text-muted">\s*Design-system sections use 56px vertical padding/,
-  );
+  assert.doesNotMatch(designSystem, /56px vertical padding|120px rhythm/);
 });
 
 test("sections omit horizontal dividers while preserving vertical rhythm", () => {
@@ -372,17 +369,17 @@ test("the media inset edges are documented at their production weights", () => {
   for (const [label, description, className] of [
     [
       "media inset edge",
-      "2px · shelf covers · event cards · 5%",
+      "2px · 5%",
       "media-inset-edge relative size-20 rounded-lg bg-white",
     ],
     [
       "media inset edge focused",
-      "2px · focused cover · 2%",
+      "2px · 2%",
       "media-inset-edge-focused relative size-20 rounded-lg bg-white",
     ],
     [
       "media inset edge soft",
-      "1px · video · 3% · fades in at full width",
+      "1px · 3% · fades in at full width",
       "media-inset-edge-soft relative size-20 rounded-\\[20px\\] bg-white",
     ],
   ]) {
@@ -457,24 +454,24 @@ test("the page title is lowercase and stays on one line", () => {
   assert.doesNotMatch(designSystem, />\s*Mini design system\s*</);
 });
 
-test("the intro uses the homepage grid relationship and revised copy", () => {
-  const introCopy =
-    /The foundations behind the Design Meetup website\.\s+These examples\s+use the same production components as the site\./g;
-
+test("the intro uses the homepage grid relationship without supporting copy", () => {
   // The reveal wrapper is the grid item, so the column spans live on it rather
-  // than on the heading and paragraph it wraps.
+  // than on the heading it wraps.
   assert.match(
     designSystem,
     /className="[^"]*\bgrid-cols-12\b[^"]*\bmax-\[820px\]:grid-cols-1\b[^"]*"[\s\S]*<ScrollReveal className="[^"]*\bcol-span-8\b[^"]*\bmax-\[820px\]:col-span-1\b[^"]*">/,
   );
-  assert.match(
-    designSystem,
-    /<ScrollReveal\s+className="[^"]*\bcol-start-9\b[^"]*\bcol-span-4\b[^"]*\bmax-\[820px\]:col-start-1\b[^"]*\bmax-\[820px\]:col-span-1\b[^"]*"/,
-  );
-  assert.equal(designSystem.match(introCopy)?.length, 1);
   assert.doesNotMatch(
     designSystem,
-    /The foundations and reusable interface pieces behind the Design Meetup website\./,
+    /The foundations behind the Design Meetup website/,
+  );
+  assert.doesNotMatch(
+    designSystem,
+    /same production components as the site/,
+  );
+  assert.doesNotMatch(
+    designSystem,
+    /col-start-9[^"]*col-span-4/,
   );
 });
 
@@ -502,12 +499,17 @@ test("color swatches use gap-4 before tightly grouped copy", () => {
     designSystem,
     /const colorItemClassName = "grid gap-4"/,
   );
-  assert.equal(
-    designSystem.match(/className=\{colorItemClassName\}/g)?.length,
-    4,
+  assert.match(
+    designSystem,
+    /semanticColors\.map\(\(color\) => \(\s*<div className=\{colorItemClassName\}/,
   );
+  assert.match(
+    designSystem,
+    /className="m-0 mt-1 text-sm text-subtle"[\s\S]*\{color\.description\}/,
+  );
+  assert.equal(designSystem.match(/const semanticColors = \[/g)?.length, 1);
   assert.equal(
-    designSystem.match(/className="m-0 mt-1 text-sm text-subtle"/g)?.length,
+    [...designSystem.matchAll(/description: "/g)].length,
     4,
   );
 });
@@ -528,15 +530,53 @@ test("colors document only production Tailwind utility colors as small chips", (
     designSystem.match(/<section\s+id="colors"[\s\S]*?<\/section>/)?.[0] ?? "";
 
   assert.match(colorsSection, />\s*tailwind neutrals\s*</);
+  assert.match(designSystem, /const neutralColors = \[/);
   for (const shade of ["100", "200", "300", "400", "500"]) {
-    assert.match(colorsSection, new RegExp(`>\\s*gray-${shade}\\s*<`));
-    assert.match(colorsSection, new RegExp(`\\bbg-gray-${shade}\\b`));
+    assert.match(
+      designSystem,
+      new RegExp(`label: "gray-${shade}", className: "bg-gray-${shade}"`),
+    );
   }
-  assert.equal(colorsSection.match(/\bsize-12\b/g)?.length, 5);
+  assert.match(
+    colorsSection,
+    /neutralColors\.map\(\(color\) => \(\s*<li[\s\S]*size="chip"/,
+  );
+  assert.equal(
+    [...designSystem.matchAll(/label: "gray-\d+"/g)].length,
+    5,
+  );
   assert.match(
     colorsSection,
     /grid-cols-2[^"]*sm:grid-cols-3[^"]*lg:grid-cols-5/,
   );
+});
+
+test("color swatches show hex in a tooltip and copy on click", () => {
+  assert.match(designSystem, /function ColorSwatch\(/);
+  assert.match(
+    designSystem,
+    /content=\{copied \? "Copied!" : hex\}/,
+  );
+  assert.match(
+    designSystem,
+    /await navigator\.clipboard\.writeText\(hex\)/,
+  );
+  assert.match(
+    designSystem,
+    /aria-label=\{`Copy \$\{label\} \$\{hex\}`\}/,
+  );
+  for (const hex of [
+    "#121c26",
+    "#616d7a",
+    "#f3f4f6",
+    "#ecf26d",
+    "#e5e7eb",
+    "#d1d5dc",
+    "#99a1af",
+    "#6a7282",
+  ]) {
+    assert.match(designSystem, new RegExp(`hex: "${hex}"`));
+  }
 });
 
 test("the display specimen stays on one line without a narrow width cap", () => {
@@ -590,16 +630,17 @@ test("button and link specimen rows omit horizontal padding", () => {
   );
   assert.match(
     designSystem,
-    /const linksSpecimenClassName = `\$\{specimenClassName\} gap-6 bg-white`/,
+    /const linksSpecimenClassName =\s*"flex flex-wrap items-center gap-6 rounded-\[11px\] bg-white"/,
   );
-  const linksSpecimenClassName =
+  assert.doesNotMatch(
     designSystem.match(
-      /const linksSpecimenClassName = `\$\{specimenClassName\}([^`]*)`/,
-    )?.[1] ?? "";
-  assert.doesNotMatch(linksSpecimenClassName, /\b(?:p|py)-/);
+      /const linksSpecimenClassName =\s*"([^"]*)"/,
+    )?.[1] ?? "",
+    /\b(?:p|py|min-h)-/,
+  );
   assert.match(
     designSystem,
-    /className=\{`\$\{specimenClassName\} items-start gap-8 bg-surface-muted p-5 sm:grid sm:grid-cols-2 sm:items-center sm:p-8`\}/,
+    /className=\{`\$\{specimenClassName\} items-start gap-8 bg-surface-muted p-5 sm:grid sm:grid-cols-2 sm:items-start sm:p-8`\}/,
   );
 });
 
@@ -613,14 +654,18 @@ test("responsive gutter content surface is white rather than cream", () => {
   assert.doesNotMatch(gutterContentClassName, /\bbg-surface(?:-muted)?\b/);
 });
 
-test("button states include a disabled ink button and disabled icon button", () => {
+test("button states include disabled ghost, ink, and ghost icon buttons", () => {
   assert.match(
     designSystem,
-    /<Primary variant="ink" disabled>\s*Disabled\s*<\/Primary>/,
+    /<Primary variant="ghost" disabled>\s*Disabled\s*<\/Primary>\s*<Primary variant="ink" disabled>/,
   );
   assert.match(
     designSystem,
     /<IconButton aria-label="Disabled icon button" disabled>[\s\S]*<ArrowIcon \/>[\s\S]*<\/IconButton>/,
+  );
+  assert.match(
+    designSystem,
+    /<IconButton\s+aria-label="Disabled ghost icon button"\s+variant="ghost"\s+disabled\s*>[\s\S]*<ArrowIcon \/>[\s\S]*<\/IconButton>/,
   );
 });
 
@@ -634,7 +679,7 @@ test("button variants include a ghost icon button specimen", () => {
 test("tooltip specimen uses a centered SVG help icon", () => {
   assert.match(
     designSystem,
-    /function HelpIcon\(\)[\s\S]*<svg className="size-5"[\s\S]*aria-hidden="true"/,
+    /function HelpIcon\(\{ className = "size-5" \}[\s\S]*<svg className=\{className\}[\s\S]*aria-hidden="true"/,
   );
   assert.match(
     designSystem,
@@ -646,12 +691,21 @@ test("tooltip specimen uses a centered SVG help icon", () => {
   );
 });
 
-test("tooltips card documents adjacent icon tooltips beside the help specimen", () => {
+test("tooltips card stacks the help specimen and optically aligns icon glyphs", () => {
   const tooltipsSection =
     designSystem.match(/<section\s+id="tooltips"[\s\S]*?<\/section>/)?.[0] ??
     "";
 
   assert.match(tooltipsSection, /sm:grid-cols-2/);
+  // Help glyph sits inset in the size-9 button; pull farther left than the
+  // social row so the "?" optically lines up with the caption.
+  assert.match(tooltipsSection, /-ml-4 w-fit/);
+  assert.match(tooltipsSection, /-ml-2 flex w-fit items-center gap-2/);
+  assert.match(
+    tooltipsSection,
+    /Tooltips add context on hover or focus\./,
+  );
+  assert.doesNotMatch(tooltipsSection, /replace a\s*label/);
   for (const label of ["Substack", "Instagram", "LinkedIn", "X"]) {
     assert.match(
       tooltipsSection,
@@ -660,8 +714,57 @@ test("tooltips card documents adjacent icon tooltips beside the help specimen", 
   }
   assert.match(
     tooltipsSection,
-    /footer contact icons/,
+    /Adjacent icon buttons each own a tooltip/,
   );
+  assert.doesNotMatch(tooltipsSection, /footer contact icons/);
+});
+
+test("icons section lists production icons with a single label each", () => {
+  const iconsSection =
+    designSystem.match(/<section\s+id="icons"[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  assert.match(iconsSection, /id="icons-title"[^>]*>\s*icons\s*<\/h2>/);
+  assert.match(designSystem, /const designSystemIcons = \[/);
+  for (const label of [
+    "arrow up right",
+    "arrow",
+    "chevron down",
+    "help",
+    "sound on",
+    "sound off",
+    "substack",
+    "instagram",
+    "linkedin",
+    "x",
+  ]) {
+    assert.match(designSystem, new RegExp(`label: "${label}"`));
+  }
+  assert.match(iconsSection, /designSystemIcons\.map/);
+  assert.match(
+    iconsSection,
+    /<SpecimenLabel weight="normal">\{label\}<\/SpecimenLabel>/,
+  );
+  // Shared footprint; stroke glyphs and filled brands are sized to match optically.
+  // Specimen-only 3px stroke so mixed production weights read consistently in DS.
+  assert.match(designSystem, /const dsIconFrameClassName = "grid size-5 place-items-center"/);
+  assert.match(
+    designSystem,
+    /const dsStrokeWeightClassName =\s*"\[&_circle\]:\[stroke-width:3px\] \[&_path\]:\[stroke-width:3px\] \[&_rect\]:\[stroke-width:3px\]"/,
+  );
+  assert.match(
+    designSystem,
+    /const dsStrokeIconClassName = `size-\[18px\] \$\{dsStrokeWeightClassName\}`/,
+  );
+  assert.match(designSystem, /const dsBrandIconClassName = "size-4"/);
+  assert.match(
+    designSystem,
+    /InstagramIcon\s*\n\s*className=\{`\$\{dsBrandIconClassName\} \$\{dsStrokeWeightClassName\}`\}/,
+  );
+  assert.match(
+    iconsSection,
+    /<span className=\{dsIconFrameClassName\}>\{icon\}<\/span>/,
+  );
+  assert.doesNotMatch(iconsSection, /text-subtle|description/);
 });
 
 // The two pages link to each other, so an entrance on one and none on the
@@ -700,6 +803,7 @@ test("design system header logo links home and sections have sub-nav anchors", (
     ["shadows", "shadows"],
     ["buttons", "buttons"],
     ["links", "links"],
+    ["icons", "icons"],
     ["inputs", "inputs"],
     ["tooltips", "tooltips"],
   ]) {

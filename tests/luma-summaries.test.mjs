@@ -169,7 +169,7 @@ test("Luma description parsing strips photography, safety, and consent liability
     summaryHtml,
     /Photography and Filming|Safety and Inclusivity|Code of Conduct|consent to|reserves the right|Discrimination/i,
   );
-  assert.doesNotMatch(summaryHtml, /<hr\s*\/>\s*$/);
+  assert.doesNotMatch(summaryHtml, /<hr\s*\/?>|detail-summary-gap/);
 });
 
 test("Luma description parsing strips Figma Edu and Design Meetup partner intros", () => {
@@ -237,7 +237,7 @@ test("Luma description parsing strips Figma Edu and Design Meetup partner intros
     summaryHtml,
     /What is Figma for Edu|What is Design Meetup|empowers educators|continuously upskill/i,
   );
-  assert.doesNotMatch(summaryHtml, /<hr\s*\/>\s*$/);
+  assert.doesNotMatch(summaryHtml, /<hr\s*\/?>|detail-summary-gap/);
 });
 
 test("Luma description parsing strips full-capacity calendar notices", () => {
@@ -346,6 +346,138 @@ test("Luma description parsing strips Figma Edu eligibility and capacity RSVP fo
   );
 });
 
+test("Luma parse drops redundant titles, perk headings, social footers, and incidental bold", () => {
+  const clayTitle = "Design Meetup x Clay NYC: Sharpen Your Design Toolkit";
+  const description = {
+    type: "doc",
+    content: [
+      {
+        type: "heading",
+        attrs: { level: 2 },
+        content: [{ type: "text", text: "Design Meetup × Clay NYC ✨" }],
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Join us for a fun evening at " },
+          {
+            type: "text",
+            text: "Clay’s NYC office",
+            marks: [{ type: "bold" }],
+          },
+          { type: "text", text: " with lightning talks, and great conversation." },
+        ],
+      },
+      {
+        type: "heading",
+        attrs: { level: 2 },
+        content: [{ type: "text", text: "Speakers" }],
+      },
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "Elizabeth Lin — Design Programs @ Ramp",
+            marks: [{ type: "bold" }],
+          },
+          { type: "hard_break" },
+          {
+            type: "text",
+            text: "Personalized Operating Systems",
+            marks: [{ type: "italic" }],
+          },
+        ],
+      },
+      {
+        type: "heading",
+        attrs: { level: 2 },
+        content: [
+          {
+            type: "text",
+            text: "Special Perk for Attendees",
+            marks: [{ type: "bold" }],
+          },
+        ],
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "We are excited to partner with " },
+          { type: "text", text: "v0 ", marks: [{ type: "bold" }] },
+          { type: "text", text: "and" },
+          { type: "text", text: " Cursor", marks: [{ type: "bold" }] },
+          { type: "text", text: " to provide exclusive credits for all attendees!" },
+        ],
+      },
+      {
+        type: "heading",
+        attrs: { level: 2 },
+        content: [
+          { type: "text", text: "Schedule", marks: [{ type: "bold" }] },
+        ],
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "6:00 PM", marks: [{ type: "bold" }] },
+          { type: "text", text: " — Doors open · Food + drinks" },
+        ],
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Instagram:", marks: [{ type: "bold" }] },
+          { type: "text", text: " @designmeetup" },
+          { type: "hard_break" },
+          { type: "text", text: "X:", marks: [{ type: "bold" }] },
+          { type: "text", text: " @designmeetuphq" },
+        ],
+      },
+    ],
+  };
+
+  const options = { eventTitle: clayTitle };
+  const summary = tipTapToPlainText(description, options);
+  const summaryHtml = tipTapToHtml(description, options);
+
+  assert.doesNotMatch(summary, /Design Meetup × Clay NYC|Special Perk|Instagram:|@designmeetuphq/i);
+  assert.match(summary, /Join us for a fun evening at Clay’s NYC office/);
+  assert.match(summary, /Elizabeth Lin — Design Programs @ Ramp/);
+  assert.match(summary, /partner with v0 and Cursor/);
+  assert.match(summary, /6:00 PM/);
+
+  assert.doesNotMatch(
+    summaryHtml,
+    /Design Meetup × Clay NYC|Special Perk|Instagram:|@designmeetuphq/i,
+  );
+  assert.match(
+    summaryHtml,
+    /Join us for a fun evening at Clay’s NYC office with lightning talks/,
+  );
+  assert.doesNotMatch(summaryHtml, /<strong>Clay’s NYC office<\/strong>/);
+  assert.doesNotMatch(summaryHtml, /<strong>v0\s*<\/strong>|<strong>\s*Cursor<\/strong>/);
+  assert.match(
+    summaryHtml,
+    /<p><strong>Elizabeth Lin — Design Programs @ Ramp<\/strong><br \/>/,
+  );
+  assert.match(summaryHtml, /<h2>Schedule<\/h2>/);
+  assert.doesNotMatch(summaryHtml, /<h2><strong>Schedule<\/strong><\/h2>/);
+  assert.match(summaryHtml, /<strong>6:00 PM<\/strong>/);
+
+  const alreadyRendered = stripLiabilityFromHtml(
+    `<h2>Design Meetup × Clay NYC ✨</h2><p>Join us for a fun evening at <strong>Clay’s NYC office</strong> with lightning talks, and great conversation.</p><h2><strong>Special Perk for Attendees</strong></h2><p>We are excited to partner with <strong>v0 </strong>and<strong> Cursor</strong> to provide exclusive credits for all attendees!</p><h2><strong>Schedule</strong></h2><p><strong>6:00 PM</strong> — Doors open</p><p><strong>Instagram:</strong> @designmeetup<br /><strong>X:</strong> @designmeetuphq</p>`,
+    options,
+  );
+  assert.doesNotMatch(
+    alreadyRendered,
+    /Design Meetup × Clay NYC|Special Perk|Instagram:|@designmeetuphq|<strong>Clay’s NYC office<\/strong>|<strong>v0|Cursor<\/strong>|<strong>Schedule<\/strong>/i,
+  );
+  assert.match(alreadyRendered, /Clay’s NYC office with lightning talks/);
+  assert.match(alreadyRendered, /<h2>Schedule<\/h2>/);
+  assert.match(alreadyRendered, /<strong>6:00 PM<\/strong>/);
+});
+
 test("summary refresh updates plain and html summary fields in Supabase", () => {
   assert.match(migration, /add column if not exists summary_html text/);
   assert.match(seed, /\.from\("events"\)\s*\.update\(\{/);
@@ -363,11 +495,11 @@ test("all local event summaries contain retained line breaks and html", () => {
     assert.doesNotMatch(event.summary, /MadiJiabao|open6:00/);
     assert.doesNotMatch(
       event.summary,
-      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships|full capacity|subscribe to our calendars|verified Figma for Education|Figma for Education email|Capacity is limited to \d+ attendees[\s\S]{0,160}RSVPs? will be reviewed/i,
+      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships|full capacity|subscribe to our calendars|verified Figma for Education|Figma for Education email|Capacity is limited to \d+ attendees[\s\S]{0,160}RSVPs? will be reviewed|Special Perk for Attendees|^Design Meetup × Clay NYC|Instagram:\s*@designmeetup/i,
     );
     assert.doesNotMatch(
       event.summary_html,
-      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships|full capacity|subscribe to our calendars|verified Figma for Education|Figma for Education email|Capacity is limited to \d+ attendees[\s\S]{0,160}RSVPs? will be reviewed/i,
+      /Photography and Filming|Safety and Inclusivity|By attending, you (give your )?consent|reserves the right to use these images|Discrimination of any kind|What is Figma for Edu|What is Design Meetup|empowers educators and students|continuously upskill while making meaningful friendships|full capacity|subscribe to our calendars|verified Figma for Education|Figma for Education email|Capacity is limited to \d+ attendees[\s\S]{0,160}RSVPs? will be reviewed|Special Perk for Attendees|<h2>Design Meetup × Clay NYC|Instagram:\s*@designmeetup|<h2><strong>/i,
     );
   }
 });

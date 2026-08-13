@@ -335,10 +335,10 @@ h1 span {
 
 /* Desktop hover: a stronger white wash with blur, and chevrons on top. Hidden
    on phones and coarse pointers, where the rail is already a swipe. Hovering
-   any cover keeps the wash at hover strength; it lightens when the pointer
-   leaves the cards. Opacity lives on the fade and the button, not the edge
-   itself: an ancestor with opacity less than 1 would stop backdrop-filter
-   sampling the covers.
+   the viewport (side covers, empty shelf, edges) shows the wash; hovering the
+   focused centre cover does not — that hover is for the cover itself (Luma).
+   Opacity lives on the fade and the button, not the edge itself: an ancestor
+   with opacity less than 1 would stop backdrop-filter sampling the covers.
 
    The edge captures the pointer so a cover under the wash cannot lift while
    the reader aims for a chevron. Only the button used to pass events; the
@@ -470,12 +470,17 @@ h1 span {
       outline-offset: 2px;
     }
 
-    .gallery-viewport:hover .gallery-edge::before,
+    /* is-center-hovered is JS-driven after a still center hover (same as the
+       Luma hint) so a cover scrolling under a parked pointer cannot flash the
+       edge chrome. */
+    .gallery-viewport:hover:not(:has(.event-card.is-center-hovered))
+      .gallery-edge::before,
     .gallery-edge:has(.gallery-edge-button:focus-visible)::before {
       opacity: 1;
     }
 
-    .gallery-viewport:hover .gallery-edge-button:not(:disabled),
+    .gallery-viewport:hover:not(:has(.event-card.is-center-hovered))
+      .gallery-edge-button:not(:disabled),
     .gallery-edge-button:focus-visible:not(:disabled) {
       opacity: 1;
     }
@@ -735,7 +740,7 @@ h1 span {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  /* Rail: class from pointerover on the settled focused cover, not :hover —
+  /* Rail: class from a still hover on the settled focused cover, not :hover —
      scrolling the shelf under a parked cursor must not surface the label. */
   .event-card[aria-pressed="true"].is-center-hovered + .cover-luma-hint,
   .detail-cover:hover + .cover-luma-hint {
@@ -1119,6 +1124,12 @@ h1 span {
   grid-column: 1 / span 8;
 }
 
+/* Optical: display leading sits the glyph below the body text cap line. */
+.about-copy > h2,
+.apply-copy > h2 {
+  margin-top: -0.05em;
+}
+
 .about-lede {
   grid-column: 9 / span 4;
 }
@@ -1192,10 +1203,7 @@ h1 span {
 }
 
 .detail-summary hr {
-  width: 100%;
-  height: 1px;
-  margin: 0.75rem 0;
-  border: 0;
+  display: none;
 }
 
 .detail-empty {
@@ -1886,6 +1894,15 @@ footer {
   .detail-photo-list {
     --page-gutter-start: var(--page-gutter);
     --page-gutter-end: var(--page-gutter);
+    /* Wide landscape slides + mandatory snap fights finger momentum on
+       touch. Blossom's [has-snap=true] rule reads --snap-type with
+       !important, so clear the token too. */
+    --snap-type: none;
+    scroll-snap-type: none;
+  }
+
+  .detail-photo-list li {
+    scroll-snap-align: none;
   }
 
   .detail-photo-list::after {
@@ -1908,6 +1925,11 @@ footer {
   .about-copy > h2,
   .about-lede {
     grid-column: 1;
+  }
+
+  .about-copy > h2,
+  .apply-copy > h2 {
+    margin-top: 0;
   }
 
   .about-lede {

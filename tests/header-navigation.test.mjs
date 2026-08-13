@@ -48,6 +48,7 @@ test("homepage header navigation uses sentence case labels", () => {
     ["Calendar", "calendar"],
     ["About", "about"],
     ["Sponsor", "sponsor"],
+    ["Join Us", "apply"],
   ]) {
     assert.match(
       header,
@@ -59,6 +60,7 @@ test("homepage header navigation uses sentence case labels", () => {
   assert.doesNotMatch(header, /label: "CALENDAR"/);
   assert.doesNotMatch(header, /label: "ABOUT"/);
   assert.doesNotMatch(header, /label: "SPONSOR"/);
+  assert.doesNotMatch(header, /label: "JOIN US"/);
   assert.doesNotMatch(home, />\s*Past events\s*</);
   assert.doesNotMatch(home, />\s*Upcoming\s*</);
   assert.doesNotMatch(home, /href="#events"[\s\S]*?>\s*EVENTS\s*<\/a>/);

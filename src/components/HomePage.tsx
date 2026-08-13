@@ -247,6 +247,9 @@ const CARD_SWAP_TOTAL_MS =
 // runs out from under it. Longer than the longest centre the rail can animate,
 // short enough that a stuck latch frees within a frame or two of a flick.
 const PROGRAMMATIC_SCROLL_MAX_MS = 900;
+// Still hover on the focused cover before View on Luma (and edge-chrome
+// suppression) arm. Scroll and selection changes cancel the wait.
+const CENTER_HOVER_REVEAL_MS = 600;
 
 // The pack has far more covers than the rail, so its wave steps in smaller
 // increments and caps well short of the rail's.
@@ -474,7 +477,7 @@ const detailSummaryClassName = [
   "[&_h3]:text-xl [&_h3]:font-bold [&_h3]:leading-[1.35] [&_h3]:tracking-[-0.06em] [&_h3]:text-black",
   "[&_h4]:text-base [&_h4]:font-bold [&_h4]:leading-[1.35] [&_h4]:tracking-[-0.06em] [&_h4]:text-black",
   "[&_strong]:font-bold [&_strong]:text-black [&_a]:text-black [&_a]:underline [&_a]:underline-offset-[3px]",
-  "[&_ul]:pl-[1.2rem] [&_ol]:pl-[1.2rem] [&_blockquote]:border-l-2 [&_blockquote]:border-gray-300 [&_blockquote]:pl-[0.9rem] [&_hr]:bg-gray-300",
+  "[&_ul]:pl-[1.2rem] [&_ol]:pl-[1.2rem] [&_blockquote]:border-l-2 [&_blockquote]:border-gray-300 [&_blockquote]:pl-[0.9rem]",
 ].join(" ");
 
 // Breathing room above the summary when "See less" scrolls it back into view.
@@ -633,6 +636,8 @@ export default function HomePage({
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const [view, setView] = useState<GalleryView>("carousel");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  // Armed after CENTER_HOVER_REVEAL_MS of continuous hover on the focused cover.
+  const [centerHoverRevealed, setCenterHoverRevealed] = useState(false);
   const [isGalleryReady, setIsGalleryReady] = useState(false);
   const [hasGalleryEntered, setHasGalleryEntered] = useState(false);
   // Set while the rail replays its deal after a view swap, so the covers mount
@@ -656,6 +661,10 @@ export default function HomePage({
   // True while the rail is moving under the pointer. CSS :hover would otherwise
   // light the Luma label as the focused cover slides through a parked cursor.
   const railScrolling = useRef(false);
+  // Cover under the pointer while scroll/programmatic motion refuses hover —
+  // reapplied once the rail settles so a parked cursor can start the Luma wait.
+  const pendingHoverIndex = useRef<number | null>(null);
+  const centerHoverTimer = useRef<number | null>(null);
   const scrollSettleTimer = useRef<number | null>(null);
   const programmaticScrollUntil = useRef(0);
   const selectionSource = useRef<"control" | "scroll">("control");
@@ -1112,7 +1121,9 @@ export default function HomePage({
     // animating the scrollport across the whole rail.
     hasCenteredInitial.current = false;
     selectionSource.current = "control";
+    pendingHoverIndex.current = null;
     setHoveredIndex(null);
+    setCenterHoverRevealed(false);
     // The rail is built fresh on the way back in, so it deals out the same way
     // it does on first load rather than cutting to a finished shelf.
     if (nextView === "carousel") setIsDealing(true);
@@ -1145,10 +1156,11 @@ export default function HomePage({
   // enter/leave on overlapping, sheared covers used to miss a leave or fire
   // leave-then-enter out of order, leaving hoveredIndex stuck on one card
   // while the CSS hover: shadow correctly followed the pointer. Scroll and
-  // programmatic centres suppress new hovers so a cover sliding under a
-  // parked cursor cannot claim the focused cover's Luma label.
+  // programmatic centres suppress live hover (shelf pull + Luma arming) but
+  // remember the cover under the pointer so settle can resume the wait.
   const hoverCard = useCallback((index: number | null, pointerType: string) => {
     if (pointerType !== "mouse") return;
+    pendingHoverIndex.current = index;
     if (
       index !== null &&
       (railScrolling.current || isProgrammaticScroll.current)
@@ -1163,7 +1175,33 @@ export default function HomePage({
   // a fresh pass over the focused cover.
   useEffect(() => {
     setHoveredIndex(null);
+    setCenterHoverRevealed(false);
   }, [selectedIndex]);
+
+  // View on Luma and edge-chrome suppression share is-center-hovered. Arm only
+  // after the pointer has stayed on the focused cover without scroll or index
+  // change for CENTER_HOVER_REVEAL_MS.
+  useEffect(() => {
+    if (centerHoverTimer.current !== null) {
+      window.clearTimeout(centerHoverTimer.current);
+      centerHoverTimer.current = null;
+    }
+    if (hoveredIndex === null || hoveredIndex !== selectedIndex) {
+      setCenterHoverRevealed(false);
+      return;
+    }
+    setCenterHoverRevealed(false);
+    centerHoverTimer.current = window.setTimeout(() => {
+      setCenterHoverRevealed(true);
+      centerHoverTimer.current = null;
+    }, CENTER_HOVER_REVEAL_MS);
+    return () => {
+      if (centerHoverTimer.current !== null) {
+        window.clearTimeout(centerHoverTimer.current);
+        centerHoverTimer.current = null;
+      }
+    };
+  }, [hoveredIndex, selectedIndex]);
 
   const releaseProgrammaticScroll = useCallback(() => {
     isProgrammaticScroll.current = false;
@@ -1171,6 +1209,13 @@ export default function HomePage({
     if (scrollSettleTimer.current !== null) {
       window.clearTimeout(scrollSettleTimer.current);
       scrollSettleTimer.current = null;
+    }
+    // Resume the parked-cursor wait once both motion flags are clear.
+    if (!railScrolling.current) {
+      const pending = pendingHoverIndex.current;
+      if (pending !== null) {
+        setHoveredIndex(pending);
+      }
     }
   }, []);
 
@@ -1357,6 +1402,11 @@ export default function HomePage({
       velocityResetTimer.current = window.setTimeout(() => {
         galleryFocus.current.velocity = 0;
         railScrolling.current = false;
+        if (isProgrammaticScroll.current) return;
+        const pending = pendingHoverIndex.current;
+        if (pending !== null) {
+          setHoveredIndex(pending);
+        }
       }, 140);
     };
 
@@ -1366,6 +1416,7 @@ export default function HomePage({
       frame = requestAnimationFrame(() => {
         frame = 0;
         railScrolling.current = true;
+        setCenterHoverRevealed(false);
         setHoveredIndex((current) => (current === null ? current : null));
         sampleVelocity();
 
@@ -1529,9 +1580,9 @@ export default function HomePage({
                       const selected = index === selectedIndex;
                       const distance = index - selectedIndex;
                       const hovered = hoveredIndex === index && !selected;
-                      // JS-driven, not CSS :hover: a cover scrolling under a
-                      // parked pointer must not surface the Luma label.
-                      const centerHovered = selected && hoveredIndex === index;
+                      // JS-driven + dwell: scrolling under a parked pointer must
+                      // not surface the Luma label until the center hover holds.
+                      const centerHovered = selected && centerHoverRevealed;
                       const transform = cardTransform({
                         distance,
                         selected,
@@ -1721,7 +1772,7 @@ export default function HomePage({
                   </div>
                 </div>
 
-                <div className="gallery-ticker px-[clamp(20px,6vw,96px)] pb-[clamp(32px,4vw,56px)]">
+                <div className="gallery-ticker px-[clamp(20px,6vw,96px)] pb-3 min-[821px]:pb-[clamp(32px,4vw,56px)]">
                   <FilmTickerLines
                     items={tickerItems}
                     currentIndex={selectedIndex}
@@ -1975,7 +2026,7 @@ export default function HomePage({
                           }
                         >
                           <img
-                            className="detail-photo h-[clamp(230px,58vw,300px)] w-auto max-w-[min(82vw,640px)] rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(240px,20vw,310px)] min-[821px]:max-w-none"
+                            className="detail-photo h-[clamp(230px,58vw,300px)] w-auto max-w-none rounded-md border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(240px,20vw,310px)]"
                             src={photo.src}
                             srcSet={photo.srcSet}
                             alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotoRenders.length}`}
@@ -2014,7 +2065,7 @@ export default function HomePage({
                   </BlossomCarousel>
                   </div>
                   {isPhotoRailScrollable ? (
-                    <div className="detail-photo-arrows mt-[clamp(12px,1.5vw,22px)] flex items-center justify-end">
+                    <div className="detail-photo-arrows mt-[clamp(12px,1.5vw,22px)] flex translate-y-1 items-center justify-end">
                       <div
                         className="flex gap-2"
                         role="group"
@@ -2155,7 +2206,9 @@ export default function HomePage({
                 We are a community of the world’s most ambitious young creatives.
               </p>
               <p className="m-0 text-pretty">
-                In December 2025, Design Meetup was just an idea. A month later, we hosted our first event with 50 designers. And now, we’ve brought together 10,000+ people across 30 events in NY, LA, and the Bay Area.
+                In December 2025, Design Meetup was just an idea. A month later, we hosted our first event with 50 designers. And now, we’ve brought together over 10,000 people across countless events in NY, LA,{" "}
+                <br className="hidden min-[821px]:block" />
+                & the Bay Area.
               </p>
             </div>
           </div>
@@ -2276,12 +2329,7 @@ export default function HomePage({
             <p className="m-0 text-pretty">
               We'll be opening up applications for the next Design Meetup member cohort soon. If you're a student or early career designer, we'd love to meet you.
             </p>
-            <div className="grid gap-3">
-              <p className="m-0 text-pretty">
-                Drop your email, and we'll let you know when applications open.
-              </p>
-              <ApplyNotifyForm />
-            </div>
+            <ApplyNotifyForm />
             <p className="m-0 mt-5 text-pretty">
               Follow us on Instagram and Substack to stay updated!
             </p>

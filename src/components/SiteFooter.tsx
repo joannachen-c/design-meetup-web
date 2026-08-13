@@ -113,7 +113,7 @@ export function SiteFooter({
             href="mailto:contactdesignmeetup@gmail.com"
           >
             contactdesignmeetup@gmail.com
-            <ArrowUpRightIcon className="size-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none" />
+            <ArrowUpRightIcon className="size-[18px] opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none" />
           </a>
           <TooltipProvider>
             <div className="footer-contact-row flex items-center gap-6">

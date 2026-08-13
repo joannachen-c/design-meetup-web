@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUpRightIcon } from "./components/icons/ArrowUpRightIcon";
+import { ChevronDownIcon } from "./components/icons/ChevronDownIcon";
 import {
   InstagramIcon,
   LinkedInIcon,
   SubstackIcon,
   XIcon,
 } from "./components/icons/SocialIcons";
+import { SoundOffIcon, SoundOnIcon } from "./components/icons/SoundIcons";
 import { IconButton } from "./components/IconButton";
 import { Input } from "./components/Input";
 import { Link } from "./components/Link";
@@ -26,10 +28,48 @@ const sectionTitleClassName =
 const specimenClassName =
   "flex min-h-32 flex-wrap items-center rounded-[11px]";
 const whiteSpecimenClassName = `${specimenClassName} gap-3 bg-white py-5 sm:py-8`;
-const linksSpecimenClassName = `${specimenClassName} gap-6 bg-white`;
+const linksSpecimenClassName =
+  "flex flex-wrap items-center gap-6 rounded-[11px] bg-white";
 const colorItemClassName = "grid gap-4";
 const specimenDescriptionClassName =
   "m-0 mt-1 text-pretty text-sm leading-[1.5] text-muted";
+const iconSpecimenClassName =
+  "grid justify-items-start gap-3 text-ink";
+
+const semanticColors = [
+  {
+    label: "ink",
+    description: "primary text",
+    className: "bg-ink",
+    hex: "#121c26",
+  },
+  {
+    label: "muted",
+    description: "secondary text",
+    className: "bg-muted",
+    hex: "#616d7a",
+  },
+  {
+    label: "soft gray",
+    description: "controls and fields",
+    className: "bg-surface-muted",
+    hex: "#f3f4f6",
+  },
+  {
+    label: "meetup lime",
+    description: "primary actions",
+    className: "bg-accent-primary",
+    hex: "#ecf26d",
+  },
+] as const;
+
+const neutralColors = [
+  { label: "gray-100", className: "bg-gray-100", hex: "#f3f4f6" },
+  { label: "gray-200", className: "bg-gray-200", hex: "#e5e7eb" },
+  { label: "gray-300", className: "bg-gray-300", hex: "#d1d5dc" },
+  { label: "gray-400", className: "bg-gray-400", hex: "#99a1af" },
+  { label: "gray-500", className: "bg-gray-500", hex: "#6a7282" },
+] as const;
 
 const sections = [
   { id: "colors", label: "colors" },
@@ -39,6 +79,7 @@ const sections = [
   { id: "shadows", label: "shadows" },
   { id: "buttons", label: "buttons" },
   { id: "links", label: "links" },
+  { id: "icons", label: "icons" },
   { id: "inputs", label: "inputs" },
   { id: "tooltips", label: "tooltips" },
 ] as const;
@@ -55,15 +96,92 @@ const spacingScale = [
 const layoutGridGapClassName = "gap-2";
 const layoutColumns = Array.from({ length: 12 }, (_, index) => index + 1);
 
-function SpecimenLabel({ children }: { children: string }) {
+function SpecimenLabel({
+  children,
+  weight = "bold",
+}: {
+  children: string;
+  weight?: "bold" | "normal";
+}) {
   return (
-    <p className="m-0 text-sm font-bold text-muted">{children}</p>
+    <p
+      className={`m-0 text-sm text-muted ${weight === "normal" ? "font-normal" : "font-bold"}`}
+    >
+      {children}
+    </p>
   );
 }
 
-function ArrowIcon() {
+function ColorSwatch({
+  className,
+  hex,
+  label,
+  size = "card",
+}: {
+  className: string;
+  hex: string;
+  label: string;
+  size?: "card" | "chip";
+}) {
+  const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(false);
+  const resetTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resetTimerRef.current !== null) {
+        window.clearTimeout(resetTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(hex);
+    } catch {
+      return;
+    }
+
+    setCopied(true);
+    setOpen(true);
+    if (resetTimerRef.current !== null) {
+      window.clearTimeout(resetTimerRef.current);
+    }
+    resetTimerRef.current = window.setTimeout(() => {
+      setCopied(false);
+      resetTimerRef.current = null;
+    }, 1500);
+  };
+
   return (
-    <svg className="size-[18px] translate-x-px" viewBox="0 0 24 24" aria-hidden="true">
+    <Tooltip
+      content={copied ? "Copied!" : hex}
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) setCopied(false);
+      }}
+    >
+      <button
+        type="button"
+        aria-label={`Copy ${label} ${hex}`}
+        className={[
+          className,
+          "cursor-pointer border-0 p-0 transition-transform duration-150 ease-out active:scale-[0.97]",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink",
+          size === "card" ? "aspect-[4/3] w-full rounded-[20px]" : "size-12 rounded-[11px]",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        onClick={handleCopy}
+      />
+    </Tooltip>
+  );
+}
+
+function ArrowIcon({ className = "size-[18px] translate-x-px" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M9 5l7 7-7 7"
         fill="none"
@@ -76,9 +194,9 @@ function ArrowIcon() {
   );
 }
 
-function HelpIcon() {
+function HelpIcon({ className = "size-5" }: { className?: string }) {
   return (
-    <svg className="size-5" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M9.2 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4"
         fill="none"
@@ -91,6 +209,62 @@ function HelpIcon() {
     </svg>
   );
 }
+
+// One footprint for every specimen. Stroke glyphs sit at 18px; filled brand
+// marks step down so their solid mass matches optically. Specimen-only stroke
+// weight (3px) — production icon components keep their own weights.
+const dsIconFrameClassName = "grid size-5 place-items-center";
+const dsStrokeWeightClassName =
+  "[&_circle]:[stroke-width:3px] [&_path]:[stroke-width:3px] [&_rect]:[stroke-width:3px]";
+const dsStrokeIconClassName = `size-[18px] ${dsStrokeWeightClassName}`;
+const dsBrandIconClassName = "size-4";
+
+const designSystemIcons = [
+  {
+    label: "arrow up right",
+    icon: <ArrowUpRightIcon className={dsStrokeIconClassName} />,
+  },
+  {
+    label: "arrow",
+    icon: <ArrowIcon className={dsStrokeIconClassName} />,
+  },
+  {
+    label: "chevron down",
+    icon: <ChevronDownIcon className={dsStrokeIconClassName} />,
+  },
+  {
+    label: "help",
+    icon: <HelpIcon className={dsStrokeIconClassName} />,
+  },
+  {
+    label: "sound on",
+    icon: <SoundOnIcon className={dsStrokeIconClassName} />,
+  },
+  {
+    label: "sound off",
+    icon: <SoundOffIcon className={dsStrokeIconClassName} />,
+  },
+  {
+    label: "substack",
+    icon: <SubstackIcon className={dsBrandIconClassName} />,
+  },
+  {
+    label: "instagram",
+    icon: (
+      <InstagramIcon
+        className={`${dsBrandIconClassName} ${dsStrokeWeightClassName}`}
+      />
+    ),
+  },
+  {
+    label: "linkedin",
+    icon: <LinkedInIcon className={dsBrandIconClassName} />,
+  },
+  {
+    label: "x",
+    icon: <XIcon className={dsBrandIconClassName} />,
+  },
+] as const;
 
 function SelectSpecimen() {
   const [city, setCity] = useState("sf");
@@ -137,15 +311,6 @@ export default function DesignSystem() {
                 design system
               </h1>
             </ScrollReveal>
-            <ScrollReveal
-              className="col-start-9 col-span-4 max-[820px]:col-start-1 max-[820px]:col-span-1"
-              delay={60}
-            >
-              <p className="m-0 mb-2 max-w-[48ch] text-pretty text-base leading-[1.5] text-muted max-[820px]:mt-2">
-                The foundations behind the Design Meetup website. These examples
-                use the same production components as the site.
-              </p>
-            </ScrollReveal>
           </div>
 
           <section
@@ -158,81 +323,36 @@ export default function DesignSystem() {
             </h2>
             <div className="grid gap-12">
               <div className="grid gap-x-4 gap-y-8 grid-cols-2 lg:grid-cols-4">
-                <div className={colorItemClassName}>
-                  <div className="aspect-[4/3] rounded-[11px] bg-ink" />
-                  <div>
-                    <SpecimenLabel>ink</SpecimenLabel>
-                    <p className="m-0 mt-1 text-sm text-subtle">
-                      primary text
-                    </p>
+                {semanticColors.map((color) => (
+                  <div className={colorItemClassName} key={color.label}>
+                    <ColorSwatch
+                      className={color.className}
+                      hex={color.hex}
+                      label={color.label}
+                    />
+                    <div>
+                      <SpecimenLabel>{color.label}</SpecimenLabel>
+                      <p className="m-0 mt-1 text-sm text-subtle">
+                        {color.description}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className={colorItemClassName}>
-                  <div className="aspect-[4/3] rounded-[11px] bg-muted" />
-                  <div>
-                    <SpecimenLabel>muted</SpecimenLabel>
-                    <p className="m-0 mt-1 text-sm text-subtle">
-                      secondary text
-                    </p>
-                  </div>
-                </div>
-                <div className={colorItemClassName}>
-                  <div className="aspect-[4/3] rounded-[11px] border border-gray-200 bg-surface-muted" />
-                  <div>
-                    <SpecimenLabel>soft gray</SpecimenLabel>
-                    <p className="m-0 mt-1 text-sm text-subtle">
-                      controls and fields
-                    </p>
-                  </div>
-                </div>
-                <div className={colorItemClassName}>
-                  <div className="aspect-[4/3] rounded-[11px] bg-accent-primary" />
-                  <div>
-                    <SpecimenLabel>meetup lime</SpecimenLabel>
-                    <p className="m-0 mt-1 text-sm text-subtle">
-                      primary actions
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
               <div>
                 <SpecimenLabel>tailwind neutrals</SpecimenLabel>
                 <ul className="m-0 mt-5 grid list-none grid-cols-2 gap-x-6 gap-y-4 p-0 sm:grid-cols-3 lg:grid-cols-5">
-                  <li className="flex items-center gap-3">
-                    <div
-                      className="size-12 rounded-[11px] bg-gray-100"
-                      aria-hidden="true"
-                    />
-                    <code className="text-sm text-muted">gray-100</code>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div
-                      className="size-12 rounded-[11px] bg-gray-200"
-                      aria-hidden="true"
-                    />
-                    <code className="text-sm text-muted">gray-200</code>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div
-                      className="size-12 rounded-[11px] bg-gray-300"
-                      aria-hidden="true"
-                    />
-                    <code className="text-sm text-muted">gray-300</code>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div
-                      className="size-12 rounded-[11px] bg-gray-400"
-                      aria-hidden="true"
-                    />
-                    <code className="text-sm text-muted">gray-400</code>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div
-                      className="size-12 rounded-[11px] bg-gray-500"
-                      aria-hidden="true"
-                    />
-                    <code className="text-sm text-muted">gray-500</code>
-                  </li>
+                  {neutralColors.map((color) => (
+                    <li className="flex items-center gap-3" key={color.label}>
+                      <ColorSwatch
+                        className={color.className}
+                        hex={color.hex}
+                        label={color.label}
+                        size="chip"
+                      />
+                      <code className="text-sm text-muted">{color.label}</code>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -317,11 +437,6 @@ export default function DesignSystem() {
                       </div>
                     ))}
                   </dl>
-                  <p className="m-0 mt-6 max-w-[62ch] text-pretty text-base leading-[1.5] text-muted">
-                    Design-system sections use 56px vertical padding, growing
-                    to 80px at tablet widths. Larger homepage bands use a more
-                    generous 120px rhythm.
-                  </p>
                 </div>
               </div>
 
@@ -407,7 +522,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>large</SpecimenLabel>
                     <p className={specimenDescriptionClassName}>
-                      rounded-lg · 8px · event covers
+                      rounded-lg · 8px
                     </p>
                   </div>
                   <div
@@ -457,7 +572,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>media inset edge</SpecimenLabel>
                     <p className={specimenDescriptionClassName}>
-                      2px · shelf covers · event cards · 5%
+                      2px · 5%
                     </p>
                   </div>
                   <div
@@ -469,7 +584,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>media inset edge focused</SpecimenLabel>
                     <p className={specimenDescriptionClassName}>
-                      2px · focused cover · 2%
+                      2px · 2%
                     </p>
                   </div>
                   <div
@@ -481,7 +596,7 @@ export default function DesignSystem() {
                   <div>
                     <SpecimenLabel>media inset edge soft</SpecimenLabel>
                     <p className={specimenDescriptionClassName}>
-                      1px · video · 3% · fades in at full width
+                      1px · 3% · fades in at full width
                     </p>
                   </div>
                   <div
@@ -576,10 +691,20 @@ export default function DesignSystem() {
                   <Primary variant="secondary" disabled>
                     Disabled
                   </Primary>
+                  <Primary variant="ghost" disabled>
+                    Disabled
+                  </Primary>
                   <Primary variant="ink" disabled>
                     Disabled
                   </Primary>
                   <IconButton aria-label="Disabled icon button" disabled>
+                    <ArrowIcon />
+                  </IconButton>
+                  <IconButton
+                    aria-label="Disabled ghost icon button"
+                    variant="ghost"
+                    disabled
+                  >
                     <ArrowIcon />
                   </IconButton>
                 </div>
@@ -608,6 +733,24 @@ export default function DesignSystem() {
                 <ArrowUpRightIcon />
               </a>
             </div>
+          </section>
+
+          <section
+            id="icons"
+            className={sectionClassName}
+            aria-labelledby="icons-title"
+          >
+            <h2 className={sectionTitleClassName} id="icons-title">
+              icons
+            </h2>
+            <ul className="m-0 grid list-none grid-cols-2 gap-x-8 gap-y-10 p-0 sm:grid-cols-3 lg:grid-cols-5">
+              {designSystemIcons.map(({ label, icon }) => (
+                <li className={iconSpecimenClassName} key={label}>
+                  <span className={dsIconFrameClassName}>{icon}</span>
+                  <SpecimenLabel weight="normal">{label}</SpecimenLabel>
+                </li>
+              ))}
+            </ul>
           </section>
 
           <section
@@ -649,21 +792,22 @@ export default function DesignSystem() {
               tooltips
             </h2>
             <div
-              className={`${specimenClassName} items-start gap-8 bg-surface-muted p-5 sm:grid sm:grid-cols-2 sm:items-center sm:p-8`}
+              className={`${specimenClassName} items-start gap-8 bg-surface-muted p-5 sm:grid sm:grid-cols-2 sm:items-start sm:p-8`}
             >
-              <div className="flex flex-wrap items-center gap-3">
-                <Tooltip content="Helpful context appears on hover or focus.">
-                  <IconButton aria-label="More information">
-                    <HelpIcon />
-                  </IconButton>
-                </Tooltip>
+              <div className="grid gap-3">
+                <div className="-ml-4 w-fit">
+                  <Tooltip content="Helpful context appears on hover or focus.">
+                    <IconButton aria-label="More information">
+                      <HelpIcon />
+                    </IconButton>
+                  </Tooltip>
+                </div>
                 <p className="m-0 max-w-[36ch] text-pretty text-base text-muted">
-                  Hover or focus the information button. Tooltips supplement a
-                  clear label; they do not replace one.
+                  Tooltips add context on hover or focus.
                 </p>
               </div>
               <div className="grid gap-3">
-                <div className="flex items-center gap-2">
+                <div className="-ml-2 flex w-fit items-center gap-2">
                   <Tooltip content="Substack">
                     <IconButton aria-label="Substack" variant="ghost">
                       <SubstackIcon className="size-[18px]" />
@@ -686,8 +830,7 @@ export default function DesignSystem() {
                   </Tooltip>
                 </div>
                 <p className="m-0 max-w-[36ch] text-pretty text-base text-muted">
-                  Adjacent icon buttons each own a tooltip — same pattern as the
-                  footer contact icons.
+                  Adjacent icon buttons each own a tooltip
                 </p>
               </div>
             </div>

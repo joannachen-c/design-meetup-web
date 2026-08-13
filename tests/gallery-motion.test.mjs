@@ -261,9 +261,9 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
     /\.gallery-edge-button\s*\{[^}]*width:\s*100%;/s,
   );
   // Opacity on the fade itself, not an ancestor, so backdrop-filter still
-  // samples the covers. Hovering any cover keeps the wash at hover strength;
-  // it lightens when the pointer leaves the cards. Do not require hovering
-  // the edge for the wash. Viewport focus-within would stick after a click.
+  // samples the covers. Side / shelf hover shows the wash; the focused centre
+  // cover does not (is-center-hovered). Do not require hovering the edge for
+  // the wash. Viewport focus-within would stick after a click.
   assert.doesNotMatch(
     css,
     /\.gallery-viewport:hover \.gallery-edge\s*\{[^}]*opacity:\s*1;/s,
@@ -275,11 +275,21 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
   );
   assert.match(
     css,
-    /\.gallery-viewport:hover \.gallery-edge::before,[\s\S]*?\.gallery-edge:has\(\.gallery-edge-button:focus-visible\)::before\s*\{[^}]*opacity:\s*1;/s,
+    /\.gallery-viewport:hover:not\(:has\(\.event-card\.is-center-hovered\)\)\s*\.gallery-edge::before,[\s\S]*?\.gallery-edge:has\(\.gallery-edge-button:focus-visible\)::before\s*\{[^}]*opacity:\s*1;/s,
   );
   assert.match(
     css,
-    /\.gallery-viewport:hover \.gallery-edge-button:not\(:disabled\),[\s\S]*?\.gallery-edge-button:focus-visible:not\(:disabled\)\s*\{[^}]*opacity:\s*1;/s,
+    /\.gallery-viewport:hover:not\(:has\(\.event-card\.is-center-hovered\)\)\s*\.gallery-edge-button:not\(:disabled\),[\s\S]*?\.gallery-edge-button:focus-visible:not\(:disabled\)\s*\{[^}]*opacity:\s*1;/s,
+  );
+  // Plain viewport:hover must not reveal the chrome — that lit the edges while
+  // the pointer sat on the focused centre cover.
+  assert.doesNotMatch(
+    css,
+    /\.gallery-viewport:hover \.gallery-edge::before/,
+  );
+  assert.doesNotMatch(
+    css,
+    /\.gallery-viewport:hover \.gallery-edge-button:not\(:disabled\)/,
   );
   assert.match(
     css,
@@ -823,17 +833,28 @@ test("carousel hover tracks the cover under the pointer, not a sticky enter", ()
   );
   assert.match(
     app,
-    /const hoverCard = useCallback\(\(index: number \| null, pointerType: string\) => \{\s*if \(pointerType !== "mouse"\) return;\s*if \(\s*index !== null &&\s*\(railScrolling\.current \|\| isProgrammaticScroll\.current\)\s*\) \{\s*return;\s*\}\s*setHoveredIndex\(index\);/s,
+    /const hoverCard = useCallback\(\(index: number \| null, pointerType: string\) => \{\s*if \(pointerType !== "mouse"\) return;\s*pendingHoverIndex\.current = index;\s*if \(\s*index !== null &&\s*\(railScrolling\.current \|\| isProgrammaticScroll\.current\)\s*\) \{\s*return;\s*\}\s*setHoveredIndex\(index\);/s,
   );
 });
 
 // The Luma label under the focused cover used CSS :hover, so scrolling the
 // shelf under a pointer parked on a side cover lit the label whenever the
-// focused cover passed through. It is class-driven from the rail's hover
-// state instead, and only while that hover is the focused cover.
-test("View on Luma waits for a direct hover on the focused cover", () => {
-  assert.match(app, /const centerHovered = selected && hoveredIndex === index;/);
+// focused cover passed through. It is class-driven from a still center hover
+// (CENTER_HOVER_REVEAL_MS) instead, and only while that hover is the focused
+// cover. Scroll clears it; settle re-applies pending hover so a parked cursor
+// can start the wait without a mouse twitch.
+test("View on Luma waits for a still hover on the focused cover", () => {
+  assert.match(app, /const CENTER_HOVER_REVEAL_MS = 600;/);
+  assert.match(app, /const centerHovered = selected && centerHoverRevealed;/);
   assert.match(app, /centerHovered \? " is-center-hovered" : ""/);
+  assert.match(
+    app,
+    /centerHoverTimer\.current = window\.setTimeout\(\(\) => \{\s*setCenterHoverRevealed\(true\);[\s\S]*?\}, CENTER_HOVER_REVEAL_MS\);/s,
+  );
+  assert.match(
+    app,
+    /if \(hoveredIndex === null \|\| hoveredIndex !== selectedIndex\) \{\s*setCenterHoverRevealed\(false\);/s,
+  );
   assert.match(
     css,
     /\.event-card\[aria-pressed="true"\]\.is-center-hovered \+ \.cover-luma-hint/,
@@ -843,10 +864,15 @@ test("View on Luma waits for a direct hover on the focused cover", () => {
     /\.event-card\[aria-pressed="true"\]:hover \+ \.cover-luma-hint/,
   );
   assert.match(app, /railScrolling\.current = true;/);
+  assert.match(app, /setCenterHoverRevealed\(false\);/);
   assert.match(app, /setHoveredIndex\(\(current\) => \(current === null \? current : null\)\);/);
   assert.match(
     app,
-    /useEffect\(\(\) => \{\s*setHoveredIndex\(null\);\s*\}, \[selectedIndex\]\);/s,
+    /railScrolling\.current = false;\s*if \(isProgrammaticScroll\.current\) return;\s*const pending = pendingHoverIndex\.current;\s*if \(pending !== null\) \{\s*setHoveredIndex\(pending\);\s*\}/s,
+  );
+  assert.match(
+    app,
+    /useEffect\(\(\) => \{\s*setHoveredIndex\(null\);\s*setCenterHoverRevealed\(false\);\s*\}, \[selectedIndex\]\);/s,
   );
 });
 

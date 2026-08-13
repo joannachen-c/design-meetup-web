@@ -650,6 +650,9 @@ export default function HomePage({
   const slideRefs = useRef<Array<HTMLLIElement | null>>([]);
   const hasCenteredInitial = useRef(false);
   const isProgrammaticScroll = useRef(false);
+  // True while the rail is moving under the pointer. CSS :hover would otherwise
+  // light the Luma label as the focused cover slides through a parked cursor.
+  const railScrolling = useRef(false);
   const scrollSettleTimer = useRef<number | null>(null);
   const programmaticScrollUntil = useRef(0);
   const selectionSource = useRef<"control" | "scroll">("control");
@@ -1138,11 +1141,26 @@ export default function HomePage({
   // the pointer wins) and cleared by pointerleave on the rail. Paired
   // enter/leave on overlapping, sheared covers used to miss a leave or fire
   // leave-then-enter out of order, leaving hoveredIndex stuck on one card
-  // while the CSS hover: shadow correctly followed the pointer.
+  // while the CSS hover: shadow correctly followed the pointer. Scroll and
+  // programmatic centres suppress new hovers so a cover sliding under a
+  // parked cursor cannot claim the focused cover's Luma label.
   const hoverCard = useCallback((index: number | null, pointerType: string) => {
     if (pointerType !== "mouse") return;
+    if (
+      index !== null &&
+      (railScrolling.current || isProgrammaticScroll.current)
+    ) {
+      return;
+    }
     setHoveredIndex(index);
   }, []);
+
+  // A selection change means the cover under the pointer is no longer the one
+  // the reader hovered into place — drop the hover so the Luma label waits for
+  // a fresh pass over the focused cover.
+  useEffect(() => {
+    setHoveredIndex(null);
+  }, [selectedIndex]);
 
   const releaseProgrammaticScroll = useCallback(() => {
     isProgrammaticScroll.current = false;
@@ -1335,6 +1353,7 @@ export default function HomePage({
       }
       velocityResetTimer.current = window.setTimeout(() => {
         galleryFocus.current.velocity = 0;
+        railScrolling.current = false;
       }, 140);
     };
 
@@ -1343,6 +1362,8 @@ export default function HomePage({
 
       frame = requestAnimationFrame(() => {
         frame = 0;
+        railScrolling.current = true;
+        setHoveredIndex((current) => (current === null ? current : null));
         sampleVelocity();
 
         const focus = measureGalleryFocus();
@@ -1505,6 +1526,9 @@ export default function HomePage({
                       const selected = index === selectedIndex;
                       const distance = index - selectedIndex;
                       const hovered = hoveredIndex === index && !selected;
+                      // JS-driven, not CSS :hover: a cover scrolling under a
+                      // parked pointer must not surface the Luma label.
+                      const centerHovered = selected && hoveredIndex === index;
                       const transform = cardTransform({
                         distance,
                         selected,
@@ -1555,7 +1579,7 @@ export default function HomePage({
                               cardRefs.current[index] = node;
                             }}
                             type="button"
-                            className="event-card cursor-pointer rounded-lg border-0 bg-white p-0 text-left text-[oklch(98%_0.008_240)] shadow-[0_3px_10px_rgba(0,0,0,0.12)] outline-none focus:shadow-[0_12px_28px_rgba(0,0,0,0.18)] focus-visible:brightness-[0.88] focus-visible:shadow-[0_12px_28px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_30px_rgba(0,0,0,0.14)] aria-pressed:shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
+                            className={`event-card cursor-pointer rounded-lg border-0 bg-white p-0 text-left text-[oklch(98%_0.008_240)] shadow-[0_3px_10px_rgba(0,0,0,0.12)] outline-none focus:shadow-[0_12px_28px_rgba(0,0,0,0.18)] focus-visible:brightness-[0.88] focus-visible:shadow-[0_12px_28px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_30px_rgba(0,0,0,0.14)] aria-pressed:shadow-[0_12px_28px_rgba(0,0,0,0.18)]${centerHovered ? " is-center-hovered" : ""}`}
                             aria-label={
                               selected && item.luma_url
                                 ? `Open ${item.title} on Luma`

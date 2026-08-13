@@ -787,7 +787,9 @@ test("the about video arrives fully framed under reduced motion", () => {
 
 // Hover must be single-source: the cover under the pointer is the only one in
 // the elevated pose, and leaving the rail clears it. Enter/leave pairs on
-// overlapping covers cannot guarantee that.
+// overlapping covers cannot guarantee that. Scroll and programmatic centres
+// refuse new hovers so a cover sliding under a parked cursor cannot claim the
+// focused cover's Luma label.
 test("carousel hover tracks the cover under the pointer, not a sticky enter", () => {
   assert.match(app, /onPointerOver=\{\(event\) =>\s*hoverCard\(index, event\.pointerType\)/s);
   assert.match(
@@ -797,7 +799,30 @@ test("carousel hover tracks the cover under the pointer, not a sticky enter", ()
   assert.doesNotMatch(app, /onPointerEnter=\{\(event\) =>\s*hoverCard/);
   assert.match(
     app,
-    /const hoverCard = useCallback\(\(index: number \| null, pointerType: string\) => \{\s*if \(pointerType !== "mouse"\) return;\s*setHoveredIndex\(index\);/s,
+    /const hoverCard = useCallback\(\(index: number \| null, pointerType: string\) => \{\s*if \(pointerType !== "mouse"\) return;\s*if \(\s*index !== null &&\s*\(railScrolling\.current \|\| isProgrammaticScroll\.current\)\s*\) \{\s*return;\s*\}\s*setHoveredIndex\(index\);/s,
+  );
+});
+
+// The Luma label under the focused cover used CSS :hover, so scrolling the
+// shelf under a pointer parked on a side cover lit the label whenever the
+// focused cover passed through. It is class-driven from the rail's hover
+// state instead, and only while that hover is the focused cover.
+test("View on Luma waits for a direct hover on the focused cover", () => {
+  assert.match(app, /const centerHovered = selected && hoveredIndex === index;/);
+  assert.match(app, /centerHovered \? " is-center-hovered" : ""/);
+  assert.match(
+    css,
+    /\.event-card\[aria-pressed="true"\]\.is-center-hovered \+ \.cover-luma-hint/,
+  );
+  assert.doesNotMatch(
+    css,
+    /\.event-card\[aria-pressed="true"\]:hover \+ \.cover-luma-hint/,
+  );
+  assert.match(app, /railScrolling\.current = true;/);
+  assert.match(app, /setHoveredIndex\(\(current\) => \(current === null \? current : null\)\);/);
+  assert.match(
+    app,
+    /useEffect\(\(\) => \{\s*setHoveredIndex\(null\);\s*\}, \[selectedIndex\]\);/s,
   );
 });
 

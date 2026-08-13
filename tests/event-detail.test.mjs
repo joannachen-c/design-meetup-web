@@ -216,10 +216,10 @@ test("grid view shows covers alone, with the title and date left to the label", 
   // No visible name, date or location: the artwork carries the event.
   assert.doesNotMatch(app, /event-grid[\s\S]{0,1200}\{item\.date_label\}</);
   assert.doesNotMatch(app, /event-grid[\s\S]{0,1200}\{item\.location\}</);
-  // Covers pack to the column's width at a readable size rather than a fixed count.
+  // Covers pack four to a row and fill the column, matching production.
   assert.match(
     css,
-    /\.event-grid\s*\{[^}]*grid-template-columns:\s*repeat\(\s*auto-fill,\s*minmax\(clamp\(96px,\s*9vw,\s*132px\),\s*1fr\)\s*\);/s,
+    /\.event-grid\s*\{[^}]*grid-template-columns:\s*repeat\(\s*4,\s*minmax\(0,\s*1fr\)\s*\);/s,
   );
   assert.match(css, /\.event-grid-cover\s*\{[^}]*aspect-ratio:\s*1;/s);
   // The unselected covers step back, so the chosen one reads without a ring.
@@ -338,11 +338,11 @@ test("event photos use an accessible horizontally scrollable rail", () => {
     /\.detail-photo-list li\s*\{[^}]*flex:\s*0 0 auto;/s,
   );
   // One height for both layouts: the utility is on the shared photo element, so
-  // carousel and grid view cannot drift apart. No mobile max-width — an 82vw
-  // cap was shrinking landscapes below the rail height via aspect-ratio.
+  // carousel and grid view cannot drift apart. Mobile stays short enough that a
+  // landscape fits with the next frame peeking; desktop keeps the taller rail.
   assert.match(
     app,
-    /detail-photo[^"]*h-\[clamp\(230px,58vw,300px\)\][^"]*w-auto[^"]*max-w-none[^"]*object-contain[^"]*min-\[821px\]:h-\[clamp\(240px,20vw,310px\)\]/,
+    /detail-photo[^"]*h-\[clamp\(150px,46vw,200px\)\][^"]*w-auto[^"]*max-w-none[^"]*object-contain[^"]*min-\[821px\]:h-\[clamp\(240px,20vw,310px\)\]/,
   );
   assert.doesNotMatch(app, /detail-photo[^"]*max-w-\[min\(82vw/);
 });
@@ -407,10 +407,6 @@ test("photo-rail chevrons are optically centered in the ghost hit target", () =>
     app,
     /function ArrowIcon[\s\S]*?direction === "left" \? "size-5 -translate-x-px" : "size-5 translate-x-px"/,
   );
-  assert.match(
-    lightbox,
-    /function ChevronIcon[\s\S]*?direction === "left" \? "size-5 -translate-x-px" : "size-5 translate-x-px"/,
-  );
   // Same 20px glyph / 32px hit target as the photo-rail controls — without
   // size-5 the SVG filled the default 36px button and dwarfed the page chevrons.
   assert.match(lightbox, /lightbox-arrow-prev size-8/);
@@ -420,6 +416,23 @@ test("photo-rail chevrons are optically centered in the ghost hit target", () =>
     /className="absolute top-\[clamp\(16px,3vw,32px\)\] right-\[clamp\(16px,3vw,32px\)\] size-8"\s*\n\s*aria-label="Close gallery"/,
   );
   assert.match(lightbox, /function CloseIcon[\s\S]*?className="size-5"/);
+});
+
+test("lightbox chevrons are optically centered in the solid circle", () => {
+  // 0.25px toward the circle centre; vertical stays geometric.
+  // Close stays geometrically centered; it has no fill to optically correct.
+  assert.match(
+    lightbox,
+    /direction === "left"\s*\? "size-5 translate-x-\[0\.25px\]"\s*: "size-5 -translate-x-\[0\.25px\]"/,
+  );
+  assert.doesNotMatch(
+    lightbox,
+    /function ChevronIcon[\s\S]*?translate-y-/,
+  );
+  assert.doesNotMatch(
+    lightbox,
+    /function CloseIcon[\s\S]*?translate-/,
+  );
 });
 
 test("event photo controls scroll right forever and loop in the middle copy", () => {
@@ -455,6 +468,13 @@ test("event photo controls scroll right forever and loop in the middle copy", ()
   assert.match(app, /jumpPhotoRailScroll\(rail, looped\.left\)/);
   assert.match(app, /function photoRailEndAlignLeft\(/);
   assert.match(app, /function photoRailAlignLeft\(/);
+  assert.match(app, /function photoRailSnapAlign\(/);
+  assert.match(
+    app,
+    /window\.matchMedia\("\(max-width: 820px\)"\)\.matches \? "start" : "end"/,
+  );
+  assert.match(app, /const align = photoRailSnapAlign\(\)/);
+  assert.doesNotMatch(app, /view === "grid" \? "start" : "end"/);
   assert.match(app, /itemBox\.right - port\.right/);
   assert.match(app, /itemBox\.left - port\.left/);
   assert.match(app, /function photoRailSnappedItem\(/);
@@ -538,10 +558,11 @@ test("the event photo rail uses Blossom Carousel for drag snapping", () => {
     /\.detail-photo-list li\s*\{[^}]*scroll-snap-stop:\s*always;/s,
   );
   // Mobile: free-scroll. Snap on wide landscapes reads as hitching; desktop
-  // keeps end/start snap. --snap-type none so Blossom's !important rule stays off.
+  // keeps end snap so the rightmost photo sits flush. --snap-type none
+  // so Blossom's !important rule stays off.
   assert.match(
     css,
-    /@media \(max-width:\s*820px\)[\s\S]*\.detail-photo-list\s*\{[^}]*--snap-type:\s*none;[^}]*scroll-snap-type:\s*none;/s,
+    /@media \(max-width:\s*820px\)[\s\S]*\.detail-photo-list\s*\{[^}]*--snap-type:\s*none;[^}]*scroll-snap-type:\s*none;[^}]*overflow-x:\s*scroll;/s,
   );
   assert.match(
     css,
@@ -594,7 +615,7 @@ test("clicking a gallery photo opens it in the lightbox at its own index", () =>
   );
   assert.match(
     app,
-    /<GalleryLightbox\s*\n\s*photos=\{lightboxPhotos\}\s*\n\s*previews=\{selectedPhotos\}\s*\n\s*index=\{lightboxIndex\}[\s\S]*?onIndexChange=\{setLightboxIndex\}\s*\n\s*onClose=\{closeLightbox\}/,
+    /<GalleryLightbox\s*\n\s*photos=\{lightboxPhotos\}\s*\n\s*previews=\{selectedPhotoRenders\}\s*\n\s*index=\{lightboxIndex\}[\s\S]*?onIndexChange=\{setLightboxIndex\}\s*\n\s*onClose=\{closeLightbox\}/,
   );
   // The rail's thumbnail render would go soft blown up across the viewport.
   assert.match(
@@ -614,7 +635,14 @@ test("clicking a gallery photo opens it in the lightbox at its own index", () =>
 test("the lightbox is a light modal overlay driven by ghost icon buttons", () => {
   assert.match(lightbox, /createPortal\(/);
   assert.match(lightbox, /role="dialog"\s*\n\s*aria-modal="true"/);
-  assert.match(lightbox, /bg-white\/88 backdrop-blur-md/);
+  assert.match(lightbox, /bg-white\/88[\s\S]*backdrop-blur-md/);
+  // Portaled onto body, which has no typeface — without this the caption
+  // falls through to the system UI stack instead of Alte Haas Grotesk.
+  assert.match(
+    lightbox,
+    /font-\['Alte_Haas_Grotesk',sans-serif\]/,
+  );
+  assert.match(app, /font-\['Alte_Haas_Grotesk',sans-serif\]/);
   assert.match(lightbox, /max-h-\[78vh\] max-w-\[88vw\]/);
   // Shadow sits on a wrapper outside the clipped photo so overflow + radius
   // cannot paint the event-cover inset edge.
@@ -629,15 +657,37 @@ test("the lightbox is a light modal overlay driven by ghost icon buttons", () =>
   );
   assert.match(css, /\.lightbox-frame\s*\{[^}]*clip-path:\s*inset\(0 round 12px\);/s);
 
-  for (const label of ["Close gallery", "Previous photo", "Next photo"]) {
+  // Close stays a ghost in the corner so it does not compete with the photo.
+  // Arrow fills are owned in CSS (not IconButton solid) so both sides match.
+  assert.match(
+    lightbox,
+    /aria-label="Close gallery"\s*\n\s*variant="ghost"/,
+  );
+  for (const label of ["Previous photo", "Next photo"]) {
     assert.match(
       lightbox,
-      new RegExp(
-        `aria-label="${label}"\\s*\\n\\s*variant="ghost"`,
-      ),
-      `${label} should be a ghost icon button`,
+      new RegExp(`aria-label="${label}"\\s*\\n\\s*variant="ghost"`),
+      `${label} should be a ghost icon button with CSS-owned fill`,
     );
   }
+  assert.match(
+    css,
+    /button\.lightbox-arrow-prev,\s*button\.lightbox-arrow-next\s*\{[^}]*background-color:\s*var\(--lightbox-arrow-bg\)\s*!important;/s,
+  );
+  assert.match(
+    css,
+    /--lightbox-arrow-bg:\s*color-mix\(\s*in oklab,\s*var\(--color-muted\) 18%,\s*var\(--color-surface\)\s*\);/s,
+  );
+  assert.doesNotMatch(
+    css,
+    /button\.lightbox-arrow-prev\s*\{[^}]*background(?:-color)?:\s*transparent/s,
+  );
+  // Hover darkening is fine-pointer only so a stuck :hover on touch cannot
+  // leave one arrow darker than the other.
+  assert.match(
+    css,
+    /@media \(hover:\s*hover\) and \(pointer:\s*fine\)\s*\{[\s\S]*?button\.lightbox-arrow-prev:hover:not\(:disabled\),\s*button\.lightbox-arrow-next:hover:not\(:disabled\)\s*\{[^}]*background-color:\s*var\(--lightbox-arrow-bg-press\)\s*!important;/s,
+  );
   // Close sits in the corner; desktop arrows straddle the photo, and a phone
   // keeps them under the caption so a wide image cannot cover them.
   assert.match(
@@ -648,24 +698,26 @@ test("the lightbox is a light modal overlay driven by ghost icon buttons", () =>
   assert.match(lightbox, /className="lightbox-arrow lightbox-arrow-next size-8"/);
   assert.match(
     css,
-    /\.lightbox-arrow-prev\s*\{[^}]*left:\s*clamp\(12px,\s*3vw,\s*32px\);/s,
+    /button\.lightbox-arrow-prev\s*\{[^}]*left:\s*clamp\(12px,\s*3vw,\s*32px\);/s,
   );
   assert.match(
     css,
-    /\.lightbox-arrow-next\s*\{[^}]*right:\s*clamp\(12px,\s*3vw,\s*32px\);/s,
+    /button\.lightbox-arrow-next\s*\{[^}]*right:\s*clamp\(12px,\s*3vw,\s*32px\);/s,
   );
   assert.match(
     css,
-    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.lightbox-arrows\s*\{[^}]*display:\s*flex;[^}]*justify-content:\s*center;/s,
+    /@media \(max-width:\s*520px\)\s*\{[\s\S]*?\.lightbox-arrows\s*\{[^}]*position:\s*static;[^}]*display:\s*flex;[^}]*justify-content:\s*center;/s,
   );
   assert.match(
     css,
-    /@media \(max-width:\s*820px\)\s*\{[\s\S]*?\.lightbox-arrow-prev,\s*\.lightbox-arrow-next\s*\{[^}]*position:\s*static;/s,
+    /@media \(max-width:\s*520px\)\s*\{[\s\S]*?\.lightbox-arrow-prev,\s*\.lightbox-arrow-next,\s*button\.lightbox-arrow-prev,\s*button\.lightbox-arrow-next\s*\{[^}]*position:\s*static;/s,
   );
   assert.match(lightbox, /disabled=\{!hasPrevious\}/);
   assert.match(lightbox, /disabled=\{!hasNext\}/);
   assert.match(lightbox, /const hasPrevious = isOpen && photos\.length > 1/);
   assert.match(lightbox, /const hasNext = isOpen && photos\.length > 1/);
+  assert.doesNotMatch(lightbox, /hasPrevious = isOpen && index > 0/);
+  assert.doesNotMatch(lightbox, /hasNext = isOpen && index < photos\.length - 1/);
   assert.match(
     lightbox,
     /onIndexChange\(\(index \+ direction \+ photos\.length\) % photos\.length\)/,
@@ -676,12 +728,14 @@ test("the lightbox is a light modal overlay driven by ghost icon buttons", () =>
 
 test("the lightbox never shows empty space while a photo loads", () => {
   // The rail's render is already decoded, so it paints on the first frame and
-  // gives the frame the photo's real shape before the big render lands.
-  assert.match(app, /previews=\{selectedPhotos\}/);
+  // gives the frame the photo's real shape before the big render lands. The
+  // same srcSet the rail used is what lets a retina cache hit paint instantly.
+  assert.match(app, /previews=\{selectedPhotoRenders\}/);
   assert.match(
     lightbox,
-    /const basePhoto = \(isOpen \? previews\?\.\[index\] : null\) \?\? photo/,
+    /const basePhoto = basePreview\?\.src \?\? photo/,
   );
+  assert.match(lightbox, /srcSet=\{baseSrcSet\}/);
   assert.match(lightbox, /className="lightbox-photo[^"]*"\s*\n\s*key=\{basePhoto\}/);
   assert.match(lightbox, /\{basePhoto === photo \? null : \(/);
   // Same shimmer as the rail, for photos the reader never scrolled past. It
@@ -690,15 +744,27 @@ test("the lightbox never shows empty space while a photo loads", () => {
   assert.match(lightbox, /const PLACEHOLDER_DELAY_MS = 120/);
   assert.match(
     lightbox,
-    /data-placeholder=\{\s*isPlaceholderDue && !isBaseLoaded \? "true" : "false"\s*\}/,
+    /data-placeholder=\{\s*isPlaceholderDue && !isBaseLoaded && !holding\s*\? "true"\s*: "false"\s*\}/,
   );
   assert.match(
     css,
-    /\.lightbox-frame \.detail-photo-shimmer\s*\{[^}]*opacity:\s*0;/s,
+    /\.lightbox-frame \.detail-photo-shimmer\s*\{[^}]*opacity:\s*0;[^}]*transition:\s*none;/s,
   );
   assert.match(
     css,
     /\.lightbox-frame\[data-placeholder="true"\] \.detail-photo-shimmer\s*\{[^}]*opacity:\s*1;/s,
+  );
+  // Stepping keeps the last painted photo up until the next one has pixels,
+  // so a gray wash cannot replace a photo the reader is already looking at.
+  assert.match(lightbox, /const holding = Boolean\(painted && !isBaseLoaded\)/);
+  assert.match(lightbox, /lightbox-photo lightbox-photo-held/);
+  assert.match(
+    css,
+    /\.lightbox-photo-held\.lightbox-photo-full\s*\{[^}]*opacity:\s*1;[^}]*transition:\s*none;/s,
+  );
+  assert.match(
+    css,
+    /\.lightbox-frame\[data-holding="true"\]\s*>\s*\.lightbox-photo:not\(\.lightbox-photo-held\)\s*\{[^}]*opacity:\s*0;/s,
   );
   assert.match(lightbox, /!url \|\| !node\?\.complete \|\| node\.naturalWidth <= 0/);
   assert.match(lightbox, /const baseImgRef = useRef<HTMLImageElement \| null>\(null\)/);
@@ -721,6 +787,10 @@ test("the lightbox never shows empty space while a photo loads", () => {
     /\.lightbox-frame\[data-base-loaded="false"\] \.lightbox-photo,\s*\.lightbox-frame\[data-has-aspect="true"\] \.lightbox-photo\s*\{[^}]*aspect-ratio:\s*var\(--lightbox-aspect,\s*3 \/ 4\);[^}]*width:\s*min\(88vw,\s*calc\(78vh \* var\(--lightbox-aspect,\s*3 \/ 4\)\)\);/s,
   );
   assert.match(
+    css,
+    /\.lightbox-frame\[data-placeholder="true"\] \.lightbox-photo\s*\{[^}]*opacity:\s*0;/s,
+  );
+  assert.doesNotMatch(
     css,
     /\.lightbox-frame\[data-base-loaded="false"\] \.lightbox-photo\s*\{[^}]*opacity:\s*0;/s,
   );
@@ -790,16 +860,72 @@ test("the lightbox keeps the event name stable under the photo", () => {
     /<figcaption className="m-0 self-start text-center text-sm leading-5 text-muted">\s*\{title\}\s*<\/figcaption>/,
   );
   assert.match(app, /title=\{selectedEvent\.title\}/);
+  assert.match(
+    css,
+    /@media \(max-width:\s*520px\)\s*\{[\s\S]*?\.lightbox-figure\s*\{[^}]*gap:\s*48px;/s,
+  );
+  assert.doesNotMatch(
+    css,
+    /@media \(max-width:\s*520px\)\s*\{[\s\S]*?\.lightbox-arrows\s*\{[^}]*margin-top:/s,
+  );
 });
 
-// The controls sit on a near-white wash, where ink reads as a hard black.
-test("lightbox controls use the lighter icon tone", () => {
-  assert.equal(lightbox.match(/tone="muted"/g)?.length, 3);
+// Chevrons sit on the frosted wash and need ink weight so both sides match;
+// close stays muted in the corner so it does not compete with the photo.
+test("lightbox controls use ink chevrons and a muted close", () => {
+  assert.equal(lightbox.match(/tone="muted"/g)?.length, 1);
+  assert.equal(lightbox.match(/tone="ink"/g)?.length, 2);
+  assert.match(
+    lightbox,
+    /aria-label="Previous photo"\s*\n\s*variant="ghost"\s*\n\s*tone="ink"/,
+  );
+  assert.match(
+    lightbox,
+    /aria-label="Next photo"\s*\n\s*variant="ghost"\s*\n\s*tone="ink"/,
+  );
+  assert.match(
+    lightbox,
+    /aria-label="Close gallery"\s*\n\s*variant="ghost"\s*\n\s*tone="muted"/,
+  );
   assert.match(
     iconButton,
     /muted: "text-muted hover:not-disabled:text-ink"/,
   );
   assert.match(iconButton, /transition-\[background-color,color,transform,opacity\]/);
+});
+
+test("lightbox arrows stay put when the photo frame sizes on open", () => {
+  // Nested inside the Motion figure, absolute/fixed arrows used the growing
+  // transformed figure as their containing block and slid outward on open.
+  // They are siblings of the figure, pinned to the full-screen shell.
+  const arrowsAt = lightbox.indexOf('className="lightbox-arrows"');
+  const figureCloseAt = lightbox.indexOf("</motion.figure>");
+  assert.ok(figureCloseAt >= 0, "expected the motion figure to close");
+  assert.ok(
+    arrowsAt > figureCloseAt,
+    "arrows must mount after the figure so Motion's transform cannot contain them",
+  );
+  assert.match(lightbox, /className="lightbox-shell/);
+  assert.match(
+    css,
+    /\.lightbox-arrows\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;/s,
+  );
+  assert.match(
+    css,
+    /button\.lightbox-arrow-prev,\s*button\.lightbox-arrow-next\s*\{[^}]*position:\s*absolute;[^}]*top:\s*0;[^}]*bottom:\s*0;[^}]*margin-block:\s*auto;/s,
+  );
+  assert.doesNotMatch(
+    css,
+    /button\.lightbox-arrow-prev,\s*button\.lightbox-arrow-next\s*\{[^}]*position:\s*fixed;/s,
+  );
+  assert.doesNotMatch(
+    css,
+    /button\.lightbox-arrow-prev,\s*button\.lightbox-arrow-next\s*\{[^}]*transform:\s*translateY\(-50%\)/s,
+  );
+  assert.match(
+    css,
+    /button\.lightbox-arrow-prev,\s*button\.lightbox-arrow-next\s*\{[^}]*transition-property:\s*background-color,\s*color,\s*opacity\s*!important;/s,
+  );
 });
 
 test("event photo rail bleeds to the page edge under the title stack", () => {
@@ -905,7 +1031,10 @@ test("sponsors render as chips beside the other event metadata", () => {
 });
 
 test("sponsor logos shrink to sit inside a chip next to the sponsor name", () => {
-  assert.match(app, /sponsor-logo overflow-hidden rounded-sm border-0 outline-none/);
+  assert.match(
+    app,
+    /sponsor-logo overflow-hidden border-0 outline-none \$\{[\s\S]*?entrepreneurs-first[\s\S]*?rounded-full[\s\S]*?rounded-sm/,
+  );
   assert.match(
     css,
     /\.sponsor-logo\s*\{[^}]*max-width:\s*72px;[^}]*max-height:\s*18px;[^}]*object-fit:\s*contain;/s,
@@ -974,13 +1103,29 @@ test("grid view pairs the covers and the detail into a master/detail split", () 
   assert.match(app, /<div className="events-layout" data-view=\{view\}>/);
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\]\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*7fr\)\s+minmax\(0,\s*5fr\)/s,
+    /\.events-layout\[data-view="grid"\]\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*5fr\)\s+minmax\(0,\s*7fr\)/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\]\s*\{[^}]*grid-template-rows:\s*auto auto;/s,
   );
   assert.match(
     css,
     /\.events-layout\[data-view="grid"\]\s*\{[^}]*align-items:\s*start;/s,
   );
-  // Same top inset as the detail column so the first covers line up with the title.
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] > \.gallery-toolbar\s*\{[^}]*grid-column:\s*1 \/ span 2;[^}]*grid-row:\s*1;/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] > \.gallery-section\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*2;/s,
+  );
+  assert.match(
+    css,
+    /\.events-layout\[data-view="grid"\] > \.event-detail\s*\{[^}]*grid-column:\s*1;[^}]*grid-row:\s*2;/s,
+  );
+  // Same top inset as the detail column so the first covers line up with the cover.
   assert.match(
     app,
     /gallery-grid[^"]*pt-\[clamp\(32px,4vw,64px\)\]/,
@@ -1011,11 +1156,10 @@ test("grid view pairs the covers and the detail into a master/detail split", () 
     css,
     /\.events-layout\[data-view="grid"\] \.detail-title,\s*\.events-layout\[data-view="grid"\] \.detail-meta,\s*\.events-layout\[data-view="grid"\] \.detail-extras,\s*\.events-layout\[data-view="grid"\] \.detail-grid:has\(\.detail-extras\) \.detail-meta\s*\{[^}]*grid-column:\s*auto/s,
   );
-  // Photos pin to the chevrons on the left and bleed through the page gutter
-  // off the right edge, as one horizontal row.
+  // Same rail as carousel: bleed off the left page edge, flush on the right.
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\] \.detail-photo-list\s*\{[^}]*--page-gutter-start:\s*0px;[^}]*--page-gutter-end:\s*var\(--page-gutter\)/s,
+    /\.events-layout\[data-view="grid"\] \.detail-photo-list\s*\{[^}]*--page-gutter-start:\s*var\(--page-gutter\);[^}]*--page-gutter-end:\s*0px/s,
   );
   assert.doesNotMatch(
     css,
@@ -1025,17 +1169,19 @@ test("grid view pairs the covers and the detail into a master/detail split", () 
     css,
     /\.events-layout\[data-view="grid"\] \.detail-photo-list\s*\{[^}]*display:\s*grid;[^}]*grid-template-rows:\s*auto auto/s,
   );
-  assert.match(
+  // Same end-snap as carousel: a photo sits flush on the right, leftover
+  // hangs off the left, chevrons stay at the end of the rail.
+  assert.doesNotMatch(
     css,
     /\.events-layout\[data-view="grid"\] \.detail-photo-list li\s*\{[^}]*scroll-snap-align:\s*start/s,
   );
-  assert.match(
+  assert.doesNotMatch(
     css,
     /\.events-layout\[data-view="grid"\] \.detail-photo-arrows\s*\{[^}]*justify-content:\s*flex-start/s,
   );
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\] \.detail-photo\s*\{[^}]*height:\s*clamp\(210px,\s*54vw,\s*276px\)/s,
+    /\.events-layout\[data-view="grid"\] \.detail-photo\s*\{[^}]*height:\s*clamp\(150px,\s*46vw,\s*200px\)/s,
   );
   assert.match(
     css,
@@ -1046,7 +1192,7 @@ test("grid view pairs the covers and the detail into a master/detail split", () 
   // One page gutter between the columns rather than two stacked ones.
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\] > \.event-detail\s*\{[^}]*margin-left:\s*calc\(0px - clamp\(20px,\s*6vw,\s*96px\)\)/s,
+    /\.events-layout\[data-view="grid"\] > \.gallery-section\s*\{[^}]*margin-left:\s*calc\(0px - clamp\(20px,\s*6vw,\s*96px\)\)/s,
   );
   assert.match(
     css,
@@ -1054,7 +1200,7 @@ test("grid view pairs the covers and the detail into a master/detail split", () 
   );
   assert.match(
     css,
-    /@media \(max-width: 820px\)[\s\S]*\.events-layout\[data-view="grid"\] > \.event-detail\s*\{[^}]*margin-left:\s*0/s,
+    /@media \(max-width: 820px\)[\s\S]*\.events-layout\[data-view="grid"\] > \.gallery-section\s*\{[^}]*margin-left:\s*0/s,
   );
 });
 
@@ -1068,8 +1214,9 @@ test("the cover grid stands at its full height rather than scrolling in a box", 
     css,
     /\.events-layout\[data-view="grid"\] > \.gallery-section > \.scroll-reveal\s*\{[^}]*position:\s*absolute/s,
   );
-  // The covers keep their own column width now that no wrapper carries it.
-  assert.match(css, /\.event-grid\s*\{[^}]*max-width:\s*min\(100%, 900px\);/s);
+  // Four columns fill the pack's own column; nothing caps them short of it.
+  assert.match(css, /\.event-grid\s*\{[^}]*width:\s*100%;/s);
+  assert.doesNotMatch(css, /\.event-grid\s*\{[^}]*max-width:/s);
 });
 
 test("the photo rail has no edge fade or blur", () => {
@@ -1413,7 +1560,7 @@ test("mobile detail tracks floor at zero so the bleeding photo rail cannot widen
 test("all image surfaces are borderless", () => {
   assert.match(app, /event-card[^"]*border-0/);
   assert.match(app, /detail-photo[^`]*rounded-lg border-0/);
-  assert.match(app, /sponsor-logo overflow-hidden rounded-sm border-0 outline-none/);
+  assert.match(app, /sponsor-logo overflow-hidden border-0 outline-none/);
 });
 
 test("nonselected covers blend against a white underlay so they look lighter", () => {

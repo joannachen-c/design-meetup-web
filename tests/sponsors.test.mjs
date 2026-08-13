@@ -96,7 +96,7 @@ test("event fetch joins ordered sponsors and frontend renders logos or names", (
   assert.match(supabase, /event_sponsors:[\s\S]*sort\(/);
   assert.match(app, /selectedEvent\?\.event_sponsors/);
   assert.match(app, /sponsor\.logo_url/);
-  assert.match(app, /className="[^"]*\bsponsor-logo\b[^"]*"/);
+  assert.match(app, /className=\{`[^`]*\bsponsor-logo\b/);
   assert.match(app, /className="[^"]*\bsponsor-placeholder\b[^"]*"/);
 });
 

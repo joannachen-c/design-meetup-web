@@ -199,12 +199,16 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
   assert.match(app, /if \(event\.detail > 0\) \{\s*event\.currentTarget\.blur\(\);/);
 
   // Phones and coarse pointers keep the swipe; the overlay is a desktop hover.
-  // The edge band captures the pointer so covers under the wash cannot lift
-  // while the reader aims for a chevron.
+  // The band passes events through so covers under the wash (2nd/3rd from the
+  // edge) stay clickable; only the chevron is a hit target.
   assert.match(css, /\.gallery-edge\s*\{[^}]*display:\s*none;/s);
   assert.match(
     css,
-    /@media \(min-width:\s*821px\)\s*\{[\s\S]*?@media \(hover: hover\) and \(pointer: fine\)\s*\{[\s\S]*?\.gallery-edge\s*\{[^}]*pointer-events:\s*auto;/s,
+    /@media \(min-width:\s*821px\)\s*\{[\s\S]*?@media \(hover: hover\) and \(pointer: fine\)\s*\{[\s\S]*?\.gallery-edge\s*\{[^}]*pointer-events:\s*none;/s,
+  );
+  assert.match(
+    css,
+    /@media \(min-width:\s*821px\)\s*\{[\s\S]*?@media \(hover: hover\) and \(pointer: fine\)\s*\{[\s\S]*?\.gallery-edge-button\s*\{[^}]*pointer-events:\s*auto;/s,
   );
   assert.match(
     app,
@@ -355,13 +359,14 @@ test("every unfocused cover faces the same way on a shared diagonal", () => {
   assert.doesNotMatch(app, /rotateZ\(|rotateY\(/);
   assert.doesNotMatch(app, /distance < 0 \? 42 : -42/);
   // Every cover sits on the one to its right, so the stack leans with the shear
-  // across the whole rail rather than mirroring at the centre. Only the focused
-  // cover breaks that order.
-  assert.match(
-    app,
-    /zIndex: selected\s*\?\s*events\.length \+ 1\s*:\s*events\.length - index,/s,
-  );
+  // across the whole rail rather than mirroring at the centre. Selection must
+  // not raise a cover or it pops over its left-hand neighbour mid-scroll.
+  assert.match(app, /zIndex: events\.length - index,/);
   assert.doesNotMatch(app, /events\.length - Math\.abs\(distance\)/);
+  assert.doesNotMatch(
+    app,
+    /zIndex: selected\s*\?\s*events\.length \+ 1/s,
+  );
 });
 
 test("hovering a cover eases it out from under the cover to its left", () => {
@@ -486,7 +491,7 @@ test("the rail opens on the sixth cover, or the newest when there is no sixth", 
   assert.match(app, /index: initialIndex,/);
 });
 
-test("covers deal in from under their right-hand neighbour, right to left", () => {
+test("covers deal in from under their left-hand neighbour, left to right", () => {
   assert.match(
     app,
     /transform: isGalleryReady\s*\?\s*transform\s*:\s*entranceTransform/s,
@@ -531,10 +536,11 @@ test("covers deal in from under their right-hand neighbour, right to left", () =
     Math.round((1 - slotOverlap) * 100),
     "the entrance step has to be measured against the shelf's own slot pitch",
   );
-  const shift = Number(app.match(/const CARD_ENTRANCE_SHIFT_PCT = ([\d.]+);/)[1]);
+  const shift = Number(app.match(/const CARD_ENTRANCE_SHIFT_PCT = (-?[\d.]+);/)[1]);
+  assert.ok(shift < 0, "covers should come in from the left");
   assert.ok(
-    shift > slotPitch / 2 && shift <= slotPitch,
-    "covers should come up from about a slot to the right, and never past one",
+    Math.abs(shift) > slotPitch / 2 && Math.abs(shift) <= slotPitch,
+    "covers should come up from about a slot to the left, and never past one",
   );
 });
 
@@ -558,22 +564,22 @@ test("the entrance is a staggered deal rather than a spring", () => {
     maxDelay > stagger,
     "the sweep needs room for several covers before it caps",
   );
-  // Right to left: the covers on the right lead in together, then the sweep
-  // steps leftward a slot at a time.
+  // Left to right: the covers on the left lead in together, then the sweep
+  // steps rightward a slot at a time.
   assert.match(
     app,
-    /return Math\.min\(\s*Math\.max\(CARD_ENTRANCE_LEAD_SLOTS - distance, 0\) \* CARD_ENTRANCE_STAGGER_S,\s*CARD_ENTRANCE_MAX_DELAY_S,\s*\);/s,
+    /return Math\.min\(\s*Math\.max\(CARD_ENTRANCE_LEAD_SLOTS \+ distance, 0\) \* CARD_ENTRANCE_STAGGER_S,\s*CARD_ENTRANCE_MAX_DELAY_S,\s*\);/s,
   );
 
   // The sweep is counted from the focused cover, so it travels with the focus
-  // wherever the rail opens. What that costs is a longer left wing, and the cap
+  // wherever the rail opens. What that costs is a longer right wing, and the cap
   // has to bite before the cover at the far end of it or the deal outlasts the
   // hand-off to the selection spring.
   const lead = Number(app.match(/const CARD_ENTRANCE_LEAD_SLOTS = ([\d.]+);/)[1]);
   const focusSlot = Number(image.match(/export const DEFAULT_FOCUS_SLOT = ([\d.]+);/)[1]);
   assert.ok(
     (lead + focusSlot) * stagger > maxDelay,
-    "the cap has to bite before the cover furthest left of the opening focus",
+    "the cap has to bite before the cover furthest right of the opening focus",
   );
 
   // Easing, not a spring: an overshoot at the end of the entrance is what makes
@@ -653,10 +659,10 @@ test("swapping views hands over instead of cutting", () => {
   assert.match(app, /delay: reduceMotion \? 0 : gridTileDelay\(index\)/);
   assert.match(
     app,
-    /initial=\{\s*reduceMotion \? false : \{ opacity: 0, y: GRID_TILE_RISE_PX \}\s*\}/s,
+    /initial=\{\s*reduceMotion\s*\?\s*false\s*:\s*\{\s*opacity: 0,\s*x: -GRID_TILE_RISE_PX\s*\}\s*\}/s,
   );
   const tileRise = Number(app.match(/const GRID_TILE_RISE_PX = (\d+);/)[1]);
-  assert.ok(tileRise <= 16, "grid covers should rise a step, not fly up the column");
+  assert.ok(tileRise <= 16, "grid covers should slide a step, not fly across the column");
 });
 
 // A filter of any kind keeps every cover on its own raster layer, which the rail

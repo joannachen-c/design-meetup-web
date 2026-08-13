@@ -142,8 +142,8 @@ function cardTransform({
   distance: number;
   selected: boolean;
   hovered: boolean;
-  // Entrance pose: the cover sits a slot to the right of its own, a touch
-  // smaller and turned further, so it deals out from under its right-hand
+  // Entrance pose: the cover sits a slot to the left of its own, a touch
+  // smaller and turned further, so it deals out from under its left-hand
   // neighbour instead of appearing in place.
   entering?: boolean;
 }) {
@@ -181,16 +181,16 @@ function cardTransform({
   return `perspective(2800px) translateX(${part}%) translateZ(${depth}px) scaleX(${squeeze}) skewY(${shear}deg) scale(${scale}) translate(0px, ${lift}px)`;
 }
 
-// The shelf deals itself out right to left: every cover starts a slot right of
-// its own and slides into place from under its right-hand neighbour, the way a
+// The shelf deals itself out left to right: every cover starts a slot left of
+// its own and slides into place from under its left-hand neighbour, the way a
 // record is drawn out of a crate.
 //
 // Matches the -0.59 slot overlap in globals.css: the shelf steps 41% of a cover
-// per slot, so a cover that starts about that far right of its slot is sitting
+// per slot, so a cover that starts about that far left of its slot is sitting
 // where its neighbour rests. Staying a touch under the step keeps the covers
 // from crossing each other on the way in.
 const CARD_SLOT_PITCH_PCT = 41;
-const CARD_ENTRANCE_SHIFT_PCT = 34;
+const CARD_ENTRANCE_SHIFT_PCT = -34;
 // Turned further than the shelf rests, so each cover squares up onto the shelf
 // as it lands instead of sliding along it flat.
 const CARD_ENTRANCE_SHEAR_DEG = 9;
@@ -204,10 +204,10 @@ const CARD_ENTRANCE_BLUR_PX = 6;
 const CARD_ENTRANCE_STAGGER_S = 0.05;
 // Ordering only, and counted from the focused cover rather than from the start
 // of the archive, so the sweep travels with the focus wherever the rail opens.
-// Covers right of this lead in together, then the sweep steps leftward one slot
+// Covers left of this lead in together, then the sweep steps rightward one slot
 // at a time.
 const CARD_ENTRANCE_LEAD_SLOTS = 5;
-// Caps the sweep so covers deep off the left edge, which nobody sees arrive,
+// Caps the sweep so covers deep off the right edge, which nobody sees arrive,
 // can't stretch the entrance past the loader's hand-off.
 const CARD_ENTRANCE_MAX_DELAY_S = 0.42;
 const CARD_ENTRANCE_DURATION_S = 0.72;
@@ -220,10 +220,10 @@ const CARD_ENTRANCE_TOTAL_MS = Math.ceil(
   (CARD_ENTRANCE_MAX_DELAY_S + CARD_ENTRANCE_DURATION_S) * 1000,
 );
 
-// Right to left: the covers on the right lead, then each slot follows.
+// Left to right: the covers on the left lead, then each slot follows.
 function cardEntranceDelay(distance: number) {
   return Math.min(
-    Math.max(CARD_ENTRANCE_LEAD_SLOTS - distance, 0) * CARD_ENTRANCE_STAGGER_S,
+    Math.max(CARD_ENTRANCE_LEAD_SLOTS + distance, 0) * CARD_ENTRANCE_STAGGER_S,
     CARD_ENTRANCE_MAX_DELAY_S,
   );
 }
@@ -326,6 +326,12 @@ function photoRailEndAlignLeft(rail: HTMLUListElement, item: HTMLElement) {
   return photoRailAlignLeft(rail, item, "end");
 }
 
+function photoRailSnapAlign(): "start" | "end" {
+  // Desktop pins a photo's right edge to the gallery column. A phone starts
+  // from the left so a landscape cannot swallow the whole snapport.
+  return window.matchMedia("(max-width: 820px)").matches ? "start" : "end";
+}
+
 function photoRailSnappedItem(
   rail: HTMLUListElement,
   align: "start" | "end" = "end",
@@ -371,8 +377,7 @@ function photoRailSeedScrollLeft(
   align: "start" | "end" = "end",
   // true: fill the viewport forward from the first photo (first is leftmost).
   // false: end-align the first photo so it is the rightmost visible frame —
-  // matching scroll-snap-align: end and putting "the first image I loaded"
-  // on the right.
+  // matching scroll-snap-align: end on desktop.
   fillFromStart = false,
 ) {
   const items = photoRailItems(rail);
@@ -813,8 +818,9 @@ export default function HomePage({
       ),
     [selectedPhotoSources],
   );
-  // The 1x render doubles as the identity for a photo's load state and as the
-  // lightbox's stand-in, so the rail keys off it whichever candidate paints.
+  // The 1x render doubles as the identity for a photo's load state. The
+  // lightbox stand-in uses the full src/srcSet pair so a retina cache hit
+  // paints instead of fetching the 1x candidate the rail never decoded.
   const selectedPhotos = useMemo(
     () => selectedPhotoRenders.map((photo) => photo.src),
     [selectedPhotoRenders],
@@ -866,7 +872,7 @@ export default function HomePage({
   const updatePhotoRailBounds = useCallback(
     (rail: HTMLUListElement, wrap = false) => {
       const count = selectedPhotoRenders.length;
-      const align = view === "grid" ? "start" : "end";
+      const align = photoRailSnapAlign();
       const items = rail.querySelectorAll(":scope > li");
       if (count === 0 || items.length < count) {
         photoRailLoopsRef.current = false;
@@ -935,7 +941,7 @@ export default function HomePage({
         overflows && rail.scrollLeft < rail.scrollWidth - rail.clientWidth - 1,
       );
     },
-    [selectedPhotoRenders.length, view, selectedEvent?.id],
+    [selectedPhotoRenders.length, selectedEvent?.id],
   );
 
   const updatePhotoRailBoundsFromRef = useCallback(() => {
@@ -1074,7 +1080,7 @@ export default function HomePage({
       const rail = detailPhotoRailRef.current;
       if (!rail || photoRailAnimatingRef.current) return;
 
-      const align = view === "grid" ? "start" : "end";
+      const align = photoRailSnapAlign();
       const items = photoRailItems(rail);
       const current = photoRailSnappedItem(rail, align);
       if (!current) return;
@@ -1100,7 +1106,7 @@ export default function HomePage({
         updatePhotoRailBounds(rail, true);
       }
     },
-    [reduceMotion, updatePhotoRailBounds, view],
+    [reduceMotion, updatePhotoRailBounds],
   );
 
   const openLightbox = useCallback((photoIndex: number) => {
@@ -1383,8 +1389,8 @@ export default function HomePage({
     view,
   ]);
 
-  // The covers hold a slot right of their own until the loader lifts, then deal
-  // in right to left. Once that has played, selection hands over to the spring
+  // The covers hold a slot left of their own until the loader lifts, then deal
+  // in left to right. Once that has played, selection hands over to the spring
   // that carries every later move.
   useEffect(() => {
     if (!isGalleryReady || hasGalleryEntered) return;
@@ -1655,14 +1661,13 @@ export default function HomePage({
                             // One order across the whole rail: every cover sits
                             // on the one to its right, so both wings lean the
                             // same way as the shear instead of mirroring at the
-                            // centre. The focused cover keeps the top of the
-                            // stack so its shadow stays clear. A hovered cover
-                            // holds its place in that order, so it slides out
-                            // from under its left-hand neighbour the way a
-                            // record leaves a crate.
-                            zIndex: selected
-                              ? events.length + 1
-                              : events.length - index,
+                            // centre. Selection must not raise a cover: boosting
+                            // the centred card used to pop it over its left-hand
+                            // neighbour the moment the rail scrolled onto it.
+                            // A hovered cover holds its place in that order, so
+                            // it slides out from under its left-hand neighbour
+                            // the way a record leaves a crate.
+                            zIndex: events.length - index,
                           }}
                         >
                           <motion.button
@@ -1845,14 +1850,16 @@ export default function HomePage({
               >
                 <ul className="event-grid m-0 p-0" aria-label="Choose a past event">
                   {events.map((item, index) => (
-                    // The pack fills in reading order, so the wave runs the way
-                    // the eye already travels across it.
+                    // The pack fills in reading order and slides in from the
+                    // left, so the wave runs the way the eye already travels.
                     <motion.li
                       key={item.id}
                       initial={
-                        reduceMotion ? false : { opacity: 0, y: GRID_TILE_RISE_PX }
+                        reduceMotion
+                          ? false
+                          : { opacity: 0, x: -GRID_TILE_RISE_PX }
                       }
-                      animate={{ opacity: 1, y: 0 }}
+                      animate={{ opacity: 1, x: 0 }}
                       transition={{
                         duration: reduceMotion ? 0 : GRID_TILE_DURATION_S,
                         ease: CARD_ENTRANCE_EASE,
@@ -1871,10 +1878,10 @@ export default function HomePage({
                       >
                         <img
                           className="block size-full select-none border-0 object-cover outline-none"
-                          // The pack's columns cap out near 150px, plus the
+                          // The pack's four columns land near 200px, plus the
                           // scale the selected tile takes.
                           {...sizedImage(item.image_url, {
-                            width: 160,
+                            width: 240,
                             quality: 72,
                           })}
                           alt=""
@@ -1980,7 +1987,11 @@ export default function HomePage({
                             <span className="sr-only">Sponsor: </span>
                             {sponsor.logo_url ? (
                               <img
-                                className="sponsor-logo overflow-hidden rounded-sm border-0 outline-none"
+                                className={`sponsor-logo overflow-hidden border-0 outline-none ${
+                                  sponsor.slug === "entrepreneurs-first"
+                                    ? "rounded-full"
+                                    : "rounded-sm"
+                                }`}
                                 src={sponsor.logo_url}
                                 alt=""
                                 loading="lazy"
@@ -2046,7 +2057,7 @@ export default function HomePage({
                       >
                         <button
                           type="button"
-                          className="detail-photo-frame relative flex overflow-hidden rounded-lg border-0 bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                          className="detail-photo-frame relative flex overflow-hidden rounded-lg border-0 bg-transparent p-0 touch-pan-x focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                           data-loaded={loadedPhotos[photo.src] ? "true" : "false"}
                           style={
                             photoAspects[photo.src]
@@ -2064,7 +2075,7 @@ export default function HomePage({
                           }
                         >
                           <img
-                            className="detail-photo h-[clamp(230px,58vw,300px)] w-auto max-w-none rounded-lg border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(240px,20vw,310px)]"
+                            className="detail-photo h-[clamp(150px,46vw,200px)] w-auto max-w-none rounded-lg border-0 bg-surface-muted object-contain min-[821px]:h-[clamp(240px,20vw,310px)]"
                             src={photo.src}
                             srcSet={photo.srcSet}
                             alt={`${selectedEvent.title} event photo ${photoIndex + 1} of ${selectedPhotoRenders.length}`}
@@ -2136,7 +2147,7 @@ export default function HomePage({
                   ) : null}
                   <GalleryLightbox
                     photos={lightboxPhotos}
-                    previews={selectedPhotos}
+                    previews={selectedPhotoRenders}
                     index={lightboxIndex}
                     label={`${selectedEvent.title} gallery`}
                     title={selectedEvent.title}

@@ -33,7 +33,7 @@ test("apply section sits between the founders note and the footer", () => {
 test("apply section points to Instagram and Substack for updates", () => {
   assert.match(
     app,
-    /We'll be opening up applications for the next Design Meetup member cohort soon\. If you're a student or early-career designer, we'd love to have you\./,
+    /We'll be opening up applications for the next Design Meetup member cohort soon\. If you're a student or early career designer, we'd love to meet you\./,
   );
   assert.match(
     app,
@@ -41,7 +41,7 @@ test("apply section points to Instagram and Substack for updates", () => {
   );
   assert.match(
     app,
-    /Drop your email and we'll let you know when applications open\./,
+    /Drop your email, and we'll let you know when applications open\./,
   );
   assert.match(app, /import \{ ApplyNotifyForm \} from "\.\/ApplyNotifyForm"/);
   assert.match(app, /<ApplyNotifyForm \/>/);
@@ -95,7 +95,8 @@ test("apply waitlist form posts emails to a private supabase table", () => {
   assert.match(form, /fetch\("\/api\/apply"/);
   assert.match(form, /placeholder="you@email.com"/);
   assert.match(form, /Notify me/);
-  assert.match(form, /We’ll email you when applications open\./);
+  assert.match(form, /Thanks! We’ll email you when applications open\./);
+  assert.match(form, /min-h-11/);
   assert.match(form, /name="company"/);
   assert.match(form, /className="hidden"/);
   assert.match(applyRoute, /from\("application_emails"\)\.insert/);

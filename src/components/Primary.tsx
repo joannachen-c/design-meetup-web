@@ -16,9 +16,19 @@ type PrimaryProps = {
   rel?: string;
   target?: string;
   type?: "button" | "submit" | "reset";
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "ink";
   "aria-pressed"?: boolean;
 };
+
+const variantClassName = {
+  primary:
+    "bg-accent-primary text-ink hover:bg-accent-hover disabled:hover:bg-accent-primary aria-disabled:hover:bg-accent-primary",
+  secondary:
+    "bg-surface-muted text-ink hover:bg-gray-200 disabled:hover:bg-surface-muted aria-disabled:hover:bg-surface-muted",
+  ghost:
+    "bg-transparent text-gray-500 hover:bg-surface-muted active:bg-gray-200 disabled:hover:bg-transparent disabled:active:bg-transparent aria-disabled:hover:bg-transparent aria-disabled:active:bg-transparent",
+  ink: "bg-ink text-white hover:bg-gray-800 disabled:hover:bg-ink aria-disabled:hover:bg-ink",
+} as const;
 
 export function Primary({
   children,
@@ -43,11 +53,7 @@ export function Primary({
     "transition-[background-color,transform,opacity] duration-150 ease-out active:scale-[0.97]",
     "focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ink",
     "disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:active:scale-100",
-    variant === "ghost"
-      ? "bg-transparent text-gray-500 hover:bg-surface-muted active:bg-gray-200 disabled:hover:bg-transparent disabled:active:bg-transparent aria-disabled:hover:bg-transparent aria-disabled:active:bg-transparent"
-      : variant === "primary"
-        ? "bg-accent-primary text-ink hover:bg-accent-hover disabled:hover:bg-accent-primary aria-disabled:hover:bg-accent-primary"
-        : "bg-gray-200 text-ink hover:bg-gray-300 disabled:hover:bg-gray-200 aria-disabled:hover:bg-gray-200",
+    variantClassName[variant],
     variant === "secondary" && hasLeadingIcon ? "pl-[14px]" : "",
     variant === "secondary" && hasTrailingIcon ? "pr-[14px]" : "",
     fullWidth ? "w-full" : "",

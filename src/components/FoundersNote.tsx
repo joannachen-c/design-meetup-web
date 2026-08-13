@@ -188,8 +188,9 @@ export function FoundersNote() {
         <blockquote className="m-0 max-w-[44ch]">
           <p className="m-0 text-pretty text-base leading-[1.7] text-body">
             We created Design Meetup to build the design community our younger
-            selves wish existed:{"\u00A0"}curated, ambitious, and focused on
-            growth.
+            selves wish existed:{"\u00A0"}
+            <br className="hidden min-[821px]:block" />
+            curated, ambitious, and focused on growth.
           </p>
           <p className="m-0 mt-4 text-pretty text-base leading-[1.7] text-body">
             We’d love to grow it alongside partners who believe in the future of

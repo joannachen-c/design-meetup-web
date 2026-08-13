@@ -9,6 +9,7 @@ import {
 } from "./icons/SocialIcons";
 import { NewsletterForm } from "./NewsletterForm";
 import { ScrollReveal } from "./ScrollReveal";
+import { Tooltip, TooltipProvider } from "./Tooltip";
 
 const footerLinkClassName =
   "rounded-sm text-muted no-underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
@@ -16,6 +17,49 @@ const footerCreditLinkClassName = `${footerLinkClassName} text-medium`;
 const footerSocialLinkClassName = `${footerLinkClassName} group inline-flex rounded-sm focus-visible:outline-offset-4`;
 const footerSocialIconClassName =
   "transition-colors duration-150 ease-out motion-reduce:transition-none";
+
+const footerSocialLinks = [
+  {
+    label: "Substack",
+    href: "https://designmeetup.substack.com/",
+    icon: (
+      <SubstackIcon
+        className={`${footerSocialIconClassName} size-[18px] group-hover:text-[#FF6719] group-focus-visible:text-[#FF6719]`}
+      />
+    ),
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/designmeetup/",
+    icon: (
+      <span className="relative size-5">
+        <InstagramIcon className="size-5 transition-opacity duration-150 ease-out group-hover:opacity-0 group-focus-visible:opacity-0 motion-reduce:transition-none" />
+        <InstagramIcon
+          branded
+          className="absolute inset-0 size-5 opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+        />
+      </span>
+    ),
+  },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/company/design-meetup/",
+    icon: (
+      <LinkedInIcon
+        className={`${footerSocialIconClassName} size-5 group-hover:text-[#0A66C2] group-focus-visible:text-[#0A66C2]`}
+      />
+    ),
+  },
+  {
+    label: "X",
+    href: "https://x.com/designmeetuphq",
+    icon: (
+      <XIcon
+        className={`${footerSocialIconClassName} size-[18px] group-hover:text-ink group-focus-visible:text-ink`}
+      />
+    ),
+  },
+] as const;
 
 type SiteFooterProps = {
   logoHref?: string;
@@ -71,56 +115,23 @@ export function SiteFooter({
             contactdesignmeetup@gmail.com
             <ArrowUpRightIcon className="size-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none" />
           </a>
-          <div className="footer-contact-row flex items-center gap-6">
-            <a
-              aria-label="Substack"
-              className={footerSocialLinkClassName}
-              href="https://designmeetup.substack.com/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <SubstackIcon
-                className={`${footerSocialIconClassName} size-[18px] group-hover:text-[#FF6719] group-focus-visible:text-[#FF6719]`}
-              />
-            </a>
-            <a
-              aria-label="Instagram"
-              className={footerSocialLinkClassName}
-              href="https://www.instagram.com/designmeetup/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <span className="relative size-5">
-                <InstagramIcon className="size-5 transition-opacity duration-150 ease-out group-hover:opacity-0 group-focus-visible:opacity-0 motion-reduce:transition-none" />
-                <InstagramIcon
-                  branded
-                  className="absolute inset-0 size-5 opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
-                />
-              </span>
-            </a>
-            <a
-              aria-label="LinkedIn"
-              className={footerSocialLinkClassName}
-              href="https://www.linkedin.com/company/design-meetup/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <LinkedInIcon
-                className={`${footerSocialIconClassName} size-5 group-hover:text-[#0A66C2] group-focus-visible:text-[#0A66C2]`}
-              />
-            </a>
-            <a
-              aria-label="X"
-              className={footerSocialLinkClassName}
-              href="https://x.com/designmeetuphq"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <XIcon
-                className={`${footerSocialIconClassName} size-[18px] group-hover:text-ink group-focus-visible:text-ink`}
-              />
-            </a>
-          </div>
+          <TooltipProvider>
+            <div className="footer-contact-row flex items-center gap-6">
+              {footerSocialLinks.map(({ label, href, icon }) => (
+                <Tooltip key={label} content={label}>
+                  <a
+                    aria-label={label}
+                    className={footerSocialLinkClassName}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {icon}
+                  </a>
+                </Tooltip>
+              ))}
+            </div>
+          </TooltipProvider>
         </nav>
       </ScrollReveal>
       <ScrollReveal className="footer-newsletter" delay={120}>

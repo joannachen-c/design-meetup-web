@@ -39,6 +39,12 @@ test("page uses the cream surface background without an outer frame", () => {
 test("the loader curtain uses the same surface as the page", () => {
   assert.match(loader, /className="page-loader[^"]*\bbg-surface\b/);
   assert.doesNotMatch(loader, /\bbg-white\b/);
+  // SVG stays sharp on retina phones; the 200px PNG went soft at the mobile size.
+  assert.match(loader, /src="\/design-meetup-logo\.svg"/);
+  assert.match(
+    css,
+    /mask:\s*url\("\/design-meetup-logo\.svg"\) center \/ contain no-repeat/,
+  );
   assert.match(layout, /<html[^>]*\bclassName="[^"]*\bbg-surface\b/);
   assert.match(layout, /<body[^>]*\bclassName="[^"]*\bbg-surface\b/);
   assert.doesNotMatch(
@@ -193,10 +199,20 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
   assert.match(app, /if \(event\.detail > 0\) \{\s*event\.currentTarget\.blur\(\);/);
 
   // Phones and coarse pointers keep the swipe; the overlay is a desktop hover.
+  // The edge band captures the pointer so covers under the wash cannot lift
+  // while the reader aims for a chevron.
   assert.match(css, /\.gallery-edge\s*\{[^}]*display:\s*none;/s);
   assert.match(
     css,
-    /@media \(min-width:\s*821px\)\s*\{[\s\S]*?@media \(hover: hover\) and \(pointer: fine\)\s*\{[\s\S]*?\.gallery-edge\s*\{[^}]*pointer-events:\s*none;/s,
+    /@media \(min-width:\s*821px\)\s*\{[\s\S]*?@media \(hover: hover\) and \(pointer: fine\)\s*\{[\s\S]*?\.gallery-edge\s*\{[^}]*pointer-events:\s*auto;/s,
+  );
+  assert.match(
+    app,
+    /className="gallery-edge gallery-edge-start"[\s\S]*?onPointerEnter=\{\(event\) =>\s*hoverCard\(null, event\.pointerType\)/,
+  );
+  assert.match(
+    app,
+    /className="gallery-edge gallery-edge-end"[\s\S]*?onPointerEnter=\{\(event\) =>\s*hoverCard\(null, event\.pointerType\)/,
   );
   assert.match(
     css,
@@ -376,7 +392,12 @@ test("hovering a cover eases it out from under the cover to its left", () => {
     app,
     /event-card[\s\S]{0,800}onPointerLeave=\{\(event\) =>\s*hoverCard\(null/s,
   );
-  assert.doesNotMatch(app, /onPointerEnter=\{\(event\) =>\s*hoverCard/);
+  // Covers still use over/rail-leave only. The edge band may clear hover on
+  // enter so a cover under the wash settles while the reader aims for a chevron.
+  assert.doesNotMatch(
+    app,
+    /event-card[\s\S]{0,800}onPointerEnter=\{\(event\) =>\s*hoverCard/,
+  );
   // Grid covers grow in place on hover rather than sliding sideways.
   assert.match(
     css,
@@ -796,7 +817,10 @@ test("carousel hover tracks the cover under the pointer, not a sticky enter", ()
     app,
     /className="gallery[^"]*"[\s\S]*?onPointerLeave=\{\(event\) =>\s*hoverCard\(null, event\.pointerType\)/s,
   );
-  assert.doesNotMatch(app, /onPointerEnter=\{\(event\) =>\s*hoverCard/);
+  assert.doesNotMatch(
+    app,
+    /event-card[\s\S]{0,800}onPointerEnter=\{\(event\) =>\s*hoverCard/,
+  );
   assert.match(
     app,
     /const hoverCard = useCallback\(\(index: number \| null, pointerType: string\) => \{\s*if \(pointerType !== "mouse"\) return;\s*if \(\s*index !== null &&\s*\(railScrolling\.current \|\| isProgrammaticScroll\.current\)\s*\) \{\s*return;\s*\}\s*setHoveredIndex\(index\);/s,

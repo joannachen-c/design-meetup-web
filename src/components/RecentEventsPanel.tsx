@@ -7,14 +7,14 @@ const LUMA_PAST_CALENDAR_URL = "https://luma.com/designmeetup?period=past";
 export function RecentEventsPanel({ events }: { events: LumaEvent[] }) {
   return (
     <div className="recent-events flex h-full flex-col gap-6 rounded-[20px] bg-surface-muted p-[clamp(20px,2.4vw,32px)]">
-      <h3 className="m-0 pl-3 pt-2.5 text-2xl font-bold tracking-[-0.06em] text-black">
+      <h3 className="m-0 pl-3 pt-2 text-2xl font-bold tracking-[-0.06em] text-black">
         Past events
       </h3>
       <ul className="m-0 grid list-none gap-1 p-0">
         {events.map((event) => (
           <li key={event.id}>
             <a
-              className="recent-event-row group grid items-center gap-[clamp(14px,2vw,24px)] rounded-[10px] px-3 py-3.5 no-underline transition-colors duration-150 hover:bg-gray-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              className="recent-event-row group grid items-center gap-[clamp(18px,2.4vw,28px)] rounded-[10px] px-3 py-3.5 no-underline transition-colors duration-150 hover:bg-gray-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
               href={event.url}
               target="_blank"
               rel="noreferrer"
@@ -48,7 +48,7 @@ export function RecentEventsPanel({ events }: { events: LumaEvent[] }) {
         ))}
       </ul>
       <Link
-        className="mt-auto inline-flex items-center gap-1.5 px-3 py-2.5"
+        className="mt-auto inline-flex items-center gap-1.5 px-3 pt-2.5 pb-2"
         href={LUMA_PAST_CALENDAR_URL}
         target="_blank"
         rel="noreferrer"

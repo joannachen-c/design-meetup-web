@@ -333,7 +333,12 @@ test("the photo arrows only appear once the rail can actually scroll", () => {
   );
   assert.match(
     app,
-    /\{isPhotoRailScrollable \? \(\s*<div className="detail-photo-arrows mb-\[clamp\(12px,1.5vw,20px\)\] flex items-center justify-end">\s*<div\s*\n?\s*className="flex gap-2"/,
+    /\{isPhotoRailScrollable \? \(\s*<div className="detail-photo-arrows mt-\[clamp\(12px,1\.5vw,22px\)\] flex items-center justify-end">\s*<div\s*\n?\s*className="flex gap-2"/,
+  );
+  // Chevrons sit under the rail so they don't steal height from the photos.
+  assert.match(
+    app,
+    /<\/BlossomCarousel>\s*<\/div>\s*\{isPhotoRailScrollable \? \(/,
   );
   assert.match(app, /function ArrowIcon[\s\S]*?strokeWidth="2"/);
   // Negative margin, not padding: the 32px ghost circle insets a 20px
@@ -379,8 +384,17 @@ test("photo-rail chevrons are optically centered in the ghost hit target", () =>
   );
   assert.match(
     lightbox,
-    /function ChevronIcon[\s\S]*?direction === "left" \? "-translate-x-px" : "translate-x-px"/,
+    /function ChevronIcon[\s\S]*?direction === "left" \? "size-5 -translate-x-px" : "size-5 translate-x-px"/,
   );
+  // Same 20px glyph / 32px hit target as the photo-rail controls — without
+  // size-5 the SVG filled the default 36px button and dwarfed the page chevrons.
+  assert.match(lightbox, /lightbox-arrow-prev size-8/);
+  assert.match(lightbox, /lightbox-arrow-next size-8/);
+  assert.match(
+    lightbox,
+    /className="absolute top-\[clamp\(16px,3vw,32px\)\] right-\[clamp\(16px,3vw,32px\)\] size-8"\s*\n\s*aria-label="Close gallery"/,
+  );
+  assert.match(lightbox, /function CloseIcon[\s\S]*?className="size-5"/);
 });
 
 test("event photo controls scroll right forever and loop in the middle copy", () => {
@@ -561,6 +575,18 @@ test("the lightbox is a light modal overlay driven by ghost icon buttons", () =>
   assert.match(lightbox, /role="dialog"\s*\n\s*aria-modal="true"/);
   assert.match(lightbox, /bg-white\/88 backdrop-blur-md/);
   assert.match(lightbox, /max-h-\[78vh\] max-w-\[88vw\]/);
+  // Shadow sits on a wrapper outside the clipped photo so overflow + radius
+  // cannot paint the event-cover inset edge.
+  assert.match(
+    lightbox,
+    /inline-flex rounded-xl shadow-\[0_24px_64px_rgba\(0,0,0,0\.22\)\][\s\S]*?lightbox-frame[^"]*rounded-xl/,
+  );
+  assert.doesNotMatch(lightbox, /lightbox-frame[^"]*media-inset/);
+  assert.doesNotMatch(
+    lightbox,
+    /lightbox-frame[^"]*overflow-hidden/,
+  );
+  assert.match(css, /\.lightbox-frame\s*\{[^}]*clip-path:\s*inset\(0 round 12px\);/s);
 
   for (const label of ["Close gallery", "Previous photo", "Next photo"]) {
     assert.match(
@@ -575,10 +601,10 @@ test("the lightbox is a light modal overlay driven by ghost icon buttons", () =>
   // keeps them under the caption so a wide image cannot cover them.
   assert.match(
     lightbox,
-    /className="absolute top-\[clamp\(16px,3vw,32px\)\] right-\[clamp\(16px,3vw,32px\)\]"\s*\n\s*aria-label="Close gallery"/,
+    /className="absolute top-\[clamp\(16px,3vw,32px\)\] right-\[clamp\(16px,3vw,32px\)\] size-8"\s*\n\s*aria-label="Close gallery"/,
   );
-  assert.match(lightbox, /className="lightbox-arrow lightbox-arrow-prev"/);
-  assert.match(lightbox, /className="lightbox-arrow lightbox-arrow-next"/);
+  assert.match(lightbox, /className="lightbox-arrow lightbox-arrow-prev size-8"/);
+  assert.match(lightbox, /className="lightbox-arrow lightbox-arrow-next size-8"/);
   assert.match(
     css,
     /\.lightbox-arrow-prev\s*\{[^}]*left:\s*clamp\(12px,\s*3vw,\s*32px\);/s,
@@ -633,7 +659,15 @@ test("the lightbox never shows empty space while a photo loads", () => {
     css,
     /\.lightbox-frame\[data-placeholder="true"\] \.detail-photo-shimmer\s*\{[^}]*opacity:\s*1;/s,
   );
-  assert.match(lightbox, /!node\?\.complete \|\| node\.naturalWidth <= 0/);
+  assert.match(lightbox, /!url \|\| !node\?\.complete \|\| node\.naturalWidth <= 0/);
+  assert.match(lightbox, /const baseImgRef = useRef<HTMLImageElement \| null>\(null\)/);
+  assert.match(lightbox, /const fullImgRef = useRef<HTMLImageElement \| null>\(null\)/);
+  assert.match(lightbox, /ref=\{baseImgRef\}/);
+  assert.match(lightbox, /ref=\{fullImgRef\}/);
+  assert.doesNotMatch(
+    lightbox,
+    /ref=\{\(node\) =>\s*basePhoto \? markLoadedIfComplete/,
+  );
   assert.match(lightbox, /function readPhotoSize\(/);
   assert.match(lightbox, /image\.naturalWidth > 0 && image\.naturalHeight > 0/);
   assert.match(lightbox, /image\.getAttribute\("width"\)/);
@@ -876,19 +910,18 @@ test("the event name is the large black heading in the left column", () => {
 });
 
 test("event metadata sits under the title in the left column", () => {
-  // The facts belong to the title block, so they read as a caption for it
-  // rather than as a header for the summary in the right column.
+  // The facts belong to the title block; CSS reorders date above the heading.
   assert.match(
     app,
     /<div className="detail-title">[\s\S]*?<\/h2>\s*<div className="detail-facts[^"]*"/,
   );
   assert.match(
     css,
-    /\.detail-facts\s*\{[^}]*gap:\s*clamp\(12px,\s*1\.4vw,\s*18px\);/s,
+    /\.detail-title\s*\{[^}]*flex-direction:\s*column;[^}]*gap:\s*clamp\(12px,\s*1\.2vw,\s*16px\);/s,
   );
-  // Padding rather than margin, so the gap cannot collapse into the heading,
-  // and as a utility because spacing belongs in Tailwind here.
-  assert.match(app, /detail-facts pt-\[clamp\(12px,1\.4vw,18px\)\]/);
+  // Gap on the title owns the stack spacing; facts are display:contents.
+  assert.match(app, /<div className="detail-facts">/);
+  assert.doesNotMatch(app, /detail-facts[^"]*\bpt-\[/);
   assert.doesNotMatch(app, /detail-facts[^"]*\bmt-\[/);
   assert.match(
     app,
@@ -1061,14 +1094,15 @@ test("long event summaries collapse with an accessible expansion control", () =>
     app,
     /<Link[\s\S]*aria-expanded=\{isExpanded\}[\s\S]*aria-controls=\{contentId\}[\s\S]*onClick=\{toggleExpanded\}[\s\S]*>\s*\{isExpanded \? "See less" : "See more"\}\s*<\/Link>/,
   );
-  // The rail's box has to end on the photos, and the label's line box has to
-  // end on the glyphs, or the stretch that matches the two columns hangs
-  // "See more" under the images.
+  // The rail's box ends on the size-8 chevron hit targets; the label's line
+  // box has to end on the glyphs, or stretch hangs "See more" on the chrome
+  // instead of the SVG path bottoms. Keep the nudge light so the label
+  // doesn't float above the arrow row.
   assert.doesNotMatch(
     app,
     /detail-photo-list[^"]*\bpb-2\.5\b/,
   );
-  assert.match(app, /className="mt-6 shrink-0 leading-none -translate-y-px"/);
+  assert.match(app, /className="mt-6 shrink-0 leading-none -translate-y-1\.5"/);
   // Inline frames leave a descender gap under the photos; that extra height
   // is what the summary column stretches to, so See more hangs a tad low.
   assert.match(
@@ -1103,6 +1137,11 @@ test("the collapsed summary does not inflate the title and gallery rows", () => 
   assert.match(
     css,
     /\.events-layout:not\(\[data-view="grid"\]\)[\s\S]*\.detail-summary-clamp:not\(\[data-expanded\]\)\s*\{[^}]*max-height:\s*none;/s,
+  );
+  // Desktop carousel only: a tad of air above the summary copy.
+  assert.match(
+    css,
+    /@media \(min-width:\s*821px\)[\s\S]*\.events-layout:not\(\[data-view="grid"\]\) \.detail-summary\s*\{[^}]*margin-top:\s*0\.375rem;/s,
   );
 });
 
@@ -1140,9 +1179,8 @@ test("event metadata reads as two rows: facts, then sponsor pills", () => {
   )?.[0];
   assert.ok(facts, "expected a detail-facts block");
 
-  // Row one is plain text, not pills. Location leads, then date — same
-  // colours as the list rows, separated by a gap rather than a dot. Classes
-  // let grid view reorder them into date / title / city.
+  // Row one is plain text, not pills. Classes let CSS reorder them into
+  // date / title / city across carousel, grid, and phone.
   assert.match(
     facts,
     /<p className="detail-fact-line m-0 flex flex-wrap items-baseline gap-x-4 text-base leading-6">\s*\{selectedEvent\.location \? \(\s*<span className="detail-place text-muted">\s*<span className="sr-only">Location: /,
@@ -1170,8 +1208,9 @@ test("event metadata reads as two rows: facts, then sponsor pills", () => {
 
   assert.match(
     css,
-    /\.detail-facts\s*\{[^}]*display:\s*grid;[^}]*justify-items:\s*start;/s,
+    /\.detail-facts,\s*\.detail-fact-line\s*\{\s*display:\s*contents;/s,
   );
+  assert.match(css, /\.detail-chips\s*\{\s*display:\s*flex;/s);
 });
 
 test("View on Luma sits under the cover rather than in the facts", () => {
@@ -1198,33 +1237,50 @@ test("View on Luma sits under the cover rather than in the facts", () => {
 });
 
 test("grid view stacks detail as date, title, then city", () => {
+  // Shared with carousel and phone: the title flex owns the date / title / place
+  // stack so every layout reads the date as an eyebrow.
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\] \.detail-title\s*\{[^}]*flex-direction:\s*column;/s,
+    /\.detail-title\s*\{[^}]*flex-direction:\s*column;/s,
   );
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\] \.detail-facts,\s*\.events-layout\[data-view="grid"\] \.detail-fact-line\s*\{\s*display:\s*contents;/s,
+    /\.detail-facts,\s*\.detail-fact-line\s*\{\s*display:\s*contents;/s,
   );
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\] \.detail-date\s*\{\s*order:\s*1;/s,
+    /\.detail-date\s*\{\s*order:\s*1;/s,
   );
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\] \.detail-title > h2\s*\{\s*order:\s*2;/s,
+    /\.detail-title > h2\s*\{\s*order:\s*2;/s,
   );
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\] \.detail-place\s*\{\s*order:\s*3;/s,
+    /\.detail-place\s*\{\s*order:\s*3;/s,
   );
   assert.match(
     css,
-    /\.events-layout\[data-view="grid"\] \.detail-facts > \*\s*\{\s*order:\s*4;/s,
+    /\.detail-facts > \*\s*\{\s*order:\s*4;/s,
   );
   assert.match(
     css,
     /\.events-layout\[data-view="grid"\] \.detail-chips\s*\{\s*display:\s*none;/s,
+  );
+});
+
+test("carousel view also stacks date above the event name", () => {
+  assert.match(
+    css,
+    /\.detail-date\s*\{\s*order:\s*1;[^}]*margin-bottom:\s*-4px;/s,
+  );
+  assert.match(
+    css,
+    /\.detail-title > h2\s*\{\s*order:\s*2;/s,
+  );
+  assert.match(
+    css,
+    /\.detail-place\s*\{\s*order:\s*3;/s,
   );
 });
 
@@ -1274,21 +1330,21 @@ test("the event name stacks above its metadata on mobile", () => {
 });
 
 // On a phone the date reads as the title's eyebrow rather than a caption under
-// it, the same stack grid view uses: the fact line has to unwrap into the
-// title's own flow before its parts can order around the heading.
+// it, using the same shared stack as carousel and grid.
 test("the date sits above the event name on mobile", () => {
   const phone = css.match(/@media \(max-width: 820px\)\s*\{[\s\S]*$/)[0];
-  assert.match(phone, /\.detail-title\s*\{[^}]*flex-direction:\s*column;/s);
+  assert.match(phone, /\.detail-title\s*\{[^}]*order:\s*1;/s);
+  assert.match(phone, /\.detail-title\s*\{[^}]*gap:\s*10px;/s);
+  assert.match(phone, /\.detail-date\s*\{[^}]*margin-bottom:\s*-3px;/s);
+  // Shared stack rules live outside the phone query.
   assert.match(
-    phone,
+    css,
     /\.detail-facts,\s*\.detail-fact-line\s*\{\s*display:\s*contents;/s,
   );
-  assert.match(phone, /\.detail-date\s*\{\s*order:\s*1;/s);
-  assert.match(phone, /\.detail-title > h2\s*\{\s*order:\s*2;/s);
-  assert.match(phone, /\.detail-place\s*\{\s*order:\s*3;/s);
-  // Sponsor pills and anything else the facts carry stay below the stack rather
-  // than landing ahead of the date.
-  assert.match(phone, /\.detail-facts > \*\s*\{\s*order:\s*4;/s);
+  assert.match(css, /\.detail-date\s*\{\s*order:\s*1;/s);
+  assert.match(css, /\.detail-title > h2\s*\{\s*order:\s*2;/s);
+  assert.match(css, /\.detail-place\s*\{\s*order:\s*3;/s);
+  assert.match(css, /\.detail-facts > \*\s*\{\s*order:\s*4;/s);
 });
 
 test("the sponsor tooltip is retired now that chips spell out the name", () => {

@@ -106,8 +106,8 @@ html.is-loading body {
 
 /* Clips the sheen to the wordmark so the shimmer rides the logo silhouette. */
 .page-loader-sheen {
-  -webkit-mask: url("/design-meetup-logo.png") center / contain no-repeat;
-  mask: url("/design-meetup-logo.png") center / contain no-repeat;
+  -webkit-mask: url("/design-meetup-logo.svg") center / contain no-repeat;
+  mask: url("/design-meetup-logo.svg") center / contain no-repeat;
 }
 
 /* Twice the width of the mark, with a soft plateau so the highlight reads as
@@ -338,7 +338,11 @@ h1 span {
    any cover keeps the wash at hover strength; it lightens when the pointer
    leaves the cards. Opacity lives on the fade and the button, not the edge
    itself: an ancestor with opacity less than 1 would stop backdrop-filter
-   sampling the covers. */
+   sampling the covers.
+
+   The edge captures the pointer so a cover under the wash cannot lift while
+   the reader aims for a chevron. Only the button used to pass events; the
+   rest of the band fell through to the shelf. */
 .gallery-edge {
   display: none;
 }
@@ -353,7 +357,7 @@ h1 span {
       display: flex;
       align-items: stretch;
       width: clamp(88px, 14vw, 240px);
-      pointer-events: none;
+      pointer-events: auto;
     }
 
     .gallery-edge-start {
@@ -917,46 +921,6 @@ h1 span {
   order: 3;
 }
 
-/* Under the cover the date reads as the heading's eyebrow, so grid view stacks
-   date, title, place. Carousel keeps title first with place and date on one
-   line. */
-.events-layout[data-view="grid"] .detail-title {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(8px, 0.9vw, 12px);
-}
-
-/* Unwrapping the facts stack and its first line puts the place and date in the
-   title's flex flow so they can order around the heading; it also drops the
-   padding that spaced the facts under the title. */
-.events-layout[data-view="grid"] .detail-facts,
-.events-layout[data-view="grid"] .detail-fact-line {
-  display: contents;
-}
-
-/* Keeps anything else the facts carry, sponsor pills included, below the stack
-   rather than ahead of the date. */
-.events-layout[data-view="grid"] .detail-facts > * {
-  order: 4;
-}
-
-/* The date sits above the heading's caps, which carry their own leading, while
-   the place sits under a baseline with descenders hanging into the gap below it.
-   An even gap therefore reads as more air over the title than under it, so the
-   eyebrow gives a few pixels back. */
-.events-layout[data-view="grid"] .detail-date {
-  order: 1;
-  margin-bottom: -4px;
-}
-
-.events-layout[data-view="grid"] .detail-title > h2 {
-  order: 2;
-}
-
-.events-layout[data-view="grid"] .detail-place {
-  order: 3;
-}
-
 /* Beside the cover grid the sponsor pills compete with the title stack; keep
    them for carousel where the detail column stands alone. */
 .events-layout[data-view="grid"] .detail-chips {
@@ -1035,6 +999,39 @@ h1 span {
      the empty state, which has no wrapper. */
   grid-column: 1 / span 7;
   grid-row: 1;
+  /* Date as eyebrow, then title, place, sponsors — same stack in carousel,
+     grid, and phone so the hierarchy stays consistent. */
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 1.2vw, 16px);
+}
+
+/* Unwrap the facts so date / place can order around the heading, and chips
+   stay below the stack. */
+.detail-facts,
+.detail-fact-line {
+  display: contents;
+}
+
+.detail-facts > * {
+  order: 4;
+}
+
+/* The date sits above the heading's caps, which carry their own leading, while
+   the place sits under a baseline with descenders hanging into the gap below it.
+   An even gap therefore reads as more air over the title than under it, so the
+   eyebrow gives a few pixels back. */
+.detail-date {
+  order: 1;
+  margin-bottom: -4px;
+}
+
+.detail-title > h2 {
+  order: 2;
+}
+
+.detail-place {
+  order: 3;
 }
 
 .detail-meta {
@@ -1100,6 +1097,11 @@ h1 span {
   .events-layout:not([data-view="grid"])
     .detail-grid:has(.detail-summary-clamp[data-expanded]) {
     align-items: start;
+  }
+
+  /* Nudge the summary copy down so it doesn't hug the top of the column. */
+  .events-layout:not([data-view="grid"]) .detail-summary {
+    margin-top: 0.375rem;
   }
 }
 
@@ -1321,16 +1323,20 @@ h1 span {
   animation: none;
 }
 
-/* The overlay borrows the rail's shimmer, so a photo it has to fetch reads the
-   same way as one the rail is still loading. The stand-in below is usually the
-   render the rail already decoded, so this only shows for photos the reader
-   never scrolled past.
+/* Soft outer lift only — keep the photo free of the inset edge covers use.
+   Clip-path avoids the hairline overflow:hidden + radius paints against the
+   frosted wash, which read as the same inset stroke as event covers.
 
    Size the slot from the photo's own aspect when we have it, so a landscape
    still sits in a landscape box while it decodes. 3/4 is only the fallback
    for a photo whose dimensions are still unknown. Fitting with width rather
    than a forced 78vh height is what keeps a wide photo from becoming a tall
    empty column. */
+.lightbox-frame {
+  overflow: visible;
+  clip-path: inset(0 round 12px);
+}
+
 .lightbox-frame[data-base-loaded="false"] .lightbox-photo,
 .lightbox-frame[data-has-aspect="true"] .lightbox-photo {
   aspect-ratio: var(--lightbox-aspect, 3 / 4);
@@ -1414,14 +1420,6 @@ h1 span {
   display: none;
 }
 
-/* Two stacked rows: plain date and place, then sponsor pills. The Luma link
-   lives under the cover it belongs to. */
-.detail-facts {
-  display: grid;
-  justify-items: start;
-  gap: clamp(12px, 1.4vw, 18px);
-}
-
 .detail-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1455,7 +1453,7 @@ h1 span {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 19px;
+  gap: 28px;
 }
 
 .upcoming-events-embed {
@@ -1478,7 +1476,7 @@ h1 span {
 }
 
 .recent-event-thumb {
-  width: clamp(56px, 5vw, 72px);
+  width: clamp(68px, 6vw, 88px);
   aspect-ratio: 1;
   box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
   transition:
@@ -1599,6 +1597,13 @@ h1 span {
   aspect-ratio: 1;
   overflow: hidden;
   place-items: center;
+  transition: transform 150ms ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .partner-tile:hover {
+    transform: scale(1.02);
+  }
 }
 
 .partner-logo {
@@ -1835,9 +1840,8 @@ footer {
     margin-left: 0;
   }
 
-  /* On a phone the date reads as the title's eyebrow, the same way it does in
-     grid view, so the fact line unwraps into the title's own flow and the stack
-     runs date, title, place. */
+  /* On a phone the title block already stacks date / title / place from the
+     shared rules above; only the page order of title, summary, gallery changes. */
   .detail-primary {
     display: contents;
   }
@@ -1846,34 +1850,12 @@ footer {
     grid-column: auto;
     grid-row: auto;
     order: 1;
-    display: flex;
-    flex-direction: column;
+    /* Phone is a touch tighter than the shared desktop gap. */
     gap: 10px;
   }
 
-  .detail-facts,
-  .detail-fact-line {
-    display: contents;
-  }
-
-  /* Keeps anything else the facts carry, sponsor pills included, below the
-     stack rather than ahead of the date. */
-  .detail-facts > * {
-    order: 4;
-  }
-
-  /* Same optical trim as grid view, scaled to this stack's tighter gap. */
   .detail-date {
-    order: 1;
     margin-bottom: -3px;
-  }
-
-  .detail-title > h2 {
-    order: 2;
-  }
-
-  .detail-place {
-    order: 3;
   }
 
   .detail-meta {
@@ -2118,8 +2100,13 @@ footer {
   }
 
   .event-grid-cover:hover,
-  .recent-event-row:hover .recent-event-thumb {
+  .recent-event-row:hover .recent-event-thumb,
+  .partner-tile:hover {
     transform: none;
+  }
+
+  .partner-tile {
+    transition: none;
   }
 
   .scroll-reveal {

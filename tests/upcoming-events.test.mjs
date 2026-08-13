@@ -39,8 +39,9 @@ test("Upcoming events section sits above the partner CTA with a Luma calendar em
 test("Upcoming events links to the Luma calendar with the supplied logo", () => {
   assert.match(
     app,
-    /<Primary[\s\S]*className="gap-2 !bg-ink font-bold !text-white hover:!bg-black"[\s\S]*href="https:\/\/luma\.com\/designmeetup"[\s\S]*className="size-5 brightness-0 invert"[\s\S]*src="\/luma-logo\.svg"[\s\S]*alt=""[\s\S]*Follow our Luma[\s\S]*<\/Primary>/,
+    /<Primary[\s\S]*className="gap-2 font-bold"[\s\S]*href="https:\/\/luma\.com\/designmeetup"[\s\S]*variant="ink"[\s\S]*className="size-5 brightness-0 invert"[\s\S]*src="\/luma-logo\.svg"[\s\S]*alt=""[\s\S]*Follow our Luma[\s\S]*<\/Primary>/,
   );
+  assert.doesNotMatch(app, /!bg-ink|!text-white|hover:!bg-gray-800|hover:!bg-black/);
   assert.doesNotMatch(app, /src="\/luma-logo\.svg"[^>]*\b(?:bg-|p-)/);
 });
 
@@ -86,7 +87,7 @@ test("Upcoming events uses the shared responsive twelve-column layout", () => {
   );
   assert.match(
     css,
-    /\.upcoming-events-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 4;/s,
+    /\.upcoming-events-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 4;[^}]*gap:\s*28px;/s,
   );
   assert.match(
     css,

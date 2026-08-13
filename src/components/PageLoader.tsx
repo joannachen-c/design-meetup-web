@@ -89,7 +89,7 @@ export function PageLoader({
       <span className="relative block aspect-square w-[clamp(96px,28vw,128px)] md:w-[clamp(56px,6vw,76px)]">
         <img
           className="block size-full border-0 object-contain outline-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-          src="/design-meetup-logo.png"
+          src="/design-meetup-logo.svg"
           alt=""
           width={128}
           height={128}

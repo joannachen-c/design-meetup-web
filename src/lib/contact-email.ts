@@ -105,13 +105,14 @@ export function buildContactEmailBatch(
   const receiptText = [
     `Hi ${submission.firstName},`,
     "",
-    "Thanks for reaching out to Design Meetup. We received your note and will reply soon.",
+    "Thanks so much for reaching out to Design Meetup! We’re excited to learn more about what you have in mind and will get back to you soon.",
     "",
     "Your request:",
     `Interest: ${interest.label}`,
     `City: ${city}`,
     `Email: ${submission.email}`,
     "",
+    "Warmly,",
     "Design Meetup",
   ].join("\n");
 

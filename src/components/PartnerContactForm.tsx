@@ -207,7 +207,7 @@ export function PartnerContactForm() {
         role="status"
       >
         {status === "sent"
-          ? "Thanks — we received your note and emailed you a copy."
+          ? "Thanks! We received your note and emailed you a copy."
           : status === "error"
             ? "We couldn’t send that. Please try again."
             : ""}

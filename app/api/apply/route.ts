@@ -64,12 +64,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 
-  const { error } = await supabase.from("application_emails").upsert(
-    { email },
-    { onConflict: "email", ignoreDuplicates: true },
-  );
+  // Plain insert — not upsert. Production only has the anon key, and anon
+  // upsert fails the insert-only RLS policy even with ignoreDuplicates.
+  const { error } = await supabase.from("application_emails").insert({ email });
 
   if (error) {
+    // Already on the waitlist; treat as success so the form can thank them.
+    if (error.code === "23505") {
+      return NextResponse.json({ ok: true });
+    }
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 

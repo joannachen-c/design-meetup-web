@@ -182,7 +182,7 @@ export function FoundersNote() {
               at this size is the difference between a mark appearing and a bounce.
               Reduced motion keeps the mark and drops the dissolve. */}
           <motion.img
-            className="founders-stamp relative order-first size-[clamp(112px,28vw,140px)] shrink-0 -mt-[calc(clamp(24px,5vw,56px)+1.25rem)] -mr-10 min-[821px]:order-last min-[821px]:size-[clamp(160px,42vw,280px)] min-[821px]:-mt-20 min-[821px]:-mr-2"
+            className="founders-stamp relative order-first size-[clamp(112px,28vw,140px)] shrink-0 -mt-[calc(clamp(24px,5vw,56px)+1.25rem)] mr-6 min-[821px]:order-last min-[821px]:size-[clamp(160px,42vw,280px)] min-[821px]:-mt-20 min-[821px]:-mr-2"
             src="/design-meetup-stamp.png"
             alt=""
             width={280}

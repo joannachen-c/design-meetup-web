@@ -160,9 +160,10 @@ test("the stamp sits large beside the story on desktop", () => {
   assert.match(stamp, /height=\{280\}/);
   // Decorative mark, so it stays out of the accessibility tree.
   assert.match(stamp, /alt=""/);
-  // Mobile: -40px right pull; desktop keeps -mr-2.
-  assert.match(stamp, /-mr-10/);
+  // Mobile: inset from the story's right edge; desktop keeps a slight hang.
+  assert.match(stamp, /\bmr-6\b/);
   assert.match(stamp, /min-\[821px\]:-mr-2/);
+  assert.doesNotMatch(stamp, /-mr-10/);
   // Even padding on all sides; card stays wide enough for both signature groups.
   assert.match(note, /className="founders-card[^"]*\bp-\[clamp\(24px,5vw,56px\)\]/);
   assert.match(note, /className="founders-card[^"]*\bmax-w-\[720px\]/);
@@ -171,7 +172,7 @@ test("the stamp sits large beside the story on desktop", () => {
     /<motion\.figure[\s\S]*?className="founders-card[^"]*\bitems-stretch\b/,
   );
   // Story left, stamp right on desktop; stack on narrow viewports.
-  // Mobile aligns the mark to the right edge of the card.
+  // Mobile right-aligns the mark, then insets it from the story's edge.
   assert.match(
     note,
     /founders-card-top[^"]*\bitems-end\b[^"]*\bmin-\[821px\]:flex-row\b/,

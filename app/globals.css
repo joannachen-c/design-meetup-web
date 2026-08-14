@@ -336,8 +336,12 @@ h1 span {
    on phones and coarse pointers, where the rail is already a swipe. Hovering
    the viewport (side covers, empty shelf, edges) shows the wash; hovering the
    focused centre cover does not — that hover is for the cover itself (Luma).
-   Opacity lives on the fade and the button, not the edge itself: an ancestor
-   with opacity less than 1 would stop backdrop-filter sampling the covers.
+
+   Frost and wash are separate layers. The blur ramps 0→8px on its own; the
+   white overlay fades via opacity. Fading an already-blurred backdrop-filter
+   through opacity composites two images (sharp covers + 8px frost) and reads
+   as a pop. Opacity stays off the blur layer and off the edge itself so the
+   filter still samples the covers.
 
    The band itself passes events through so the second and third covers from
    either edge stay clickable under the wash; only the chevron catches the
@@ -376,25 +380,37 @@ h1 span {
       padding-bottom: var(--rail-underhang);
     }
 
-    .gallery-edge::before {
+    .gallery-edge::before,
+    .gallery-edge::after {
       position: absolute;
       z-index: 0;
       inset: 0;
       content: "";
       pointer-events: none;
+    }
+
+    /* Rest at blur(0) so the filter interpolates; `none` and an 8px layer
+       faded through opacity both snap. */
+    .gallery-edge::before {
+      /* Safari skips backdrop-filter on a fully empty layer. */
+      background-image: linear-gradient(
+        color-mix(in oklab, var(--color-surface) 1%, transparent),
+        color-mix(in oklab, var(--color-surface) 1%, transparent)
+      );
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      transition:
+        backdrop-filter 240ms ease-out,
+        -webkit-backdrop-filter 240ms ease-out;
+    }
+
+    .gallery-edge::after {
       opacity: 0;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      transition: opacity 180ms ease;
+      transition: opacity 240ms ease-out;
     }
 
-    .gallery-edge-start::before {
-      background-image: linear-gradient(
-        to right,
-        var(--color-surface),
-        color-mix(in oklab, var(--color-surface) 62%, transparent) 48%,
-        transparent
-      );
+    .gallery-edge-start::before,
+    .gallery-edge-start::after {
       mask-image: linear-gradient(
         to right,
         #000 18%,
@@ -409,13 +425,17 @@ h1 span {
       );
     }
 
-    .gallery-edge-end::before {
+    .gallery-edge-start::after {
       background-image: linear-gradient(
-        to left,
+        to right,
         var(--color-surface),
         color-mix(in oklab, var(--color-surface) 62%, transparent) 48%,
         transparent
       );
+    }
+
+    .gallery-edge-end::before,
+    .gallery-edge-end::after {
       mask-image: linear-gradient(
         to left,
         #000 18%,
@@ -426,6 +446,15 @@ h1 span {
         to left,
         #000 18%,
         rgb(0 0 0 / 0.4) 58%,
+        transparent
+      );
+    }
+
+    .gallery-edge-end::after {
+      background-image: linear-gradient(
+        to left,
+        var(--color-surface),
+        color-mix(in oklab, var(--color-surface) 62%, transparent) 48%,
         transparent
       );
     }
@@ -443,7 +472,7 @@ h1 span {
       opacity: 0;
       pointer-events: auto;
       transition:
-        opacity 180ms ease,
+        opacity 240ms ease-out,
         transform 160ms ease-out,
         color 150ms ease;
     }
@@ -476,6 +505,13 @@ h1 span {
     .gallery-viewport:hover:not(:has(.event-card.is-center-hovered))
       .gallery-edge::before,
     .gallery-edge:has(.gallery-edge-button:focus-visible)::before {
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .gallery-viewport:hover:not(:has(.event-card.is-center-hovered))
+      .gallery-edge::after,
+    .gallery-edge:has(.gallery-edge-button:focus-visible)::after {
       opacity: 1;
     }
 
@@ -2127,6 +2163,9 @@ footer {
   footer {
     grid-template-columns: 1fr;
     gap: 48px;
+    /* The mark no longer bleeds off the bottom; keep overflow visible so the
+       drop-shadow under it is not sheared at the brand cell. */
+    overflow: visible;
   }
 
   .footer-brand,
@@ -2265,6 +2304,7 @@ footer {
   .recent-event-thumb,
   .cover-luma-hint,
   .gallery-edge::before,
+  .gallery-edge::after,
   .gallery-edge-button {
     transition: none;
   }

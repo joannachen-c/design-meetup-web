@@ -218,17 +218,23 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
     app,
     /className="gallery-edge gallery-edge-end"[\s\S]*?onPointerEnter=\{\(event\) =>\s*hoverCard\(null, event\.pointerType\)/,
   );
+  // Frost ramps 0→8px on ::before; the white wash fades on ::after. An 8px
+  // backdrop-filter faded through opacity composites two images and pops.
   assert.match(
     css,
-    /\.gallery-edge::before\s*\{[^}]*opacity:\s*0;[^}]*backdrop-filter:\s*blur\(8px\);[^}]*transition:\s*opacity 180ms ease;/s,
+    /\.gallery-edge::before\s*\{[^}]*backdrop-filter:\s*blur\(0px\);[^}]*transition:[^}]*backdrop-filter 240ms ease-out;/s,
   );
   assert.match(
     css,
-    /\.gallery-edge-start::before\s*\{[^}]*background-image:\s*linear-gradient\(\s*to right,\s*var\(--color-surface\)/s,
+    /\.gallery-edge::after\s*\{[^}]*opacity:\s*0;[^}]*transition:\s*opacity 240ms ease-out;/s,
   );
   assert.match(
     css,
-    /\.gallery-edge-end::before\s*\{[^}]*background-image:\s*linear-gradient\(\s*to left,\s*var\(--color-surface\)/s,
+    /\.gallery-edge-start::after\s*\{[^}]*background-image:\s*linear-gradient\(\s*to right,\s*var\(--color-surface\)/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-edge-end::after\s*\{[^}]*background-image:\s*linear-gradient\(\s*to left,\s*var\(--color-surface\)/s,
   );
   assert.match(
     app,
@@ -264,10 +270,11 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
     css,
     /\.gallery-edge-button\s*\{[^}]*width:\s*100%;/s,
   );
-  // Opacity on the fade itself, not an ancestor, so backdrop-filter still
-  // samples the covers. Side / shelf hover shows the wash; the focused centre
-  // cover does not (is-center-hovered). Do not require hovering the edge for
-  // the wash. Viewport focus-within would stick after a click.
+  // Opacity on the wash and the button, not the blur layer or an ancestor, so
+  // backdrop-filter still samples the covers. Side / shelf hover shows the
+  // wash; the focused centre cover does not (is-center-hovered). Do not require
+  // hovering the edge for the wash. Viewport focus-within would stick after a
+  // click.
   assert.doesNotMatch(
     css,
     /\.gallery-viewport:hover \.gallery-edge\s*\{[^}]*opacity:\s*1;/s,
@@ -279,7 +286,11 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
   );
   assert.match(
     css,
-    /\.gallery-viewport:hover:not\(:has\(\.event-card\.is-center-hovered\)\)\s*\.gallery-edge::before,[\s\S]*?\.gallery-edge:has\(\.gallery-edge-button:focus-visible\)::before\s*\{[^}]*opacity:\s*1;/s,
+    /\.gallery-viewport:hover:not\(:has\(\.event-card\.is-center-hovered\)\)\s*\.gallery-edge::before,[\s\S]*?\.gallery-edge:has\(\.gallery-edge-button:focus-visible\)::before\s*\{[^}]*backdrop-filter:\s*blur\(8px\);/s,
+  );
+  assert.match(
+    css,
+    /\.gallery-viewport:hover:not\(:has\(\.event-card\.is-center-hovered\)\)\s*\.gallery-edge::after,[\s\S]*?\.gallery-edge:has\(\.gallery-edge-button:focus-visible\)::after\s*\{[^}]*opacity:\s*1;/s,
   );
   assert.match(
     css,

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/next";
 import { AgentationDev } from "@/components/AgentationDev";
 import {
   siteDescription,
@@ -79,6 +80,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className="bg-surface" suppressHydrationWarning>
       <body className="bg-surface" suppressHydrationWarning>
         {children}
+        <Analytics />
         {process.env.NODE_ENV === "development" ? <AgentationDev /> : null}
       </body>
     </html>

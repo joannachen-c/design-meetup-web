@@ -1637,9 +1637,12 @@ test("nonselected covers blend against a white underlay so they look lighter", (
   // The cover pseudo-elements carry the inset hairline and the hover hit pad,
   // so they may exist; what they must never do again is wash a tint over the
   // artwork, which is what made nonselected covers read as muddy.
+  // Require ::before/::after on .event-card itself — a looser ".event-card
+  // anywhere, then a pseudo" match also hits the carousel edge wash, which
+  // names .event-card inside :has() and blurs .gallery-edge::before.
   const coverPseudoRules =
     css.match(
-      /[^{}]*\.event-card[^{}]*::(?:before|after)[^{}]*\{[^}]*\}/gs,
+      /\.event-card(?:\[[^\]]*\]|:not\([^)]*\)|:hover|:focus-visible)*::(?:before|after)[^{]*\{[^}]*\}/gs,
     ) ?? [];
 
   assert.ok(coverPseudoRules.length > 0);

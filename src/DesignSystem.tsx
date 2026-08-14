@@ -867,7 +867,7 @@ export default function DesignSystem() {
 
           <section
             id="tooltips"
-            className={sectionClassName}
+            className={`${sectionClassName} max-[820px]:hidden`}
             aria-labelledby="tooltips-title"
           >
             <h2 className={sectionTitleClassName} id="tooltips-title">

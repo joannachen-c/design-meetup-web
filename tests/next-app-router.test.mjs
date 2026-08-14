@@ -121,3 +121,12 @@ test("Agentation loads only in development", async () => {
   assert.match(layout, /AgentationDev/);
   assert.match(layout, /NODE_ENV\s*===\s*["']development["']/);
 });
+
+test("root layout sends page views to Vercel Web Analytics", async () => {
+  const pkg = JSON.parse(await read("package.json"));
+  assert.ok(pkg.dependencies["@vercel/analytics"]);
+
+  const layout = await read("app/layout.tsx");
+  assert.match(layout, /from ["']@vercel\/analytics\/next["']/);
+  assert.match(layout, /<Analytics \/>/);
+});

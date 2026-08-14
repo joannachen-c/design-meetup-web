@@ -138,7 +138,12 @@ test("footer logo bleeds off the bottom edge", () => {
   // The credit keeps out of the brand columns so the mark cannot cover it.
   assert.match(css, /\.footer-credit\s*\{[^}]*grid-column:\s*6\s*\/\s*span 7;/s);
 
-  // Stacked mobile footer keeps the mark whole instead.
+  // Stacked mobile footer keeps the mark whole instead, and drops the clip so
+  // the drop-shadow under it can paint into the row gap.
+  assert.match(
+    css,
+    /@media \(max-width: 820px\)[\s\S]*footer\s*\{[^}]*overflow:\s*visible;/s,
+  );
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*\.footer-brand\s*\{[^}]*position:\s*static;[^}]*aspect-ratio:\s*auto;/s,

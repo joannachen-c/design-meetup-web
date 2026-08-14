@@ -837,6 +837,13 @@ test("tooltips card stacks the help specimen and optically aligns icon glyphs", 
   );
 });
 
+test("the tooltips section is hidden on mobile where hover chrome does not exist", () => {
+  assert.match(
+    designSystem,
+    /<section\s+id="tooltips"\s+className=\{`\$\{sectionClassName\} max-\[820px\]:hidden`\}/,
+  );
+});
+
 test("icons section is omitted from the design system page", () => {
   assert.doesNotMatch(designSystem, /<section\s+id="icons"/);
   assert.doesNotMatch(designSystem, /const designSystemIcons = \[/);

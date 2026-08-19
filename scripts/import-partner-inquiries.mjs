@@ -1,21 +1,11 @@
-import { ImapFlow } from "imapflow";
-import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
-import { parsePartnerInquiryEmail } from "../src/lib/partner-inquiry-parse.ts";
-import { siteEmail } from "../src/lib/site.ts";
-import { inquiryTextFromRfc822 } from "./lib/inquiry-rfc822.mjs";
+import { siteUrl } from "../src/lib/site.ts";
+import { importPartnerInquiriesFromGmail } from "../src/lib/partner-inquiry-import.ts";
 
 config({ path: ".env.local" });
 config();
-// Production Gmail + Supabase keys live on Vercel, not in the repo. `vercel pull`
-// / `vercel env pull` write them here; dotenv will not override values already
-// set in .env.local.
-config({ path: ".env.production.local" });
-config({ path: ".vercel/.env.production.local" });
 
-const IMAP_HOST = "imap.gmail.com";
-const IMAP_PORT = 993;
-const MAILBOXES = ["[Gmail]/All Mail", "INBOX"];
+const PRODUCTION_IMPORT_URL = `${siteUrl}/api/contact/import`;
 
 function parseArgs(argv) {
   return {
@@ -23,133 +13,76 @@ function parseArgs(argv) {
   };
 }
 
-async function openMailbox(client) {
-  for (const mailbox of MAILBOXES) {
-    try {
-      return await client.getMailboxLock(mailbox, { readOnly: true });
-    } catch {
-      // Try the next well-known Gmail mailbox.
-    }
+async function importViaProduction(token, dryRun) {
+  if (dryRun) {
+    console.log(
+      "Dry run cannot call production (it would write rows). Skipping.",
+    );
+    return;
   }
-  throw new Error(
-    'Could not open "[Gmail]/All Mail" or INBOX. Enable IMAP in Gmail settings.',
-  );
-}
 
-async function loadInquiriesFromGmail(user, password) {
-  const client = new ImapFlow({
-    host: IMAP_HOST,
-    port: IMAP_PORT,
-    secure: true,
-    auth: { user, pass: password.replace(/\s+/g, "") },
-    logger: false,
+  const response = await fetch(PRODUCTION_IMPORT_URL, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
   });
-
-  await client.connect();
-  const lock = await openMailbox(client);
-
-  try {
-    const uids =
-      (await client.search({ body: "New partner inquiry" }, { uid: true })) ||
-      [];
-    if (uids.length === 0) return [];
-
-    const inquiries = [];
-    const seen = new Set();
-
-    for await (const message of client.fetch(
-      uids,
-      { source: true, internalDate: true, uid: true },
-      { uid: true },
-    )) {
-      const text = inquiryTextFromRfc822(message.source);
-      if (!text) continue;
-      const parsed = parsePartnerInquiryEmail(text);
-      if (!parsed || seen.has(parsed.submissionId)) continue;
-      if (!parsed.submittedAt && message.internalDate) {
-        parsed.submittedAt = new Date(message.internalDate).toISOString();
-      }
-      seen.add(parsed.submissionId);
-      inquiries.push(parsed);
-    }
-
-    return inquiries;
-  } finally {
-    lock.release();
-    await client.logout();
+  const body = await response.text();
+  if (!response.ok) {
+    throw new Error(
+      `Production import returned HTTP ${response.status}. Is production deployed?`,
+    );
   }
+  let result = {};
+  try {
+    result = JSON.parse(body);
+  } catch {
+    result = {};
+  }
+  const inserted = Number(result.inserted) || 0;
+  const skipped = Number(result.skipped) || 0;
+  const found = Number(result.found) || 0;
+  console.log(
+    `Imported ${inserted} partner inquir${inserted === 1 ? "y" : "ies"} (${skipped} already present, ${found} found).`,
+  );
 }
 
 async function main() {
   const { dryRun } = parseArgs(process.argv.slice(2));
-  const user = (process.env.GMAIL_USER || siteEmail).trim().toLowerCase();
   const password = process.env.GMAIL_APP_PASSWORD;
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const token = process.env.VERCEL_TOKEN;
 
-  if (!password || user !== siteEmail) {
-    console.error(
-      [
-        "GMAIL_APP_PASSWORD is not in local env.",
-        "The live form already has it on Vercel — it is not stored in the repo.",
-        "Pull production env (do not commit the file), then re-run:",
-        "",
-        "  npx vercel env pull .env.production.local --environment=production --yes",
-        "  npm run import:partner-inquiries",
-      ].join("\n"),
+  if (password) {
+    console.log("Reading partner inquiries from Gmail…");
+    const result = await importPartnerInquiriesFromGmail({ dryRun });
+    if (dryRun) {
+      console.log(`Found ${result.found} unique inquiry email(s).`);
+      console.log("Dry run — no rows written.");
+      return;
+    }
+    console.log(
+      `Imported ${result.inserted} partner inquir${result.inserted === 1 ? "y" : "ies"} (${result.skipped} already present).`,
     );
-    process.exit(1);
-  }
-
-  if (!url || !serviceKey) {
-    console.error(
-      "Missing SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local",
-    );
-    process.exit(1);
-  }
-
-  console.log("Reading partner inquiries from Gmail…");
-  const inquiries = await loadInquiriesFromGmail(user, password);
-  console.log(`Found ${inquiries.length} unique inquiry email(s).`);
-
-  if (dryRun || inquiries.length === 0) {
-    if (dryRun) console.log("Dry run — no rows written.");
     return;
   }
 
-  const supabase = createClient(url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  let inserted = 0;
-  let skipped = 0;
-
-  for (const inquiry of inquiries) {
-    const row = {
-      submission_id: inquiry.submissionId,
-      first_name: inquiry.firstName,
-      last_name: inquiry.lastName,
-      email: inquiry.email,
-      interest: inquiry.interest,
-      city: inquiry.city,
-      created_at: inquiry.submittedAt ?? new Date().toISOString(),
-    };
-    const { error } = await supabase.from("partner_inquiries").insert(row);
-    if (!error) {
-      inserted += 1;
-      continue;
-    }
-    if (error.code === "23505") {
-      skipped += 1;
-      continue;
-    }
-    console.error("Insert failed:", error.message);
-    process.exit(1);
+  if (token) {
+    console.log("Gmail secrets are Vercel-only; calling production import…");
+    await importViaProduction(token, dryRun);
+    return;
   }
 
-  console.log(
-    `Imported ${inserted} partner inquir${inserted === 1 ? "y" : "ies"} (${skipped} already present).`,
+  console.error(
+    [
+      "GMAIL_APP_PASSWORD is a Vercel Sensitive env var, so it cannot be pulled locally.",
+      "The GitHub Action calls production, where Gmail and Supabase keys already exist:",
+      "",
+      "  gh workflow run \"Import partner inquiries\"",
+      "",
+      "Or POST with the same Vercel token used for deploys:",
+      "",
+      `  curl -X POST -H "Authorization: Bearer $VERCEL_TOKEN" ${PRODUCTION_IMPORT_URL}`,
+    ].join("\n"),
   );
+  process.exit(1);
 }
 
 main().catch((error) => {

@@ -12,7 +12,7 @@ import { recoverImage, sizedImage } from "@/lib/image";
 import type { MeetupEvent } from "@/lib/supabase";
 
 const MARQUEE_PHOTO_LIMIT = 8;
-const MARQUEE_PHOTO_RENDER = { width: 283, quality: 68 } as const;
+const MARQUEE_PHOTO_RENDER = { width: 283, quality: 90 } as const;
 const MARQUEE_SECONDS_PER_PHOTO = 7;
 const EXTRA_MARQUEE_PHOTOS = ["/marquee/IMG_9707.jpg"];
 

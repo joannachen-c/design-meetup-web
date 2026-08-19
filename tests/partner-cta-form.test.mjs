@@ -30,6 +30,13 @@ const envExample = await readFile(
   new URL("../.env.example", import.meta.url),
   "utf8",
 );
+const migration = await readFile(
+  new URL(
+    "../supabase/migrations/20260819120000_create_partner_inquiries.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 const css = await readFile(
   new URL("../app/globals.css", import.meta.url),
   "utf8",
@@ -257,13 +264,26 @@ test("the form shows sending, success, and failure states in place", () => {
   assert.match(form, /setSubmissionId\(createSubmissionId\(\)\)/);
 });
 
-test("contact route validates, ignores honeypots, and sends server mail", () => {
+test("sponsor us submissions land in a private supabase table", () => {
+  assert.match(migration, /create table if not exists public\.partner_inquiries/);
+  assert.match(migration, /constraint partner_inquiries_submission_id_key unique \(submission_id\)/);
+  assert.match(migration, /Anyone can add a partner inquiry/);
+  assert.match(migration, /enable row level security/);
+  assert.match(contactRoute, /submission_id: submission\.submissionId/);
+  assert.match(contactRoute, /first_name: submission\.firstName/);
+  assert.match(contactRoute, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(contactRoute, /NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+});
+
+test("contact route validates, records the inquiry, and sends server mail", () => {
   assert.match(contactRoute, /export async function POST\(request: Request\)/);
   assert.match(contactRoute, /const MAX_BODY_BYTES = 4096;/);
   assert.match(contactRoute, /await request\.text\(\)/);
   assert.match(contactRoute, /JSON\.parse\(body\)/);
   assert.match(contactRoute, /company[\s\S]*!== ""[\s\S]*NextResponse\.json\(\{ ok: true \}\)/);
   assert.match(contactRoute, /validateContactSubmission\(payload\)/);
+  assert.match(contactRoute, /from\("partner_inquiries"\)\.insert/);
+  assert.match(contactRoute, /error\.code === "23505"/);
   assert.match(contactRoute, /sendContactEmails\(submission\)/);
   assert.match(contactRoute, /status: 400/);
   assert.match(contactRoute, /status: result\.status/);

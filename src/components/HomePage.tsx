@@ -791,7 +791,7 @@ export default function HomePage({
       className="block size-full select-none border-0 object-cover outline-none"
       // Matches .detail-cover: the cover size times the 1.03 the focused card
       // is scaled by.
-      {...sizedImage(selectedEvent.image_url, { width: 280, quality: 76 })}
+      {...sizedImage(selectedEvent.image_url, { width: 280, quality: 90 })}
       alt=""
       draggable="false"
       decoding="async"
@@ -814,7 +814,7 @@ export default function HomePage({
   const selectedPhotoRenders = useMemo(
     () =>
       selectedPhotoSources.map((url) =>
-        sizedImage(url, { width: 460, quality: 68 }),
+        sizedImage(url, { width: 460, quality: 90 }),
       ),
     [selectedPhotoSources],
   );
@@ -832,7 +832,7 @@ export default function HomePage({
   const lightboxPhotos = useMemo(
     () =>
       selectedPhotoSources.map((url) =>
-        sizedImageUrl(url, { width: 1200, quality: 76, dpr: 1.25 }),
+        sizedImageUrl(url, { width: 1200, quality: 90, dpr: 1.25 }),
       ),
     [selectedPhotoSources],
   );
@@ -997,7 +997,7 @@ export default function HomePage({
           .map((image) => image.image_url)
           .filter((url) => !url.includes("/placeholders/"))
           .slice(0, 4)
-          .map((url) => sizedImage(url, { width: 460, quality: 68 })),
+          .map((url) => sizedImage(url, { width: 460, quality: 90 })),
       );
     const stop = preloadImages([...selectedPhotoRenders, ...neighbourPhotos]);
     let cancelled = false;
@@ -1884,7 +1884,7 @@ export default function HomePage({
                           // scale the selected tile takes.
                           {...sizedImage(item.image_url, {
                             width: 240,
-                            quality: 72,
+                            quality: 90,
                           })}
                           alt=""
                           draggable="false"

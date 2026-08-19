@@ -8,6 +8,7 @@ import {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
+  serverExternalPackages: ["imapflow"],
   // A lockfile in the home directory makes Turbopack infer the wrong root.
   turbopack: {
     root: __dirname,

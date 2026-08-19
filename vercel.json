@@ -3,5 +3,11 @@
   "framework": "nextjs",
   "git": {
     "deploymentEnabled": false
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/contact/import",
+      "schedule": "0 6 * * *"
+    }
+  ]
 }

@@ -2,13 +2,8 @@ name: Import partner inquiries
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - scripts/import-partner-inquiries.mjs
-      - scripts/lib/inquiry-rfc822.mjs
-      - src/lib/partner-inquiry-parse.ts
-      - .github/workflows/import-partner-inquiries.yml
+  schedule:
+    - cron: "0 6 * * *"
 
 concurrency:
   group: import-partner-inquiries
@@ -18,48 +13,19 @@ jobs:
   import:
     name: Import from Gmail
     runs-on: ubuntu-latest
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
       - name: Check required secrets
         run: |
-          missing=0
-          for name in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
-            if [ -z "${!name}" ]; then
-              echo "::error::$name is not set. Add it under Settings → Secrets and variables → Actions."
-              missing=1
-            fi
-          done
-          exit $missing
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
-      - name: Link Vercel project
-        run: |
-          rm -rf .vercel
-          mkdir -p .vercel
-          printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
-
-      - name: Pull Vercel production environment
-        run: vercel env pull .env.production.local --environment=production --yes --token="$VERCEL_TOKEN"
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Import partner inquiries
-        run: npm run import:partner-inquiries
+        run: bash scripts/trigger-partner-inquiry-import.sh
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

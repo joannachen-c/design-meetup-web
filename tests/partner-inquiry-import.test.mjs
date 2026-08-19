@@ -20,6 +20,13 @@ const contactEmail = await readFile(
   new URL("../src/lib/contact-email.ts", import.meta.url),
   "utf8",
 );
+const workflow = await readFile(
+  new URL(
+    "../.github/workflows/import-partner-inquiries.yml",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 test("internal partner emails round-trip into a table row", () => {
   const parsed = parsePartnerInquiryEmail(`New partner inquiry
@@ -119,6 +126,12 @@ test("import script reads Gmail and upserts partner_inquiries", () => {
   assert.match(script, /from\("partner_inquiries"\)\.insert/);
   assert.match(script, /error\.code === "23505"/);
   assert.match(script, /imap\.gmail\.com/);
+  assert.match(script, /\.env\.production\.local/);
+  assert.match(script, /process\.env\.GMAIL_USER \|\| siteEmail/);
+  assert.match(script, /npx vercel env pull \.env\.production\.local/);
   assert.ok(pkg.devDependencies.imapflow);
   assert.match(contactEmail, /"New partner inquiry"/);
+  assert.match(workflow, /vercel env pull \.env\.production\.local/);
+  assert.match(workflow, /npm run import:partner-inquiries/);
+  assert.match(workflow, /workflow_dispatch/);
 });

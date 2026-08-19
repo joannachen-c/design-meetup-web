@@ -7,6 +7,11 @@ import { inquiryTextFromRfc822 } from "./lib/inquiry-rfc822.mjs";
 
 config({ path: ".env.local" });
 config();
+// Production Gmail + Supabase keys live on Vercel, not in the repo. `vercel pull`
+// / `vercel env pull` write them here; dotenv will not override values already
+// set in .env.local.
+config({ path: ".env.production.local" });
+config({ path: ".vercel/.env.production.local" });
 
 const IMAP_HOST = "imap.gmail.com";
 const IMAP_PORT = 993;
@@ -77,14 +82,21 @@ async function loadInquiriesFromGmail(user, password) {
 
 async function main() {
   const { dryRun } = parseArgs(process.argv.slice(2));
-  const user = process.env.GMAIL_USER;
+  const user = (process.env.GMAIL_USER || siteEmail).trim().toLowerCase();
   const password = process.env.GMAIL_APP_PASSWORD;
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!user || !password || user.toLowerCase() !== siteEmail) {
+  if (!password || user !== siteEmail) {
     console.error(
-      "Missing GMAIL_USER / GMAIL_APP_PASSWORD in .env.local (GMAIL_USER must be contactdesignmeetup@gmail.com).",
+      [
+        "GMAIL_APP_PASSWORD is not in local env.",
+        "The live form already has it on Vercel — it is not stored in the repo.",
+        "Pull production env (do not commit the file), then re-run:",
+        "",
+        "  npx vercel env pull .env.production.local --environment=production --yes",
+        "  npm run import:partner-inquiries",
+      ].join("\n"),
     );
     process.exit(1);
   }

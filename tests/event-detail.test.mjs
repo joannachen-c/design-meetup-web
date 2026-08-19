@@ -1282,7 +1282,7 @@ test("grid view opens the detail with the event cover at carousel size", () => {
   assert.match(app, /const DETAIL_COVER_FRAME =\s*"detail-cover aspect-square/);
   assert.match(
     app,
-    /\{\.\.\.sizedImage\(selectedEvent\.image_url, \{ width: 280, quality: 76 \}\)/,
+    /\{\.\.\.sizedImage\(selectedEvent\.image_url, \{ width: 280, quality: 90 \}\)/,
   );
   // Sits above the title and centred, at the size the focused card paints.
   assert.match(

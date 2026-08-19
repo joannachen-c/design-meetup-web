@@ -3,13 +3,28 @@
 // only ever render a few hundred pixels tall, so downscaling on the CDN cuts
 // the payload by ~10x. Cover art comes from Luma's Cloudflare image pipeline,
 // which takes the same kind of width/quality hints.
+//
+// Supabase photos go through Next.js `/_next/image`, not Storage's
+// `/render/image` endpoint. Image Transformations are a Pro-plan feature, and
+// every render (or the full original after a failed render) counts against the
+// Free plan's 5 GB egress. Vercel caches each unique size after the first
+// origin fetch, so repeat views never hit Supabase.
+
+import {
+  DEFAULT_IMAGE_QUALITY,
+  IMAGE_QUALITIES,
+  IMAGE_WIDTHS,
+} from "./image-optimizer.ts";
 
 export type SizedImageOptions = {
   /** Target CSS width in pixels (before DPR). */
   width: number;
-  /** Optional target height; only used by the Supabase transform. */
+  /**
+   * Optional target height. Luma's transform uses it; Next.js keeps aspect
+   * ratio from width alone, so it is ignored for Supabase and local photos.
+   */
   height?: number;
-  /** JPEG/WebP quality, 20-100. */
+  /** JPEG/WebP quality, 20-100. Snapped to the Next.js allowlist. */
   quality?: number;
   /** Device pixel ratio to render for. Defaults to 2 for crisp retina output. */
   dpr?: number;
@@ -18,35 +33,62 @@ export type SizedImageOptions = {
 const SUPABASE_OBJECT_SEGMENT = "/storage/v1/object/public/";
 const SUPABASE_RENDER_SEGMENT = "/storage/v1/render/image/public/";
 const LUMA_TRANSFORM = /\/cdn-cgi\/image\/([^/]+)\//;
+const LOCAL_RASTER = /\.(avif|gif|jpe?g|png|webp)$/i;
 
 function clampQuality(quality: number) {
   return Math.min(100, Math.max(20, Math.round(quality)));
 }
 
-// Supabase Storage supports on-the-fly resizing via the render endpoint. WebP
-// is negotiated automatically from the browser's Accept header, so we only need
-// to pass dimensions + quality.
-function transformSupabase(url: string, options: SizedImageOptions) {
-  if (!url.includes(SUPABASE_OBJECT_SEGMENT)) return null;
-  const rendered = url.replace(
-    SUPABASE_OBJECT_SEGMENT,
-    SUPABASE_RENDER_SEGMENT,
-  );
-  const parsed = new URL(rendered);
-  const targetWidth = Math.round(options.width * (options.dpr ?? 2));
-  parsed.searchParams.set("width", String(targetWidth));
-  if (options.height) {
-    parsed.searchParams.set(
-      "height",
-      String(Math.round(options.height * (options.dpr ?? 2))),
-    );
+function snapToAllowlist(value: number, allowed: readonly number[]) {
+  let best = allowed[0];
+  for (const candidate of allowed) {
+    if (candidate >= value) return candidate;
+    best = candidate;
   }
-  // Needed even when we only ask for a width: the endpoint defaults to `cover`
-  // and fills the dimension we leave out with the original's, so a bare width
-  // renders a 2400x2400 cover as a 840x2400 slice with the sides cropped off.
-  parsed.searchParams.set("resize", "contain");
-  parsed.searchParams.set("quality", String(clampQuality(options.quality ?? 70)));
-  return parsed.toString();
+  return best;
+}
+
+function nextImageUrl(src: string, options: SizedImageOptions) {
+  const width = snapToAllowlist(
+    Math.round(options.width * (options.dpr ?? 2)),
+    IMAGE_WIDTHS,
+  );
+  const quality = snapToAllowlist(
+    clampQuality(options.quality ?? DEFAULT_IMAGE_QUALITY),
+    IMAGE_QUALITIES,
+  );
+  const params = new URLSearchParams({
+    url: src,
+    w: String(width),
+    q: String(quality),
+  });
+  return `/_next/image?${params.toString()}`;
+}
+
+function supabaseObjectUrl(url: string) {
+  const [withoutQuery] = url.split("?");
+  if (withoutQuery.includes(SUPABASE_RENDER_SEGMENT)) {
+    return withoutQuery.replace(SUPABASE_RENDER_SEGMENT, SUPABASE_OBJECT_SEGMENT);
+  }
+  if (withoutQuery.includes(SUPABASE_OBJECT_SEGMENT)) return withoutQuery;
+  return null;
+}
+
+// Next.js resizes with `fit=contain` equivalent (width only, aspect kept), so
+// we never ask for a height — that would be ignored and used to crop on the
+// old Supabase render endpoint.
+function transformSupabase(url: string, options: SizedImageOptions) {
+  const original = supabaseObjectUrl(url);
+  return original ? nextImageUrl(original, options) : null;
+}
+
+function transformLocal(url: string, options: SizedImageOptions) {
+  if (!url.startsWith("/") || url.startsWith("//") || url.startsWith("/_next/")) {
+    return null;
+  }
+  const path = url.split("?")[0];
+  if (!LOCAL_RASTER.test(path)) return null;
+  return nextImageUrl(path, options);
 }
 
 // Luma already serves through Cloudflare's `/cdn-cgi/image/<opts>/` transform.
@@ -84,6 +126,7 @@ export function sizedImageUrl(
     return (
       transformSupabase(url, options) ??
       transformLuma(url, options) ??
+      transformLocal(url, options) ??
       url
     );
   } catch {
@@ -94,7 +137,7 @@ export function sizedImageUrl(
 export type SizedImage = { src: string; srcSet?: string };
 
 /** Matches the cover `<img>`: 272 is the --event-cover-size ceiling. */
-export const EVENT_COVER_RENDER = { width: 272, quality: 74 } as const;
+export const EVENT_COVER_RENDER = { width: 272, quality: 90 } as const;
 
 // Desktop fits four whole covers either side of the focused one; phone shows
 // fewer, but the extras are the next covers a flick would reveal.
@@ -158,9 +201,15 @@ export function sizedImage(
 
 /** The stored original behind a transformed URL, or null if this isn't one. */
 export function untransformedImageUrl(url: string): string | null {
-  if (!url.includes(SUPABASE_RENDER_SEGMENT)) return null;
   try {
-    const parsed = new URL(url);
+    const parsed = new URL(url, "https://design-meetup.local");
+    if (
+      parsed.pathname === "/_next/image" ||
+      parsed.pathname.endsWith("/_next/image")
+    ) {
+      return parsed.searchParams.get("url");
+    }
+    if (!url.includes(SUPABASE_RENDER_SEGMENT)) return null;
     parsed.search = "";
     return parsed
       .toString()
@@ -173,7 +222,7 @@ export function untransformedImageUrl(url: string): string | null {
 /**
  * Retry a failed image against its untransformed original.
  *
- * Every photo on the site is served through the one transformation endpoint, so
+ * Every photo on the site is served through the Next.js optimizer, so
  * without this a fault there leaves the page with no artwork at all rather than
  * heavy artwork. Returns whether a retry was started, so callers can tell a
  * recoverable failure from a final one.

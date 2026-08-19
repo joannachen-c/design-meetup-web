@@ -1,39 +1,85 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 
-const { sizedImageUrl, firstPaintCoverImages, eventCoverImage, VISIBLE_COVER_RADIUS, initialFocusIndex, DEFAULT_FOCUS_SLOT } = await import("../src/lib/image.ts");
+const { sizedImageUrl, firstPaintCoverImages, eventCoverImage, VISIBLE_COVER_RADIUS, initialFocusIndex, DEFAULT_FOCUS_SLOT, untransformedImageUrl } = await import("../src/lib/image.ts");
+const nextConfigSource = await readFile(
+  new URL("../next.config.ts", import.meta.url),
+  "utf8",
+);
 
 const SUPABASE_COVER =
   "https://example.supabase.co/storage/v1/object/public/event-covers/evt-abc.jpg";
 const LUMA_COVER =
   "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=2,anim=false,quality=85,width=1200,height=1200/uploads/63/cover.png";
 
-test("Supabase renders keep the image's aspect ratio", () => {
-  // The render endpoint defaults to resize=cover and fills the dimension we
-  // leave out with the original's, so a bare width crops the sides off a square
-  // cover instead of scaling it down.
-  const url = new URL(sizedImageUrl(SUPABASE_COVER, { width: 420, quality: 74 }));
-  assert.equal(url.searchParams.get("resize"), "contain");
-  assert.equal(url.searchParams.get("width"), "840");
-  assert.equal(url.searchParams.get("quality"), "74");
+function optimizerUrl(src, options) {
+  return new URL(sizedImageUrl(src, options), "https://design-meetup.local");
+}
+
+test("Supabase photos are resized by Next.js, not the Storage render endpoint", () => {
+  const url = optimizerUrl(SUPABASE_COVER, { width: 420, quality: 90 });
+  assert.equal(url.pathname, "/_next/image");
+  assert.equal(url.searchParams.get("url"), SUPABASE_COVER);
+  assert.equal(url.searchParams.get("q"), "90");
+  // 420 CSS px at the default 2x dpr is 840; snap up to the next allowlisted width.
+  assert.equal(url.searchParams.get("w"), "920");
   assert.equal(url.searchParams.get("height"), null);
-  assert.match(url.pathname, /^\/storage\/v1\/render\/image\/public\//);
+  assert.doesNotMatch(url.href, /render\/image/);
+  assert.match(nextConfigSource, /hostname: "\*\.supabase\.co"/);
+  assert.match(nextConfigSource, /pathname: "\/storage\/v1\/object\/public\/\*\*"/);
+  assert.match(nextConfigSource, /minimumCacheTTL: 60 \* 60 \* 24 \* 31/);
 });
 
-test("Supabase renders honour an explicit height without cropping", () => {
-  const url = new URL(
-    sizedImageUrl(SUPABASE_COVER, { width: 200, height: 120, dpr: 1 }),
+test("Supabase renders keep the image's aspect ratio", () => {
+  // Next.js sizes from width alone. Passing a height used to crop on the
+  // Supabase render endpoint (resize=cover filling the missing side).
+  const url = optimizerUrl(SUPABASE_COVER, {
+    width: 200,
+    height: 120,
+    dpr: 1,
+    quality: 90,
+  });
+  assert.equal(url.searchParams.get("w"), "240");
+  assert.equal(url.searchParams.get("url"), SUPABASE_COVER);
+  assert.equal(url.searchParams.get("height"), null);
+});
+
+test("legacy Storage render URLs are rewritten back to the original object", () => {
+  const rendered =
+    "https://example.supabase.co/storage/v1/render/image/public/event-covers/evt-abc.jpg?width=840&resize=contain";
+  const url = optimizerUrl(rendered, { width: 200, dpr: 1, quality: 90 });
+  assert.equal(url.searchParams.get("url"), SUPABASE_COVER);
+});
+
+test("local raster photos use the same optimizer", () => {
+  const url = optimizerUrl("/marquee/IMG_9707.jpg", {
+    width: 283,
+    dpr: 1,
+    quality: 90,
+  });
+  assert.equal(url.pathname, "/_next/image");
+  assert.equal(url.searchParams.get("url"), "/marquee/IMG_9707.jpg");
+  assert.equal(url.searchParams.get("w"), "283");
+});
+
+test("a failed optimizer URL falls back to the stored original", () => {
+  const optimized = sizedImageUrl(SUPABASE_COVER, { width: 200, dpr: 1, quality: 90 });
+  assert.equal(untransformedImageUrl(optimized), SUPABASE_COVER);
+  assert.equal(
+    untransformedImageUrl(
+      `https://design-meetup-web.vercel.app${optimized}`,
+    ),
+    SUPABASE_COVER,
   );
-  assert.equal(url.searchParams.get("width"), "200");
-  assert.equal(url.searchParams.get("height"), "120");
-  assert.equal(url.searchParams.get("resize"), "contain");
 });
 
 test("Luma covers are re-rendered at the requested size", () => {
-  const url = sizedImageUrl(LUMA_COVER, { width: 420, quality: 74 });
+  const url = sizedImageUrl(LUMA_COVER, { width: 420, quality: 90 });
   assert.match(url, /width=420/);
   assert.match(url, /height=420/);
   assert.match(url, /dpr=2/);
+  assert.match(url, /quality=90/);
   assert.doesNotMatch(url, /width=1200/);
 });
 

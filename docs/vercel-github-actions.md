@@ -23,6 +23,7 @@ Only someone on the Vercel project needs to create/rotate `VERCEL_TOKEN`. Collab
 | `CI` | Every PR + push to `main` | `npm test` + `npm run build` (mergeable without Vercel membership) |
 | `Vercel Preview` | Non-draft PRs from this repo | Preview deploy + PR comment with URL |
 | `Vercel Production` | Push to `main` | Production deploy |
+| `Import partner inquiries` | Manual dispatch, or push to `main` that touches the importer | Pulls production env from Vercel and upserts Gmail “New partner inquiry” rows into `partner_inquiries` |
 
 Fork PRs skip the preview deploy (secrets are unavailable). Same-repo collaborator branches work normally.
 

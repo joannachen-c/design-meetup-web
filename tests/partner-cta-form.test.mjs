@@ -187,6 +187,7 @@ test("sentence form offers the requested interests and cities", () => {
     ["panelist", "speaking at an event"],
     ["judge", "judging a makeathon"],
     ["venue", "providing a venue"],
+    ["advisor", "joining the Board of Advisors"],
   ]) {
     assert.match(
       form,
@@ -273,6 +274,24 @@ test("sponsor us submissions land in a private supabase table", () => {
   assert.match(contactRoute, /first_name: submission\.firstName/);
   assert.match(contactRoute, /SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(contactRoute, /NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+});
+
+test("the partner_inquiries interest check admits Board of Advisors", async () => {
+  // The create migration locked interest to the original four; advisor needs
+  // its own alter so a submitted inquiry is not rejected by the check and
+  // then only logged away while the email still goes out.
+  const advisorMigration = await readFile(
+    new URL(
+      "../supabase/migrations/20260831070000_add_partner_inquiry_advisor_interest.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  assert.match(
+    advisorMigration,
+    /check \(interest in \('sponsor', 'panelist', 'judge', 'venue', 'advisor'\)\)/,
+  );
+  assert.match(contactEmail, /advisor:\s*\{\s*label:\s*"joining the Board of Advisors"/);
 });
 
 test("contact route validates, records the inquiry, and sends server mail", () => {

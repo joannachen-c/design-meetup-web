@@ -17,6 +17,9 @@ const INTEREST_ALIASES = {
   "judging a makeathon": "judge",
   venue: "venue",
   "providing a venue": "venue",
+  advisor: "advisor",
+  "joining the board of advisors": "advisor",
+  "board of advisors": "advisor",
 };
 
 const CITY_ALIASES = {

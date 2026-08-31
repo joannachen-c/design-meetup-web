@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import galleryPathsByEventId from "../data/event-galleries.json";
 import summaryHtmlByEventId from "../data/event-summaries.json";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -57,12 +58,47 @@ type MeetupEventRow = Omit<MeetupEvent, "gallery_images" | "event_sponsors"> & {
 };
 
 const bundledSummaryHtml = summaryHtmlByEventId as Record<string, string>;
+const bundledGalleryPaths = galleryPathsByEventId as Record<string, string[]>;
+
+// Shared seed placeholders live under /placeholders/ in storage, so a gallery
+// made only of those is an event with no photos of its own yet.
+const PLACEHOLDER_SEGMENT = "/placeholders/";
 
 // Rich summaries are scraped from Luma into the repo, then pushed to Supabase.
 // Until the summary_html column exists in every environment, fall back to the
 // bundled copy so headings, bold, and links still render.
 function fallbackSummaryHtml(event: MeetupEventRow) {
   return bundledSummaryHtml[event.luma_event_id] ?? null;
+}
+
+// Recap photos normally live in Supabase Storage, uploaded with
+// scripts/upload-event-gallery.mjs. A set can also ship from public/ via
+// src/data/event-galleries.json, which is how a recap goes live without a
+// Storage write; uploaded photos take over as soon as the event has its own.
+function galleryImages(event: MeetupEventRow): EventGalleryImage[] {
+  const stored = [...(event.gallery_images ?? [])].sort(
+    (a, b) => a.sort_order - b.sort_order,
+  );
+  if (stored.some((image) => !image.image_url.includes(PLACEHOLDER_SEGMENT))) {
+    return stored;
+  }
+
+  const bundled = (bundledGalleryPaths[event.luma_event_id] ?? []).map(
+    (image_url, index) => ({
+      id: `${event.luma_event_id}-bundled-${index}`,
+      image_url,
+      sort_order: index,
+    }),
+  );
+  // Placeholders keep their tail slots: the per-event rail hides them either
+  // way, and the photo marquee still falls back to them to fill its strip.
+  return [
+    ...bundled,
+    ...stored.map((image) => ({
+      ...image,
+      sort_order: bundled.length + image.sort_order,
+    })),
+  ];
 }
 
 export async function fetchPastEvents(): Promise<MeetupEvent[]> {
@@ -122,9 +158,7 @@ export async function fetchPastEvents(): Promise<MeetupEvent[]> {
     .map((event) => ({
       ...event,
       summary_html: event.summary_html ?? fallbackSummaryHtml(event),
-      gallery_images: [...(event.gallery_images ?? [])].sort(
-        (a, b) => a.sort_order - b.sort_order,
-      ),
+      gallery_images: galleryImages(event),
       event_sponsors: [...(event.event_sponsors ?? [])].sort(
         (a, b) => a.sort_order - b.sort_order,
       ),

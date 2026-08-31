@@ -105,7 +105,7 @@ function extractDescriptionMirror(html) {
   throw new Error("Failed to parse description_mirror JSON");
 }
 
-async function scrapeDescription(lumaUrl, eventTitle = "") {
+export async function scrapeDescription(lumaUrl, eventTitle = "") {
   const response = await fetch(lumaUrl, {
     headers: {
       "user-agent":

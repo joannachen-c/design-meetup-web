@@ -501,7 +501,9 @@ test("summary refresh updates plain and html summary fields in Supabase", () => 
 });
 
 test("all local event summaries contain retained line breaks and html", () => {
-  assert.equal(events.length, 20);
+  // Deliberately not a fixed count: sync:luma adds events as the calendar
+  // grows. luma-calendar-sync.test.mjs is what guards the roster itself.
+  assert.ok(events.length > 0);
   for (const event of events) {
     assert.match(event.summary, /\n/);
     assert.match(event.summary_html, /<(?:p|h2|ul|blockquote)\b/);

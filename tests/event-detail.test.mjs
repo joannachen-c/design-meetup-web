@@ -1440,7 +1440,8 @@ test("event metadata reads as two rows: facts, then sponsor pills", () => {
 });
 
 test("View on Luma sits under the cover rather than in the facts", () => {
-  // The cover itself opens Luma; the hint is a caption under it, not a link.
+  // The cover opens Luma, and so do the words under it — they name the same
+  // destination, so they cannot be a dead caption.
   assert.match(
     app,
     /aria-label=\{`Open \$\{selectedEvent\.title\} on Luma`\}/,
@@ -1448,7 +1449,7 @@ test("View on Luma sits under the cover rather than in the facts", () => {
   assert.match(app, /onClick=\{\(\) => openLuma\(detailLumaUrl\)\}/);
   assert.match(
     app,
-    /className="cover-luma-hint text-medium text-base text-muted"\s*aria-hidden\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>/,
+    /<Link\s+className="cover-luma-hint[^"]*"\s+href=\{detailLumaUrl\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>/,
   );
   assert.doesNotMatch(
     app,
@@ -1518,8 +1519,15 @@ test("View on Luma is a link rather than a pill", () => {
   assert.match(app, /onClick=\{\(\) => openLuma\(detailLumaUrl\)\}/);
   assert.match(
     app,
-    /className="cover-luma-hint text-medium text-base text-muted"\s*aria-hidden\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>/,
+    /<Link\s+className="cover-luma-hint[^"]*"\s+href=\{detailLumaUrl\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>/,
   );
+  // The rail's focused cover carries the same pair.
+  assert.match(
+    app,
+    /<Link\s+className="cover-luma-hint[^"]*"\s+href=\{item\.luma_url\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>/,
+  );
+  // Nothing that says "View on Luma" is decorative any more.
+  assert.doesNotMatch(app, /className="cover-luma-hint[^"]*"\s*aria-hidden/);
   assert.doesNotMatch(
     app,
     /<Link[^>]*href=\{selectedEvent\.luma_url\}[^>]*>[\s\S]*View on Luma/,

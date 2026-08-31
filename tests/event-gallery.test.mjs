@@ -23,6 +23,10 @@ const seed = await readFile(
   path.join(root, "scripts/seed-galleries.mjs"),
   "utf8",
 );
+const upload = await readFile(
+  path.join(root, "scripts/upload-event-gallery.mjs"),
+  "utf8",
+);
 const bundledGalleries = JSON.parse(
   await readFile(path.join(root, "src/data/event-galleries.json"), "utf8"),
 );
@@ -99,4 +103,50 @@ test("placeholder gallery images from DM.zip are present for seeding", async () 
     /\.(png|jpe?g|webp)$/i.test(name),
   );
   assert.equal(images.length, 8);
+});
+
+test("upload:gallery resolves --event by luma id, like seed:events does", () => {
+  assert.match(
+    upload,
+    /\.select\("id, luma_event_id, title"\)/,
+  );
+  assert.match(
+    upload,
+    /event\.id === reference \|\| event\.luma_event_id === reference/,
+  );
+});
+
+test("the Rivet cafe recap set is checked in under its storage slug", async () => {
+  // upload:gallery derives the storage folder from the event title, so the
+  // folder name has to keep matching or the upload lands somewhere else.
+  const events = JSON.parse(
+    await readFile(path.join(root, "scripts/data/past-events.json"), "utf8"),
+  );
+  const rivet = events.find(
+    (event) => event.luma_event_id === "evt-vSYwX6dEPDBtMuE",
+  );
+  assert.equal(rivet.title, "Design Meetup Cafe with Rivet");
+
+  const slug = rivet.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const dir = path.join(root, "scripts/data/event-galleries", slug);
+  await access(dir);
+
+  const images = (await readdir(dir)).filter((name) => /\.jpe?g$/i.test(name));
+  assert.equal(images.length, 8);
+  // Natural-sorted filenames are what fix the running order of the recap: the
+  // postcard opens it, the rest of the deck follows in its authored sequence,
+  // and the candid room shots close it out.
+  assert.deepEqual(images.sort(), [
+    "01-recap-postcard.jpg",
+    "02-the-calm-in-a-city.jpg",
+    "03-todays-caffeine-fix.jpg",
+    "04-the-buzz-of-conversations.jpg",
+    "05-say-cheese.jpg",
+    "06-gallery-mingle.jpg",
+    "07-cafe-lounge.jpg",
+    "08-cafe-floor.jpg",
+  ]);
 });

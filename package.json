@@ -12,6 +12,7 @@
     "seed:galleries": "node scripts/seed-galleries.mjs",
     "upload:gallery": "node scripts/upload-event-gallery.mjs",
     "refresh:summaries": "node scripts/refresh-event-summaries.mjs",
+    "sync:luma": "node scripts/sync-luma-events.mjs",
     "seed:sponsors": "node scripts/seed-sponsors.mjs",
     "trim:sponsor-logos": "node scripts/trim-sponsor-logos.mjs",
     "upload:sponsor-logos": "node scripts/upload-sponsor-logos.mjs",

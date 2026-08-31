@@ -1752,17 +1752,22 @@ export default function HomePage({
                           {/* Sits outside the cover so it keeps its own
                               upright box while the cover is scaled and
                               sheared, and so the rail's hover rule can reach
-                              it as the cover's next sibling. The cover's own
-                              label already carries the destination for
-                              readers who never see this one. */}
+                              it as the cover's next sibling. It names the
+                              cover's own destination, so it carries it too:
+                              words that read as a link have to behave like
+                              one. */}
+                          {/* Pad clears the focused cover's painted edge, which
+                              stands 1.03x past its layout box. */}
                           {selected && item.luma_url ? (
-                            <span
-                              className="cover-luma-hint text-medium text-base text-muted"
-                              aria-hidden
+                            <Link
+                              className="cover-luma-hint pt-[10px]"
+                              href={item.luma_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
                             >
                               View on Luma
                               <ArrowUpRightIcon />
-                            </span>
+                            </Link>
                           ) : null}
                         </li>
                       );
@@ -1944,14 +1949,21 @@ export default function HomePage({
                   ) : (
                     <div className={DETAIL_COVER_FRAME}>{detailCoverImage}</div>
                   )}
+                  {/* The rail's pad plus the room its focused cover opens under
+                      itself by lifting 6px and painting past its box. This
+                      cover sits flat, so it carries that difference itself and
+                      the label lands the same distance from the artwork in
+                      both views. */}
                   {detailLumaUrl ? (
-                    <span
-                      className="cover-luma-hint text-medium text-base text-muted"
-                      aria-hidden
+                    <Link
+                      className="cover-luma-hint pt-[13px]"
+                      href={detailLumaUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       View on Luma
                       <ArrowUpRightIcon />
-                    </span>
+                    </Link>
                   ) : null}
                 </div>
               ) : null}

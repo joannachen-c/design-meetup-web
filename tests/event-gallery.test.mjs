@@ -97,15 +97,17 @@ test("the Rivet cafe recap set is checked in under its storage slug", async () =
 
   const images = (await readdir(dir)).filter((name) => /\.jpe?g$/i.test(name));
   assert.equal(images.length, 8);
-  // Natural-sorted filenames are what fix the running order of the recap.
+  // Natural-sorted filenames are what fix the running order of the recap: the
+  // postcard opens it, the rest of the deck follows in its authored sequence,
+  // and the candid room shots close it out.
   assert.deepEqual(images.sort(), [
-    "01-gallery-mingle.jpg",
-    "02-cafe-lounge.jpg",
-    "03-cafe-floor.jpg",
-    "04-recap-postcard.jpg",
-    "05-the-calm-in-a-city.jpg",
-    "06-todays-caffeine-fix.jpg",
-    "07-the-buzz-of-conversations.jpg",
-    "08-say-cheese.jpg",
+    "01-recap-postcard.jpg",
+    "02-the-calm-in-a-city.jpg",
+    "03-todays-caffeine-fix.jpg",
+    "04-the-buzz-of-conversations.jpg",
+    "05-say-cheese.jpg",
+    "06-gallery-mingle.jpg",
+    "07-cafe-lounge.jpg",
+    "08-cafe-floor.jpg",
   ]);
 });

@@ -23,6 +23,9 @@ const seed = await readFile(
   path.join(root, "scripts/seed-galleries.mjs"),
   "utf8",
 );
+const bundledGalleries = JSON.parse(
+  await readFile(path.join(root, "src/data/event-galleries.json"), "utf8"),
+);
 
 test("supabase fetch joins ordered event gallery images", () => {
   assert.match(supabase, /export type EventGalleryImage/);
@@ -51,6 +54,42 @@ test("seed:galleries maps all reusable placeholders to every event", () => {
   assert.match(seed, /\.gte\("sort_order", photosPerEvent\)/);
   assert.match(seed, /expectedRows = events\.length \* photosPerEvent/);
   assert.match(seed, /event-galleries/);
+});
+
+test("bundled galleries fill in for events without uploaded photos", () => {
+  assert.match(supabase, /import galleryPathsByEventId from "\.\.\/data\/event-galleries\.json"/);
+  assert.match(supabase, /gallery_images: galleryImages\(event\)/);
+  // Uploaded photos win; a gallery of shared seed placeholders does not.
+  assert.match(
+    supabase,
+    /if \(stored\.some\(\(image\) => !image\.image_url\.includes\(PLACEHOLDER_SEGMENT\)\)\) \{\s*return stored;/,
+  );
+  assert.match(supabase, /sort_order: bundled\.length \+ image\.sort_order/);
+});
+
+test("bundled gallery paths point at committed images", async () => {
+  const entries = Object.entries(bundledGalleries);
+  assert.ok(entries.length > 0, "expected at least one bundled gallery");
+
+  for (const [lumaEventId, paths] of entries) {
+    assert.match(lumaEventId, /^evt-/);
+    assert.ok(paths.length > 0, `${lumaEventId} should list photos`);
+    assert.deepEqual(
+      paths,
+      [...paths].sort(),
+      `${lumaEventId} paths should be in display order`,
+    );
+    for (const imagePath of paths) {
+      assert.match(imagePath, /^\/event-galleries\/[a-z0-9-]+\/[\w.-]+\.jpg$/);
+      await access(path.join(root, "public", imagePath));
+    }
+  }
+});
+
+test("the Spotify recap ships its backstage pass set", () => {
+  const paths = bundledGalleries["evt-4IoFFcCGFcq1JfC"];
+  assert.equal(paths?.length, 6);
+  assert.match(paths[0], /nyc-backstage-pass-spotify\/000-backstage-pass\.jpg$/);
 });
 
 test("placeholder gallery images from DM.zip are present for seeding", async () => {

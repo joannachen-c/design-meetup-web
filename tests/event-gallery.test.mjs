@@ -61,3 +61,36 @@ test("placeholder gallery images from DM.zip are present for seeding", async () 
   );
   assert.equal(images.length, 8);
 });
+
+test("the Rivet cafe recap set is checked in under its storage slug", async () => {
+  // upload:gallery derives the storage folder from the event title, so the
+  // folder name has to keep matching or the upload lands somewhere else.
+  const events = JSON.parse(
+    await readFile(path.join(root, "scripts/data/past-events.json"), "utf8"),
+  );
+  const rivet = events.find(
+    (event) => event.luma_event_id === "evt-vSYwX6dEPDBtMuE",
+  );
+  assert.equal(rivet.title, "Design Meetup Cafe with Rivet");
+
+  const slug = rivet.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const dir = path.join(root, "scripts/data/event-galleries", slug);
+  await access(dir);
+
+  const images = (await readdir(dir)).filter((name) => /\.jpe?g$/i.test(name));
+  assert.equal(images.length, 8);
+  // Natural-sorted filenames are what fix the running order of the recap.
+  assert.deepEqual(images.sort(), [
+    "01-gallery-mingle.jpg",
+    "02-cafe-lounge.jpg",
+    "03-cafe-floor.jpg",
+    "04-recap-postcard.jpg",
+    "05-the-calm-in-a-city.jpg",
+    "06-todays-caffeine-fix.jpg",
+    "07-the-buzz-of-conversations.jpg",
+    "08-say-cheese.jpg",
+  ]);
+});

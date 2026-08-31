@@ -10,6 +10,9 @@ dist
 .next
 out
 tsconfig.tsbuildinfo
-scripts/data/event-galleries/
+# Staging area for whatever photos an organizer has on their laptop. Curated
+# recap sets we want to keep are opted back in one folder at a time.
+scripts/data/event-galleries/*
+!scripts/data/event-galleries/design-meetup-cafe-with-rivet/
 
 .qa-shots/

@@ -18,6 +18,10 @@ export const contactInterestOptions = {
     label: "providing a venue",
     subject: "Providing a venue",
   },
+  advisor: {
+    label: "joining the Board of Advisors",
+    subject: "Joining the Board of Advisors",
+  },
 } as const;
 
 export const contactCityOptions = {

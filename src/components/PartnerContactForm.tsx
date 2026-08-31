@@ -30,6 +30,11 @@ const interestOptions = [
     label: "providing a venue",
     subject: "Providing a venue",
   },
+  {
+    value: "advisor",
+    label: "joining the Board of Advisors",
+    subject: "Joining the Board of Advisors",
+  },
 ];
 
 const cityOptions: SelectOption[] = [

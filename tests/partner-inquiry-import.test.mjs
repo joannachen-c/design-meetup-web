@@ -112,6 +112,19 @@ Submitted: 2026-08-12T15:04:05.000Z
   assert.equal(parsed?.lastName, "Hopper");
 });
 
+test("Board of Advisors inquiries map onto the advisor interest key", () => {
+  const parsed = parsePartnerInquiryEmail(`New partner inquiry
+
+Name: Katherine Johnson
+Email: katherine@example.com
+Interest: joining the Board of Advisors
+City: any city
+Submitted: 2026-08-31T07:00:00.000Z
+`);
+  assert.equal(parsed?.interest, "advisor");
+  assert.equal(parsed?.city, "any");
+});
+
 test("re-parsing the same Gmail body reuses the same submission id", () => {
   const body = `New partner inquiry
 

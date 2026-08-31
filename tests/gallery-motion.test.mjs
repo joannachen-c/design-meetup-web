@@ -893,6 +893,29 @@ test("View on Luma waits for a still hover on the focused cover", () => {
   );
 });
 
+// The label reads as a link, so it has to take the click. It only may while it
+// is showing: hidden it lies across the gap under the cover, where catching a
+// click would swallow one meant for the shelf.
+test("the Luma label takes clicks only while it is surfaced", () => {
+  assert.match(
+    css,
+    /\.cover-luma-hint\s*\{[^}]*pointer-events:\s*none;/s,
+  );
+  for (const reveal of [
+    /\.event-card\[aria-pressed="true"\]\.is-center-hovered \+ \.cover-luma-hint,\s*\.detail-cover:hover \+ \.cover-luma-hint,\s*\.cover-luma-hint:hover\s*\{[^}]*pointer-events:\s*auto;/s,
+    /\.event-card\[aria-pressed="true"\]:focus-visible \+ \.cover-luma-hint,\s*\.detail-cover:focus-visible \+ \.cover-luma-hint,\s*\.cover-luma-hint:focus-visible\s*\{[^}]*pointer-events:\s*auto;/s,
+    /@media \(hover: none\)\s*\{\s*\.cover-luma-hint\s*\{[^}]*pointer-events:\s*auto;/s,
+  ]) {
+    assert.match(css, reveal);
+  }
+  // Flush to the cover so the pointer never crosses dead space on its way down
+  // to the words; the clearance is the label's own padding instead.
+  assert.match(css, /\.cover-luma-hint\s*\{[^}]*top:\s*100%;/s);
+  assert.doesNotMatch(css, /\.cover-luma-hint\s*\{[^}]*top:\s*calc\(100% \+/s);
+  assert.match(app, /className="cover-luma-hint pt-\[10px\]"/);
+  assert.match(app, /className="cover-luma-hint pt-\[13px\]"/);
+});
+
 test("edge cards have enough scroll rail to center in the viewport", () => {
   assert.match(css, /\.gallery::before,\s*\.gallery::after\s*\{/s);
   assert.match(

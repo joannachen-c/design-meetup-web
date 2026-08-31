@@ -749,6 +749,11 @@ h1 span {
    holds its line open whether or not it is showing. */
 .cover-luma-hint {
   position: absolute;
+  /* Flush to the cover, with each view's clearance carried as the label's own
+     top padding. A bare gap would drop the pointer on its way down to the
+     words and the label would fade out from under it, so the clearance has to
+     belong to the hit area rather than sit above it. */
+  top: 100%;
   left: 50%;
   display: inline-flex;
   align-items: center;
@@ -756,42 +761,38 @@ h1 span {
   opacity: 0;
   transform: translate(-50%, 4px);
   white-space: nowrap;
+  /* Out of sight it must not take clicks: it lies across the gap under the
+     cover, where nothing should be catching them. Every rule that surfaces it
+     hands the clicks back. */
   pointer-events: none;
   transition:
     opacity 200ms ease,
     transform 200ms ease;
 }
 
-/* Clears the focused cover's painted edge, which stands 1.03x past its layout
-   box, rather than the box itself. */
-.gallery li > .cover-luma-hint {
-  top: calc(100% + 10px);
-}
-
-/* Same offset as the rail's, plus the room the rail's focused cover opens under
-   itself by lifting 6px and painting 1.03x past its box. This cover sits flat,
-   so it carries that difference itself and the label lands the same distance
-   from the artwork's edge in both views. */
-.detail-cover-slot > .cover-luma-hint {
-  top: calc(100% + 13px);
-}
-
 @media (hover: hover) and (pointer: fine) {
   /* Rail: class from a still hover on the settled focused cover, not :hover —
-     scrolling the shelf under a parked cursor must not surface the label. */
+     scrolling the shelf under a parked cursor must not surface the label.
+     The label's own hover holds it up once the pointer has left the cover for
+     the words; it cannot surface it, since hidden it takes no pointer events. */
   .event-card[aria-pressed="true"].is-center-hovered + .cover-luma-hint,
-  .detail-cover:hover + .cover-luma-hint {
+  .detail-cover:hover + .cover-luma-hint,
+  .cover-luma-hint:hover {
     opacity: 1;
     transform: translate(-50%, 0);
+    pointer-events: auto;
   }
 }
 
 /* Keyboard reaches a cover without a pointer, so focus surfaces the label the
-   same way hover does. */
+   same way hover does, and the label holds itself up once focus moves onto it —
+   otherwise tabbing off the cover would land on something invisible. */
 .event-card[aria-pressed="true"]:focus-visible + .cover-luma-hint,
-.detail-cover:focus-visible + .cover-luma-hint {
+.detail-cover:focus-visible + .cover-luma-hint,
+.cover-luma-hint:focus-visible {
   opacity: 1;
   transform: translate(-50%, 0);
+  pointer-events: auto;
 }
 
 /* Touch has no hover to reveal it with, so the label stands as the focused
@@ -800,6 +801,7 @@ h1 span {
   .cover-luma-hint {
     opacity: 1;
     transform: translate(-50%, 0);
+    pointer-events: auto;
   }
 }
 

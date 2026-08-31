@@ -80,6 +80,11 @@
     "website_url": "https://www.spotify.com"
   },
   {
+    "slug": "the-collective",
+    "name": "The Collective",
+    "website_url": "https://collective-join.com"
+  },
+  {
     "slug": "arch-partner",
     "name": "Arch partner (identity pending)",
     "website_url": null

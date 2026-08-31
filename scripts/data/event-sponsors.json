@@ -12,6 +12,10 @@
     "sponsor_slugs": ["spotify"]
   },
   {
+    "luma_event_id": "evt-kqU17RuLWahwfVk",
+    "sponsor_slugs": ["the-collective"]
+  },
+  {
     "luma_event_id": "evt-wTC4bXXVhBB8D7H",
     "sponsor_slugs": ["figma", "notion"]
   },

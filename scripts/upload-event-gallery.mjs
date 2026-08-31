@@ -52,11 +52,16 @@ function naturalName(a, b) {
 async function resolveEvent(reference) {
   const { data, error } = await supabase
     .from("events")
-    .select("id, title")
+    .select("id, luma_event_id, title")
     .order("sort_order", { ascending: true });
   if (error) throw error;
 
-  const byId = data.find((event) => event.id === reference);
+  // seed:events takes a luma_event_id for --event, so accept one here too
+  // rather than silently falling through to the title matcher and finding
+  // nothing.
+  const byId = data.find(
+    (event) => event.id === reference || event.luma_event_id === reference,
+  );
   if (byId) return byId;
 
   const needle = reference.toLowerCase();
@@ -177,7 +182,7 @@ async function main() {
 
   if (!dir || !eventRef) {
     console.error(
-      'Usage: node scripts/upload-event-gallery.mjs --dir "<folder>" --event "<event id or title fragment>" [--slug <storage-folder>] [--mode replace|prepend|insert] [--at <index>]',
+      'Usage: node scripts/upload-event-gallery.mjs --dir "<folder>" --event "<event id, luma event id, or title fragment>" [--slug <storage-folder>] [--mode replace|prepend|insert] [--at <index>]',
     );
     process.exit(1);
   }

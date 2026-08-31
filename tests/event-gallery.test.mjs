@@ -23,6 +23,10 @@ const seed = await readFile(
   path.join(root, "scripts/seed-galleries.mjs"),
   "utf8",
 );
+const upload = await readFile(
+  path.join(root, "scripts/upload-event-gallery.mjs"),
+  "utf8",
+);
 
 test("supabase fetch joins ordered event gallery images", () => {
   assert.match(supabase, /export type EventGalleryImage/);
@@ -60,6 +64,17 @@ test("placeholder gallery images from DM.zip are present for seeding", async () 
     /\.(png|jpe?g|webp)$/i.test(name),
   );
   assert.equal(images.length, 8);
+});
+
+test("upload:gallery resolves --event by luma id, like seed:events does", () => {
+  assert.match(
+    upload,
+    /\.select\("id, luma_event_id, title"\)/,
+  );
+  assert.match(
+    upload,
+    /event\.id === reference \|\| event\.luma_event_id === reference/,
+  );
 });
 
 test("the Rivet cafe recap set is checked in under its storage slug", async () => {

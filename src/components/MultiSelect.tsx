@@ -174,4 +174,7 @@ export function MultiSelect({
             })}
           </div>
         </Popover.Content>
-      </P
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}

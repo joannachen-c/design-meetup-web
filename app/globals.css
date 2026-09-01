@@ -151,6 +151,10 @@ html.is-loading body {
   transform-origin: var(--radix-select-content-transform-origin);
 }
 
+.select-menu-popover {
+  transform-origin: var(--radix-popover-content-transform-origin);
+}
+
 .select-menu[data-state="open"] {
   animation: select-menu-in 140ms ease-out;
 }

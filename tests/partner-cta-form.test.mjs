@@ -200,8 +200,11 @@ test("sentence form offers the requested interests and cities", () => {
   assert.doesNotMatch(form, /sponsor-one|sponsor-series|sponsoring one event|sponsoring an event series|being a panelist|sponsoring an event/);
   assert.match(
     form,
-    /useState\(interestOptions\[0\]\.value\)/,
+    /useState<string\[\]>\(\[interestOptions\[0\]\.value\]\)/,
   );
+  assert.match(form, /import \{ MultiSelect \} from "\.\/MultiSelect"/);
+  assert.match(form, /<MultiSelect\b/);
+  assert.match(form, /value=\{interests\}/);
   for (const [value, label] of [
     ["sf", "San Francisco"],
     ["nyc", "New York"],
@@ -245,7 +248,8 @@ test("submitting posts the form without leaving the page", () => {
   assert.match(form, /await fetch\("\/api\/contact"/);
   assert.match(form, /method: "POST"/);
   assert.match(form, /"Content-Type": "application\/json"/);
-  assert.match(form, /firstName,\s*lastName,\s*interest,\s*city,\s*email,\s*company,\s*submissionId,/);
+  assert.match(form, /interest: interests,/);
+  assert.match(form, /firstName,\s*lastName,\s*interest: interests,\s*city,\s*email,\s*company,\s*submissionId,/);
   assert.doesNotMatch(form, /mailto:|window\.location/);
   assert.match(form, /aria-live="polite"/);
   assert.match(form, /role="status"/);
@@ -274,6 +278,30 @@ test("sponsor us submissions land in a private supabase table", () => {
   assert.match(contactRoute, /first_name: submission\.firstName/);
   assert.match(contactRoute, /SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(contactRoute, /NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+});
+
+test("the partner interest field accepts multiple selected interests", async () => {
+  const multiMigration = await readFile(
+    new URL(
+      "../supabase/migrations/20260901010000_allow_multiple_partner_inquiry_interests.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  assert.match(
+    multiMigration,
+    /interest ~ '\^\(sponsor\|panelist\|judge\|venue\|advisor\)\(,\(sponsor\|panelist\|judge\|venue\|advisor\)\)\*\$'/,
+  );
+  assert.match(contactEmail, /normalizeContactInterests/);
+  assert.match(contactEmail, /serializeInterests/);
+  assert.match(contactEmail, /interest: ContactInterest\[\]/);
+  const multiSelect = await readFile(
+    new URL("../src/components/MultiSelect.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(multiSelect, /@radix-ui\/react-popover/);
+  assert.match(multiSelect, /aria-multiselectable="true"|aria-multiselectable/);
+  assert.match(packageJson, /"@radix-ui\/react-popover":/);
 });
 
 test("the partner_inquiries interest check admits Board of Advisors", async () => {

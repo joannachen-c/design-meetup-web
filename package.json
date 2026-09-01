@@ -32,6 +32,7 @@
   "dependencies": {
     "@blossom-carousel/react": "^1.5.2",
     "@mux/mux-player-react": "^3.13.2",
+    "@radix-ui/react-popover": "^1.1.23",
     "@radix-ui/react-select": "^2.3.7",
     "@radix-ui/react-tooltip": "^1.2.16",
     "@supabase/supabase-js": "^2.111.0",

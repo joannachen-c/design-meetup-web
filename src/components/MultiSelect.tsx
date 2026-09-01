@@ -144,7 +144,7 @@ export function MultiSelect({
           align="start"
           alignOffset={-MENU_PADDING}
           sideOffset={6}
-          className="select-menu select-menu-popover z-50 max-h-[var(--radix-popover-content-available-height)] min-w-[calc(var(--radix-popover-trigger-width)+8px)] overflow-hidden rounded-[10px] bg-white p-1 font-['Alte_Haas_Grotesk',sans-serif] text-base shadow-lg ring-1 ring-black/5"
+          className="select-menu select-menu-popover z-50 max-h-[var(--radix-popover-content-available-height)] min-w-[calc(var(--radix-popover-trigger-width)+8px)] w-max max-w-[min(calc(100vw-2rem),40rem)] overflow-hidden rounded-[10px] bg-white p-1 font-['Alte_Haas_Grotesk',sans-serif] text-base shadow-lg ring-1 ring-black/5"
           onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => event.preventDefault()}
         >
@@ -163,14 +163,15 @@ export function MultiSelect({
                   onPointerDown={(event) => event.preventDefault()}
                   onClick={() => toggle(option.value)}
                 >
-                  <span>{option.label}</span>
-                  {selected ? <CheckIcon /> : <span className="size-4 shrink-0" />}
+                  <span className="min-w-0 flex-1 truncate">{option.label}</span>
+                  {selected ? (
+                    <CheckIcon />
+                  ) : (
+                    <span className="size-4 shrink-0" aria-hidden="true" />
+                  )}
                 </button>
               );
             })}
           </div>
         </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
-  );
-}
+      </P

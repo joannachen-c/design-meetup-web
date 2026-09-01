@@ -4,14 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 
 import { PrototypePicker } from "./PrototypePicker";
 import { SectionContext } from "./SectionContext";
-import { PortraitWallVariant } from "./variants/PortraitWallVariant";
-import { RegistryVariant } from "./variants/RegistryVariant";
-import { SignaturesVariant } from "./variants/SignaturesVariant";
+import { CardGridVariant } from "./variants/CardGridVariant";
+import { CompactGridVariant } from "./variants/CompactGridVariant";
+import { GalleryStripVariant } from "./variants/GalleryStripVariant";
+import { InlineLedgerVariant } from "./variants/InlineLedgerVariant";
+import { RosterVariant } from "./variants/RosterVariant";
 
 const variants = [
-  { name: "Registry", Component: RegistryVariant },
-  { name: "Signatures", Component: SignaturesVariant },
-  { name: "Portraits", Component: PortraitWallVariant },
+  { name: "Roster", Component: RosterVariant },
+  { name: "Cards", Component: CardGridVariant },
+  { name: "Compact", Component: CompactGridVariant },
+  { name: "Ledger", Component: InlineLedgerVariant },
+  { name: "Gallery", Component: GalleryStripVariant },
 ] as const;
 
 function readInitialIndex() {

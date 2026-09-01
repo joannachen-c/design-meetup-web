@@ -1,6 +1,7 @@
 "use client";
 
 import * as Popover from "@radix-ui/react-popover";
+import { useLayoutEffect, useRef, useState } from "react";
 import { ChevronDownIcon } from "./icons/ChevronDownIcon";
 import type { SelectOption } from "./Select";
 
@@ -69,6 +70,10 @@ export function MultiSelect({
   value,
   "aria-label": ariaLabel,
 }: MultiSelectProps) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const [openTriggerWidth, setOpenTriggerWidth] = useState<number | null>(null);
+
   const hasWidthOverride = /(?:^|\s)(?:w-|min-w-|max-w-|grow|flex-1)(?:\s|$)/.test(
     className,
   );
@@ -87,6 +92,15 @@ export function MultiSelect({
   const label = formatSelectedLabels(value, options, placeholder);
   const selectedSet = new Set(value);
 
+  useLayoutEffect(() => {
+    if (!open) {
+      setOpenTriggerWidth(null);
+      return;
+    }
+    const width = triggerRef.current?.getBoundingClientRect().width;
+    if (width) setOpenTriggerWidth(width);
+  }, [open]);
+
   const toggle = (optionValue: string) => {
     if (selectedSet.has(optionValue)) {
       // Keep at least one interest so the sentence still reads.
@@ -103,18 +117,24 @@ export function MultiSelect({
   };
 
   return (
-    <Popover.Root>
+    <Popover.Root open={open} onOpenChange={setOpen}>
       {name
         ? value.map((entry) => (
             <input key={entry} type="hidden" name={name} value={entry} />
           ))
         : null}
       <Popover.Trigger
+        ref={triggerRef}
         className={triggerClassName}
         disabled={disabled}
         id={id}
         aria-label={ariaLabel}
         type="button"
+        style={
+          openTriggerWidth
+            ? { minWidth: `${openTriggerWidth}px` }
+            : undefined
+        }
       >
         <span className="min-w-0 truncate leading-[1.2]">{label}</span>
         <ChevronDownIcon className="size-4 shrink-0 text-muted transition-transform duration-150 ease-out group-data-[state=open]:-rotate-180 motion-reduce:transition-none" />
@@ -126,6 +146,7 @@ export function MultiSelect({
           sideOffset={6}
           className="select-menu select-menu-popover z-50 max-h-[var(--radix-popover-content-available-height)] min-w-[calc(var(--radix-popover-trigger-width)+8px)] overflow-hidden rounded-[10px] bg-white p-1 font-['Alte_Haas_Grotesk',sans-serif] text-base shadow-lg ring-1 ring-black/5"
           onOpenAutoFocus={(event) => event.preventDefault()}
+          onCloseAutoFocus={(event) => event.preventDefault()}
         >
           <div role="listbox" aria-multiselectable="true" aria-label={ariaLabel}>
             {options.map((option) => {
@@ -137,6 +158,9 @@ export function MultiSelect({
                   role="option"
                   aria-selected={selected}
                   className="flex min-h-10 w-full cursor-pointer items-center justify-between gap-4 rounded-[7px] py-2 pr-3 pl-4 text-left text-base text-ink outline-none select-none hover:bg-surface-muted focus-visible:bg-surface-muted"
+                  // Keep focus on the trigger so choosing an option cannot
+                  // dismiss the popover via focus-out / layout thrash.
+                  onPointerDown={(event) => event.preventDefault()}
                   onClick={() => toggle(option.value)}
                 >
                   <span>{option.label}</span>

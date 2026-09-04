@@ -25,7 +25,6 @@ import {
 } from "react";
 import { ArrowUpRightIcon } from "./icons/ArrowUpRightIcon";
 import { InstagramIcon, SubstackIcon } from "./icons/SocialIcons";
-import { ApplyNotifyForm } from "./ApplyNotifyForm";
 import { Chip } from "./Chip";
 import { FilmTickerLines, type FilmTickerFocus } from "./FilmTickerLines";
 import { FoundersNote } from "./FoundersNote";
@@ -69,6 +68,9 @@ const partnerLogos = [
 
 const LUMA_CALENDAR_EMBED_SRC =
   "https://luma.com/embed/calendar/cal-HH5XBdHyWPt0yhB/events?lt=light";
+
+const APPLY_FORM_EMBED_SRC =
+  "https://docs.google.com/forms/d/e/1FAIpQLSfBFkDYfOIqNxHxoJKFVA_izf3MRaHCKeJOe6RSGxHzN1FDqw/viewform?embedded=true";
 
 // Every unfocused cover turns the same way, so the rail reads as one shelf of
 // records instead of a mirrored fan. The turn is a flat squeeze rather than a
@@ -2387,16 +2389,13 @@ export default function HomePage({
             className="m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="apply-cta-title"
           >
-            Applications opening soon
+            Applications are open
           </h2>
-        </ScrollReveal>
-        <ScrollReveal className="apply-follow" delay={80}>
           <div className="grid w-full max-w-[54ch] gap-5 text-base leading-[1.6] text-ink">
             <p className="m-0 text-pretty">
-              We'll be opening up applications for the next Design Meetup member cohort soon. If you're a student or early career designer, we'd love to meet you.
+              Applications are now open for the next Design Meetup member cohort! If you&apos;re a student or early career designer, we&apos;d love to meet you.
             </p>
-            <ApplyNotifyForm />
-            <p className="m-0 mt-5 text-pretty">
+            <p className="m-0 text-pretty">
               Follow us on Instagram and Substack to stay updated!
             </p>
           </div>
@@ -2428,6 +2427,19 @@ export default function HomePage({
               Substack
             </Primary>
           </div>
+        </ScrollReveal>
+        <ScrollReveal
+          className="apply-form overflow-hidden rounded-[20px]"
+          delay={80}
+        >
+          <iframe
+            className="apply-form-frame block w-full border-0 bg-transparent"
+            src={APPLY_FORM_EMBED_SRC}
+            title="Design Meetup membership application"
+            loading="lazy"
+          >
+            Loading…
+          </iframe>
         </ScrollReveal>
       </section>
 

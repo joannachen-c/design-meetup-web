@@ -1664,15 +1664,20 @@ button.lightbox-arrow-next {
 }
 
 .apply-copy {
-  grid-column: 1 / span 8;
-}
-
-.apply-follow {
-  grid-column: 9 / span 4;
+  grid-column: 1 / span 4;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 19px;
+  gap: 28px;
+}
+
+.apply-form {
+  grid-column: 6 / span 7;
+}
+
+.apply-form-frame {
+  min-height: 720px;
+  height: min(80vh, 1800px);
 }
 
 /* Full-bleed autoscroll strip between apply and the footer. Overflow is
@@ -2141,8 +2146,13 @@ footer {
   }
 
   .apply-copy,
-  .apply-follow {
+  .apply-form {
     grid-column: 1;
+  }
+
+  .apply-form-frame {
+    min-height: 820px;
+    height: min(85vh, 2000px);
   }
 
   .partner-copy,

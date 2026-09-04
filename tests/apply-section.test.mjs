@@ -21,7 +21,7 @@ test("apply section sits between the founders note and the footer", () => {
 test("apply section embeds the membership Google Form and keeps social links", () => {
   assert.match(
     app,
-    /Applications are open for the next Design Meetup member cohort\. If you&apos;re a student or early career designer, we&apos;d love to meet you—apply below\./,
+    /Applications are now open for the next Design Meetup member cohort! If you&apos;re a student or early career designer, we&apos;d love to meet you\./,
   );
   assert.match(
     app,

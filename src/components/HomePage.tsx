@@ -2393,7 +2393,7 @@ export default function HomePage({
           </h2>
           <div className="grid w-full max-w-[54ch] gap-5 text-base leading-[1.6] text-ink">
             <p className="m-0 text-pretty">
-              Applications are open for the next Design Meetup member cohort. If you&apos;re a student or early career designer, we&apos;d love to meet you—apply below.
+              Applications are now open for the next Design Meetup member cohort! If you&apos;re a student or early career designer, we&apos;d love to meet you.
             </p>
             <p className="m-0 text-pretty">
               Follow us on Instagram and Substack to stay updated!

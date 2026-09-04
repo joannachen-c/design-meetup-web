@@ -34,11 +34,13 @@ const CITY_ALIASES = {
   "any city": "any",
 };
 
+type PartnerInterest = (typeof INTEREST_ALIASES)[keyof typeof INTEREST_ALIASES];
+
 export type ParsedPartnerInquiry = {
   firstName: string;
   lastName: string;
   email: string;
-  interest: (typeof INTEREST_ALIASES)[keyof typeof INTEREST_ALIASES];
+  interest: PartnerInterest[];
   city: (typeof CITY_ALIASES)[keyof typeof CITY_ALIASES];
   submittedAt: string | null;
   submissionId: string;
@@ -93,6 +95,30 @@ function parseSubmittedAt(value: string | undefined) {
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
+const PARTNER_INTEREST_KEYS = [
+  "sponsor",
+  "panelist",
+  "judge",
+  "venue",
+  "advisor",
+] as PartnerInterest[];
+
+function parseInterests(value: string): PartnerInterest[] | null {
+  const parts = value
+    .split(/,|\band\b/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length === 0) return null;
+  const unique = new Set<PartnerInterest>();
+  for (const part of parts) {
+    const alias = lookupAlias(part, INTEREST_ALIASES);
+    if (!alias) return null;
+    unique.add(alias);
+  }
+  if (unique.size === 0) return null;
+  return PARTNER_INTEREST_KEYS.filter((key) => unique.has(key));
+}
+
 /**
  * Parse the internal "New partner inquiry" notification the form emails
  * to Design Meetup. Visitor receipts and unrelated mail return null.
@@ -114,9 +140,7 @@ export function parsePartnerInquiryEmail(
   }
 
   const email = normalizeEmail(fields.email ?? "");
-  const interest = fields.interest
-    ? lookupAlias(fields.interest, INTEREST_ALIASES)
-    : null;
+  const interest = fields.interest ? parseInterests(fields.interest) : null;
   const city = fields.city ? lookupAlias(fields.city, CITY_ALIASES) : null;
   const name = normalizeName(fields.name ?? "");
   if (!email || !interest || !city || !name) return null;
@@ -135,7 +159,7 @@ export function parsePartnerInquiryEmail(
     submittedAt,
     submissionId: historicalInquiryId({
       email,
-      interest,
+      interest: interest.join(","),
       city,
       firstName,
       lastName,

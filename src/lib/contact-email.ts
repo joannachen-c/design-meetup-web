@@ -37,11 +37,45 @@ type ContactCity = keyof typeof contactCityOptions;
 export type ContactSubmission = {
   firstName: string;
   lastName: string;
-  interest: ContactInterest;
+  interest: ContactInterest[];
   city: ContactCity;
   email: string;
   submissionId: string;
 };
+
+const CONTACT_INTEREST_KEYS = Object.keys(
+  contactInterestOptions,
+) as ContactInterest[];
+
+/** Normalize one or many interest values into option order; reject empties/unknowns. */
+export function normalizeContactInterests(
+  value: unknown,
+): ContactInterest[] | null {
+  const raw = Array.isArray(value) ? value : typeof value === "string" ? [value] : null;
+  if (!raw || raw.length === 0) return null;
+  const unique = new Set<string>();
+  for (const entry of raw) {
+    if (typeof entry !== "string" || !(entry in contactInterestOptions)) {
+      return null;
+    }
+    unique.add(entry);
+  }
+  if (unique.size === 0) return null;
+  return CONTACT_INTEREST_KEYS.filter((key) => unique.has(key));
+}
+
+export function formatInterestLabels(interests: ContactInterest[]) {
+  return interests.map((key) => contactInterestOptions[key].label).join(", ");
+}
+
+export function formatInterestSubjects(interests: ContactInterest[]) {
+  return interests.map((key) => contactInterestOptions[key].subject).join(" + ");
+}
+
+export function serializeInterests(interests: ContactInterest[]) {
+  return interests.join(",");
+}
+
 
 type ContactEmail = {
   to: string;
@@ -65,12 +99,12 @@ export function validateContactSubmission(
   const firstName = normalizeName(record.firstName);
   const lastName = normalizeName(record.lastName);
   const email = normalizeEmail(record.email);
-  const interest = record.interest;
+  const interest = normalizeContactInterests(record.interest);
   const city = record.city;
   const submissionId = record.submissionId;
 
   if (!firstName || !lastName || !email) return null;
-  if (typeof interest !== "string" || !(interest in contactInterestOptions)) {
+  if (!interest) {
     return null;
   }
   if (typeof city !== "string" || !(city in contactCityOptions)) {
@@ -83,7 +117,7 @@ export function validateContactSubmission(
   return {
     firstName,
     lastName,
-    interest: interest as ContactInterest,
+    interest,
     city: city as ContactCity,
     email,
     submissionId,
@@ -93,16 +127,16 @@ export function validateContactSubmission(
 export function buildContactEmailBatch(
   submission: ContactSubmission,
 ): ContactEmail[] {
-  const interest = contactInterestOptions[submission.interest];
+  const interestLabel = formatInterestLabels(submission.interest);
   const city = contactCityOptions[submission.city];
   const fullName = `${submission.firstName} ${submission.lastName}`;
-  const subject = `${siteName} — ${interest.subject}`;
+  const subject = `${siteName} — ${formatInterestSubjects(submission.interest)}`;
   const internalText = [
     "New partner inquiry",
     "",
     `Name: ${fullName}`,
     `Email: ${submission.email}`,
-    `Interest: ${interest.label}`,
+    `Interest: ${interestLabel}`,
     `City: ${city}`,
     `Submitted: ${new Date().toISOString()}`,
   ].join("\n");
@@ -112,7 +146,7 @@ export function buildContactEmailBatch(
     "Thanks so much for reaching out to Design Meetup! We’re excited to learn more about what you have in mind and will get back to you soon.",
     "",
     "Your request:",
-    `Interest: ${interest.label}`,
+    `Interest: ${interestLabel}`,
     `City: ${city}`,
     `Email: ${submission.email}`,
     "",

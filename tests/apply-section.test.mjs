@@ -32,6 +32,10 @@ test("apply section embeds the membership Google Form and keeps social links", (
   assert.match(app, new RegExp(APPLY_FORM_EMBED.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(
     app,
+    /<ScrollReveal[\s\S]*className="[^"]*\bapply-form\b[^"]*\boverflow-hidden\b[^"]*"[\s\S]*delay=\{80\}/,
+  );
+  assert.match(
+    app,
     /<iframe[\s\S]*className="[^"]*\bapply-form-frame\b[^"]*"[\s\S]*src=\{APPLY_FORM_EMBED_SRC\}[\s\S]*title="Design Meetup membership application"/,
   );
   assert.match(
@@ -59,7 +63,18 @@ test("apply section uses the shared responsive twelve-column layout with form em
   );
   assert.match(css, /\.apply-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 4;/s);
   assert.match(css, /\.apply-form\s*\{[^}]*grid-column:\s*6\s*\/\s*span 7;/s);
-  assert.match(css, /\.apply-form-frame\s*\{[^}]*min-height:\s*720px;/s);
+  assert.match(
+    css,
+    /\.apply-form\s*\{[^}]*--apply-form-footer-clip:\s*56px;/s,
+  );
+  assert.match(
+    css,
+    /\.apply-form-frame\s*\{[^}]*min-height:\s*calc\(720px \+ var\(--apply-form-footer-clip\)\);/s,
+  );
+  assert.match(
+    css,
+    /\.apply-form-frame\s*\{[^}]*margin-bottom:\s*calc\(-1 \* var\(--apply-form-footer-clip\)\);/s,
+  );
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*\.apply-cta\s*\{[^}]*grid-template-columns:\s*1fr;/s,

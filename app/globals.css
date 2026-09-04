@@ -1673,11 +1673,15 @@ button.lightbox-arrow-next {
 
 .apply-form {
   grid-column: 6 / span 7;
+  /* Crops the Google Forms Workspace footer ("created inside of Cornell").
+     The frame is extended by the same amount so Submit stays fully visible. */
+  --apply-form-footer-clip: 56px;
 }
 
 .apply-form-frame {
-  min-height: 720px;
-  height: min(80vh, 1800px);
+  min-height: calc(720px + var(--apply-form-footer-clip));
+  height: calc(min(80vh, 1800px) + var(--apply-form-footer-clip));
+  margin-bottom: calc(-1 * var(--apply-form-footer-clip));
 }
 
 /* Full-bleed autoscroll strip between apply and the footer. Overflow is
@@ -2151,8 +2155,8 @@ footer {
   }
 
   .apply-form-frame {
-    min-height: 820px;
-    height: min(85vh, 2000px);
+    min-height: calc(820px + var(--apply-form-footer-clip));
+    height: calc(min(85vh, 2000px) + var(--apply-form-footer-clip));
   }
 
   .partner-copy,

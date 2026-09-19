@@ -2387,7 +2387,9 @@ export default function HomePage({
             className="m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="apply-cta-title"
           >
-            Applications opening soon
+            Applications
+            <br />
+            opening soon
           </h2>
         </ScrollReveal>
         <ScrollReveal className="apply-follow" delay={80}>

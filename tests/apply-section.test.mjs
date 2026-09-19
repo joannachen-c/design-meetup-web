@@ -26,7 +26,14 @@ const migration = await readFile(
 test("apply section sits between the founders note and the footer", () => {
   assert.match(
     app,
-    /<FoundersNote \/>\s*<section[\s\S]*className="[^"]*\bapply-cta\b[^"]*"[\s\S]*id="apply"[\s\S]*>\s*[\s\S]*>\s*Applications opening soon\s*<\/h2>[\s\S]*<\/section>\s*<PhotoMarquee events=\{events\} \/>\s*<SiteFooter \/>/,
+    /<FoundersNote \/>\s*<section[\s\S]*className="[^"]*\bapply-cta\b[^"]*"[\s\S]*id="apply"[\s\S]*>\s*[\s\S]*>\s*Applications\s*<br \/>\s*opening soon\s*<\/h2>[\s\S]*<\/section>\s*<PhotoMarquee events=\{events\} \/>\s*<SiteFooter \/>/,
+  );
+});
+
+test("apply heading breaks before opening soon", () => {
+  assert.match(
+    app,
+    /id="apply-cta-title"[\s\S]*>\s*Applications\s*<br \/>\s*opening soon\s*<\/h2>/,
   );
 });
 

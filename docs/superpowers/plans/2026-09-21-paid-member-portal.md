@@ -5,8 +5,10 @@
 > `docs/superpowers/specs/2026-09-21-paid-member-portal-design.md` exactly for
 > product/architecture decisions unless the team updates that spec first.
 
-**Goal:** Ship authenticated membership with `$10/mo` Community and `$35/mo`
-Core tiers via Stripe, plus a gated `/portal` on the existing Next.js site.
+**Goal:** Ship authenticated membership with `$10/mo` Student and `$35/mo`
+Professional tiers via Stripe, plus a gated `/portal` on the existing Next.js site.
+UI follows the Design Meetup v2 portal mock (login split layout, sticky portal nav,
+membership summary).
 
 **Architecture:** Supabase Auth (identity) + Stripe Checkout / Customer Portal /
 webhooks (billing) + `profiles` / `memberships` tables (access). Public marketing

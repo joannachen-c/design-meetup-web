@@ -10,6 +10,7 @@ export const homeHeaderLinks: SiteHeaderLink[] = [
   { href: "#about", label: "About" },
   { href: "#sponsor", label: "Sponsor" },
   { href: "#apply", label: "Join Us" },
+  { href: "/login", label: "Members" },
 ];
 
 const navLinkClassName =

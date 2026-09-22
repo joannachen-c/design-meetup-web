@@ -3,10 +3,10 @@
 ## Goal
 
 Add authenticated membership on the Design Meetup site with two paid tiers
-charged monthly through Stripe:
+charged monthly through Stripe (names match the Design Meetup v2 portal mock):
 
-- **Community** — `$10 / month`
-- **Core** — `$35 / month`
+- **Student** — `$10 / month`
+- **Professional** — `$35 / month`
 
 Logged-in members with an active subscription can access a members portal and
 tier-gated benefits. The public marketing site stays free.
@@ -32,8 +32,8 @@ but launch copy and gating depend on them:
 
 | Decision | Options / notes |
 |---|---|
-| What Community ($10) includes | e.g. Discord, newsletter extras, member directory |
-| What Core ($35) includes | e.g. everything in Community + priority RSVP, office hours, merch |
+| What Student ($10) includes | mock default: directory, coworking, member events, job leads |
+| What Professional ($35) includes | mock default: everything in Student + warm intros to design leads |
 | Free trial? | 0 / 7 / 14 days |
 | Student discount? | Coupon, separate Price, or none |
 | Cancel policy | Immediate vs end-of-period access |
@@ -61,8 +61,8 @@ Supabase
 
 Stripe
   ├─ Product: Design Meetup Membership
-  ├─ Price: community_monthly ($10)
-  ├─ Price: core_monthly ($35)
+  ├─ Price: student_monthly ($10)
+  ├─ Price: professional_monthly ($35)
   └─ Customer Portal enabled
 ```
 
@@ -129,7 +129,7 @@ Created on first signup (trigger or app upsert).
 |---|---|---|
 | `id` | uuid PK | |
 | `user_id` | uuid FK → profiles | unique for v1 |
-| `tier` | text | `community` \| `core` |
+| `tier` | text | `student` \| `professional` |
 | `status` | text | see above |
 | `stripe_subscription_id` | text unique nullable | |
 | `stripe_price_id` | text | |
@@ -162,8 +162,8 @@ SUPABASE_SERVICE_ROLE_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_PRICE_COMMUNITY_MONTHLY=
-STRIPE_PRICE_CORE_MONTHLY=
+STRIPE_PRICE_STUDENT_MONTHLY=
+STRIPE_PRICE_PROFESSIONAL_MONTHLY=
 NEXT_PUBLIC_SITE_URL=
 ```
 
@@ -186,8 +186,8 @@ cards with Billing ≈ **3.6% + $0.30** per successful charge.
 
 | Tier | Charge | Approx. net / member / month |
 |---|---|---|
-| Community | $10 | ~$9.30 |
-| Core | $35 | ~$33.40 |
+| Student | $10 | ~$9.30 |
+| Professional | $35 | ~$33.40 |
 
 ## Launch checklist
 

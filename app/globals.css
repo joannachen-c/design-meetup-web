@@ -66,6 +66,9 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100dvh;
+  font-family: "Alte Haas Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Balance short display copy while letting longer prose avoid a stranded final

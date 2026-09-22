@@ -1,15 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, type FormEvent } from "react";
 import { Input } from "@/components/Input";
 import { Primary } from "@/components/Primary";
-import {
-  loginAction,
-  signupAction,
-  type AuthActionState,
-} from "@/lib/auth-actions";
-
-const initial: AuthActionState = {};
 
 export function LoginForm({
   mode,
@@ -18,12 +11,48 @@ export function LoginForm({
   mode: "login" | "signup";
   nextPath: string;
 }) {
-  const action = mode === "login" ? loginAction : signupAction;
-  const [state, formAction, pending] = useActionState(action, initial);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (pending) return;
+    setPending(true);
+    setError(null);
+
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") || "").trim();
+    const password = String(form.get("password") || "");
+
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode,
+          email,
+          password,
+          next: nextPath,
+        }),
+      });
+      const payload = (await response.json()) as {
+        error?: string;
+        url?: string;
+      };
+      if (!response.ok || !payload.url) {
+        setError(payload.error || "Something went wrong.");
+        setPending(false);
+        return;
+      }
+      window.location.href = payload.url;
+    } catch {
+      setError("Something went wrong.");
+      setPending(false);
+    }
+  }
 
   return (
-    <form action={formAction} className="grid gap-6">
-      <input type="hidden" name="next" value={nextPath} />
+    <form onSubmit={onSubmit} className="grid gap-6">
       <label className="grid gap-2">
         <span className="text-sm font-bold text-muted">email address</span>
         <Input
@@ -45,9 +74,9 @@ export function LoginForm({
           placeholder="••••••••"
         />
       </label>
-      {state.error ? (
+      {error ? (
         <p className="m-0 text-base text-red-700" role="alert">
-          {state.error}
+          {error}
         </p>
       ) : null}
       <div className="mt-2 flex flex-wrap items-center gap-3">

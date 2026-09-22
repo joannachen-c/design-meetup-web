@@ -14,7 +14,7 @@ export const homeHeaderLinks: SiteHeaderLink[] = [
 ];
 
 const navLinkClassName =
-  "text-medium text-base text-subtle no-underline hover:text-ink focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4";
+  "whitespace-nowrap text-medium text-base text-subtle no-underline hover:text-ink focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4";
 
 export function SiteHeader({
   homeHref = "/",

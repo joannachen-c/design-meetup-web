@@ -186,7 +186,7 @@ html.is-loading body {
 }
 
 .site-header > :last-child {
-  grid-column: 9 / span 4;
+  grid-column: 6 / span 7;
   justify-self: end;
 }
 
@@ -206,7 +206,8 @@ html.is-loading body {
 
 .primary-navigation {
   display: flex;
-  gap: clamp(18px, 3vw, 42px);
+  flex-wrap: nowrap;
+  gap: clamp(14px, 2.2vw, 36px);
 }
 
 .site-header > .design-system-navigation {

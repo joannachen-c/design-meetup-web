@@ -58,6 +58,7 @@ test("homepage header navigation uses sentence case labels", () => {
   }
 
   assert.match(header, /\{ href: "\/login", label: "Members" \}/);
+  assert.match(header, /whitespace-nowrap/);
 
   assert.doesNotMatch(header, /label: "CALENDAR"/);
   assert.doesNotMatch(header, /label: "ABOUT"/);
@@ -112,7 +113,7 @@ test("shared header nav links use text-medium with logo sizing and reduced top p
   );
   assert.match(
     header,
-    /const navLinkClassName =\s*"text-medium text-base text-subtle/
+    /const navLinkClassName =\s*"(?:whitespace-nowrap )?text-medium text-base text-subtle/,
   );
   assert.match(
     css,

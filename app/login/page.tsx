@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { AuthMemberPhoto } from "@/components/portal/AuthMemberPhoto";
 import { LoginForm } from "@/components/portal/LoginForm";
 import { getSessionUser } from "@/lib/auth";
 
@@ -47,13 +48,7 @@ export default async function LoginPage({
           <span>members portal</span>
         </div>
       </div>
-      <div className="hidden min-w-0 p-[clamp(16px,2vw,30px)] pr-[clamp(20px,6vw,96px)] pl-[clamp(16px,2vw,24px)] lg:flex">
-        <div className="flex min-h-[320px] flex-1 items-end rounded-[11px] bg-skeleton p-6">
-          <span className="text-sm font-bold text-subtle">
-            member photograph
-          </span>
-        </div>
-      </div>
+      <AuthMemberPhoto />
     </div>
   );
 }

@@ -4,9 +4,9 @@
   "description": "Official website for Design Meetup",
   "type": "module",
   "scripts": {
-    "dev": "next dev -p 5001",
+    "dev": "next dev -H 0.0.0.0 -p 5001",
     "build": "next build",
-    "start": "next start -p 5001",
+    "start": "next start -H 0.0.0.0 -p 5001",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "seed:events": "node scripts/seed-events.mjs",
     "seed:galleries": "node scripts/seed-galleries.mjs",

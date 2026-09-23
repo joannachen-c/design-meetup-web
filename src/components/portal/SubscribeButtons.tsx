@@ -6,8 +6,10 @@ import { TIER_CATALOG, type Tier } from "@/lib/membership";
 
 export function SubscribeButtons({
   currentTier = null,
+  memberName = null,
 }: {
   currentTier?: Tier | null;
+  memberName?: string | null;
 }) {
   const [busy, setBusy] = useState<Tier | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,13 +25,13 @@ export function SubscribeButtons({
       });
       const payload = (await response.json()) as { url?: string; error?: string };
       if (!response.ok || !payload.url) {
-        setError(payload.error || "Could not start checkout.");
+        setError(payload.error || "could not start checkout.");
         setBusy(null);
         return;
       }
       window.location.href = payload.url;
     } catch {
-      setError("Could not start checkout.");
+      setError("could not start checkout.");
       setBusy(null);
     }
   }
@@ -44,33 +46,43 @@ export function SubscribeButtons({
             currentTier === "student" && tier === "professional";
           const isDowngrade =
             currentTier === "professional" && tier === "student";
-          let cta = "Choose plan";
-          if (isCurrent) cta = "Current plan";
-          else if (isUpgradeTarget) cta = "Upgrade";
-          else if (isDowngrade) cta = "Switch to Student";
-          else if (!currentTier) cta = "Get started";
+          let cta = "choose plan";
+          if (isCurrent) cta = "current plan";
+          else if (isUpgradeTarget) cta = "upgrade";
+          else if (isDowngrade) cta = "switch to student";
+          else if (!currentTier) cta = "get started";
 
           return (
             <div
               key={tier}
               className={[
-                "flex flex-col gap-6 rounded-[11px] border p-6",
+                "flex flex-col gap-6 rounded-[11px] border p-6 lowercase",
                 isCurrent
                   ? "border-ink bg-ink text-white"
                   : "border-gray-200 bg-white text-ink",
               ].join(" ")}
             >
+              {memberName ? (
+                <p
+                  className={[
+                    "m-0 text-base",
+                    isCurrent ? "text-white/55" : "text-subtle",
+                  ].join(" ")}
+                >
+                  {memberName}
+                </p>
+              ) : null}
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xl font-bold tracking-[-0.04em]">
                   {catalog.name}
                 </span>
                 {isCurrent ? (
                   <span className="text-sm font-bold text-accent-primary">
-                    Current
+                    current
                   </span>
                 ) : null}
               </div>
-              <div className="text-[32px] font-bold leading-[1.02] tracking-[-0.06em]">
+              <div className="text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
                 {catalog.priceLabel}
               </div>
               <p
@@ -82,7 +94,7 @@ export function SubscribeButtons({
                 {catalog.body}
               </p>
               <Primary
-                className="mt-auto"
+                className="mt-auto lowercase"
                 variant={isCurrent ? "secondary" : "ink"}
                 disabled={isCurrent || busy != null}
                 loading={busy === tier}
@@ -95,7 +107,7 @@ export function SubscribeButtons({
         })}
       </div>
       {error ? (
-        <p className="m-0 text-base text-red-700" role="alert">
+        <p className="m-0 text-base lowercase text-red-700" role="alert">
           {error}
         </p>
       ) : null}

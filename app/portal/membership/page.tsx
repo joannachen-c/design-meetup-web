@@ -8,6 +8,7 @@ import { TIER_CATALOG } from "@/lib/membership";
 import {
   ensureProfile,
   getMembership,
+  getProfile,
   stripeConfigured,
   userHasPortalAccess,
 } from "@/lib/membership-service";
@@ -28,6 +29,7 @@ export default async function MembershipPage({
   if (!hasAccess) redirect("/portal/subscribe");
 
   const membership = await getMembership(user.id);
+  const profile = await getProfile(user.id);
   const params = await searchParams;
   if (!membership) redirect("/portal/subscribe");
 
@@ -49,31 +51,36 @@ export default async function MembershipPage({
     {
       label: "status",
       value: membership.status,
-      note: membership.cancelAtPeriodEnd ? "Cancels at period end" : "Renews automatically",
+      note: membership.cancelAtPeriodEnd
+        ? "cancels at period end"
+        : "renews automatically",
     },
     {
       label: "billing renews",
       value: renews,
-      note: stripeConfigured() ? "Stripe Billing" : "Local mock period",
+      note: stripeConfigured() ? "stripe billing" : "local mock period",
     },
   ];
 
   return (
-    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(24px,3vw,40px)] pb-24">
+    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(24px,3vw,40px)] pb-24 lowercase">
       <Link
         href="/portal"
         className="mb-8 inline-flex min-h-11 items-center rounded-[10px] text-base text-muted no-underline hover:text-ink"
       >
-        Back to home
+        back to home
       </Link>
       <h1 className="m-0 mb-12 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
         membership
       </h1>
 
       {params.mock_portal ? (
-        <p className="mb-8 rounded-[11px] bg-surface-muted px-4 py-3 text-base text-muted" role="status">
-          Stripe Customer Portal needs live/test Stripe keys. Locally, change
-          plans below or manage billing once keys are added.
+        <p
+          className="mb-8 rounded-[11px] bg-surface-muted px-4 py-3 text-base text-muted"
+          role="status"
+        >
+          stripe customer portal needs a valid secret key. change plans below
+          for now.
         </p>
       ) : null}
 
@@ -81,10 +88,10 @@ export default async function MembershipPage({
         {summary.map((item) => (
           <div key={item.label} className="rounded-[11px] bg-surface-muted p-6">
             <p className="m-0 mb-4 text-sm font-bold text-muted">{item.label}</p>
-            <p className="m-0 text-2xl font-bold tracking-[-0.04em] leading-tight">
+            <p className="m-0 text-2xl font-bold leading-tight tracking-[-0.04em] normal-case">
               {item.value}
             </p>
-            <p className="mt-1 mb-0 text-sm text-subtle">{item.note}</p>
+            <p className="mt-1 mb-0 text-sm text-subtle normal-case">{item.note}</p>
           </div>
         ))}
       </div>
@@ -94,9 +101,12 @@ export default async function MembershipPage({
       </div>
 
       <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">
-        Change plan
+        change plan
       </h2>
-      <SubscribeButtons currentTier={membership.tier} />
+      <SubscribeButtons
+        currentTier={membership.tier}
+        memberName={profile?.displayName ?? user.email ?? null}
+      />
     </main>
   );
 }

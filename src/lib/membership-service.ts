@@ -189,6 +189,70 @@ export async function activateMockMembership(userId: string, tier: Tier) {
   });
 }
 
+/** Activate membership from a completed Checkout Session (works without webhooks). */
+export async function syncMembershipFromCheckoutSession(input: {
+  userId: string;
+  sessionId: string;
+}) {
+  const { getStripe } = await import("./stripe");
+  const stripe = getStripe();
+  if (!stripe) return null;
+
+  const session = await stripe.checkout.sessions.retrieve(input.sessionId, {
+    expand: ["subscription"],
+  });
+  if (session.payment_status !== "paid" && session.status !== "complete") {
+    return null;
+  }
+  const owner =
+    session.client_reference_id ||
+    session.metadata?.supabase_user_id ||
+    null;
+  if (owner && owner !== input.userId) return null;
+
+  const tierMeta = session.metadata?.tier;
+  let tier: Tier | null =
+    tierMeta === "student" || tierMeta === "professional" ? tierMeta : null;
+
+  const subscription =
+    typeof session.subscription === "object" && session.subscription
+      ? session.subscription
+      : null;
+  const priceId = subscription?.items?.data?.[0]?.price?.id ?? null;
+  if (!tier) {
+    tier = resolveTierFromStripePrice(priceId);
+  }
+  if (!tier) {
+    const subTier = subscription?.metadata?.tier;
+    if (subTier === "student" || subTier === "professional") tier = subTier;
+  }
+  if (!tier) return null;
+
+  const periodEndSec =
+    (subscription as { current_period_end?: number } | null)?.current_period_end ??
+    subscription?.items?.data?.[0]?.current_period_end ??
+    null;
+
+  if (session.customer && typeof session.customer === "string") {
+    await saveStripeCustomerId(input.userId, session.customer);
+  }
+
+  return upsertMembership({
+    userId: input.userId,
+    tier,
+    status: "active",
+    stripeSubscriptionId:
+      typeof session.subscription === "string"
+        ? session.subscription
+        : subscription?.id ?? null,
+    stripePriceId: priceId ?? priceIdForTier(tier),
+    currentPeriodEnd: periodEndSec
+      ? new Date(periodEndSec * 1000).toISOString()
+      : null,
+    cancelAtPeriodEnd: Boolean(subscription?.cancel_at_period_end),
+  });
+}
+
 export function resolveTierFromStripePrice(priceId: string | null | undefined) {
   return tierFromPriceId(priceId);
 }

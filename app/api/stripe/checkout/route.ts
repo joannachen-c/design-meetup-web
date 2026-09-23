@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${origin}/portal?subscribed=1`,
+    success_url: `${origin}/portal?subscribed=1&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/portal/subscribe?canceled=1`,
     client_reference_id: user.id,
     metadata: { supabase_user_id: user.id, tier },

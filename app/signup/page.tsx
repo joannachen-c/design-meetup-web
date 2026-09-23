@@ -35,11 +35,11 @@ export default async function SignupPage({
           design meetup
         </a>
         <div className="w-full max-w-[440px]">
-          <h1 className="m-0 mb-4 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
-            Join the portal.
+          <h1 className="m-0 mb-4 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em] lowercase">
+            join the portal.
           </h1>
-          <p className="mb-10 max-w-[44ch] text-base leading-normal text-muted">
-            Create an account, then choose Student ($10/mo) or Professional
+          <p className="mb-10 max-w-[44ch] text-base leading-normal text-muted lowercase">
+            create an account, then choose student ($10/mo) or professional
             ($35/mo).
           </p>
           <LoginForm mode="signup" nextPath={nextPath} />

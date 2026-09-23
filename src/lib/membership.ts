@@ -37,16 +37,16 @@ export const TIER_CATALOG: Record<
   }
 > = {
   student: {
-    name: "Student",
+    name: "student",
     priceLabel: "$10 / month",
     amountCents: 1000,
-    body: "For undergraduate and early-career designers. Guaranteed RSVP to every event (no waitlists), member directory, bi-weekly coworking, member-only events, and job leads from advisors and members.",
+    body: "for undergraduate designers. guaranteed rsvp to every event (no waitlists), member directory, bi-weekly coworking, member-only events, and job opportunities and recruiting support from advisors and members.",
   },
   professional: {
-    name: "Professional",
+    name: "professional",
     priceLabel: "$35 / month",
     amountCents: 3500,
-    body: "Everything in Student, plus personal warm intros to design leads at partner companies.",
+    body: "everything in student, plus personal warm intros to design leads at partner companies.",
   },
 };
 

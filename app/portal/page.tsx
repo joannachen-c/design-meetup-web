@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
-import { TIER_CATALOG } from "@/lib/membership";
+import { TIER_CATALOG, firstNameFromDisplay } from "@/lib/membership";
 import {
   ensureProfile,
   getMembership,
   getProfile,
+  syncMembershipFromCheckoutSession,
   userHasPortalAccess,
 } from "@/lib/membership-service";
-import { firstNameFromDisplay } from "@/lib/membership";
 
 export const metadata: Metadata = {
   title: "Portal",
@@ -19,10 +19,24 @@ export const metadata: Metadata = {
 export default async function PortalHomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ subscribed?: string; mock?: string; tier?: string }>;
+  searchParams: Promise<{
+    subscribed?: string;
+    mock?: string;
+    tier?: string;
+    session_id?: string;
+  }>;
 }) {
   const user = await requireUser("/portal");
   await ensureProfile({ id: user.id, email: user.email });
+  const params = await searchParams;
+
+  if (params.session_id) {
+    await syncMembershipFromCheckoutSession({
+      userId: user.id,
+      sessionId: params.session_id,
+    });
+  }
+
   const hasAccess = await userHasPortalAccess(user.id);
   if (!hasAccess) redirect("/portal/subscribe");
 
@@ -32,10 +46,9 @@ export default async function PortalHomePage({
     profile?.displayName,
     user.email || "member",
   );
-  const params = await searchParams;
   const tierLabel = membership
     ? TIER_CATALOG[membership.tier].name
-    : "Member";
+    : "member";
 
   const todayLabel = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -47,21 +60,21 @@ export default async function PortalHomePage({
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24">
       {params.subscribed ? (
         <p
-          className="mb-8 rounded-[11px] bg-accent-primary px-4 py-3 text-base text-ink"
+          className="mb-8 rounded-[11px] bg-accent-primary px-4 py-3 text-base lowercase text-ink"
           role="status"
         >
           {params.mock
-            ? `Local mock checkout activated ${params.tier || membership?.tier || "your"} plan. Add Stripe test keys for real Billing.`
-            : "Welcome — your membership is active."}
+            ? `local mock checkout activated ${params.tier || membership?.tier || "your"} plan. add a stripe secret key for real billing.`
+            : "welcome — your membership is active."}
         </p>
       ) : null}
 
       <div className="mb-12 grid items-end gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
-        <h1 className="m-0 text-[clamp(2rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
+        <h1 className="m-0 text-[clamp(2rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance lowercase">
           welcome back, {firstName.toLowerCase()}.
         </h1>
-        <p className="m-0 max-w-[44ch] text-base leading-normal text-muted">
-          {todayLabel}. You&apos;re on the {tierLabel} plan.
+        <p className="m-0 max-w-[44ch] text-base leading-normal text-muted lowercase">
+          {todayLabel.toLowerCase()}. you&apos;re on the {tierLabel} plan.
         </p>
       </div>
 
@@ -87,11 +100,11 @@ export default async function PortalHomePage({
             </svg>
           </span>
           <span className="block">
-            <span className="mb-2 block text-2xl font-bold tracking-[-0.04em]">
+            <span className="mb-2 block text-2xl font-bold tracking-[-0.04em] lowercase">
               membership
             </span>
-            <span className="block text-base leading-normal text-muted">
-              Tier, renewal date, payment method, and plan changes.
+            <span className="block text-base leading-normal text-muted lowercase">
+              tier, renewal date, payment method, and plan changes.
             </span>
           </span>
         </Link>
@@ -114,11 +127,11 @@ export default async function PortalHomePage({
             </svg>
           </span>
           <span className="block">
-            <span className="mb-2 block text-2xl font-bold tracking-[-0.04em]">
+            <span className="mb-2 block text-2xl font-bold tracking-[-0.04em] lowercase">
               your profile
             </span>
-            <span className="block text-base leading-normal text-muted">
-              Coming next — update where you work and what people should reach
+            <span className="block text-base leading-normal text-muted lowercase">
+              coming next — update where you work and what people should reach
               out about.
             </span>
           </span>
@@ -132,19 +145,15 @@ export default async function PortalHomePage({
                 strokeWidth="1.75"
                 strokeLinejoin="round"
               />
-              <path
-                d="M12 6.5V21"
-                stroke="currentColor"
-                strokeWidth="1.75"
-              />
+              <path d="M12 6.5V21" stroke="currentColor" strokeWidth="1.75" />
             </svg>
           </span>
           <span className="block">
-            <span className="mb-2 block text-2xl font-bold tracking-[-0.04em]">
+            <span className="mb-2 block text-2xl font-bold tracking-[-0.04em] lowercase">
               member directory
             </span>
-            <span className="block text-base leading-normal text-muted">
-              Coming next — browse members by role, location, and company.
+            <span className="block text-base leading-normal text-muted lowercase">
+              coming next — browse members by role, location, and company.
             </span>
           </span>
         </div>

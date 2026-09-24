@@ -1990,12 +1990,12 @@ export default function HomePage({
                       {selectedEvent.date_label}
                     </span>
                   </p>
-                  <ul
-                    className="detail-chips m-0 gap-2.5 p-0 max-[820px]:mt-0.5"
-                    aria-label="Sponsors"
-                  >
-                    {sponsors.length > 0 ? (
-                      sponsors.map((sponsor) => {
+                  {sponsors.length > 0 ? (
+                    <ul
+                      className="detail-chips m-0 gap-2.5 p-0 max-[820px]:mt-0.5"
+                      aria-label="Sponsors"
+                    >
+                      {sponsors.map((sponsor) => {
                         const chipContent = (
                           <>
                             <span className="sr-only">Sponsor: </span>
@@ -2030,15 +2030,9 @@ export default function HomePage({
                             )}
                           </li>
                         );
-                      })
-                    ) : (
-                      <li>
-                        <Chip className="sponsor-placeholder" variant="outline">
-                          Sponsor slot open
-                        </Chip>
-                      </li>
-                    )}
-                  </ul>
+                      })}
+                    </ul>
+                  ) : null}
                 </div>
               </div>
               {showEventGallery || showPhotosComingSoon ? (

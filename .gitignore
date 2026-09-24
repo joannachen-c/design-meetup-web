@@ -14,5 +14,6 @@ tsconfig.tsbuildinfo
 # recap sets we want to keep are opted back in one folder at a time.
 scripts/data/event-galleries/*
 !scripts/data/event-galleries/design-meetup-cafe-with-rivet/
+!scripts/data/event-galleries/nyc-designers-walk-design-meetup-x-design-humans/
 
 .qa-shots/

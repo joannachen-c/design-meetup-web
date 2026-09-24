@@ -150,3 +150,28 @@ test("the Rivet cafe recap set is checked in under its storage slug", async () =
     "08-cafe-floor.jpg",
   ]);
 });
+
+test("the NYC Designers Walk recap set is checked in under its storage slug", async () => {
+  // Same contract as Rivet: folder name = slugify(title). The walk title is
+  // fixed on Luma / in Supabase even when past-events.json is still catching up.
+  const title = "NYC Designers Walk: Design Meetup x Design Humans";
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  assert.equal(slug, "nyc-designers-walk-design-meetup-x-design-humans");
+
+  const dir = path.join(root, "scripts/data/event-galleries", slug);
+  await access(dir);
+
+  const images = (await readdir(dir)).filter((name) => /\.jpe?g$/i.test(name));
+  assert.equal(images.length, 6);
+  assert.deepEqual(images.sort(), [
+    "01-group-photo.jpg",
+    "02-route-stats.jpg",
+    "03-high-line-and-hudson.jpg",
+    "04-stairs-ascent.jpg",
+    "05-walking-and-friends.jpg",
+    "06-welcome-designers.jpg",
+  ]);
+});

@@ -505,8 +505,17 @@ test("all local event summaries contain retained line breaks and html", () => {
   // grows. luma-calendar-sync.test.mjs is what guards the roster itself.
   assert.ok(events.length > 0);
   for (const event of events) {
-    assert.match(event.summary, /\n/);
+    assert.ok(event.summary.trim().length > 0, `${event.title} summary`);
     assert.match(event.summary_html, /<(?:p|h2|ul|blockquote)\b/);
+    // Multi-block Luma descriptions keep newlines in the plain summary.
+    // Short single-paragraph blurbs (one <p>, no breaks) are allowed as-is —
+    // the NYC Designers Walk page is just one sentence on Luma.
+    const hasMultipleBlocks =
+      (event.summary_html.match(/<(?:p|h2|ul|blockquote)\b/g) ?? []).length >
+        1 || /<br\s*\/?>/i.test(event.summary_html);
+    if (hasMultipleBlocks) {
+      assert.match(event.summary, /\n/);
+    }
     assert.doesNotMatch(event.summary, /MadiJiabao|open6:00/);
     assert.doesNotMatch(
       event.summary,

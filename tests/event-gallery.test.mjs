@@ -150,3 +150,30 @@ test("the Rivet cafe recap set is checked in under its storage slug", async () =
     "08-cafe-floor.jpg",
   ]);
 });
+
+test("the Apple recap set is checked in under its storage slug", async () => {
+  const events = JSON.parse(
+    await readFile(path.join(root, "scripts/data/past-events.json"), "utf8"),
+  );
+  const apple = events.find(
+    (event) => event.luma_event_id === "evt-5jyqRlxoMzcl4DX",
+  );
+  assert.equal(apple.title, "Design Meetup x Apple");
+
+  const slug = apple.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const dir = path.join(root, "scripts/data/event-galleries", slug);
+  await access(dir);
+
+  const images = (await readdir(dir)).filter((name) => /\.jpe?g$/i.test(name));
+  assert.deepEqual(images.sort(), [
+    "01-recap-postcard.jpg",
+    "02-fireside-panel.jpg",
+    "03-mingling.jpg",
+    "04-team-on-stage.jpg",
+    "05-group-photos.jpg",
+    "06-thank-you-for-coming.jpg",
+  ]);
+});

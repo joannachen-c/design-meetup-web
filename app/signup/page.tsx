@@ -1,0 +1,55 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { AuthMemberPhoto } from "@/components/portal/AuthMemberPhoto";
+import { LoginForm } from "@/components/portal/LoginForm";
+import { getSessionUser } from "@/lib/auth";
+
+export const metadata: Metadata = {
+  title: "Create account",
+  robots: { index: false, follow: false },
+};
+
+function nextFromSearch(raw: string | string[] | undefined) {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (!value || !value.startsWith("/")) return "/portal/subscribe";
+  return value;
+}
+
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  const user = await getSessionUser();
+  const params = await searchParams;
+  const nextPath = nextFromSearch(params.next);
+  if (user) redirect(nextPath);
+
+  return (
+    <div className="grid min-h-dvh bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
+      <div className="flex min-w-0 flex-col justify-between gap-16 px-[clamp(20px,6vw,96px)] pt-[clamp(16px,2vw,30px)] pb-12">
+        <a
+          href="/"
+          className="text-xl font-bold leading-none tracking-[-0.06em] text-ink no-underline"
+        >
+          design meetup
+        </a>
+        <div className="w-full max-w-[440px]">
+          <h1 className="m-0 mb-4 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em] lowercase">
+            join the portal.
+          </h1>
+          <p className="mb-10 max-w-[44ch] text-base leading-normal text-muted lowercase">
+            create an account, then choose student ($10/mo) or professional
+            ($35/mo).
+          </p>
+          <LoginForm mode="signup" nextPath={nextPath} />
+        </div>
+        <div className="flex gap-6 text-sm text-subtle">
+          <span>designmeetup.info</span>
+          <span>members portal</span>
+        </div>
+      </div>
+      <AuthMemberPhoto />
+    </div>
+  );
+}

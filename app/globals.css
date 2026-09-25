@@ -66,6 +66,9 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100dvh;
+  font-family: "Alte Haas Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Balance short display copy while letting longer prose avoid a stranded final
@@ -183,7 +186,7 @@ html.is-loading body {
 }
 
 .site-header > :last-child {
-  grid-column: 9 / span 4;
+  grid-column: 6 / span 7;
   justify-self: end;
 }
 
@@ -203,7 +206,8 @@ html.is-loading body {
 
 .primary-navigation {
   display: flex;
-  gap: clamp(18px, 3vw, 42px);
+  flex-wrap: nowrap;
+  gap: clamp(14px, 2.2vw, 36px);
 }
 
 .site-header > .design-system-navigation {

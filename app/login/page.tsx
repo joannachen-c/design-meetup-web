@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthMemberPhoto } from "@/components/portal/AuthMemberPhoto";
-import { DemoLoginButton } from "@/components/portal/DemoLoginButton";
 import { LoginForm } from "@/components/portal/LoginForm";
 import { getSessionUser } from "@/lib/auth";
 
@@ -46,19 +45,15 @@ export default async function LoginPage({
         </a>
         <div className="flex min-h-0 flex-1 flex-col justify-center py-10">
           <div className="w-full max-w-[440px]">
-            <h1 className="m-0 mb-4 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
-              Welcome back.
+            <h1 className="m-0 mb-10 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em] lowercase">
+              welcome back.
             </h1>
-            <p className="mb-10 max-w-[44ch] text-base leading-normal text-muted">
-              Sign in to update your profile and browse the member directory.
-            </p>
             {errorParam ? (
               <p className="mb-6 m-0 text-base text-red-700" role="alert">
                 {errorParam}
               </p>
             ) : null}
             <LoginForm mode="login" nextPath={nextPath} />
-            <DemoLoginButton nextPath={nextPath} />
           </div>
         </div>
       </div>

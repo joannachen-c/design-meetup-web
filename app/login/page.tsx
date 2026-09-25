@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthMemberPhoto } from "@/components/portal/AuthMemberPhoto";
+import { DemoLoginButton } from "@/components/portal/DemoLoginButton";
 import { LoginForm } from "@/components/portal/LoginForm";
 import { getSessionUser } from "@/lib/auth";
 
@@ -18,12 +19,13 @@ function nextFromSearch(raw: string | string[] | undefined) {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string | string[] }>;
+  searchParams: Promise<{ next?: string | string[]; error?: string | string[] }>;
 }) {
   const user = await getSessionUser();
   const params = await searchParams;
   const nextPath = nextFromSearch(params.next);
   if (user) redirect(nextPath);
+  const errorParam = Array.isArray(params.error) ? params.error[0] : params.error;
 
   return (
     <div className="grid min-h-dvh bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
@@ -50,7 +52,13 @@ export default async function LoginPage({
             <p className="mb-10 max-w-[44ch] text-base leading-normal text-muted">
               Sign in to update your profile and browse the member directory.
             </p>
+            {errorParam ? (
+              <p className="mb-6 m-0 text-base text-red-700" role="alert">
+                {errorParam}
+              </p>
+            ) : null}
             <LoginForm mode="login" nextPath={nextPath} />
+            <DemoLoginButton nextPath={nextPath} />
           </div>
         </div>
       </div>

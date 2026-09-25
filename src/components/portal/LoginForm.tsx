@@ -14,22 +14,21 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (pending) return;
+  async function authenticate(
+    email: string,
+    password: string,
+    authMode: "login" | "signup" = mode,
+  ) {
     setPending(true);
     setError(null);
-
-    const form = new FormData(event.currentTarget);
-    const email = String(form.get("email") || "").trim();
-    const password = String(form.get("password") || "");
 
     try {
       const response = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({
-          mode,
+          mode: authMode,
           email,
           password,
           next: nextPath,
@@ -40,19 +39,53 @@ export function LoginForm({
         url?: string;
       };
       if (!response.ok || !payload.url) {
+        // Existing demo accounts should land on login, not a dead-end signup error.
+        if (
+          authMode === "signup" &&
+          /already been registered|already registered|exists/i.test(
+            payload.error || "",
+          )
+        ) {
+          setError("Account already exists — try logging in instead.");
+          setPending(false);
+          return;
+        }
         setError(payload.error || "Something went wrong.");
         setPending(false);
         return;
       }
-      window.location.href = payload.url;
+      window.location.assign(payload.url);
     } catch {
-      setError("Something went wrong.");
+      setError("Something went wrong. Check your connection and try again.");
       setPending(false);
     }
   }
 
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (pending) return;
+
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") || "").trim();
+    const password = String(form.get("password") || "");
+    if (!email || !password) {
+      setError("Enter your email and password.");
+      return;
+    }
+    await authenticate(email, password);
+  }
+
   return (
-    <form onSubmit={onSubmit} className="grid gap-6">
+    <form
+      method="post"
+      action="/api/auth"
+      onSubmit={onSubmit}
+      className="grid gap-6"
+      noValidate
+    >
+      <input type="hidden" name="mode" value={mode} />
+      <input type="hidden" name="next" value={nextPath} />
       <label className="grid gap-2">
         <span className="text-sm font-bold text-muted">email address</span>
         <Input

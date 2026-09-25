@@ -10,10 +10,11 @@ export const homeHeaderLinks: SiteHeaderLink[] = [
   { href: "#about", label: "About" },
   { href: "#sponsor", label: "Sponsor" },
   { href: "#apply", label: "Join Us" },
+  { href: "/login", label: "Members" },
 ];
 
 const navLinkClassName =
-  "text-medium text-base text-subtle no-underline hover:text-ink focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4";
+  "whitespace-nowrap text-medium text-base text-subtle no-underline hover:text-ink focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4";
 
 export function SiteHeader({
   homeHref = "/",

@@ -76,12 +76,16 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   // Browser extensions inject attributes onto html and body before React
   // hydrates, which otherwise reports a mismatch on every page load.
+  // Agentation is opt-in via AGENTATION=1 so portal demos stay clean.
+  const showAgentation =
+    process.env.NODE_ENV === "development" &&
+    process.env.AGENTATION === "1";
   return (
     <html lang="en" className="bg-surface" suppressHydrationWarning>
       <body className="bg-surface" suppressHydrationWarning>
         {children}
         <Analytics />
-        {process.env.NODE_ENV === "development" ? <AgentationDev /> : null}
+        {showAgentation ? <AgentationDev /> : null}
       </body>
     </html>
   );

@@ -51,10 +51,6 @@ export default async function LoginPage({
           </p>
           <LoginForm mode="login" nextPath={nextPath} />
         </div>
-        <div className="flex gap-6 text-sm text-subtle">
-          <span>designmeetup.info</span>
-          <span>members portal</span>
-        </div>
       </div>
       <AuthMemberPhoto />
     </div>

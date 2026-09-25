@@ -6,7 +6,6 @@ import { logoutAction } from "@/lib/auth-actions";
 
 const nav = [
   { href: "/portal", label: "Home" },
-  { href: "/portal/subscribe", label: "Plans" },
   { href: "/portal/membership", label: "Membership" },
 ] as const;
 
@@ -14,7 +13,7 @@ export function PortalHeader({ firstName }: { firstName: string }) {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-5 flex flex-wrap items-center justify-between gap-4 border-b border-[#e7e8eb] bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
+    <header className="sticky top-0 z-5 flex flex-wrap items-center justify-between gap-4 bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
       <Link
         href="/portal"
         className="text-lg font-bold leading-none tracking-[-0.06em] text-ink no-underline"
@@ -26,7 +25,10 @@ export function PortalHeader({ firstName }: { firstName: string }) {
           const on =
             item.href === "/portal"
               ? pathname === "/portal"
-              : pathname.startsWith(item.href);
+              : // Subscribe is the no-membership checkout surface of Membership.
+                pathname.startsWith(item.href) ||
+                (item.href === "/portal/membership" &&
+                  pathname.startsWith("/portal/subscribe"));
           return (
             <Link
               key={item.href}

@@ -55,6 +55,27 @@ export async function clearAuthCookies() {
   jar.set(REFRESH_COOKIE, "", cookieOptions(0));
 }
 
+/** Cookie writes are only allowed in Route Handlers / Server Actions. */
+async function trySetAuthCookies(session: {
+  access_token: string;
+  refresh_token: string;
+  expires_in?: number;
+}) {
+  try {
+    await setAuthCookies(session);
+  } catch {
+    // Ignore — page/RSC render cannot mutate cookies.
+  }
+}
+
+async function tryClearAuthCookies() {
+  try {
+    await clearAuthCookies();
+  } catch {
+    // Ignore — page/RSC render cannot mutate cookies.
+  }
+}
+
 async function refreshSession(refreshToken: string) {
   const response = await fetch(`${supabaseUrl()}/auth/v1/token?grant_type=refresh_token`, {
     method: "POST",
@@ -90,10 +111,11 @@ export async function getSessionUser(): Promise<User | null> {
   if (refresh) {
     const next = await refreshSession(refresh);
     if (!next?.access_token) {
-      await clearAuthCookies();
+      await tryClearAuthCookies();
       return null;
     }
-    await setAuthCookies(next);
+    // Persist when allowed (API/auth actions); skip silently during RSC render.
+    await trySetAuthCookies(next);
     if (next.user) return next.user;
     const { data } = await admin.auth.getUser(next.access_token);
     return data.user ?? null;

@@ -22,6 +22,7 @@ export type ProfileRecord = {
   id: string;
   email: string;
   displayName: string | null;
+  avatarUrl: string | null;
   stripeCustomerId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -101,6 +102,8 @@ export function normalizeMembershipStatus(
 }
 
 export function displayNameFromEmail(email: string) {
+  const normalized = email.trim().toLowerCase();
+  if (normalized === "demo@designmeetup.info") return "Michelle Liu";
   const local = email.split("@")[0] || "member";
   return local
     .replace(/[._-]+/g, " ")

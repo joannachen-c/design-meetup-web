@@ -109,7 +109,10 @@ export default async function PortalHomePage({
             </span>
           </span>
         </Link>
-        <div className="flex flex-col gap-16 rounded-[20px] bg-surface-muted p-6 text-left">
+        <Link
+          href="/portal/profile"
+          className="flex flex-col gap-16 rounded-[20px] bg-surface-muted p-6 text-left text-ink no-underline transition-colors hover:bg-gray-200"
+        >
           <span aria-hidden className="block text-subtle">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
               <circle
@@ -132,11 +135,10 @@ export default async function PortalHomePage({
               your profile
             </span>
             <span className="block text-base leading-normal text-muted lowercase">
-              coming next — update where you work and what people should reach
-              out about.
+              photo, name, email, and how people should reach out.
             </span>
           </span>
-        </div>
+        </Link>
         <div className="flex flex-col gap-16 rounded-[20px] bg-surface-muted p-6 text-left">
           <span aria-hidden className="block text-subtle">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none">

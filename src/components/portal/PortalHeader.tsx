@@ -9,7 +9,13 @@ const nav = [
   { href: "/portal/membership", label: "Membership" },
 ] as const;
 
-export function PortalHeader({ firstName }: { firstName: string }) {
+export function PortalHeader({
+  displayName,
+  avatarUrl,
+}: {
+  displayName: string;
+  avatarUrl?: string | null;
+}) {
   const pathname = usePathname();
 
   return (
@@ -25,8 +31,7 @@ export function PortalHeader({ firstName }: { firstName: string }) {
           const on =
             item.href === "/portal"
               ? pathname === "/portal"
-              : // Subscribe is the no-membership checkout surface of Membership.
-                pathname.startsWith(item.href) ||
+              : pathname.startsWith(item.href) ||
                 (item.href === "/portal/membership" &&
                   pathname.startsWith("/portal/subscribe"));
           return (
@@ -46,10 +51,23 @@ export function PortalHeader({ firstName }: { firstName: string }) {
         })}
       </nav>
       <div className="flex items-center gap-2">
-        <div className="flex min-h-11 items-center gap-2.5 rounded-[10px] bg-surface-muted py-1.5 pr-4 pl-1.5">
-          <span className="block size-8 rounded-lg bg-skeleton" aria-hidden />
-          <span className="text-base font-bold text-ink">{firstName}</span>
-        </div>
+        <Link
+          href="/portal/profile"
+          className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-1.5 no-underline hover:bg-surface-muted"
+        >
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className="block size-8 rounded-full object-cover"
+              width={32}
+              height={32}
+            />
+          ) : (
+            <span className="block size-8 rounded-full bg-skeleton" aria-hidden />
+          )}
+          <span className="text-base font-bold text-ink">{displayName}</span>
+        </Link>
         <form action={logoutAction}>
           <button
             type="submit"

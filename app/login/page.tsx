@@ -30,9 +30,17 @@ export default async function LoginPage({
       <div className="flex min-w-0 flex-col justify-between gap-16 px-[clamp(20px,6vw,96px)] pt-[clamp(16px,2vw,30px)] pb-12">
         <a
           href="/"
-          className="text-xl font-bold leading-none tracking-[-0.06em] text-ink no-underline"
+          className="wordmark leading-[0] no-underline focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
+          aria-label="Design Meetup home"
         >
-          design meetup
+          <img
+            className="wordmark-logo border-0 outline-none"
+            src="/design-meetup-logo.png"
+            alt=""
+            width={60}
+            height={60}
+            decoding="async"
+          />
         </a>
         <div className="w-full max-w-[440px]">
           <h1 className="m-0 mb-4 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">

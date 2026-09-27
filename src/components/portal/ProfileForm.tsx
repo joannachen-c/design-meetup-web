@@ -92,10 +92,12 @@ function SocialField({
   placeholder?: string;
 }) {
   return (
-    <label className="grid content-start gap-2">
-      <span className="text-sm font-bold text-muted">{label}</span>
+    <label className="grid content-start">
+      <span className="sr-only">{label}</span>
       <span className="flex min-h-11 items-center gap-2 rounded-[10px] bg-surface-muted px-3 focus-within:ring-2 focus-within:ring-accent-primary">
-        <span className="shrink-0 text-muted">{icon}</span>
+        <span className="shrink-0 text-muted" aria-hidden>
+          {icon}
+        </span>
         {prefix ? (
           <span className="shrink-0 text-base text-subtle">{prefix}</span>
         ) : null}
@@ -251,7 +253,9 @@ export function ProfileForm({
           className="sr-only"
           onChange={onAvatarChange}
         />
-        <p className="m-0 text-sm text-subtle">jpg, png, or webp</p>
+        {previewUrl ? null : (
+          <p className="m-0 text-sm text-subtle">jpg, png, or webp</p>
+        )}
         {avatarError ? (
           <p className="m-0 text-sm text-red-700" role="alert">
             {avatarError}

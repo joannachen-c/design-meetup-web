@@ -2,13 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { logoutAction } from "@/lib/auth-actions";
 
 const nav = [
   { href: "/portal", label: "Home" },
-  { href: "/portal/events", label: "Events" },
+  { href: "/portal/community", label: "Community" },
 ] as const;
+
+function Avatar({ url }: { url?: string | null }) {
+  return url ? (
+    <img
+      src={url}
+      alt=""
+      className="block size-8 rounded-full object-cover"
+      width={32}
+      height={32}
+    />
+  ) : (
+    <span className="block size-8 rounded-full bg-skeleton" aria-hidden />
+  );
+}
 
 export function PortalHeader({
   displayName,
@@ -23,6 +37,28 @@ export function PortalHeader({
     null,
   );
   const [pillReady, setPillReady] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointer = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    };
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
   useLayoutEffect(() => {
     const measure = () => {
@@ -99,34 +135,59 @@ export function PortalHeader({
           );
         })}
       </nav>
-      <div className="flex items-center justify-end gap-1 sm:gap-2">
+      <div className="flex items-center justify-end gap-2">
         <Link
           href="/portal/profile"
-          className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-1.5 no-underline hover:bg-surface-muted"
+          className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-1.5 no-underline hover:bg-surface-muted max-[640px]:hidden"
         >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt=""
-              className="block size-8 rounded-full object-cover"
-              width={32}
-              height={32}
-            />
-          ) : (
-            <span className="block size-8 rounded-full bg-skeleton" aria-hidden />
-          )}
-          <span className="text-base font-bold text-ink max-[640px]:sr-only">
-            {displayName}
-          </span>
+          <Avatar url={avatarUrl} />
+          <span className="text-base font-bold text-ink">{displayName}</span>
         </Link>
-        <form action={logoutAction}>
+        <form action={logoutAction} className="max-[640px]:hidden">
           <button
             type="submit"
-            className="inline-flex min-h-11 cursor-pointer items-center whitespace-nowrap rounded-[10px] border-0 bg-transparent px-4 text-base text-muted hover:bg-surface-muted hover:text-ink max-[640px]:px-2"
+            className="inline-flex min-h-11 cursor-pointer items-center whitespace-nowrap rounded-[10px] border-0 bg-transparent px-4 text-base text-muted hover:bg-surface-muted hover:text-ink"
           >
             Log out
           </button>
         </form>
+
+        <div ref={menuRef} className="relative min-[641px]:hidden">
+          <button
+            type="button"
+            className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            aria-label={`Account menu for ${displayName}`}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <Avatar url={avatarUrl} />
+          </button>
+          {menuOpen ? (
+            <div
+              role="menu"
+              className="absolute top-full right-0 z-10 mt-2 grid min-w-44 gap-1 rounded-[14px] bg-white p-1.5 shadow-[0_12px_32px_rgb(18_24_38/0.14)] ring-1 ring-black/5"
+            >
+              <Link
+                role="menuitem"
+                href="/portal/profile"
+                className="flex min-h-11 items-center rounded-[10px] px-3 text-base font-bold text-ink no-underline hover:bg-surface-muted"
+                onClick={() => setMenuOpen(false)}
+              >
+                Profile
+              </Link>
+              <form action={logoutAction}>
+                <button
+                  role="menuitem"
+                  type="submit"
+                  className="flex min-h-11 w-full cursor-pointer items-center rounded-[10px] border-0 bg-transparent px-3 text-left text-base text-muted hover:bg-surface-muted hover:text-ink"
+                >
+                  Log out
+                </button>
+              </form>
+            </div>
+          ) : null}
+        </div>
       </div>
     </header>
   );

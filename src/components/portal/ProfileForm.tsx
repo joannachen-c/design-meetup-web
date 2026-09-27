@@ -94,7 +94,7 @@ function SocialField({
       <span className="flex min-h-11 items-center gap-2 rounded-[10px] bg-surface-muted px-3 focus-within:ring-2 focus-within:ring-accent-primary">
         <span className="shrink-0 text-muted">{icon}</span>
         {prefix ? (
-          <span className="shrink-0 text-sm text-subtle">{prefix}</span>
+          <span className="shrink-0 text-base text-subtle">{prefix}</span>
         ) : null}
         <input
           name={name}
@@ -346,7 +346,7 @@ export function ProfileForm({
               label="website"
               icon={<WebsiteIcon />}
               defaultValue={initialWebsite}
-              placeholder="liumichelle.com"
+              placeholder="portfolio.com"
             />
             <SocialField
               name="instagram"

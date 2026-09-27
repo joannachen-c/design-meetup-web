@@ -26,7 +26,7 @@ export function ManageBillingButton() {
   }
 
   return (
-    <div className="grid gap-2">
+    <div className="grid shrink-0 justify-items-end gap-2">
       <Primary
         className="lowercase"
         variant="secondary"

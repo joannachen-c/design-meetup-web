@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ManageBillingButton } from "@/components/portal/ManageBillingButton";
 import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
@@ -61,16 +60,13 @@ export default async function MembershipPage({
   ];
 
   return (
-    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(24px,3vw,40px)] pb-24 lowercase">
-      <Link
-        href="/portal"
-        className="mb-8 inline-flex min-h-11 items-center rounded-[10px] text-base text-muted no-underline hover:text-ink"
-      >
-        back to home
-      </Link>
-      <h1 className="m-0 mb-12 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
-        membership
-      </h1>
+    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
+      <div className="mb-12 flex flex-wrap items-center justify-between gap-4">
+        <h1 className="m-0 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
+          membership
+        </h1>
+        <ManageBillingButton />
+      </div>
 
       {params.mock_portal ? (
         <p
@@ -92,10 +88,6 @@ export default async function MembershipPage({
             <p className="mt-1 mb-0 text-sm text-subtle normal-case">{item.note}</p>
           </div>
         ))}
-      </div>
-
-      <div className="mb-16 max-w-xs">
-        <ManageBillingButton />
       </div>
 
       <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">

@@ -87,7 +87,7 @@ export function SubscribeButtons({
                   {catalog.name}
                 </span>
                 {isCurrent ? (
-                  <span className="text-sm font-bold text-accent-primary">
+                  <span className="pr-2 text-sm font-bold text-accent-primary">
                     current
                   </span>
                 ) : null}

@@ -4,11 +4,12 @@ import { redirect } from "next/navigation";
 import { randomUUID } from "node:crypto";
 import {
   ACCESS_COOKIE,
+  LOCAL_DATA_COOKIE,
   LOCAL_SESSION_PREFIX,
   REFRESH_COOKIE,
   REFRESH_COOKIE_MAX_AGE,
   authCookieOptions as cookieOptions,
-  isLocalSessionToken,
+  decodeLocalSession,
   refreshSession,
   serviceRoleKey,
   supabaseAuthConfigured,
@@ -37,6 +38,7 @@ export async function clearAuthCookies() {
   const jar = await cookies();
   jar.set(ACCESS_COOKIE, "", cookieOptions(0));
   jar.set(REFRESH_COOKIE, "", cookieOptions(0));
+  jar.set(LOCAL_DATA_COOKIE, "", cookieOptions(0));
 }
 
 /** Cookie writes only succeed in Route Handlers / Server Actions; renders skip them. */
@@ -66,21 +68,6 @@ const DEMO_USER_ID = "0dc29875-5afe-4501-ac59-4b46ef1c242f";
 
 function encodeLocalSession(user: { id: string; email: string }) {
   return `${LOCAL_SESSION_PREFIX}${Buffer.from(JSON.stringify(user), "utf8").toString("base64url")}`;
-}
-
-function decodeLocalSession(token: string | undefined) {
-  if (!isLocalSessionToken(token) || !token) return null;
-  try {
-    const parsed = JSON.parse(
-      Buffer.from(token.slice(LOCAL_SESSION_PREFIX.length), "base64url").toString(
-        "utf8",
-      ),
-    ) as { id?: string; email?: string };
-    if (parsed.id && parsed.email) return { id: parsed.id, email: parsed.email };
-  } catch {
-    return null;
-  }
-  return null;
 }
 
 function localUser(session: { id: string; email: string }): User {

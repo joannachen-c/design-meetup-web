@@ -10,7 +10,6 @@ export function SubscribeButtons({
   currentTier?: Tier | null;
 }) {
   const [busy, setBusy] = useState<Tier | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   async function startCheckout(tier: Tier, event: FormEvent<HTMLFormElement>) {
     const form = event.currentTarget;
@@ -18,7 +17,6 @@ export function SubscribeButtons({
     if (busy != null || currentTier === tier) return;
 
     setBusy(tier);
-    setError(null);
     try {
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -26,22 +24,28 @@ export function SubscribeButtons({
         credentials: "same-origin",
         body: JSON.stringify({ tier }),
       });
-      const payload = (await response.json()) as { url?: string; error?: string };
+      const raw = await response.text();
+      let payload: { url?: string; error?: string } = {};
+      if (raw) {
+        try {
+          payload = JSON.parse(raw) as { url?: string; error?: string };
+        } catch {
+          form.submit();
+          return;
+        }
+      }
       if (!response.ok || !payload.url) {
-        setError(payload.error || "Could not start checkout.");
-        setBusy(null);
+        form.submit();
         return;
       }
-      // Stay on the current host — absolute URLs can point at a tunnel/env
-      // origin and drop localhost auth cookies.
-      try {
-        const next = new URL(payload.url, window.location.origin);
-        window.location.assign(
-          `${next.pathname}${next.search}${next.hash}` || next.href,
-        );
-      } catch {
-        window.location.assign(payload.url);
+      const next = new URL(payload.url, window.location.origin);
+      if (next.origin !== window.location.origin) {
+        window.location.assign(next.href);
+        return;
       }
+      window.location.assign(
+        `${next.pathname}${next.search}${next.hash}` || next.href,
+      );
     } catch {
       form.submit();
     }
@@ -112,11 +116,6 @@ export function SubscribeButtons({
           );
         })}
       </div>
-      {error ? (
-        <p className="m-0 text-base lowercase text-red-700" role="alert">
-          {error}
-        </p>
-      ) : null}
     </div>
   );
 }

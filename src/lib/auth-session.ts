@@ -2,11 +2,27 @@ import type { User } from "@supabase/supabase-js";
 
 export const ACCESS_COOKIE = "dm_access_token";
 export const REFRESH_COOKIE = "dm_refresh_token";
+export const LOCAL_DATA_COOKIE = "dm_local_data";
 export const REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 export const LOCAL_SESSION_PREFIX = "local.";
 
 export function isLocalSessionToken(token: string | undefined) {
   return Boolean(token?.startsWith(LOCAL_SESSION_PREFIX));
+}
+
+export function decodeLocalSession(token: string | undefined) {
+  if (!isLocalSessionToken(token) || !token) return null;
+  try {
+    const parsed = JSON.parse(
+      Buffer.from(token.slice(LOCAL_SESSION_PREFIX.length), "base64url").toString(
+        "utf8",
+      ),
+    ) as { id?: string; email?: string };
+    if (parsed.id && parsed.email) return { id: parsed.id, email: parsed.email };
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 export type RefreshedSession = {

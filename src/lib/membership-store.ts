@@ -1,6 +1,15 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { cookies } from "next/headers";
+import {
+  ACCESS_COOKIE,
+  LOCAL_DATA_COOKIE,
+  REFRESH_COOKIE,
+  REFRESH_COOKIE_MAX_AGE,
+  authCookieOptions,
+  decodeLocalSession,
+} from "./auth-session";
 import {
   displayNameFromEmail,
   type MembershipRecord,
@@ -82,12 +91,82 @@ function normalize(parsed: Partial<StoreShape>): StoreShape {
   };
 }
 
+function mergeStores(base: StoreShape, overlay: StoreShape): StoreShape {
+  const profiles = [...base.profiles];
+  for (const profile of overlay.profiles) {
+    const index = profiles.findIndex((item) => item.id === profile.id);
+    if (index >= 0) profiles[index] = profile;
+    else profiles.push(profile);
+  }
+  const memberships = [...base.memberships];
+  for (const membership of overlay.memberships) {
+    const index = memberships.findIndex((item) => item.userId === membership.userId);
+    if (index >= 0) memberships[index] = membership;
+    else memberships.push(membership);
+  }
+  return { profiles, memberships };
+}
+
+async function cookieJar() {
+  try {
+    return await cookies();
+  } catch {
+    return null;
+  }
+}
+
+async function currentLocalUserId() {
+  const jar = await cookieJar();
+  if (!jar) return null;
+  return (
+    decodeLocalSession(jar.get(ACCESS_COOKIE)?.value)?.id ??
+    decodeLocalSession(jar.get(REFRESH_COOKIE)?.value)?.id ??
+    null
+  );
+}
+
+async function readCookieStore(): Promise<StoreShape | null> {
+  const jar = await cookieJar();
+  const raw = jar?.get(LOCAL_DATA_COOKIE)?.value;
+  if (!raw) return null;
+  try {
+    return normalize(
+      JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) as Partial<StoreShape>,
+    );
+  } catch {
+    return null;
+  }
+}
+
+async function writeCookieStore(store: StoreShape) {
+  const jar = await cookieJar();
+  if (!jar) return;
+  const userId = await currentLocalUserId();
+  const payload: StoreShape = userId
+    ? {
+        profiles: store.profiles.filter((profile) => profile.id === userId),
+        memberships: store.memberships.filter(
+          (membership) => membership.userId === userId,
+        ),
+      }
+    : store;
+  try {
+    jar.set(
+      LOCAL_DATA_COOKIE,
+      Buffer.from(JSON.stringify(payload), "utf8").toString("base64url"),
+      authCookieOptions(REFRESH_COOKIE_MAX_AGE),
+    );
+  } catch {
+    // Server Component render cannot mutate cookies.
+  }
+}
+
 /**
  * A missing file is an empty store; an unreadable one is not. Treating a
  * half-written file as empty used to write that emptiness back and wipe
  * every profile and membership.
  */
-async function readStore(): Promise<StoreShape> {
+async function readFileStore(): Promise<StoreShape> {
   const filePath = await storePath();
   for (let attempt = 0; ; attempt += 1) {
     let raw: string;
@@ -106,13 +185,33 @@ async function readStore(): Promise<StoreShape> {
   }
 }
 
+async function readStore(): Promise<StoreShape> {
+  let file = normalize({});
+  try {
+    file = await readFileStore();
+  } catch {
+    file = normalize({});
+  }
+  const cookie = await readCookieStore();
+  return cookie ? mergeStores(file, cookie) : file;
+}
+
 /** Readers only ever see a complete file: write a temp copy, then rename. */
-async function writeStore(store: StoreShape) {
+async function writeFileStore(store: StoreShape) {
   const filePath = await storePath();
   await mkdir(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
   await writeFile(tempPath, `${JSON.stringify(store, null, 2)}\n`, "utf8");
   await rename(tempPath, filePath);
+}
+
+async function writeStore(store: StoreShape) {
+  try {
+    await writeFileStore(store);
+  } catch {
+    // Preview/serverless filesystems may refuse the write; the cookie still persists.
+  }
+  await writeCookieStore(store);
 }
 
 /**

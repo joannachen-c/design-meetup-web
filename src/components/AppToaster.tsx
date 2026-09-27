@@ -2,15 +2,6 @@
 
 import { Toaster, toast } from "sonner";
 
-const successToastStyle = {
-  background: "#22c55e",
-  color: "#fff",
-  border: "0",
-  borderRadius: "999px",
-  padding: "12px 20px",
-  boxShadow: "0 10px 28px rgb(16 24 40 / 0.18)",
-} as const;
-
 function SuccessCheck() {
   return (
     <span
@@ -32,9 +23,12 @@ function SuccessCheck() {
 
 export function showSuccessToast(message: string) {
   toast.success(message, {
+    unstyled: true,
     icon: <SuccessCheck />,
     duration: 4000,
-    style: successToastStyle,
+    className:
+      "flex flex-row flex-nowrap items-center gap-3 whitespace-nowrap rounded-full bg-[#22c55e] px-5 py-3 text-base font-semibold text-white shadow-[0_10px_28px_rgb(16_24_40/0.18)]",
+    style: { width: "max-content" },
   });
 }
 
@@ -45,9 +39,8 @@ export function AppToaster() {
       duration={4000}
       visibleToasts={3}
       offset={28}
-      toastOptions={{
-        style: successToastStyle,
-      }}
+      style={{ "--width": "max-content" } as React.CSSProperties}
+      toastOptions={{ unstyled: true }}
     />
   );
 }

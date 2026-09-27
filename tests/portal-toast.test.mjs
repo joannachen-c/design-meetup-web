@@ -37,7 +37,21 @@ test("saving the profile fires a Sonner success toast instead of a page flash", 
   assert.match(form, /Accept: "application\/json"/);
   assert.doesNotMatch(form, /window\.location\.assign\("\/portal\/profile\?saved=1"\)/);
   assert.match(page, /<ProfileSavedToast saved=\{params\.saved === "1"\} \/>/);
-  assert.match(saved, /showSuccessToast\("Profile updated\."\)/);
+  assert.match(saved, /showSuccessToast\(message\)/);
+  assert.match(saved, /message = "Profile updated\."/);
   assert.match(api, /wantsJson/);
   assert.match(api, /headers\.get\("accept"\)/);
+});
+
+test("billing updated uses the same bottom-center fading toast as profile", async () => {
+  const page = await read("app/portal/billing/page.tsx");
+  const saved = await read("src/components/portal/ProfileSavedToast.tsx");
+  const toaster = await read("src/components/AppToaster.tsx");
+  assert.match(
+    page,
+    /<ProfileSavedToast saved=\{params\.saved === "1"\} message="Billing updated\." \/>/,
+  );
+  assert.doesNotMatch(page, /billing updated\./);
+  assert.match(saved, /showSuccessToast\(message\)/);
+  assert.match(toaster, /position="bottom-center"/);
 });

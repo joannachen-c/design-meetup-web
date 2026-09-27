@@ -18,6 +18,10 @@ test("stripe helpers provision a customer and a portal configuration", async () 
   assert.match(stripe, /export async function createBillingPortalSession/);
   assert.match(stripe, /billingPortal\.configurations\.create/);
   assert.match(stripe, /billingPortal\.sessions\.create/);
+  assert.match(stripe, /invoice_history: \{ enabled: true \}/);
+  assert.match(stripe, /payment_method_update: \{ enabled: true \}/);
+  assert.match(stripe, /flow_data: \{ type: input\.flow \}/);
+  assert.match(stripe, /export async function getCustomerBillingOverview/);
   assert.match(stripe, /apiVersion: "2026-04-22\.dahlia"/);
 });
 
@@ -98,4 +102,22 @@ test("invalid stripe keys fall through to in-app billing instead of a secret-key
   assert.doesNotMatch(route, /STRIPE_SECRET_KEY/);
   assert.doesNotMatch(button, /STRIPE_SECRET_KEY/);
   assert.match(page, /cancel at period end/);
+});
+
+test("the billing page has a home breadcrumb, cards, and invoices", async () => {
+  const page = await read("app/portal/billing/page.tsx");
+  const button = await read("src/components/portal/ManageBillingButton.tsx");
+  const route = await read("app/api/stripe/portal/route.ts");
+  assert.match(page, /aria-label="Breadcrumb"/);
+  assert.match(page, /href="\/portal"/);
+  assert.match(page, /<ChevronLeftIcon/);
+  assert.match(page, />\s*home\s*</);
+  assert.match(page, /text-muted/);
+  assert.match(page, /payment method/);
+  assert.match(page, /invoices/);
+  assert.match(page, /label="update card" flow="payment_method_update"/);
+  assert.match(page, /label="view in stripe"/);
+  assert.match(button, /name="flow"/);
+  assert.match(route, /flow_data|flow,/);
+  assert.match(route, /payment_method_update/);
 });

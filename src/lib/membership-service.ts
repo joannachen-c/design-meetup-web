@@ -430,6 +430,22 @@ export function resolveTierFromStripePrice(priceId: string | null | undefined) {
   return tierFromPriceId(priceId);
 }
 
+export async function getMemberBillingOverview(userId: string) {
+  const empty = { cards: [], invoices: [] };
+  const { getCustomerBillingOverview, getStripe } = await import("./stripe");
+  const stripe = getStripe();
+  if (!stripe) return empty;
+  const profile = await getProfile(userId);
+  const customerId = profile?.stripeCustomerId;
+  if (!customerId) return empty;
+  try {
+    return await getCustomerBillingOverview(stripe, customerId);
+  } catch (error) {
+    console.error("stripe billing overview failed", error);
+    return empty;
+  }
+}
+
 export function stripeConfigured() {
   return Boolean(process.env.STRIPE_SECRET_KEY?.trim().startsWith("sk_"));
 }

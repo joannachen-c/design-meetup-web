@@ -11,6 +11,7 @@ import {
   ensureStripeCustomer,
   getStripe,
   siteOriginFromRequest,
+  type PortalFlow,
 } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -26,10 +27,32 @@ function send(request: Request, url: string) {
   return NextResponse.redirect(url, 303);
 }
 
+async function readPortalFlow(request: Request): Promise<PortalFlow | null> {
+  const contentType = request.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    try {
+      const body = (await request.json()) as { flow?: unknown };
+      return body.flow === "payment_method_update" ? body.flow : null;
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    const form = await request.formData();
+    return form.get("flow") === "payment_method_update"
+      ? "payment_method_update"
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(request: Request) {
   const user = await getSessionUser();
   const origin = siteOriginFromRequest(request);
   const billingUrl = `${origin}/portal/billing`;
+  const flow = await readPortalFlow(request);
 
   if (!user?.email) {
     if (wantsJson(request)) {
@@ -62,7 +85,8 @@ export async function POST(request: Request) {
 
     const session = await createBillingPortalSession(stripe, {
       customerId,
-      returnUrl: `${origin}/portal`,
+      returnUrl: billingUrl,
+      flow,
     });
 
     return send(request, session.url || billingUrl);

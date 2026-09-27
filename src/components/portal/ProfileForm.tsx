@@ -243,98 +243,111 @@ export function ProfileForm({
       onSubmit={(event) => {
         void onSubmit(event);
       }}
-      className="grid max-w-5xl gap-10 lg:grid-cols-[minmax(0,1fr)_200px] lg:gap-16"
+      className="grid max-w-5xl gap-10"
     >
-      <div className="order-first flex flex-col items-center gap-3 text-center lg:order-last lg:pt-7">
-        {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt=""
-            className="size-[120px] rounded-full object-cover"
-            width={120}
-            height={120}
-          />
-        ) : (
-          <span
-            className="flex size-[120px] items-end justify-center overflow-hidden rounded-full bg-skeleton"
-            aria-hidden
-          >
-            <PersonSilhouette className="w-[88%] text-white/75" />
-          </span>
-        )}
-        <label
-          htmlFor={avatarInputId}
-          className="inline-flex min-h-11 w-fit cursor-pointer items-center rounded-[10px] bg-surface-muted px-4 text-base font-bold text-ink hover:bg-gray-200"
-        >
-          upload photo
-        </label>
-        <input
-          id={avatarInputId}
-          name="avatar"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="sr-only"
-          onChange={onAvatarChange}
-        />
-        {previewUrl ? null : (
-          <p className="m-0 text-sm text-subtle">jpg, png, or webp</p>
-        )}
-        {avatarError ? (
-          <p className="m-0 text-sm text-red-700" role="alert">
-            {avatarError}
-          </p>
-        ) : null}
-      </div>
-
       <div className="grid min-w-0 gap-10">
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div className="grid grid-cols-2 gap-3">
-            <Field
-              id={fieldId("firstName")}
-              label="first name"
-              error={fieldErrors.firstName}
-            >
-              <Input
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_200px] lg:items-start lg:gap-16">
+          <div className="grid gap-5">
+            <div className="grid grid-cols-2 gap-3">
+              <Field
                 id={fieldId("firstName")}
-                name="firstName"
-                type="text"
-                defaultValue={initialFirstName}
-                autoComplete="given-name"
-                aria-invalid={fieldErrors.firstName ? true : undefined}
+                label="first name"
+                error={fieldErrors.firstName}
+              >
+                <Input
+                  id={fieldId("firstName")}
+                  name="firstName"
+                  type="text"
+                  defaultValue={initialFirstName}
+                  autoComplete="given-name"
+                  aria-invalid={fieldErrors.firstName ? true : undefined}
+                  aria-describedby={
+                    fieldErrors.firstName
+                      ? `${fieldId("firstName")}-error`
+                      : undefined
+                  }
+                  className={fieldErrors.firstName ? invalidInputClassName : ""}
+                  onChange={() => clearFieldError("firstName")}
+                />
+              </Field>
+              <Field id={fieldId("lastName")} label="last name">
+                <Input
+                  id={fieldId("lastName")}
+                  name="lastName"
+                  type="text"
+                  defaultValue={initialLastName}
+                  autoComplete="family-name"
+                />
+              </Field>
+            </div>
+            <Field id={fieldId("email")} label="email" error={fieldErrors.email}>
+              <Input
+                id={fieldId("email")}
+                name="email"
+                type="email"
+                defaultValue={initialEmail}
+                autoComplete="email"
+                aria-invalid={fieldErrors.email ? true : undefined}
                 aria-describedby={
-                  fieldErrors.firstName
-                    ? `${fieldId("firstName")}-error`
-                    : undefined
+                  fieldErrors.email ? `${fieldId("email")}-error` : undefined
                 }
-                className={fieldErrors.firstName ? invalidInputClassName : ""}
-                onChange={() => clearFieldError("firstName")}
+                className={fieldErrors.email ? invalidInputClassName : ""}
+                onChange={() => clearFieldError("email")}
               />
             </Field>
-            <Field id={fieldId("lastName")} label="last name">
+            <Field id={fieldId("location")} label="location">
               <Input
-                id={fieldId("lastName")}
-                name="lastName"
+                id={fieldId("location")}
+                name="location"
                 type="text"
-                defaultValue={initialLastName}
-                autoComplete="family-name"
+                defaultValue={initialLocation}
+                autoComplete="address-level2"
               />
             </Field>
           </div>
-          <Field id={fieldId("email")} label="email" error={fieldErrors.email}>
-            <Input
-              id={fieldId("email")}
-              name="email"
-              type="email"
-              defaultValue={initialEmail}
-              autoComplete="email"
-              aria-invalid={fieldErrors.email ? true : undefined}
-              aria-describedby={
-                fieldErrors.email ? `${fieldId("email")}-error` : undefined
-              }
-              className={fieldErrors.email ? invalidInputClassName : ""}
-              onChange={() => clearFieldError("email")}
+          <div className="flex flex-col items-center gap-3 text-center lg:pt-7">
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt=""
+                className="size-[120px] rounded-full object-cover"
+                width={120}
+                height={120}
+              />
+            ) : (
+              <span
+                className="flex size-[120px] items-end justify-center overflow-hidden rounded-full bg-skeleton"
+                aria-hidden
+              >
+                <PersonSilhouette className="w-[88%] text-white/75" />
+              </span>
+            )}
+            <label
+              htmlFor={avatarInputId}
+              className="inline-flex min-h-11 w-fit cursor-pointer items-center rounded-[10px] bg-surface-muted px-4 text-base font-bold text-ink hover:bg-gray-200"
+            >
+              upload photo
+            </label>
+            <input
+              id={avatarInputId}
+              name="avatar"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={onAvatarChange}
             />
-          </Field>
+            {previewUrl ? null : (
+              <p className="m-0 text-sm text-subtle">jpg, png, or webp</p>
+            )}
+            {avatarError ? (
+              <p className="m-0 text-sm text-red-700" role="alert">
+                {avatarError}
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
           <Field id={fieldId("school")} label="school">
             <Input
               id={fieldId("school")}
@@ -369,15 +382,6 @@ export function ProfileForm({
               type="text"
               defaultValue={initialCompany}
               autoComplete="organization"
-            />
-          </Field>
-          <Field id={fieldId("location")} label="location">
-            <Input
-              id={fieldId("location")}
-              name="location"
-              type="text"
-              defaultValue={initialLocation}
-              autoComplete="address-level2"
             />
           </Field>
         </div>

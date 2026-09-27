@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLayoutEffect, useRef, useState } from "react";
 import { logoutAction } from "@/lib/auth-actions";
 
 const nav = [
@@ -17,6 +18,30 @@ export function PortalHeader({
   avatarUrl?: string | null;
 }) {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+  const [pill, setPill] = useState<{ left: number; width: number } | null>(
+    null,
+  );
+  const [pillReady, setPillReady] = useState(false);
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const active = navRef.current?.querySelector<HTMLElement>(
+        '[aria-current="page"]',
+      );
+      setPill(
+        active ? { left: active.offsetLeft, width: active.offsetWidth } : null,
+      );
+    };
+    measure();
+    // Skip the slide on first paint so the pill starts under the active tab.
+    const frame = requestAnimationFrame(() => setPillReady(true));
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", measure);
+    };
+  }, [pathname]);
 
   return (
     <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
@@ -34,7 +59,26 @@ export function PortalHeader({
           decoding="async"
         />
       </Link>
-      <nav className="flex gap-1" aria-label="Member portal">
+      <nav
+        ref={navRef}
+        className="relative flex gap-1"
+        aria-label="Member portal"
+      >
+        {pill ? (
+          <span
+            aria-hidden
+            className={[
+              "absolute inset-y-0 left-0 rounded-[10px] bg-gray-100",
+              pillReady
+                ? "transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+                : "",
+            ].join(" ")}
+            style={{
+              width: pill.width,
+              transform: `translateX(${pill.left}px)`,
+            }}
+          />
+        ) : null}
         {nav.map((item) => {
           const active =
             item.href === "/portal"
@@ -46,10 +90,8 @@ export function PortalHeader({
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={[
-                "inline-flex min-h-11 items-center whitespace-nowrap rounded-[10px] px-4 text-base font-bold no-underline max-[640px]:px-3",
-                active
-                  ? "bg-ink text-white"
-                  : "bg-transparent text-ink hover:bg-surface-muted",
+                "relative inline-flex min-h-11 items-center whitespace-nowrap rounded-[10px] px-4 text-base font-bold no-underline transition-colors duration-200 max-[640px]:px-3",
+                active ? "text-ink" : "text-muted hover:text-ink",
               ].join(" ")}
             >
               {item.label}

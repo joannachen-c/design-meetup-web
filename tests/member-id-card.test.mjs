@@ -23,3 +23,8 @@ test("member since date uses secondary text", async () => {
   );
   assert.match(css, /\.sinceValue\s*\{[^}]*font-weight:\s*400/s);
 });
+
+test("the background stamp is a light watermark", async () => {
+  const css = await read("src/components/portal/MemberIdCard.module.css");
+  assert.match(css, /\.watermark\s*\{[^}]*opacity:\s*0\.025/s);
+});

@@ -24,6 +24,12 @@ test("member since date uses secondary text", async () => {
   assert.match(css, /\.sinceValue\s*\{[^}]*font-weight:\s*400/s);
 });
 
+test("the empty-state profile link capitalizes Complete", async () => {
+  const tsx = await read("src/components/portal/MemberIdCard.tsx");
+  assert.match(tsx, /Complete your profile/);
+  assert.doesNotMatch(tsx, />\s*complete your profile\s*</);
+});
+
 test("the background stamp is a light watermark", async () => {
   const css = await read("src/components/portal/MemberIdCard.module.css");
   assert.match(css, /\.watermark\s*\{[^}]*opacity:\s*0\.025/s);

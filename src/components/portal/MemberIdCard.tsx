@@ -388,7 +388,7 @@ export function MemberIdCard({
                     onKeyDown={stop}
                     tabIndex={flipped ? -1 : 0}
                   >
-                    complete your profile
+                    Complete your profile
                   </Link>
                 ) : null}
               </div>

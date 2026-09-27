@@ -187,7 +187,7 @@ export default async function PortalHomePage({
       ) : null}
 
       <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">
-        {hasAccess ? "change plan" : "membership"}
+        membership
       </h2>
       <SubscribeButtons currentTier={membership?.tier ?? null} />
     </main>

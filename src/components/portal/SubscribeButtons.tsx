@@ -72,7 +72,8 @@ export function SubscribeButtons({
                 void startCheckout(tier, event);
               }}
               className={[
-                "flex flex-col gap-6 rounded-[20px] bg-surface-muted p-6 text-ink lowercase",
+                "flex flex-col gap-6 rounded-[20px] p-6 text-ink lowercase",
+                isCurrent ? "bg-surface-muted" : "bg-gray-50",
               ].join(" ")}
             >
               <input type="hidden" name="tier" value={tier} />

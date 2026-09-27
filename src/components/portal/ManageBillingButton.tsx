@@ -29,7 +29,7 @@ export function ManageBillingButton() {
   return (
     <div className="grid shrink-0 justify-items-end gap-2">
       <Primary
-        className="lowercase bg-gray-200 hover:bg-gray-300 disabled:hover:bg-gray-200"
+        className="lowercase bg-gray-100! text-ink hover:bg-gray-200! disabled:hover:bg-gray-100!"
         variant="secondary"
         loading={loading}
         onClick={openPortal}

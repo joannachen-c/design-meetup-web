@@ -93,7 +93,6 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
-  padding-bottom: clamp(8px, 1.8vw, 10px);
   border-bottom: 2px solid var(--color-accent-primary);
 }
 
@@ -101,7 +100,7 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: clamp(12px, 3vw, 16px);
+  gap: clamp(16px, 4vw, 22px);
 }
 
 .body {
@@ -320,8 +319,8 @@
 }
 
 .social svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 .back {

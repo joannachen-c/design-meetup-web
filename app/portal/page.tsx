@@ -159,7 +159,7 @@ export default async function PortalHomePage({
           {summary.map((item) => (
             <div
               key={item.label}
-              className="flex flex-col rounded-[20px] bg-surface-muted p-6"
+              className="flex flex-col rounded-[20px] bg-gray-50 p-6"
             >
               <p className="m-0 mb-4 text-sm font-bold text-muted">
                 {item.label}

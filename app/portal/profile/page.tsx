@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Primary } from "@/components/Primary";
 import { ProfileForm } from "@/components/portal/ProfileForm";
 import { requireUser } from "@/lib/auth";
 import { displayNameFromEmail } from "@/lib/membership";
@@ -39,6 +40,24 @@ export default async function ProfilePage({
 
   return (
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
+      <Primary href="/portal" variant="ghost" className="-ml-3 mb-4 gap-1 pl-2">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          aria-hidden
+        >
+          <path
+            d="M12.5 15 7.5 10l5-5"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        home
+      </Primary>
       <h1 className="m-0 mb-12 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
         your profile
       </h1>

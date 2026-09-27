@@ -1,6 +1,12 @@
 "use client";
 
-import { useId, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useId,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { Input } from "@/components/Input";
 import { Primary } from "@/components/Primary";
 import {
@@ -15,11 +21,11 @@ type ProfileFormProps = {
   initialName: string;
   initialEmail: string;
   initialAvatarUrl?: string | null;
+  initialLocation?: string;
   initialSchool?: string;
   initialYear?: string;
   initialCompany?: string;
   initialPosition?: string;
-  initialLocation?: string;
   initialWebsite?: string;
   initialInstagram?: string;
   initialX?: string;
@@ -27,28 +33,43 @@ type ProfileFormProps = {
   initialYoutube?: string;
 };
 
+type FieldErrors = { displayName?: string; email?: string };
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validate(form: FormData): FieldErrors {
+  const errors: FieldErrors = {};
+  const name = String(form.get("displayName") || "").trim();
+  const email = String(form.get("email") || "").trim();
+  if (!name) errors.displayName = "name is required.";
+  if (!email) errors.email = "email is required.";
+  else if (!EMAIL_PATTERN.test(email)) errors.email = "enter a valid email.";
+  return errors;
+}
+
 function Field({
+  id,
   label,
-  optional = false,
+  error,
   children,
 }: {
+  id: string;
   label: string;
-  optional?: boolean;
-  children: React.ReactNode;
+  error?: string;
+  children: ReactNode;
 }) {
   return (
-    <label className="grid gap-2">
-      <span className="text-sm font-bold text-muted">
+    <div className="grid content-start gap-2">
+      <label htmlFor={id} className="text-sm font-bold text-muted">
         {label}
-        {optional ? (
-          <>
-            {" "}
-            <span className="font-normal text-subtle">(optional)</span>
-          </>
-        ) : null}
-      </span>
+      </label>
       {children}
-    </label>
+      {error ? (
+        <p id={`${id}-error`} className="m-0 text-sm text-red-700">
+          {error}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -63,14 +84,14 @@ function SocialField({
   name: string;
   label: string;
   prefix?: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   defaultValue: string;
   placeholder?: string;
 }) {
   return (
-    <label className="grid gap-2">
+    <label className="grid content-start gap-2">
       <span className="text-sm font-bold text-muted">{label}</span>
-      <span className="flex min-h-11 items-center gap-2 rounded-[10px] bg-surface-muted px-3">
+      <span className="flex min-h-11 items-center gap-2 rounded-[10px] bg-surface-muted px-3 focus-within:ring-2 focus-within:ring-accent-primary">
         <span className="shrink-0 text-muted">{icon}</span>
         {prefix ? (
           <span className="shrink-0 text-sm text-subtle">{prefix}</span>
@@ -87,48 +108,68 @@ function SocialField({
   );
 }
 
+const invalidInputClassName = "ring-2 ring-red-500 focus-visible:ring-red-500";
+
 export function ProfileForm({
   initialName,
   initialEmail,
   initialAvatarUrl,
+  initialLocation = "",
   initialSchool = "",
   initialYear = "",
   initialCompany = "",
   initialPosition = "",
-  initialLocation = "",
   initialWebsite = "",
   initialInstagram = "",
   initialX = "",
   initialLinkedin = "",
   initialYoutube = "",
 }: ProfileFormProps) {
-  const avatarInputId = useId();
+  const idPrefix = useId();
+  const fieldId = (name: string) => `${idPrefix}-${name}`;
+  const avatarInputId = fieldId("avatar");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     initialAvatarUrl ?? null,
   );
+
+  function clearFieldError(name: keyof FieldErrors) {
+    if (!fieldErrors[name]) return;
+    setFieldErrors((current) => ({ ...current, [name]: undefined }));
+  }
 
   function onAvatarChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("Choose a JPG, PNG, or WebP image.");
+      setError("choose a jpg, png, or webp image.");
       return;
     }
     if (file.size > 2.5 * 1024 * 1024) {
-      setError("Keep the photo under 2.5 MB.");
+      setError("keep the photo under 2.5 mb.");
       return;
     }
     setError(null);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    setPreviewUrl(URL.createObjectURL(file));
   }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     const form = event.currentTarget;
     event.preventDefault();
     if (pending) return;
+
+    const data = new FormData(form);
+    const errors = validate(data);
+    setFieldErrors(errors);
+    if (errors.displayName || errors.email) {
+      document
+        .getElementById(fieldId(errors.displayName ? "displayName" : "email"))
+        ?.focus();
+      return;
+    }
+
     setPending(true);
     setError(null);
 
@@ -136,7 +177,7 @@ export function ProfileForm({
       const response = await fetch("/api/portal/profile", {
         method: "POST",
         credentials: "same-origin",
-        body: new FormData(form),
+        body: data,
       });
 
       if (response.redirected) {
@@ -148,7 +189,7 @@ export function ProfileForm({
         const payload = (await response.json().catch(() => null)) as {
           error?: string;
         } | null;
-        setError(payload?.error || "Could not save profile.");
+        setError(payload?.error || "could not save profile.");
         setPending(false);
         return;
       }
@@ -164,166 +205,193 @@ export function ProfileForm({
       method="post"
       action="/api/portal/profile"
       encType="multipart/form-data"
+      noValidate
       onSubmit={(event) => {
         void onSubmit(event);
       }}
-      className="grid max-w-4xl gap-10"
+      className="grid max-w-5xl gap-10 lg:grid-cols-[minmax(0,1fr)_200px] lg:gap-16"
     >
-      <section className="grid gap-6 lg:grid-cols-[140px_minmax(0,1fr)] lg:items-start">
-        <div className="grid justify-items-start gap-3">
-          {previewUrl ? (
-            <img
-              src={previewUrl}
-              alt=""
-              className="size-[112px] rounded-full object-cover"
-              width={112}
-              height={112}
-            />
-          ) : (
-            <span
-              className="block size-[112px] rounded-full bg-skeleton"
-              aria-hidden
-            />
-          )}
-          <label
-            htmlFor={avatarInputId}
-            className="inline-flex min-h-11 w-fit cursor-pointer items-center rounded-[10px] bg-surface-muted px-4 text-base font-bold text-ink hover:bg-gray-200"
-          >
-            upload photo
-          </label>
-          <input
-            id={avatarInputId}
-            name="avatar"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="sr-only"
-            onChange={onAvatarChange}
+      <div className="order-first flex flex-col items-center gap-3 text-center lg:order-last lg:pt-7">
+        {previewUrl ? (
+          <img
+            src={previewUrl}
+            alt=""
+            className="size-[120px] rounded-full object-cover"
+            width={120}
+            height={120}
           />
-          <p className="m-0 text-sm text-subtle">jpg, png, or webp · under 2.5 mb</p>
-        </div>
-
-        <div className="grid gap-5">
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="name">
-              <Input
-                name="displayName"
-                type="text"
-                required
-                defaultValue={initialName}
-                autoComplete="name"
-              />
-            </Field>
-            <Field label="email">
-              <Input
-                name="email"
-                type="email"
-                required
-                defaultValue={initialEmail}
-                autoComplete="email"
-              />
-            </Field>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="location" optional>
-              <Input
-                name="location"
-                type="text"
-                defaultValue={initialLocation}
-                autoComplete="address-level2"
-              />
-            </Field>
-            <Field label="school" optional>
-              <Input
-                name="school"
-                type="text"
-                defaultValue={initialSchool}
-                autoComplete="organization"
-              />
-            </Field>
-            <Field label="year" optional>
-              <Input
-                name="year"
-                type="text"
-                defaultValue={initialYear}
-                autoComplete="off"
-              />
-            </Field>
-            <Field label="company" optional>
-              <Input
-                name="company"
-                type="text"
-                defaultValue={initialCompany}
-                autoComplete="organization"
-              />
-            </Field>
-            <Field label="position" optional>
-              <Input
-                name="position"
-                type="text"
-                defaultValue={initialPosition}
-                autoComplete="organization-title"
-              />
-            </Field>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-4">
-        <h2 className="m-0 text-xl font-bold tracking-[-0.04em]">
-          website &amp; socials
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SocialField
-            name="website"
-            label="website"
-            icon={<WebsiteIcon />}
-            defaultValue={initialWebsite}
-            placeholder="liumichelle.com"
+        ) : (
+          <span
+            className="block size-[120px] rounded-full bg-skeleton"
+            aria-hidden
           />
-          <SocialField
-            name="instagram"
-            label="instagram"
-            prefix="instagram.com/"
-            icon={<InstagramIcon />}
-            defaultValue={initialInstagram}
-            placeholder="username"
-          />
-          <SocialField
-            name="x"
-            label="x"
-            prefix="x.com/"
-            icon={<XIcon />}
-            defaultValue={initialX}
-            placeholder="username"
-          />
-          <SocialField
-            name="linkedin"
-            label="linkedin"
-            prefix="linkedin.com/in/"
-            icon={<LinkedInIcon />}
-            defaultValue={initialLinkedin}
-            placeholder="username"
-          />
-          <SocialField
-            name="youtube"
-            label="youtube"
-            prefix="youtube.com/@"
-            icon={<YouTubeIcon />}
-            defaultValue={initialYoutube}
-            placeholder="username"
-          />
-        </div>
-      </section>
-
-      {error ? (
-        <p className="m-0 text-base text-red-700" role="alert">
-          {error}
+        )}
+        <label
+          htmlFor={avatarInputId}
+          className="inline-flex min-h-11 w-fit cursor-pointer items-center rounded-[10px] bg-surface-muted px-4 text-base font-bold text-ink hover:bg-gray-200"
+        >
+          upload photo
+        </label>
+        <input
+          id={avatarInputId}
+          name="avatar"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="sr-only"
+          onChange={onAvatarChange}
+        />
+        <p className="m-0 text-sm text-subtle">
+          jpg, png, or webp, under 2.5 mb
         </p>
-      ) : null}
+      </div>
 
-      <Primary type="submit" variant="ink" loading={pending} disabled={pending}>
-        save profile
-      </Primary>
+      <div className="grid min-w-0 gap-10">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field
+            id={fieldId("displayName")}
+            label="name"
+            error={fieldErrors.displayName}
+          >
+            <Input
+              id={fieldId("displayName")}
+              name="displayName"
+              type="text"
+              defaultValue={initialName}
+              autoComplete="name"
+              aria-invalid={fieldErrors.displayName ? true : undefined}
+              aria-describedby={
+                fieldErrors.displayName
+                  ? `${fieldId("displayName")}-error`
+                  : undefined
+              }
+              className={fieldErrors.displayName ? invalidInputClassName : ""}
+              onChange={() => clearFieldError("displayName")}
+            />
+          </Field>
+          <Field id={fieldId("email")} label="email" error={fieldErrors.email}>
+            <Input
+              id={fieldId("email")}
+              name="email"
+              type="email"
+              defaultValue={initialEmail}
+              autoComplete="email"
+              aria-invalid={fieldErrors.email ? true : undefined}
+              aria-describedby={
+                fieldErrors.email ? `${fieldId("email")}-error` : undefined
+              }
+              className={fieldErrors.email ? invalidInputClassName : ""}
+              onChange={() => clearFieldError("email")}
+            />
+          </Field>
+          <Field id={fieldId("location")} label="location">
+            <Input
+              id={fieldId("location")}
+              name="location"
+              type="text"
+              defaultValue={initialLocation}
+              autoComplete="address-level2"
+            />
+          </Field>
+          <Field id={fieldId("school")} label="school">
+            <Input
+              id={fieldId("school")}
+              name="school"
+              type="text"
+              defaultValue={initialSchool}
+              autoComplete="organization"
+            />
+          </Field>
+          <Field id={fieldId("year")} label="year">
+            <Input
+              id={fieldId("year")}
+              name="year"
+              type="text"
+              defaultValue={initialYear}
+              autoComplete="off"
+            />
+          </Field>
+          <Field id={fieldId("company")} label="company">
+            <Input
+              id={fieldId("company")}
+              name="company"
+              type="text"
+              defaultValue={initialCompany}
+              autoComplete="organization"
+            />
+          </Field>
+          <Field id={fieldId("position")} label="position">
+            <Input
+              id={fieldId("position")}
+              name="position"
+              type="text"
+              defaultValue={initialPosition}
+              autoComplete="organization-title"
+            />
+          </Field>
+        </div>
+
+        <section className="grid gap-5">
+          <h2 className="m-0 text-xl font-bold tracking-[-0.04em]">
+            website &amp; socials
+          </h2>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <SocialField
+              name="website"
+              label="website"
+              icon={<WebsiteIcon />}
+              defaultValue={initialWebsite}
+              placeholder="liumichelle.com"
+            />
+            <SocialField
+              name="instagram"
+              label="instagram"
+              prefix="instagram.com/"
+              icon={<InstagramIcon />}
+              defaultValue={initialInstagram}
+              placeholder="username"
+            />
+            <SocialField
+              name="x"
+              label="x"
+              prefix="x.com/"
+              icon={<XIcon />}
+              defaultValue={initialX}
+              placeholder="username"
+            />
+            <SocialField
+              name="linkedin"
+              label="linkedin"
+              prefix="linkedin.com/in/"
+              icon={<LinkedInIcon />}
+              defaultValue={initialLinkedin}
+              placeholder="username"
+            />
+            <SocialField
+              name="youtube"
+              label="youtube"
+              prefix="youtube.com/@"
+              icon={<YouTubeIcon />}
+              defaultValue={initialYoutube}
+              placeholder="username"
+            />
+          </div>
+        </section>
+
+        {error ? (
+          <p className="m-0 text-base text-red-700" role="alert">
+            {error}
+          </p>
+        ) : null}
+
+        <Primary
+          type="submit"
+          variant="ink"
+          loading={pending}
+          disabled={pending}
+        >
+          save profile
+        </Primary>
+      </div>
     </form>
   );
 }

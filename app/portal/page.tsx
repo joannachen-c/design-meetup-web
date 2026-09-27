@@ -60,7 +60,7 @@ export default async function PortalHomePage({
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24">
       {params.subscribed ? (
         <p
-          className="mb-8 rounded-[11px] bg-accent-primary px-4 py-3 text-base lowercase text-ink"
+          className="mb-8 rounded-[20px] bg-accent-primary px-4 py-3 text-base lowercase text-ink"
           role="status"
         >
           {params.mock
@@ -81,21 +81,22 @@ export default async function PortalHomePage({
       <div className="mb-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href="/portal/membership"
-          className="flex flex-col gap-16 rounded-[11px] border border-gray-200 bg-white p-6 text-left text-ink no-underline transition-shadow hover:shadow-[0_3px_10px_rgba(0,0,0,0.12)]"
+          className="flex flex-col gap-16 rounded-[20px] bg-surface-muted p-6 text-left text-ink no-underline transition-colors hover:bg-gray-200"
         >
-          <span aria-hidden className="block text-ink">
+          <span aria-hidden className="block text-subtle">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
               <path
-                d="M7.5 3.75h9v5.5a4.5 4.5 0 0 1-9 0v-5.5Z"
+                d="M12 3.5 16.75 5.4v4.85c0 3.35-2.15 6.35-4.75 7.75-2.6-1.4-4.75-4.4-4.75-7.75V5.4L12 3.5Z"
                 stroke="currentColor"
                 strokeWidth="1.75"
                 strokeLinejoin="round"
               />
               <path
-                d="M7.5 5.25H4.75v1.5a3.25 3.25 0 0 0 3.25 3.25M16.5 5.25h2.75v1.5A3.25 3.25 0 0 1 16 10M12 13.75V17m-3.25 3.25h6.5"
+                d="m9.85 11.15 1.45 1.45 2.95-3"
                 stroke="currentColor"
                 strokeWidth="1.75"
                 strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </span>
@@ -108,8 +109,11 @@ export default async function PortalHomePage({
             </span>
           </span>
         </Link>
-        <div className="flex flex-col gap-16 rounded-[11px] border border-dashed border-gray-200 bg-white p-6 text-left">
-          <span aria-hidden className="block text-ink">
+        <Link
+          href="/portal/profile"
+          className="flex flex-col gap-16 rounded-[20px] bg-surface-muted p-6 text-left text-ink no-underline transition-colors hover:bg-gray-200"
+        >
+          <span aria-hidden className="block text-subtle">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
               <circle
                 cx="12"
@@ -131,13 +135,12 @@ export default async function PortalHomePage({
               your profile
             </span>
             <span className="block text-base leading-normal text-muted lowercase">
-              coming next — update where you work and what people should reach
-              out about.
+              photo, name, email, and how people should reach out.
             </span>
           </span>
-        </div>
-        <div className="flex flex-col gap-16 rounded-[11px] border border-dashed border-gray-200 bg-white p-6 text-left">
-          <span aria-hidden className="block text-ink">
+        </Link>
+        <div className="flex flex-col gap-16 rounded-[20px] bg-surface-muted p-6 text-left">
+          <span aria-hidden className="block text-subtle">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
               <path
                 d="M12 6.5c-1.6-1.2-3.5-1.75-5.75-1.75H4v14.5h2.25c2.25 0 4.15.55 5.75 1.75 1.6-1.2 3.5-1.75 5.75-1.75H20V4.75h-1.75c-2.25 0-4.15.55-5.75 1.75Z"

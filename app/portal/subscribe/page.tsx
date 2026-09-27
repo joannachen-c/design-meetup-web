@@ -9,7 +9,7 @@ import {
 } from "@/lib/membership-service";
 
 export const metadata: Metadata = {
-  title: "Plans",
+  title: "Membership",
   robots: { index: false, follow: false },
 };
 
@@ -32,7 +32,7 @@ export default async function SubscribePage({
       <p className="mb-12 max-w-[54ch] text-base leading-normal text-muted normal-case">
         choose student ($10/mo) or professional ($35/mo).
         {!stripeConfigured()
-          ? " stripe secret key is not set yet — localhost will activate a mock subscription."
+          ? " stripe secret key is not set yet — get started activates a local mock subscription."
           : " checkout runs through stripe."}
       </p>
       {params.canceled ? (

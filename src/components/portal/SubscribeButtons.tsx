@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Primary } from "@/components/Primary";
 import { TIER_CATALOG, type Tier } from "@/lib/membership";
 
@@ -14,25 +14,29 @@ export function SubscribeButtons({
   const [busy, setBusy] = useState<Tier | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function startCheckout(tier: Tier) {
+  async function startCheckout(tier: Tier, event: FormEvent<HTMLFormElement>) {
+    const form = event.currentTarget;
+    event.preventDefault();
+    if (busy != null || currentTier === tier) return;
+
     setBusy(tier);
     setError(null);
     try {
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ tier }),
       });
       const payload = (await response.json()) as { url?: string; error?: string };
       if (!response.ok || !payload.url) {
-        setError(payload.error || "could not start checkout.");
-        setBusy(null);
+        // Prefer a full navigation so the server can set cookies / redirect to login.
+        form.submit();
         return;
       }
-      window.location.href = payload.url;
+      window.location.assign(payload.url);
     } catch {
-      setError("could not start checkout.");
-      setBusy(null);
+      form.submit();
     }
   }
 
@@ -53,15 +57,19 @@ export function SubscribeButtons({
           else if (!currentTier) cta = "get started";
 
           return (
-            <div
+            <form
               key={tier}
+              method="post"
+              action="/api/stripe/checkout"
+              onSubmit={(event) => {
+                void startCheckout(tier, event);
+              }}
               className={[
-                "flex flex-col gap-6 rounded-[11px] border p-6 lowercase",
-                isCurrent
-                  ? "border-ink bg-ink text-white"
-                  : "border-gray-200 bg-white text-ink",
+                "flex flex-col gap-6 rounded-[20px] p-6 lowercase",
+                isCurrent ? "bg-ink text-white" : "bg-surface-muted text-ink",
               ].join(" ")}
             >
+              <input type="hidden" name="tier" value={tier} />
               {memberName ? (
                 <p
                   className={[
@@ -95,14 +103,14 @@ export function SubscribeButtons({
               </p>
               <Primary
                 className="mt-auto lowercase"
+                type="submit"
                 variant={isCurrent ? "secondary" : "ink"}
                 disabled={isCurrent || busy != null}
                 loading={busy === tier}
-                onClick={() => startCheckout(tier)}
               >
                 {cta}
               </Primary>
-            </div>
+            </form>
           );
         })}
       </div>

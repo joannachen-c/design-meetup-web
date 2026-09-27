@@ -76,7 +76,7 @@ export default async function MembershipPage({
 
       {params.mock_portal ? (
         <p
-          className="mb-8 rounded-[11px] bg-surface-muted px-4 py-3 text-base text-muted"
+          className="mb-8 rounded-[20px] bg-surface-muted px-4 py-3 text-base text-muted"
           role="status"
         >
           stripe customer portal needs a valid secret key. change plans below
@@ -86,7 +86,7 @@ export default async function MembershipPage({
 
       <div className="mb-12 grid gap-4 sm:grid-cols-3">
         {summary.map((item) => (
-          <div key={item.label} className="rounded-[11px] bg-surface-muted p-6">
+          <div key={item.label} className="rounded-[20px] bg-surface-muted p-6">
             <p className="m-0 mb-4 text-sm font-bold text-muted">{item.label}</p>
             <p className="m-0 text-2xl font-bold leading-tight tracking-[-0.04em] normal-case">
               {item.value}

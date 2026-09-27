@@ -6,15 +6,20 @@ import { logoutAction } from "@/lib/auth-actions";
 
 const nav = [
   { href: "/portal", label: "Home" },
-  { href: "/portal/subscribe", label: "Plans" },
   { href: "/portal/membership", label: "Membership" },
 ] as const;
 
-export function PortalHeader({ firstName }: { firstName: string }) {
+export function PortalHeader({
+  displayName,
+  avatarUrl,
+}: {
+  displayName: string;
+  avatarUrl?: string | null;
+}) {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-5 flex flex-wrap items-center justify-between gap-4 border-b border-[#e7e8eb] bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
+    <header className="sticky top-0 z-5 flex flex-wrap items-center justify-between gap-4 bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
       <Link
         href="/portal"
         className="text-lg font-bold leading-none tracking-[-0.06em] text-ink no-underline"
@@ -26,7 +31,9 @@ export function PortalHeader({ firstName }: { firstName: string }) {
           const on =
             item.href === "/portal"
               ? pathname === "/portal"
-              : pathname.startsWith(item.href);
+              : pathname.startsWith(item.href) ||
+                (item.href === "/portal/membership" &&
+                  pathname.startsWith("/portal/subscribe"));
           return (
             <Link
               key={item.href}
@@ -44,10 +51,23 @@ export function PortalHeader({ firstName }: { firstName: string }) {
         })}
       </nav>
       <div className="flex items-center gap-2">
-        <div className="flex min-h-11 items-center gap-2.5 rounded-[10px] bg-surface-muted py-1.5 pr-4 pl-1.5">
-          <span className="block size-8 rounded-lg bg-skeleton" aria-hidden />
-          <span className="text-base font-bold text-ink">{firstName}</span>
-        </div>
+        <Link
+          href="/portal/profile"
+          className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-1.5 no-underline hover:bg-surface-muted"
+        >
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className="block size-8 rounded-full object-cover"
+              width={32}
+              height={32}
+            />
+          ) : (
+            <span className="block size-8 rounded-full bg-skeleton" aria-hidden />
+          )}
+          <span className="text-base font-bold text-ink">{displayName}</span>
+        </Link>
         <form action={logoutAction}>
           <button
             type="submit"

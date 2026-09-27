@@ -14,7 +14,10 @@ import {
   ensureLocalProfile,
   getLocalMembership,
   getLocalProfile,
+  readAvatarFile,
+  saveAvatarFile,
   setLocalStripeCustomerId,
+  updateLocalProfile,
   upsertLocalMembership,
 } from "./membership-store";
 
@@ -41,17 +44,34 @@ export async function ensureProfile(user: {
     const admin = createAdminClient();
     const { data: existing } = await admin
       .from("profiles")
-      .select("id,email,display_name,stripe_customer_id,created_at,updated_at")
+      .select(
+        "id,email,display_name,avatar_url,stripe_customer_id,created_at,updated_at",
+      )
       .eq("id", user.id)
       .maybeSingle();
     if (existing) {
-      return mapProfile(existing);
+      const mapped = mapProfile(existing);
+      if (
+        email === "demo@designmeetup.info" &&
+        (!mapped.displayName || /^demo$/i.test(mapped.displayName.trim()))
+      ) {
+        await admin
+          .from("profiles")
+          .update({
+            display_name: "Michelle Liu",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", user.id);
+        mapped.displayName = "Michelle Liu";
+      }
+      return mapped;
     }
     const now = new Date().toISOString();
     const row = {
       id: user.id,
       email,
       display_name: displayNameFromEmail(email),
+      avatar_url: null,
       stripe_customer_id: null,
       created_at: now,
       updated_at: now,
@@ -71,6 +91,8 @@ function mapProfile(row: {
   email: string;
   display_name?: string | null;
   displayName?: string | null;
+  avatar_url?: string | null;
+  avatarUrl?: string | null;
   stripe_customer_id?: string | null;
   stripeCustomerId?: string | null;
   created_at?: string;
@@ -82,6 +104,7 @@ function mapProfile(row: {
     id: row.id,
     email: row.email,
     displayName: row.display_name ?? row.displayName ?? null,
+    avatarUrl: row.avatar_url ?? row.avatarUrl ?? null,
     stripeCustomerId: row.stripe_customer_id ?? row.stripeCustomerId ?? null,
     createdAt: row.created_at ?? row.createdAt ?? new Date().toISOString(),
     updatedAt: row.updated_at ?? row.updatedAt ?? new Date().toISOString(),
@@ -93,12 +116,61 @@ export async function getProfile(userId: string) {
     const admin = createAdminClient();
     const { data } = await admin
       .from("profiles")
-      .select("id,email,display_name,stripe_customer_id,created_at,updated_at")
+      .select(
+        "id,email,display_name,avatar_url,stripe_customer_id,created_at,updated_at",
+      )
       .eq("id", userId)
       .maybeSingle();
     return data ? mapProfile(data) : null;
   }
   return getLocalProfile(userId);
+}
+
+export async function updateProfile(input: {
+  userId: string;
+  email?: string;
+  displayName?: string;
+  avatarBytes?: Buffer | null;
+  avatarContentType?: string | null;
+}) {
+  const email = input.email?.trim().toLowerCase();
+  const displayName = input.displayName?.trim() || null;
+  let avatarUrl: string | null | undefined;
+
+  if (input.avatarBytes && input.avatarContentType) {
+    await saveAvatarFile(
+      input.userId,
+      input.avatarBytes,
+      input.avatarContentType,
+    );
+    avatarUrl = `/api/portal/avatar/${input.userId}?v=${Date.now()}`;
+  }
+
+  if (await supabaseMembershipTablesAvailable()) {
+    const admin = createAdminClient();
+    if (email) {
+      await admin.auth.admin.updateUserById(input.userId, { email });
+    }
+    const patch: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (email) patch.email = email;
+    if (displayName !== undefined) patch.display_name = displayName;
+    if (avatarUrl !== undefined) patch.avatar_url = avatarUrl;
+    await admin.from("profiles").update(patch).eq("id", input.userId);
+    return getProfile(input.userId);
+  }
+
+  return updateLocalProfile({
+    userId: input.userId,
+    email,
+    displayName,
+    avatarUrl,
+  });
+}
+
+export async function getAvatarForUser(userId: string) {
+  return readAvatarFile(userId);
 }
 
 export async function getMembership(userId: string): Promise<MembershipRecord | null> {

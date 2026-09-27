@@ -28,11 +28,11 @@ test("a present Stripe secret is treated as configured only when it looks like a
   );
 });
 
-test("manage billing never follows a mock stripe portal url", async () => {
+test("manage billing posts to stripe portal and never uses mock_portal", async () => {
   const button = await read("src/components/portal/ManageBillingButton.tsx");
   const page = await read("app/portal/page.tsx");
   assert.doesNotMatch(button, /mock_portal/);
-  assert.match(button, /payload\.mock/);
+  assert.match(button, /action="\/api\/stripe\/portal"/);
   assert.doesNotMatch(page, /mock_portal/);
 });
 

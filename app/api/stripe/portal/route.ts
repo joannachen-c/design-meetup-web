@@ -15,24 +15,38 @@ import {
 
 export const runtime = "nodejs";
 
+function wantsJson(request: Request) {
+  return (request.headers.get("accept") || "").includes("application/json");
+}
+
+function send(request: Request, url: string) {
+  if (wantsJson(request)) {
+    return NextResponse.json({ url });
+  }
+  return NextResponse.redirect(url, 303);
+}
+
 export async function POST(request: Request) {
   const user = await getSessionUser();
+  const origin = siteOriginFromRequest(request);
+  const billingUrl = `${origin}/portal/billing`;
+
   if (!user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (wantsJson(request)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return NextResponse.redirect(new URL("/login?next=%2Fportal", origin), 303);
   }
 
   await ensureProfile({ id: user.id, email: user.email });
-  const origin = siteOriginFromRequest(request);
-
-  const billingUrl = `${origin}/portal/billing`;
 
   if (!stripeConfigured()) {
-    return NextResponse.json({ url: billingUrl });
+    return send(request, billingUrl);
   }
 
   const stripe = getStripe();
   if (!stripe) {
-    return NextResponse.json({ url: billingUrl });
+    return send(request, billingUrl);
   }
 
   try {
@@ -51,16 +65,19 @@ export async function POST(request: Request) {
       returnUrl: `${origin}/portal`,
     });
 
-    return NextResponse.json({ url: session.url });
+    return send(request, session.url || billingUrl);
   } catch (error) {
     console.error("stripe portal failed", error);
     const message = error instanceof Error ? error.message : "";
     if (/invalid api key|no such api key|authentication/i.test(message)) {
-      return NextResponse.json({ url: billingUrl });
+      return send(request, billingUrl);
     }
-    return NextResponse.json(
-      { error: "couldn't open billing. try again in a moment." },
-      { status: 502 },
-    );
+    if (wantsJson(request)) {
+      return NextResponse.json(
+        { error: "couldn't open billing. try again in a moment." },
+        { status: 502 },
+      );
+    }
+    return NextResponse.redirect(new URL("/portal/billing", origin), 303);
   }
 }

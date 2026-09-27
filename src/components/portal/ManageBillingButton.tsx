@@ -13,9 +13,15 @@ export function ManageBillingButton() {
     setError(null);
     try {
       const response = await fetch("/api/stripe/portal", { method: "POST" });
-      const payload = (await response.json()) as { url?: string; error?: string };
-      if (!response.ok || !payload.url) {
-        setError(payload.error || "couldn't open billing. try again in a moment.");
+      const payload = (await response.json()) as {
+        url?: string;
+        error?: string;
+        mock?: boolean;
+      };
+      if (!response.ok || !payload.url || payload.mock) {
+        setError(
+          payload.error || "couldn't open billing. try again in a moment.",
+        );
         setLoading(false);
         return;
       }

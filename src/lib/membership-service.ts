@@ -397,5 +397,5 @@ export function resolveTierFromStripePrice(priceId: string | null | undefined) {
 }
 
 export function stripeConfigured() {
-  return Boolean(process.env.STRIPE_SECRET_KEY);
+  return Boolean(process.env.STRIPE_SECRET_KEY?.trim().startsWith("sk_"));
 }

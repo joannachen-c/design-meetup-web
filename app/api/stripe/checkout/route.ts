@@ -8,7 +8,11 @@ import {
   saveStripeCustomerId,
   stripeConfigured,
 } from "@/lib/membership-service";
-import { getStripe, siteOriginFromRequest } from "@/lib/stripe";
+import {
+  ensureStripeCustomer,
+  getStripe,
+  siteOriginFromRequest,
+} from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -81,13 +85,12 @@ export async function POST(request: Request) {
 
   try {
     const profile = await getProfile(user.id);
-    let customerId = profile?.stripeCustomerId ?? null;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { supabase_user_id: user.id },
-      });
-      customerId = customer.id;
+    const customerId = await ensureStripeCustomer(stripe, {
+      customerId: profile?.stripeCustomerId ?? null,
+      email: user.email,
+      userId: user.id,
+    });
+    if (customerId !== profile?.stripeCustomerId) {
       await saveStripeCustomerId(user.id, customerId);
     }
 

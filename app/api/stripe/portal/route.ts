@@ -6,7 +6,12 @@ import {
   saveStripeCustomerId,
   stripeConfigured,
 } from "@/lib/membership-service";
-import { getStripe, siteOriginFromRequest } from "@/lib/stripe";
+import {
+  createBillingPortalSession,
+  ensureStripeCustomer,
+  getStripe,
+  siteOriginFromRequest,
+} from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -20,10 +25,10 @@ export async function POST(request: Request) {
   const origin = siteOriginFromRequest(request);
 
   if (!stripeConfigured()) {
-    return NextResponse.json({
-      url: `${origin}/portal?mock_portal=1`,
-      mock: true,
-    });
+    return NextResponse.json(
+      { error: "stripe billing isn't configured yet." },
+      { status: 503 },
+    );
   }
 
   const stripe = getStripe();
@@ -36,27 +41,28 @@ export async function POST(request: Request) {
 
   try {
     const profile = await getProfile(user.id);
-    let customerId = profile?.stripeCustomerId ?? null;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { supabase_user_id: user.id },
-      });
-      customerId = customer.id;
+    const customerId = await ensureStripeCustomer(stripe, {
+      customerId: profile?.stripeCustomerId ?? null,
+      email: user.email,
+      userId: user.id,
+    });
+    if (customerId !== profile?.stripeCustomerId) {
       await saveStripeCustomerId(user.id, customerId);
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: `${origin}/portal`,
+    const session = await createBillingPortalSession(stripe, {
+      customerId,
+      returnUrl: `${origin}/portal`,
     });
 
     return NextResponse.json({ url: session.url, mock: false });
   } catch (error) {
     console.error("stripe portal failed", error);
-    return NextResponse.json(
-      { error: "couldn't open billing. try again in a moment." },
-      { status: 502 },
-    );
+    const message =
+      error instanceof Error ? error.message : "couldn't open billing.";
+    const friendly = /api key|invalid/i.test(message)
+      ? "stripe api key is invalid. update STRIPE_SECRET_KEY."
+      : "couldn't open billing. try again in a moment.";
+    return NextResponse.json({ error: friendly }, { status: 502 });
   }
 }

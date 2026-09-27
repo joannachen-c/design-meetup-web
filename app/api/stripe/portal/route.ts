@@ -27,6 +27,17 @@ function send(request: Request, url: string) {
   return NextResponse.redirect(url, 303);
 }
 
+function sendError(request: Request, origin: string) {
+  const errorUrl = new URL("/portal/billing?error=1", origin).toString();
+  if (wantsJson(request)) {
+    return NextResponse.json(
+      { error: "couldn't open billing. try again in a moment." },
+      { status: 502 },
+    );
+  }
+  return NextResponse.redirect(errorUrl, 303);
+}
+
 async function readPortalFlow(request: Request): Promise<PortalFlow | null> {
   const contentType = request.headers.get("content-type") || "";
   if (contentType.includes("application/json")) {
@@ -64,12 +75,12 @@ export async function POST(request: Request) {
   await ensureProfile({ id: user.id, email: user.email });
 
   if (!stripeConfigured()) {
-    return send(request, billingUrl);
+    return sendError(request, origin);
   }
 
   const stripe = getStripe();
   if (!stripe) {
-    return send(request, billingUrl);
+    return sendError(request, origin);
   }
 
   try {
@@ -83,25 +94,32 @@ export async function POST(request: Request) {
       await saveStripeCustomerId(user.id, customerId);
     }
 
-    const session = await createBillingPortalSession(stripe, {
-      customerId,
-      returnUrl: billingUrl,
-      flow,
-    });
+    let session;
+    try {
+      session = await createBillingPortalSession(stripe, {
+        customerId,
+        returnUrl: billingUrl,
+        flow,
+      });
+    } catch (error) {
+      // A deep-link into card update can fail for customers with no Stripe
+      // subscription yet. Open the general billing portal instead.
+      if (flow) {
+        session = await createBillingPortalSession(stripe, {
+          customerId,
+          returnUrl: billingUrl,
+        });
+      } else {
+        throw error;
+      }
+    }
 
-    return send(request, session.url || billingUrl);
+    if (!session.url) {
+      return sendError(request, origin);
+    }
+    return send(request, session.url);
   } catch (error) {
     console.error("stripe portal failed", error);
-    const message = error instanceof Error ? error.message : "";
-    if (/invalid api key|no such api key|authentication/i.test(message)) {
-      return send(request, billingUrl);
-    }
-    if (wantsJson(request)) {
-      return NextResponse.json(
-        { error: "couldn't open billing. try again in a moment." },
-        { status: 502 },
-      );
-    }
-    return NextResponse.redirect(new URL("/portal/billing", origin), 303);
+    return sendError(request, origin);
   }
 }

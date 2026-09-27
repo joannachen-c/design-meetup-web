@@ -50,7 +50,6 @@ export default async function PortalHomePage({
     mock?: string;
     tier?: string;
     session_id?: string;
-    mock_portal?: string;
     canceled?: string;
     checkout_error?: string;
   }>;
@@ -118,11 +117,6 @@ export default async function PortalHomePage({
       {params.canceled ? (
         <Toast className="mb-8">
           checkout canceled — pick a plan when you&apos;re ready.
-        </Toast>
-      ) : null}
-      {params.mock_portal ? (
-        <Toast className="mb-8">
-          couldn&apos;t open stripe billing. change plans below for now.
         </Toast>
       ) : null}
 

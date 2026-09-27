@@ -35,6 +35,7 @@ async function readStore(): Promise<StoreShape> {
             x: profile.x ?? null,
             linkedin: profile.linkedin ?? null,
             youtube: profile.youtube ?? null,
+            github: profile.github ?? null,
           }))
         : [],
       memberships: Array.isArray(parsed.memberships) ? parsed.memberships : [],
@@ -89,6 +90,7 @@ export async function ensureLocalProfile(input: {
     x: null,
     linkedin: null,
     youtube: null,
+    github: null,
     stripeCustomerId: null,
     createdAt: now,
     updatedAt: now,
@@ -118,6 +120,7 @@ export async function updateLocalProfile(input: {
   x?: string | null;
   linkedin?: string | null;
   youtube?: string | null;
+  github?: string | null;
 }) {
   const store = await readStore();
   const profile = store.profiles.find((p) => p.id === input.userId);
@@ -135,6 +138,7 @@ export async function updateLocalProfile(input: {
   if (input.x !== undefined) profile.x = input.x;
   if (input.linkedin !== undefined) profile.linkedin = input.linkedin;
   if (input.youtube !== undefined) profile.youtube = input.youtube;
+  if (input.github !== undefined) profile.github = input.github;
   profile.updatedAt = new Date().toISOString();
   await writeStore(store);
   return profile;

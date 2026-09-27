@@ -33,6 +33,7 @@ export type ProfileRecord = {
   x: string | null;
   linkedin: string | null;
   youtube: string | null;
+  github: string | null;
   stripeCustomerId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -44,6 +45,7 @@ export type ProfileSocialLinks = {
   x: string | null;
   linkedin: string | null;
   youtube: string | null;
+  github: string | null;
 };
 
 export function socialHref(
@@ -64,6 +66,8 @@ export function socialHref(
       return `https://linkedin.com/in/${raw.replace(/^\/?in\//, "")}`;
     case "youtube":
       return `https://youtube.com/@${raw.replace(/^@/, "")}`;
+    case "github":
+      return `https://github.com/${raw.replace(/^@/, "")}`;
     default:
       return null;
   }

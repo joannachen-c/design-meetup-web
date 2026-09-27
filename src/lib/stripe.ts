@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { priceIdForTier } from "@/lib/membership";
 import { requestOrigin } from "@/lib/site";
 
 let stripe: Stripe | null = null;
@@ -61,6 +62,37 @@ const portalFeatures: Stripe.BillingPortal.ConfigurationCreateParams.Features = 
   subscription_update: { enabled: false },
 };
 
+async function portalFeaturesWithPlanSwitch(stripeClient: Stripe) {
+  const features: Stripe.BillingPortal.ConfigurationCreateParams.Features = {
+    ...portalFeatures,
+  };
+  try {
+    const prices = await Promise.all([
+      stripeClient.prices.retrieve(priceIdForTier("student")),
+      stripeClient.prices.retrieve(priceIdForTier("professional")),
+    ]);
+    const byProduct = new Map<string, string[]>();
+    for (const price of prices) {
+      const product =
+        typeof price.product === "string" ? price.product : price.product.id;
+      const list = byProduct.get(product) ?? [];
+      if (!list.includes(price.id)) list.push(price.id);
+      byProduct.set(product, list);
+    }
+    features.subscription_update = {
+      enabled: true,
+      default_allowed_updates: ["price"],
+      products: [...byProduct.entries()].map(([product, priceIds]) => ({
+        product,
+        prices: priceIds,
+      })),
+    };
+  } catch {
+    features.subscription_update = { enabled: false };
+  }
+  return features;
+}
+
 function portalHasBillingTools(
   config: Stripe.BillingPortal.Configuration,
 ) {
@@ -91,7 +123,7 @@ async function ensurePortalConfiguration(stripeClient: Stripe) {
 
   const created = await stripeClient.billingPortal.configurations.create({
     business_profile: { headline: PORTAL_HEADLINE },
-    features: portalFeatures,
+    features: await portalFeaturesWithPlanSwitch(stripeClient),
   });
   portalConfigurationId = created.id;
   return created.id;
@@ -145,28 +177,48 @@ export async function getCustomerBillingOverview(
   stripeClient: Stripe,
   customerId: string,
 ) {
-  const [methods, invoices] = await Promise.all([
+  const [methods, invoices, customer] = await Promise.all([
     stripeClient.paymentMethods.list({
       customer: customerId,
       type: "card",
       limit: 5,
     }),
     stripeClient.invoices.list({ customer: customerId, limit: 12 }),
+    stripeClient.customers.retrieve(customerId, {
+      expand: ["invoice_settings.default_payment_method"],
+    }),
   ]);
 
-  const cards: StripeCardSummary[] = methods.data.flatMap((method) => {
+  const toCard = (
+    method: Stripe.PaymentMethod,
+  ): StripeCardSummary | null => {
     const card = method.card;
-    if (!card?.last4) return [];
-    return [
-      {
-        id: method.id,
-        brand: card.brand,
-        last4: card.last4,
-        expMonth: card.exp_month,
-        expYear: card.exp_year,
-      },
-    ];
+    if (!card?.last4) return null;
+    return {
+      id: method.id,
+      brand: card.brand,
+      last4: card.last4,
+      expMonth: card.exp_month,
+      expYear: card.exp_year,
+    };
+  };
+
+  let cards: StripeCardSummary[] = methods.data.flatMap((method) => {
+    const card = toCard(method);
+    return card ? [card] : [];
   });
+
+  if (
+    !cards.length &&
+    customer &&
+    !("deleted" in customer && customer.deleted)
+  ) {
+    const defaultMethod = customer.invoice_settings?.default_payment_method;
+    if (defaultMethod && typeof defaultMethod === "object") {
+      const card = toCard(defaultMethod);
+      if (card) cards = [card];
+    }
+  }
 
   const invoiceRows: StripeInvoiceSummary[] = invoices.data
     .filter((invoice) => invoice.status && invoice.status !== "draft")

@@ -20,6 +20,8 @@ test("stripe helpers provision a customer and a portal configuration", async () 
   assert.match(stripe, /billingPortal\.sessions\.create/);
   assert.match(stripe, /invoice_history: \{ enabled: true \}/);
   assert.match(stripe, /payment_method_update: \{ enabled: true \}/);
+  assert.match(stripe, /subscription_update/);
+  assert.match(stripe, /invoice_settings\.default_payment_method/);
   assert.match(stripe, /flow_data: \{ type: input\.flow \}/);
   assert.match(stripe, /export async function getCustomerBillingOverview/);
   assert.match(stripe, /apiVersion: "2026-04-22\.dahlia"/);
@@ -90,7 +92,10 @@ test("this branch ships the stripe checkout, portal, and webhook routes", async 
   assert.match(checkout, /export async function POST/);
   assert.match(portal, /export async function POST/);
   assert.match(webhook, /export async function POST/);
-  assert.match(webhook, /syncSubscription/);
+  assert.match(webhook, /syncMembershipFromStripeSubscription/);
+  assert.match(webhook, /invoice\.paid/);
+  assert.match(webhook, /invoice\.payment_failed/);
+  assert.match(webhook, /STRIPE_WEBHOOK_SECRET\?\.trim\(\)/);
 });
 
 test("invalid stripe keys fall through to in-app billing instead of a secret-key error", async () => {
@@ -120,4 +125,22 @@ test("the billing page has a home breadcrumb, cards, and invoices", async () => 
   assert.match(button, /name="flow"/);
   assert.match(route, /flow_data|flow,/);
   assert.match(route, /payment_method_update/);
+});
+
+test("real stripe subscriptions are canceled and switched in stripe, not only locally", async () => {
+  const service = await read("src/lib/membership-service.ts");
+  const checkout = await read("app/api/stripe/checkout/route.ts");
+  const billing = await read("app/api/portal/billing/route.ts");
+  const webhook = await read("app/api/stripe/webhook/route.ts");
+  assert.match(service, /export function mockBillingAllowed/);
+  assert.match(service, /VERCEL_ENV !== "production"/);
+  assert.match(service, /export function isLiveStripeSubscriptionId/);
+  assert.match(service, /stripe\.subscriptions\.update/);
+  assert.match(service, /cancel_at_period_end: cancelAtPeriodEnd/);
+  assert.match(service, /proration_behavior: "create_prorations"/);
+  assert.match(service, /saveStripeCustomerId\(userId, customerId\)/);
+  assert.match(checkout, /changeMembershipTier\(user\.id, tier\)/);
+  assert.match(checkout, /if \(!mockBillingAllowed\(\)\)/);
+  assert.match(billing, /\/portal\/billing\?error=1/);
+  assert.match(webhook, /syncMembershipFromStripeSubscription/);
 });

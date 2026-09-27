@@ -18,6 +18,11 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/portal/billing", origin), 303);
   }
 
-  await setMembershipCancelAtPeriodEnd(user.id, action === "cancel");
+  try {
+    await setMembershipCancelAtPeriodEnd(user.id, action === "cancel");
+  } catch (error) {
+    console.error("stripe cancel/resume failed", error);
+    return NextResponse.redirect(new URL("/portal/billing?error=1", origin), 303);
+  }
   return NextResponse.redirect(new URL("/portal/billing?saved=1", origin), 303);
 }

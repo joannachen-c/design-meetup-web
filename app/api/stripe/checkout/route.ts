@@ -3,8 +3,10 @@ import { getSessionUser } from "@/lib/auth";
 import { isTier, priceIdForTier, TIER_CATALOG } from "@/lib/membership";
 import {
   activateMockMembership,
+  changeMembershipTier,
   ensureProfile,
   getProfile,
+  mockBillingAllowed,
   saveStripeCustomerId,
   stripeConfigured,
 } from "@/lib/membership-service";
@@ -61,9 +63,24 @@ export async function POST(request: Request) {
   }
   const tier = parsed.tier;
 
+  function checkoutError(message: string, status = 502) {
+    if (parsed.kind === "form") {
+      return NextResponse.redirect(
+        new URL("/portal?checkout_error=1", origin),
+        303,
+      );
+    }
+    return NextResponse.json({ error: message }, { status });
+  }
+
   await ensureProfile({ id: user.id, email: user.email });
 
   if (!stripeConfigured()) {
+    if (!mockBillingAllowed()) {
+      return checkoutError(
+        "billing isn't set up correctly yet. please try again later.",
+      );
+    }
     await activateMockMembership(user.id, tier);
     const url = `${origin}/portal?subscribed=1&mock=1&tier=${tier}`;
     if (parsed.kind === "form") {
@@ -84,6 +101,15 @@ export async function POST(request: Request) {
   }
 
   try {
+    const switched = await changeMembershipTier(user.id, tier);
+    if (switched) {
+      const url = `${origin}/portal?subscribed=1&tier=${tier}`;
+      if (parsed.kind === "form") {
+        return NextResponse.redirect(url, 303);
+      }
+      return NextResponse.json({ url, mock: false });
+    }
+
     const profile = await getProfile(user.id);
     const customerId = await ensureStripeCustomer(stripe, {
       customerId: profile?.stripeCustomerId ?? null,
@@ -142,6 +168,11 @@ export async function POST(request: Request) {
     const message =
       error instanceof Error ? error.message : "";
     if (/invalid api key|no such api key|authentication/i.test(message)) {
+      if (!mockBillingAllowed()) {
+        return checkoutError(
+          "billing isn't set up correctly yet. please try again later.",
+        );
+      }
       await activateMockMembership(user.id, tier);
       const url = `${origin}/portal?subscribed=1&tier=${tier}`;
       if (parsed.kind === "form") {
@@ -153,12 +184,6 @@ export async function POST(request: Request) {
       /api key/i.test(message)
         ? "billing isn't set up correctly yet. please try again later."
         : "could not start checkout. please try again.";
-    if (parsed.kind === "form") {
-      return NextResponse.redirect(
-        new URL("/portal?checkout_error=1", origin),
-        303,
-      );
-    }
-    return NextResponse.json({ error: friendly }, { status: 502 });
+    return checkoutError(friendly);
   }
 }

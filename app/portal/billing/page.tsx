@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
   const user = await requireUser("/portal/billing");
   const membership = await getMembership(user.id);
@@ -40,6 +40,11 @@ export default async function BillingPage({
   return (
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
       <ProfileSavedToast saved={params.saved === "1"} message="Billing updated." />
+      {params.error ? (
+        <p className="mb-8 text-base text-red-700" role="alert">
+          couldn&apos;t update billing in stripe. try again.
+        </p>
+      ) : null}
 
       <nav aria-label="Breadcrumb" className="mb-3">
         <Link

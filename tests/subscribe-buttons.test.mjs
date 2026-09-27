@@ -17,8 +17,14 @@ test("get started posts to stripe checkout as a form so the page always navigate
 test("invalid stripe keys still start membership instead of a silent checkout error", async () => {
   const route = await read("app/api/stripe/checkout/route.ts");
   assert.match(route, /invalid api key/i);
+  assert.match(route, /mockBillingAllowed\(\)/);
   assert.match(route, /activateMockMembership\(user\.id, tier\)/);
   assert.match(route, /\/portal\?subscribed=1&tier=/);
+});
+
+test("checkout updates an existing live subscription instead of opening a second checkout", async () => {
+  const route = await read("app/api/stripe/checkout/route.ts");
+  assert.match(route, /changeMembershipTier\(user\.id, tier\)/);
 });
 
 test("preview membership is persisted in a cookie when the filesystem is ephemeral", async () => {

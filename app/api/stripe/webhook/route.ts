@@ -1,20 +1,28 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import {
-  normalizeMembershipStatus,
-  type Tier,
-} from "@/lib/membership";
-import {
-  resolveTierFromStripePrice,
-  upsertMembership,
+  syncMembershipFromStripeSubscription,
 } from "@/lib/membership-service";
 import { getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
+function invoiceSubscriptionId(invoice: Stripe.Invoice) {
+  const parentSub = invoice.parent?.subscription_details?.subscription;
+  if (typeof parentSub === "string") return parentSub;
+  if (parentSub && typeof parentSub === "object" && "id" in parentSub) {
+    return parentSub.id;
+  }
+  const legacy = (invoice as { subscription?: string | Stripe.Subscription | null })
+    .subscription;
+  if (typeof legacy === "string") return legacy;
+  if (legacy && typeof legacy === "object") return legacy.id;
+  return null;
+}
+
 export async function POST(request: Request) {
   const stripe = getStripe();
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
   if (!stripe || !secret) {
     return NextResponse.json(
       { error: "Stripe webhook is not configured." },
@@ -48,7 +56,7 @@ export async function POST(request: Request) {
         const subscription = await stripe.subscriptions.retrieve(
           String(session.subscription),
         );
-        await syncSubscription(userId, subscription);
+        await syncMembershipFromStripeSubscription(userId, subscription);
         break;
       }
       case "customer.subscription.created":
@@ -57,7 +65,18 @@ export async function POST(request: Request) {
         const subscription = event.data.object as Stripe.Subscription;
         const userId = subscription.metadata?.supabase_user_id || null;
         if (!userId) break;
-        await syncSubscription(userId, subscription);
+        await syncMembershipFromStripeSubscription(userId, subscription);
+        break;
+      }
+      case "invoice.paid":
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId = invoiceSubscriptionId(invoice);
+        if (!subscriptionId) break;
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const userId = subscription.metadata?.supabase_user_id || null;
+        if (!userId) break;
+        await syncMembershipFromStripeSubscription(userId, subscription);
         break;
       }
       default:
@@ -69,38 +88,4 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ received: true });
-}
-
-async function syncSubscription(userId: string, subscription: Stripe.Subscription) {
-  const priceId = subscription.items.data[0]?.price?.id ?? null;
-  const tierFromMeta = subscription.metadata?.tier;
-  const tier: Tier | null =
-    tierFromMeta === "student" || tierFromMeta === "professional"
-      ? tierFromMeta
-      : resolveTierFromStripePrice(priceId);
-  if (!tier) return;
-
-  const status =
-    subscription.status === "canceled"
-      ? "canceled"
-      : normalizeMembershipStatus(subscription.status);
-
-  const periodEndSec =
-    // Stripe API shapes vary by version; prefer subscription-level period end.
-    (subscription as { current_period_end?: number }).current_period_end ??
-    subscription.items.data[0]?.current_period_end ??
-    null;
-  const periodEnd = periodEndSec
-    ? new Date(periodEndSec * 1000).toISOString()
-    : null;
-
-  await upsertMembership({
-    userId,
-    tier,
-    status,
-    stripeSubscriptionId: subscription.id,
-    stripePriceId: priceId,
-    currentPeriodEnd: periodEnd,
-    cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
-  });
 }

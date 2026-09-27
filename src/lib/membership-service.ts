@@ -409,12 +409,147 @@ export async function syncMembershipFromCheckoutSession(input: {
   });
 }
 
+export function stripeConfigured() {
+  return Boolean(process.env.STRIPE_SECRET_KEY?.trim().startsWith("sk_"));
+}
+
+/** Preview/local can use cookie membership. Production must charge through Stripe. */
+export function mockBillingAllowed() {
+  return process.env.VERCEL_ENV !== "production";
+}
+
+export function isLiveStripeSubscriptionId(
+  id: string | null | undefined,
+): id is string {
+  return Boolean(id && id.startsWith("sub_") && !id.startsWith("sub_local_"));
+}
+
+function isStripeAuthError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  return /invalid api key|no such api key|authentication/i.test(message);
+}
+
+function isMissingStripeSubscription(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  return /no such subscription/i.test(message);
+}
+
+type StripeSubscriptionLike = {
+  id: string;
+  status: string;
+  customer?: string | { id?: string } | null;
+  cancel_at_period_end?: boolean | null;
+  current_period_end?: number;
+  metadata?: { supabase_user_id?: string; tier?: string } | null;
+  items?: {
+    data?: Array<{
+      current_period_end?: number;
+      price?: { id?: string } | null;
+    }>;
+  };
+};
+
+function customerIdFromSubscription(subscription: StripeSubscriptionLike) {
+  if (typeof subscription.customer === "string") return subscription.customer;
+  return subscription.customer?.id ?? null;
+}
+
+export async function syncMembershipFromStripeSubscription(
+  userId: string,
+  subscription: StripeSubscriptionLike,
+) {
+  const priceId = subscription.items?.data?.[0]?.price?.id ?? null;
+  const tierFromMeta = subscription.metadata?.tier;
+  const tier: Tier | null =
+    tierFromMeta === "student" || tierFromMeta === "professional"
+      ? tierFromMeta
+      : resolveTierFromStripePrice(priceId);
+  if (!tier) return null;
+
+  const status =
+    subscription.status === "canceled"
+      ? "canceled"
+      : normalizeMembershipStatus(subscription.status);
+
+  const periodEndSec =
+    subscription.current_period_end ??
+    subscription.items?.data?.[0]?.current_period_end ??
+    null;
+
+  const customerId = customerIdFromSubscription(subscription);
+  if (customerId) await saveStripeCustomerId(userId, customerId);
+
+  return upsertMembership({
+    userId,
+    tier,
+    status,
+    stripeSubscriptionId: subscription.id,
+    stripePriceId: priceId,
+    currentPeriodEnd: periodEndSec
+      ? new Date(periodEndSec * 1000).toISOString()
+      : null,
+    cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+  });
+}
+
+export async function changeMembershipTier(userId: string, tier: Tier) {
+  const membership = await getMembership(userId);
+  const subscriptionId = membership?.stripeSubscriptionId;
+  if (!isLiveStripeSubscriptionId(subscriptionId)) {
+    return null;
+  }
+  const { getStripe } = await import("./stripe");
+  const stripe = getStripe();
+  if (!stripe) return null;
+
+  try {
+    const current = await stripe.subscriptions.retrieve(subscriptionId);
+    if (current.status === "canceled" || current.status === "incomplete_expired") {
+      return null;
+    }
+    const itemId = current.items.data[0]?.id;
+    if (!itemId) return null;
+    const updated = await stripe.subscriptions.update(current.id, {
+      items: [{ id: itemId, price: priceIdForTier(tier) }],
+      metadata: { supabase_user_id: userId, tier },
+      proration_behavior: "create_prorations",
+      cancel_at_period_end: false,
+    });
+    return syncMembershipFromStripeSubscription(userId, updated);
+  } catch (error) {
+    if (isMissingStripeSubscription(error)) return null;
+    if (mockBillingAllowed() && isStripeAuthError(error)) return null;
+    throw error;
+  }
+}
+
 export async function setMembershipCancelAtPeriodEnd(
   userId: string,
   cancelAtPeriodEnd: boolean,
 ) {
   const membership = await getMembership(userId);
   if (!membership) return null;
+
+  if (isLiveStripeSubscriptionId(membership.stripeSubscriptionId)) {
+    const { getStripe } = await import("./stripe");
+    const stripe = getStripe();
+    if (stripe) {
+      try {
+        const updated = await stripe.subscriptions.update(
+          membership.stripeSubscriptionId,
+          { cancel_at_period_end: cancelAtPeriodEnd },
+        );
+        return syncMembershipFromStripeSubscription(userId, updated);
+      } catch (error) {
+        if (!(mockBillingAllowed() && isStripeAuthError(error))) {
+          throw error;
+        }
+      }
+    } else if (!mockBillingAllowed()) {
+      throw new Error("Stripe is not configured.");
+    }
+  }
+
   return upsertMembership({
     userId,
     tier: membership.tier,
@@ -444,8 +579,4 @@ export async function getMemberBillingOverview(userId: string) {
     console.error("stripe billing overview failed", error);
     return empty;
   }
-}
-
-export function stripeConfigured() {
-  return Boolean(process.env.STRIPE_SECRET_KEY?.trim().startsWith("sk_"));
 }

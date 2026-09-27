@@ -260,11 +260,13 @@ export function MemberIdCard({
                       .join(" ")}
                   >
                     <UploadIcon />
-                    {uploading
-                      ? "uploading…"
-                      : photo
-                        ? "upload new image"
-                        : "upload image"}
+                    <span className={styles.photoOverlayLabel}>
+                      {uploading
+                        ? "uploading…"
+                        : photo
+                          ? "upload new image"
+                          : "upload image"}
+                    </span>
                   </span>
                 </button>
                 <input
@@ -372,10 +374,10 @@ export function MemberIdCard({
           >
             <img
               className={styles.backLogo}
-              src="/design-meetup-logo.png"
+              src="/design-meetup-logo-mark.svg"
               alt=""
-              width={120}
-              height={120}
+              width={148}
+              height={148}
             />
           </div>
         </div>

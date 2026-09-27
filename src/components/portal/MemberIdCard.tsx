@@ -39,10 +39,7 @@ function PersonSilhouette() {
       aria-hidden
     >
       <circle cx="28" cy="20" r="10" fill="currentColor" />
-      <path
-        d="M8 48c2.5-10.5 10-16 20-16s17.5 5.5 20 16"
-        fill="currentColor"
-      />
+      <path d="M8 48c2.5-10.5 10-16 20-16s17.5 5.5 20 16" fill="currentColor" />
     </svg>
   );
 }
@@ -112,120 +109,127 @@ export function MemberIdCard({
 
   return (
     <div className={styles.scene}>
-      <button
-        type="button"
-        className={[styles.card, flipped ? styles.flipped : ""]
-          .filter(Boolean)
-          .join(" ")}
-        onClick={() => setFlipped((value) => !value)}
-        aria-label={
-          flipped
-            ? "Flip member ID card to front"
-            : "Flip member ID card to back"
-        }
-      >
-        <div className={`${styles.face} ${styles.front}`}>
-          <div className={styles.header}>
-            <span className={styles.brand}>
-              <img src="/design-meetup-logo.png" alt="" width={22} height={22} />
-              design meetup
-            </span>
-            <span className={styles.docType}>member id</span>
-          </div>
-
-          <div className={styles.body}>
-            <div className={styles.photoColumn}>
-              {avatarUrl ? (
+      <div className={styles.tilt}>
+        <button
+          type="button"
+          className={[styles.card, flipped ? styles.flipped : ""]
+            .filter(Boolean)
+            .join(" ")}
+          onClick={() => setFlipped((value) => !value)}
+          aria-label={
+            flipped
+              ? "Flip member ID card to front"
+              : "Flip member ID card to back"
+          }
+        >
+          <div className={`${styles.face} ${styles.front}`}>
+            <div className={styles.header}>
+              <span className={styles.brand}>
                 <img
-                  src={avatarUrl}
+                  src="/design-meetup-logo.png"
                   alt=""
-                  className={styles.photo}
-                  width={104}
-                  height={136}
+                  width={22}
+                  height={22}
                 />
-              ) : (
-                <Link
-                  href="/portal/profile"
-                  className={styles.photoEmpty}
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <PersonSilhouette />
-                  <span>add photo</span>
-                </Link>
-              )}
-              <p className={styles.signature} aria-hidden>
-                {displayName}
-              </p>
+                design meetup
+              </span>
+              <span className={styles.docType}>member id</span>
             </div>
 
-            <div className={styles.details}>
-              <p className={styles.number}>{formatMemberId(memberId)}</p>
-              <dl className={styles.fields}>
-                {rows.map((row, index) => (
-                  <div key={row.label} className={styles.field}>
-                    <dt>
-                      <span className={styles.fieldIndex}>{index + 1}</span>
-                      {row.label}
-                    </dt>
-                    <dd>{row.value}</dd>
-                  </div>
-                ))}
-              </dl>
-              {optionalRows.length === 0 ? (
-                <p className={styles.hint}>
+            <div className={styles.body}>
+              <div className={styles.photoColumn}>
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    className={styles.photo}
+                    width={104}
+                    height={136}
+                  />
+                ) : (
                   <Link
                     href="/portal/profile"
+                    className={styles.photoEmpty}
                     onClick={(event) => event.stopPropagation()}
                   >
-                    complete your profile
+                    <PersonSilhouette />
+                    <span>add photo</span>
                   </Link>
+                )}
+                <p className={styles.signature} aria-hidden>
+                  {displayName}
                 </p>
-              ) : null}
-              {socials.length > 0 ? (
-                <div className={styles.socials}>
-                  {socials.map(({ key, label, href, Icon }) => (
-                    <a
-                      key={key}
-                      href={href}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label={label}
-                      className={styles.social}
+              </div>
+
+              <div className={styles.details}>
+                <p className={styles.number}>{formatMemberId(memberId)}</p>
+                <dl className={styles.fields}>
+                  {rows.map((row, index) => (
+                    <div key={row.label} className={styles.field}>
+                      <dt>
+                        <span className={styles.fieldIndex}>{index + 1}</span>
+                        {row.label}
+                      </dt>
+                      <dd>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                {optionalRows.length === 0 ? (
+                  <p className={styles.hint}>
+                    <Link
+                      href="/portal/profile"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      <Icon />
-                    </a>
-                  ))}
-                </div>
-              ) : null}
+                      complete your profile
+                    </Link>
+                  </p>
+                ) : null}
+                {socials.length > 0 ? (
+                  <div className={styles.socials}>
+                    {socials.map(({ key, label, href, Icon }) => (
+                      <a
+                        key={key}
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={label}
+                        className={styles.social}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <Icon />
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
             </div>
+
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt=""
+                className={styles.ghostPhoto}
+                width={44}
+                height={56}
+                aria-hidden
+              />
+            ) : null}
           </div>
 
-          {avatarUrl ? (
+          <div
+            className={`${styles.face} ${styles.back}`}
+            aria-hidden={flipped ? undefined : true}
+          >
             <img
-              src={avatarUrl}
+              className={styles.backLogo}
+              src="/design-meetup-logo.png"
               alt=""
-              className={styles.ghostPhoto}
-              width={44}
-              height={56}
-              aria-hidden
+              width={120}
+              height={120}
             />
-          ) : null}
-        </div>
-
-        <div
-          className={`${styles.face} ${styles.back}`}
-          aria-hidden={flipped ? undefined : true}
-        >
-          <img
-            className={styles.backLogo}
-            src="/design-meetup-logo.png"
-            alt=""
-            width={120}
-            height={120}
-          />
-        </div>
-      </button>
+          </div>
+        </button>
+      </div>
     </div>
   );
 }

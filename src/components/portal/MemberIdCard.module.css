@@ -1,19 +1,25 @@
 /* Member portal ID card, laid out like a license */
 .scene {
   perspective: 1200px;
-  width: min(100%, 440px);
+  width: 100%;
+  max-width: 440px;
   margin-inline: auto;
 }
 
-@media (min-width: 1024px) {
-  .scene {
-    margin-inline: 0 0 auto;
-  }
+/* The hover sway and the flip live on separate layers so clicking mid-sway
+   never cancels one transform in favour of the other. */
+.tilt {
+  transform-style: preserve-3d;
+  transform: rotateY(-1.5deg) rotateX(0.5deg);
+}
+
+.scene:hover .tilt {
+  animation: gyrate 2.4s ease-in-out infinite;
 }
 
 .card {
   position: relative;
-  display: block;
+  display: grid;
   width: 100%;
   aspect-ratio: 1.586 / 1;
   border: 0;
@@ -23,22 +29,18 @@
   font: inherit;
   cursor: pointer;
   transform-style: preserve-3d;
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-  transform: rotateY(-1.5deg) rotateX(0.5deg);
-}
-
-.scene:hover .card:not(.flipped) {
-  animation: gyrate 1.35s ease-in-out infinite;
+  transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
 }
 
 .card.flipped {
   transform: rotateY(180deg);
-  animation: none;
 }
 
 .face {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  grid-area: 1 / 1;
+  min-width: 0;
   border-radius: 20px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -273,7 +275,45 @@
   transform: rotateY(180deg);
   display: grid;
   place-items: center;
-  background: #0a0a0a;
+  isolation: isolate;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.018) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(120% 90% at 20% 0%, #2c2e33 0%, transparent 55%),
+    linear-gradient(155deg, #1b1c1f 0%, #08080a 45%, #151619 70%, #030304 100%);
+  box-shadow:
+    0 14px 36px rgb(10 12 18 / 0.3),
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    inset 0 -1px 0 rgb(0 0 0 / 0.6),
+    inset 0 0 0 1px rgb(255 255 255 / 0.05);
+}
+
+/* Specular band that slides across the metal while the card is hovered. */
+.back::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.05) 42%,
+    rgb(255 255 255 / 0.2) 50%,
+    rgb(255 255 255 / 0.05) 58%,
+    transparent 70%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  transition: background-position 1.2s cubic-bezier(0.65, 0, 0.35, 1);
+  pointer-events: none;
+}
+
+.scene:hover .back::before {
+  background-position: 0 0;
 }
 
 .backLogo {
@@ -285,42 +325,20 @@
 @keyframes gyrate {
   0%,
   100% {
-    transform: rotateY(-6deg) rotateX(3deg) translateY(0);
+    transform: rotateY(-5deg) rotateX(2.5deg) translateY(0);
   }
   50% {
-    transform: rotateY(6deg) rotateX(-2deg) translateY(-3px);
+    transform: rotateY(5deg) rotateX(-1.5deg) translateY(-3px);
   }
 }
 
 @media (max-width: 720px) {
   .card {
     aspect-ratio: auto;
-    transform: none;
-  }
-
-  .face {
-    position: relative;
-  }
-
-  .front {
     min-height: 260px;
   }
 
-  .back {
-    display: none;
-    min-height: 260px;
-  }
-
-  .card.flipped .front {
-    display: none;
-  }
-
-  .card.flipped .back {
-    display: grid;
-    transform: none;
-  }
-
-  .scene:hover .card:not(.flipped) {
+  .scene:hover .tilt {
     animation: none;
   }
 }
@@ -340,11 +358,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scene:hover .card:not(.flipped) {
+  .scene:hover .tilt {
     animation: none;
   }
 
-  .card {
+  .card,
+  .back::before {
     transition: none;
   }
 }

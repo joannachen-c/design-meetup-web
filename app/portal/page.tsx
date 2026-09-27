@@ -126,7 +126,7 @@ export default async function PortalHomePage({
           </h1>
           {hasAccess ? <ManageBillingButton /> : null}
         </div>
-        <div className="w-full shrink-0 lg:w-auto lg:max-w-[420px]">
+        <div className="w-full shrink-0 lg:w-[440px]">
           <MemberIdCard
             displayName={displayName}
             avatarUrl={profile?.avatarUrl ?? null}

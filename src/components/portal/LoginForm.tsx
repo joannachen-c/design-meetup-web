@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Input } from "@/components/Input";
 import { Primary } from "@/components/Primary";
 import { Tooltip, TooltipProvider } from "@/components/Tooltip";
+import { UNAPPROVED_SIGNUP_ERROR } from "@/lib/signup-messages";
 
 function EyeIcon() {
   return (
@@ -73,6 +74,7 @@ export function LoginForm({
   nextPath: string;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -84,6 +86,7 @@ export function LoginForm({
   ) {
     setPending(true);
     setError(null);
+    setEmailError(null);
 
     try {
       const response = await fetch("/api/auth", {
@@ -123,6 +126,15 @@ export function LoginForm({
           setPending(false);
           return;
         }
+        if (
+          authMode === "signup" &&
+          (payload.error === UNAPPROVED_SIGNUP_ERROR ||
+            /isn't approved to create an account/i.test(payload.error || ""))
+        ) {
+          setEmailError(payload.error || UNAPPROVED_SIGNUP_ERROR);
+          setPending(false);
+          return;
+        }
         setError(payload.error || "Something went wrong.");
         setPending(false);
         return;
@@ -154,6 +166,8 @@ export function LoginForm({
       : String(form.get("displayName") || "").trim();
     const email = String(form.get("email") || "").trim();
     const password = String(form.get("password") || "");
+    setError(null);
+    setEmailError(null);
     if (mode === "signup" && !firstName) {
       setError("Enter your first name.");
       return;
@@ -213,7 +227,18 @@ export function LoginForm({
             autoComplete="email"
             required
             placeholder="you@example.com"
+            aria-invalid={emailError ? true : undefined}
+            aria-describedby={emailError ? "signup-email-error" : undefined}
           />
+          {emailError ? (
+            <p
+              id="signup-email-error"
+              className="m-0 text-sm text-red-700"
+              role="alert"
+            >
+              {emailError}
+            </p>
+          ) : null}
         </label>
         <label className="grid gap-2">
           <span className="text-sm font-bold text-muted">password</span>

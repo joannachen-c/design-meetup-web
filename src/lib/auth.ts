@@ -15,6 +15,10 @@ import {
   supabaseAuthConfigured,
   supabaseUrl,
 } from "./auth-session";
+import {
+  isApprovedSignupEmail,
+  UNAPPROVED_SIGNUP_ERROR,
+} from "./signup-allowlist";
 
 /** Server-only admin client. Never import from client components. */
 export function createAdminClient() {
@@ -207,6 +211,9 @@ export async function passwordSignIn(email: string, password: string) {
 }
 
 export async function passwordSignUp(email: string, password: string) {
+  if (!isApprovedSignupEmail(email)) {
+    return { ok: false as const, error: UNAPPROVED_SIGNUP_ERROR };
+  }
   if (!supabaseAuthConfigured()) {
     return localPasswordSignUp(email, password);
   }

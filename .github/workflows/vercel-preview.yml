@@ -145,6 +145,8 @@ jobs:
           delete_preview NEXT_PUBLIC_SITE_URL
           delete_preview NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
           copy_prod_to_preview SUPABASE_SERVICE_ROLE_KEY
+          copy_prod_to_preview GMAIL_USER
+          copy_prod_to_preview GMAIL_APP_PASSWORD
 
           list_env | python3 -c "
           import json, sys
@@ -155,7 +157,8 @@ jobs:
             'STRIPE_PRICE_STUDENT_MONTHLY',
             'STRIPE_PRICE_PROFESSIONAL_MONTHLY',
             'SUPABASE_SERVICE_ROLE_KEY',
-          ]
+            'GMAIL_USER',
+            'GMAIL_APP_PASSWORD',
           present = {e.get('key') for e in d.get('envs', []) if 'preview' in (e.get('target') or [])}
           missing = [k for k in wanted if k not in present]
           for k in wanted:

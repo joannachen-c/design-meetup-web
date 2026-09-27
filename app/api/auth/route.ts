@@ -11,6 +11,7 @@ import {
   userHasPortalAccess,
 } from "@/lib/membership-service";
 import { requestOrigin } from "@/lib/site";
+import { sendWelcomeEmail } from "@/lib/welcome-email";
 
 export const runtime = "nodejs";
 
@@ -78,6 +79,11 @@ async function handleAuth(request: Request) {
     if (result.userId) {
       await ensureProfile({ id: result.userId, email, displayName });
     }
+    await sendWelcomeEmail({
+      email,
+      firstName: firstName || displayName.split(/\s+/)[0] || "",
+      origin: requestOrigin(request),
+    });
     nextPath = nextPath.includes("subscribe") ? nextPath : "/portal/subscribe";
   } else {
     const result = await passwordSignIn(email, password);

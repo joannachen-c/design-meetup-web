@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   clearAuthCookies,
@@ -12,6 +13,8 @@ import {
   ensureProfile,
   userHasPortalAccess,
 } from "@/lib/membership-service";
+import { originFromHeaders, siteUrl } from "@/lib/site";
+import { sendWelcomeEmail } from "@/lib/welcome-email";
 
 function safeNext(raw: FormDataEntryValue | null) {
   if (typeof raw !== "string" || !raw.startsWith("/")) return "/portal";
@@ -78,6 +81,12 @@ export async function signupAction(
   if (result.userId) {
     await ensureProfile({ id: result.userId, email, displayName });
   }
+
+  await sendWelcomeEmail({
+    email,
+    firstName,
+    origin: originFromHeaders(await headers()) ?? siteUrl,
+  });
 
   redirect(next.includes("subscribe") ? next : "/portal/subscribe");
 }

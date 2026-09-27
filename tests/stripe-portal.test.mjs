@@ -52,6 +52,8 @@ test("preview workflow upserts stripe env with teamId and skips the unused publi
   assert.match(workflow, /upsert STRIPE_PRICE_STUDENT_MONTHLY/);
   assert.match(workflow, /upsert STRIPE_PRICE_PROFESSIONAL_MONTHLY/);
   assert.match(workflow, /copy_prod_to_preview SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(workflow, /copy_prod_to_preview GMAIL_USER/);
+  assert.match(workflow, /copy_prod_to_preview GMAIL_APP_PASSWORD/);
   assert.match(workflow, /delete_preview NEXT_PUBLIC_SITE_URL/);
   assert.match(workflow, /delete_preview NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/);
   assert.doesNotMatch(workflow, /upsert NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/);

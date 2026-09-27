@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   useId,
   useState,
@@ -7,6 +8,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
+import { showSuccessToast } from "@/components/AppToaster";
 import { Input } from "@/components/Input";
 import { Primary } from "@/components/Primary";
 import {
@@ -142,6 +144,7 @@ export function ProfileForm({
   initialGithub = "",
 }: ProfileFormProps) {
   const idPrefix = useId();
+  const router = useRouter();
   const [initialFirstName, ...restOfName] = initialName.trim().split(/\s+/);
   const initialLastName = restOfName.join(" ");
   const fieldId = (name: string) => `${idPrefix}-${name}`;
@@ -198,10 +201,18 @@ export function ProfileForm({
       const response = await fetch("/api/portal/profile", {
         method: "POST",
         credentials: "same-origin",
+        headers: { Accept: "application/json" },
         body: data,
       });
 
       if (response.redirected) {
+        const next = new URL(response.url, window.location.origin);
+        if (next.searchParams.get("saved") === "1") {
+          showSuccessToast("Profile updated.");
+          setPending(false);
+          router.refresh();
+          return;
+        }
         window.location.assign(response.url);
         return;
       }
@@ -215,7 +226,9 @@ export function ProfileForm({
         return;
       }
 
-      window.location.assign("/portal/profile?saved=1");
+      showSuccessToast("Profile updated.");
+      setPending(false);
+      router.refresh();
     } catch {
       form.submit();
     }

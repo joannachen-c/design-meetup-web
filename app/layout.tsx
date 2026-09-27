@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { AgentationDev } from "@/components/AgentationDev";
+import { AppToaster } from "@/components/AppToaster";
 import {
   siteDescription,
   siteName,
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className="bg-surface" suppressHydrationWarning>
       <body className="bg-surface" suppressHydrationWarning>
         {children}
+        <AppToaster />
         <Analytics />
         {showAgentation ? <AgentationDev /> : null}
       </body>

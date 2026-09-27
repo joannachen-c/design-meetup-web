@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ProfileForm } from "@/components/portal/ProfileForm";
+import { ProfileSavedToast } from "@/components/portal/ProfileSavedToast";
 import { requireUser } from "@/lib/auth";
 import { displayNameFromEmail } from "@/lib/membership";
 import { ensureProfile, getProfile } from "@/lib/membership-service";
@@ -39,6 +40,7 @@ export default async function ProfilePage({
 
   return (
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
+      <ProfileSavedToast saved={params.saved === "1"} />
       {message ? (
         <p className="mb-8 text-base text-red-700" role="alert">
           {message}

@@ -11,6 +11,26 @@ function optionalField(value: FormDataEntryValue | null | undefined) {
   return String(value || "").trim();
 }
 
+function wantsJson(request: Request) {
+  return (request.headers.get("accept") || "").includes("application/json");
+}
+
+function formRedirectOrJson(
+  request: Request,
+  origin: string,
+  path: string,
+  json: { error?: string; ok?: boolean; profile?: unknown },
+  status = 200,
+) {
+  const isForm = (request.headers.get("content-type") || "").includes(
+    "multipart/form-data",
+  );
+  if (isForm && !wantsJson(request)) {
+    return NextResponse.redirect(new URL(path, origin), 303);
+  }
+  return NextResponse.json(json, { status });
+}
+
 export async function POST(request: Request) {
   const user = await getSessionUser();
   const origin = requestOrigin(request);
@@ -18,13 +38,13 @@ export async function POST(request: Request) {
   const isForm = contentType.includes("multipart/form-data");
 
   if (!user?.email) {
-    if (isForm) {
-      return NextResponse.redirect(
-        new URL("/login?next=%2Fportal%2Fprofile", origin),
-        303,
-      );
-    }
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return formRedirectOrJson(
+      request,
+      origin,
+      "/login?next=%2Fportal%2Fprofile",
+      { error: "Unauthorized" },
+      401,
+    );
   }
 
   let displayName = "";
@@ -65,15 +85,21 @@ export async function POST(request: Request) {
     const file = form.get("avatar");
     if (file && typeof file !== "string" && file.size > 0) {
       if (file.size > MAX_AVATAR_BYTES) {
-        return NextResponse.redirect(
-          new URL("/portal/profile?error=avatar-size", origin),
-          303,
+        return formRedirectOrJson(
+          request,
+          origin,
+          "/portal/profile?error=avatar-size",
+          { error: "keep the photo under 2.5 mb." },
+          400,
         );
       }
       if (!file.type.startsWith("image/")) {
-        return NextResponse.redirect(
-          new URL("/portal/profile?error=avatar-type", origin),
-          303,
+        return formRedirectOrJson(
+          request,
+          origin,
+          "/portal/profile?error=avatar-type",
+          { error: "use a jpg, png, or webp image." },
+          400,
         );
       }
       avatarBytes = Buffer.from(await file.arrayBuffer());
@@ -103,20 +129,17 @@ export async function POST(request: Request) {
   }
 
   if (!displayName || !email || !email.includes("@")) {
-    if (isForm) {
-      return NextResponse.redirect(
-        new URL("/portal/profile?error=required", origin),
-        303,
-      );
-    }
-    return NextResponse.json(
+    return formRedirectOrJson(
+      request,
+      origin,
+      "/portal/profile?error=required",
       { error: "Name and a valid email are required." },
-      { status: 400 },
+      400,
     );
   }
 
   try {
-    const profile = await updateProfile({
+    await updateProfile({
       userId: user.id,
       email,
       displayName,
@@ -135,25 +158,21 @@ export async function POST(request: Request) {
       avatarContentType,
     });
 
-    if (isForm) {
-      return NextResponse.redirect(
-        new URL("/portal/profile?saved=1", origin),
-        303,
-      );
-    }
-    return NextResponse.json({ ok: true, profile });
+    return formRedirectOrJson(
+      request,
+      origin,
+      "/portal/profile?saved=1",
+      { ok: true },
+    );
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Could not save profile.";
-    if (isForm) {
-      return NextResponse.redirect(
-        new URL(
-          `/portal/profile?error=${encodeURIComponent(message)}`,
-          origin,
-        ),
-        303,
-      );
-    }
-    return NextResponse.json({ error: message }, { status: 500 });
+    return formRedirectOrJson(
+      request,
+      origin,
+      `/portal/profile?error=${encodeURIComponent(message)}`,
+      { error: message },
+      500,
+    );
   }
 }

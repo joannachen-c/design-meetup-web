@@ -79,58 +79,73 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Stripe is not configured." }, { status: 500 });
   }
 
-  const profile = await getProfile(user.id);
-  let customerId = profile?.stripeCustomerId ?? null;
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email,
-      metadata: { supabase_user_id: user.id },
-    });
-    customerId = customer.id;
-    await saveStripeCustomerId(user.id, customerId);
-  }
+  try {
+    const profile = await getProfile(user.id);
+    let customerId = profile?.stripeCustomerId ?? null;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { supabase_user_id: user.id },
+      });
+      customerId = customer.id;
+      await saveStripeCustomerId(user.id, customerId);
+    }
 
-  const priceId = priceIdForTier(tier);
-  if (priceId.startsWith("price_local_")) {
-    if (parsed.kind === "form") {
-      return NextResponse.redirect(
-        new URL("/portal/subscribe?error=price", origin),
-        303,
+    const priceId = priceIdForTier(tier);
+    if (priceId.startsWith("price_local_")) {
+      if (parsed.kind === "form") {
+        return NextResponse.redirect(
+          new URL("/portal/subscribe?error=price", origin),
+          303,
+        );
+      }
+      return NextResponse.json(
+        {
+          error: `Missing Stripe Price id for ${TIER_CATALOG[tier].name}. Set STRIPE_PRICE_${tier.toUpperCase()}_MONTHLY.`,
+        },
+        { status: 500 },
       );
     }
-    return NextResponse.json(
-      {
-        error: `Missing Stripe Price id for ${TIER_CATALOG[tier].name}. Set STRIPE_PRICE_${tier.toUpperCase()}_MONTHLY.`,
-      },
-      { status: 500 },
-    );
-  }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${origin}/portal?subscribed=1&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/portal/subscribe?canceled=1`,
-    client_reference_id: user.id,
-    metadata: { supabase_user_id: user.id, tier },
-    subscription_data: {
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/portal?subscribed=1&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/portal/subscribe?canceled=1`,
+      client_reference_id: user.id,
       metadata: { supabase_user_id: user.id, tier },
-    },
-  });
+      subscription_data: {
+        metadata: { supabase_user_id: user.id, tier },
+      },
+    });
 
-  if (!session.url) {
+    if (!session.url) {
+      if (parsed.kind === "form") {
+        return NextResponse.redirect(
+          new URL("/portal/subscribe?error=checkout", origin),
+          303,
+        );
+      }
+      return NextResponse.json({ error: "Could not start checkout." }, { status: 500 });
+    }
+
+    if (parsed.kind === "form") {
+      return NextResponse.redirect(session.url, 303);
+    }
+    return NextResponse.json({ url: session.url, mock: false });
+  } catch (error) {
+    console.error("stripe checkout failed", error);
+    const message =
+      error instanceof Error && /api key/i.test(error.message)
+        ? "billing isn't set up correctly yet. please try again later."
+        : "could not start checkout. please try again.";
     if (parsed.kind === "form") {
       return NextResponse.redirect(
-        new URL("/portal/subscribe?error=checkout", origin),
+        new URL("/portal?checkout_error=1", origin),
         303,
       );
     }
-    return NextResponse.json({ error: "Could not start checkout." }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 502 });
   }
-
-  if (parsed.kind === "form") {
-    return NextResponse.redirect(session.url, 303);
-  }
-  return NextResponse.json({ url: session.url, mock: false });
 }

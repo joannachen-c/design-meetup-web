@@ -51,6 +51,7 @@ export default async function PortalHomePage({
     session_id?: string;
     mock_portal?: string;
     canceled?: string;
+    checkout_error?: string;
   }>;
 }) {
   const user = await requireUser("/portal");
@@ -108,6 +109,11 @@ export default async function PortalHomePage({
 
   return (
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
+      {params.checkout_error ? (
+        <p className="mb-8 text-base text-red-700" role="alert">
+          couldn&apos;t start checkout. billing isn&apos;t set up correctly yet.
+        </p>
+      ) : null}
       {params.canceled ? (
         <p className="mb-8 text-base text-muted" role="status">
           checkout canceled — pick a plan when you&apos;re ready.

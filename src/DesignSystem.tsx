@@ -17,7 +17,7 @@ import { ScrollReveal } from "./components/ScrollReveal";
 import { Select } from "./components/Select";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
-import { Toast } from "./components/Toast";
+import { Toast, ToastCheckIcon } from "./components/Toast";
 import { Tooltip, TooltipProvider } from "./components/Tooltip";
 
 const sectionClassName =
@@ -962,6 +962,14 @@ export default function DesignSystem() {
                 <div className={`${whiteSpecimenClassName} mt-4`}>
                   <Toast>
                     checkout canceled — pick a plan when you&apos;re ready.
+                  </Toast>
+                </div>
+              </div>
+              <div>
+                <SpecimenLabel>success</SpecimenLabel>
+                <div className={`${whiteSpecimenClassName} mt-4`}>
+                  <Toast className="text-ink" icon={<ToastCheckIcon />}>
+                    Profile updated.
                   </Toast>
                 </div>
               </div>

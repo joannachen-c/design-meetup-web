@@ -10,14 +10,21 @@ test("sonner is a production dependency", async () => {
   assert.ok(pkg.dependencies.sonner);
 });
 
-test("the root layout mounts Emil Kowalski's Sonner toaster at the bottom", async () => {
+test("the root layout mounts a bottom toaster that renders the design-system Toast", async () => {
   const layout = await read("app/layout.tsx");
   const toaster = await read("src/components/AppToaster.tsx");
+  const toast = await read("src/components/Toast.tsx");
   assert.match(layout, /import \{ AppToaster \} from "@\/components\/AppToaster"/);
   assert.match(layout, /<AppToaster \/>/);
   assert.match(toaster, /from "sonner"/);
+  assert.match(toaster, /from "@\/components\/Toast"/);
+  assert.match(toaster, /toast\.custom/);
+  assert.match(toaster, /<Toast className="text-ink" icon=\{<ToastCheckIcon \/>\}>/);
   assert.match(toaster, /position="bottom-center"/);
-  assert.match(toaster, /showSuccessToast/);
+  assert.match(toast, /bg-surface-muted/);
+  assert.match(toast, /text-accent-primary/);
+  assert.match(toast, /font-normal/);
+  assert.doesNotMatch(toaster, /#22c55e/);
 });
 
 test("saving the profile fires a Sonner success toast instead of a page flash", async () => {

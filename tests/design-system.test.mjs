@@ -854,12 +854,17 @@ test("toasts document the shared production Toast at the surface radius", () => 
   const toastsSection =
     designSystem.match(/<section\s+id="toasts"[\s\S]*?<\/section>/)?.[0] ?? "";
 
-  assert.match(designSystem, /import \{ Toast \} from "\.\/components\/Toast"/);
+  assert.match(designSystem, /import \{ Toast, ToastCheckIcon \} from "\.\/components\/Toast"/);
   assert.match(toastsSection, /<SpecimenLabel>neutral<\/SpecimenLabel>/);
+  assert.match(toastsSection, /<SpecimenLabel>success<\/SpecimenLabel>/);
   assert.match(toastsSection, /<SpecimenLabel>danger<\/SpecimenLabel>/);
   assert.match(toastsSection, /<Toast>/);
+  assert.match(toastsSection, /<Toast className="text-ink" icon=\{<ToastCheckIcon \/>\}>/);
   assert.match(toastsSection, /<Toast variant="danger">/);
   assert.match(toast, /rounded-\[11px\]/);
+  assert.match(toast, /bg-surface-muted/);
+  assert.match(toast, /font-normal/);
+  assert.match(toast, /text-accent-primary/);
   assert.doesNotMatch(toast, /rounded-\[20px\]/);
   assert.doesNotMatch(toast, /rounded-full/);
 });

@@ -21,7 +21,7 @@
   position: relative;
   display: grid;
   width: 100%;
-  min-height: 300px;
+  aspect-ratio: 1.55 / 1;
   border: 0;
   padding: 0;
   background: transparent;
@@ -70,10 +70,10 @@
 
 .watermark {
   position: absolute;
-  right: -18%;
-  bottom: -30%;
+  right: -6%;
+  bottom: -20%;
   z-index: -1;
-  width: 70%;
+  width: 60%;
   height: auto;
   opacity: 0.06;
   pointer-events: none;
@@ -372,8 +372,7 @@
 
 @media (max-width: 720px) {
   .card {
-    aspect-ratio: auto;
-    min-height: 260px;
+    aspect-ratio: 1.15 / 1;
   }
 
   .scene:hover .tilt {

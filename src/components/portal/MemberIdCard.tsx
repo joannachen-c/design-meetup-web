@@ -10,6 +10,7 @@ import {
   XIcon,
   YouTubeIcon,
 } from "@/components/portal/SocialIcons";
+import { PersonSilhouette } from "@/components/portal/PersonSilhouette";
 import { socialHref, type ProfileSocialLinks } from "@/lib/membership";
 import styles from "./MemberIdCard.module.css";
 
@@ -45,15 +46,6 @@ const SOCIAL_META: Array<{
   { key: "github", label: "GitHub", Icon: GitHubIcon },
   { key: "youtube", label: "YouTube", Icon: YouTubeIcon },
 ];
-
-function PersonSilhouette() {
-  return (
-    <svg className={styles.silhouette} viewBox="0 0 100 100" aria-hidden>
-      <circle cx="50" cy="40" r="20" fill="currentColor" />
-      <path d="M12 100c0-24 17-38 38-38s38 14 38 38Z" fill="currentColor" />
-    </svg>
-  );
-}
 
 function PinIcon() {
   return (
@@ -256,7 +248,7 @@ export function MemberIdCard({
                     <img src={photo} alt="" className={styles.photo} />
                   ) : (
                     <span className={styles.photoEmpty}>
-                      <PersonSilhouette />
+                      <PersonSilhouette className={styles.silhouette} />
                     </span>
                   )}
                   <span

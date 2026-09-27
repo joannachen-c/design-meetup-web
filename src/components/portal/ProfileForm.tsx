@@ -17,6 +17,7 @@ import {
   XIcon,
   YouTubeIcon,
 } from "@/components/portal/SocialIcons";
+import { PersonSilhouette } from "@/components/portal/PersonSilhouette";
 
 type ProfileFormProps = {
   initialName: string;
@@ -230,9 +231,11 @@ export function ProfileForm({
           />
         ) : (
           <span
-            className="block size-[120px] rounded-full bg-skeleton"
+            className="flex size-[120px] items-end justify-center overflow-hidden rounded-full bg-skeleton"
             aria-hidden
-          />
+          >
+            <PersonSilhouette className="w-[88%] text-white/75" />
+          </span>
         )}
         <label
           htmlFor={avatarInputId}

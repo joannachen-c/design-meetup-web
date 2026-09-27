@@ -79,7 +79,7 @@ export default async function BillingPage({
           <p className="mt-1 mb-0 text-sm text-subtle">
             {membership.cancelAtPeriodEnd
               ? "cancels at period end"
-              : "renews automatically"}
+              : "renews automatically, every month"}
           </p>
         </div>
 

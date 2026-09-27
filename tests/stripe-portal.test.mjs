@@ -122,6 +122,7 @@ test("the billing page has a home breadcrumb, cards, and invoices", async () => 
   assert.match(page, /invoices/);
   assert.match(page, /label="update card" flow="payment_method_update"/);
   assert.match(page, /label="view in stripe"/);
+  assert.match(page, /renews automatically, every month/);
   assert.match(button, /name="flow"/);
   assert.match(route, /flow_data|flow,/);
   assert.match(route, /payment_method_update/);

@@ -96,7 +96,7 @@ export default async function PortalHomePage({
           value: membership.status,
           note: membership.cancelAtPeriodEnd
             ? "cancels at period end"
-            : "renews automatically",
+            : "renews automatically, every month",
         },
         {
           label: "billing renews",

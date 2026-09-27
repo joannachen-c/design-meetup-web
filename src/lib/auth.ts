@@ -1,13 +1,17 @@
 import { createClient, type User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { randomUUID } from "node:crypto";
 import {
   ACCESS_COOKIE,
+  LOCAL_SESSION_PREFIX,
   REFRESH_COOKIE,
   REFRESH_COOKIE_MAX_AGE,
   authCookieOptions as cookieOptions,
+  isLocalSessionToken,
   refreshSession,
   serviceRoleKey,
+  supabaseAuthConfigured,
   supabaseUrl,
 } from "./auth-session";
 
@@ -56,29 +60,106 @@ async function tryClearAuthCookies() {
   }
 }
 
+const DEMO_EMAIL = "demo@designmeetup.info";
+const DEMO_PASSWORD = "DemoPortal123!";
+const DEMO_USER_ID = "0dc29875-5afe-4501-ac59-4b46ef1c242f";
+
+function encodeLocalSession(user: { id: string; email: string }) {
+  return `${LOCAL_SESSION_PREFIX}${Buffer.from(JSON.stringify(user), "utf8").toString("base64url")}`;
+}
+
+function decodeLocalSession(token: string | undefined) {
+  if (!isLocalSessionToken(token) || !token) return null;
+  try {
+    const parsed = JSON.parse(
+      Buffer.from(token.slice(LOCAL_SESSION_PREFIX.length), "base64url").toString(
+        "utf8",
+      ),
+    ) as { id?: string; email?: string };
+    if (parsed.id && parsed.email) return { id: parsed.id, email: parsed.email };
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function localUser(session: { id: string; email: string }): User {
+  return {
+    id: session.id,
+    email: session.email,
+    app_metadata: {},
+    user_metadata: {},
+    aud: "authenticated",
+    created_at: new Date().toISOString(),
+  } as User;
+}
+
+async function setLocalAuthCookies(user: { id: string; email: string }) {
+  const token = encodeLocalSession(user);
+  await setAuthCookies({
+    access_token: token,
+    refresh_token: token,
+    expires_in: REFRESH_COOKIE_MAX_AGE,
+  });
+}
+
+async function localPasswordSignIn(email: string, password: string) {
+  const normalized = email.trim().toLowerCase();
+  if (normalized === DEMO_EMAIL && password === DEMO_PASSWORD) {
+    await setLocalAuthCookies({ id: DEMO_USER_ID, email: normalized });
+    return { ok: true as const, userId: DEMO_USER_ID };
+  }
+  return {
+    ok: false as const,
+    error: "Invalid login credentials",
+  };
+}
+
+async function localPasswordSignUp(email: string, _password: string) {
+  const normalized = email.trim().toLowerCase();
+  if (normalized === DEMO_EMAIL) {
+    return {
+      ok: false as const,
+      error: "User already registered",
+    };
+  }
+  const userId = randomUUID();
+  await setLocalAuthCookies({ id: userId, email: normalized });
+  return { ok: true as const, userId };
+}
+
 export async function getSessionUser(): Promise<User | null> {
   const jar = await cookies();
-  let access = jar.get(ACCESS_COOKIE)?.value;
+  const access = jar.get(ACCESS_COOKIE)?.value;
   const refresh = jar.get(REFRESH_COOKIE)?.value;
   if (!access && !refresh) return null;
 
-  const admin = createAdminClient();
+  const local = decodeLocalSession(access) || decodeLocalSession(refresh);
+  if (local) return localUser(local);
 
-  if (access) {
-    const { data, error } = await admin.auth.getUser(access);
-    if (!error && data.user) return data.user;
-  }
+  if (!supabaseAuthConfigured()) return null;
 
-  if (refresh) {
-    const next = await refreshSession(refresh);
-    if (!next?.access_token) {
-      await tryClearAuthCookies();
-      return null;
+  try {
+    const admin = createAdminClient();
+
+    if (access) {
+      const { data, error } = await admin.auth.getUser(access);
+      if (!error && data.user) return data.user;
     }
-    await trySetAuthCookies(next);
-    if (next.user) return next.user;
-    const { data } = await admin.auth.getUser(next.access_token);
-    return data.user ?? null;
+
+    if (refresh) {
+      const next = await refreshSession(refresh);
+      if (!next?.access_token) {
+        await tryClearAuthCookies();
+        return null;
+      }
+      await trySetAuthCookies(next);
+      if (next.user) return next.user;
+      const { data } = await admin.auth.getUser(next.access_token);
+      return data.user ?? null;
+    }
+  } catch {
+    return null;
   }
 
   return null;
@@ -93,52 +174,72 @@ export async function requireUser(nextPath = "/portal") {
 }
 
 export async function passwordSignIn(email: string, password: string) {
-  const response = await fetch(`${supabaseUrl()}/auth/v1/token?grant_type=password`, {
-    method: "POST",
-    headers: {
-      apikey: serviceRoleKey(),
-      Authorization: `Bearer ${serviceRoleKey()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
-  const payload = (await response.json()) as {
-    access_token?: string;
-    refresh_token?: string;
-    expires_in?: number;
-    msg?: string;
-    error_description?: string;
-    error?: string;
-  };
-  if (!response.ok || !payload.access_token || !payload.refresh_token) {
+  if (!supabaseAuthConfigured()) {
+    return localPasswordSignIn(email, password);
+  }
+  try {
+    const response = await fetch(`${supabaseUrl()}/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey(),
+        Authorization: `Bearer ${serviceRoleKey()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    const payload = (await response.json()) as {
+      access_token?: string;
+      refresh_token?: string;
+      expires_in?: number;
+      msg?: string;
+      error_description?: string;
+      error?: string;
+    };
+    if (!response.ok || !payload.access_token || !payload.refresh_token) {
+      return {
+        ok: false as const,
+        error:
+          payload.error_description ||
+          payload.msg ||
+          payload.error ||
+          "Could not sign in.",
+      };
+    }
+    await setAuthCookies({
+      access_token: payload.access_token,
+      refresh_token: payload.refresh_token,
+      expires_in: payload.expires_in,
+    });
+    return { ok: true as const };
+  } catch {
     return {
       ok: false as const,
-      error:
-        payload.error_description ||
-        payload.msg ||
-        payload.error ||
-        "Could not sign in.",
+      error: "couldn't sign in. try again in a moment.",
     };
   }
-  await setAuthCookies({
-    access_token: payload.access_token,
-    refresh_token: payload.refresh_token,
-    expires_in: payload.expires_in,
-  });
-  return { ok: true as const };
 }
 
 export async function passwordSignUp(email: string, password: string) {
-  const admin = createAdminClient();
-  const { data, error } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-  });
-  if (error) {
-    return { ok: false as const, error: error.message };
+  if (!supabaseAuthConfigured()) {
+    return localPasswordSignUp(email, password);
   }
-  const signedIn = await passwordSignIn(email, password);
-  if (!signedIn.ok) return signedIn;
-  return { ok: true as const, userId: data.user?.id ?? null };
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
+    if (error) {
+      return { ok: false as const, error: error.message };
+    }
+    const signedIn = await passwordSignIn(email, password);
+    if (!signedIn.ok) return signedIn;
+    return { ok: true as const, userId: data.user?.id ?? null };
+  } catch {
+    return {
+      ok: false as const,
+      error: "couldn't sign in. try again in a moment.",
+    };
+  }
 }

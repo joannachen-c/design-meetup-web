@@ -14,10 +14,44 @@ type StoreShape = {
   memberships: MembershipRecord[];
 };
 
-const STORE_PATH = path.join(process.cwd(), ".data", "membership-store.json");
-const LOCK_PATH = `${STORE_PATH}.lock`;
+const DEFAULT_STORE_DIR = path.join(process.cwd(), ".data");
+const FALLBACK_STORE_DIR = path.join("/tmp", "design-meetup-web");
+
+let resolvedStoreDir: string | null = null;
+
+async function dataDir() {
+  if (resolvedStoreDir) return resolvedStoreDir;
+  for (const dir of [DEFAULT_STORE_DIR, FALLBACK_STORE_DIR]) {
+    try {
+      await mkdir(dir, { recursive: true });
+      const probe = path.join(dir, ".write-probe");
+      await writeFile(probe, "ok");
+      await unlink(probe).catch(() => {});
+      resolvedStoreDir = dir;
+      return dir;
+    } catch {
+      // Preview/serverless filesystems may be read-only outside /tmp.
+    }
+  }
+  resolvedStoreDir = FALLBACK_STORE_DIR;
+  return resolvedStoreDir;
+}
+
+async function storePath() {
+  return path.join(await dataDir(), "membership-store.json");
+}
+
+async function lockPath() {
+  return `${await storePath()}.lock`;
+}
+
+export async function avatarDir() {
+  const dir = path.join(await dataDir(), "avatars");
+  await mkdir(dir, { recursive: true });
+  return dir;
+}
+
 const STALE_LOCK_MS = 5_000;
-export const AVATAR_DIR = path.join(process.cwd(), ".data", "avatars");
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -54,10 +88,11 @@ function normalize(parsed: Partial<StoreShape>): StoreShape {
  * every profile and membership.
  */
 async function readStore(): Promise<StoreShape> {
+  const filePath = await storePath();
   for (let attempt = 0; ; attempt += 1) {
     let raw: string;
     try {
-      raw = await readFile(STORE_PATH, "utf8");
+      raw = await readFile(filePath, "utf8");
     } catch (error) {
       if (errorCode(error) === "ENOENT") return normalize({});
       throw error;
@@ -73,10 +108,11 @@ async function readStore(): Promise<StoreShape> {
 
 /** Readers only ever see a complete file: write a temp copy, then rename. */
 async function writeStore(store: StoreShape) {
-  await mkdir(path.dirname(STORE_PATH), { recursive: true });
-  const tempPath = `${STORE_PATH}.${process.pid}.${randomUUID()}.tmp`;
+  const filePath = await storePath();
+  await mkdir(path.dirname(filePath), { recursive: true });
+  const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
   await writeFile(tempPath, `${JSON.stringify(store, null, 2)}\n`, "utf8");
-  await rename(tempPath, STORE_PATH);
+  await rename(tempPath, filePath);
 }
 
 /**
@@ -85,19 +121,20 @@ async function writeStore(store: StoreShape) {
  * because route handlers and page renders may load separate module copies.
  */
 async function withStoreLock<T>(fn: () => Promise<T>): Promise<T> {
-  await mkdir(path.dirname(LOCK_PATH), { recursive: true });
+  const filePath = await lockPath();
+  await mkdir(path.dirname(filePath), { recursive: true });
   const startedAt = Date.now();
   for (;;) {
     try {
-      await writeFile(LOCK_PATH, String(process.pid), { flag: "wx" });
+      await writeFile(filePath, String(process.pid), { flag: "wx" });
       break;
     } catch (error) {
       if (errorCode(error) !== "EEXIST") throw error;
-      const lockAge = await stat(LOCK_PATH)
+      const lockAge = await stat(filePath)
         .then((info) => Date.now() - info.mtimeMs)
         .catch(() => 0);
       if (lockAge > STALE_LOCK_MS) {
-        await unlink(LOCK_PATH).catch(() => {});
+        await unlink(filePath).catch(() => {});
         continue;
       }
       if (Date.now() - startedAt > 10_000) {
@@ -109,7 +146,7 @@ async function withStoreLock<T>(fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } finally {
-    await unlink(LOCK_PATH).catch(() => {});
+    await unlink(filePath).catch(() => {});
   }
 }
 
@@ -284,8 +321,8 @@ export function upsertLocalMembership(input: {
   });
 }
 
-export function avatarFilePath(userId: string, ext = "jpg") {
-  return path.join(AVATAR_DIR, `${userId}.${ext}`);
+export async function avatarFilePath(userId: string, ext = "jpg") {
+  return path.join(await avatarDir(), `${userId}.${ext}`);
 }
 
 export async function saveAvatarFile(
@@ -293,7 +330,7 @@ export async function saveAvatarFile(
   bytes: Buffer,
   contentType: string,
 ) {
-  await mkdir(AVATAR_DIR, { recursive: true });
+  const dir = await avatarDir();
   const ext =
     contentType.includes("png")
       ? "png"
@@ -303,19 +340,19 @@ export async function saveAvatarFile(
   // Clear prior extensions so only one avatar file remains.
   for (const oldExt of ["jpg", "png", "webp"]) {
     try {
-      await unlink(path.join(AVATAR_DIR, `${userId}.${oldExt}`));
+      await unlink(path.join(dir, `${userId}.${oldExt}`));
     } catch {
       // ignore missing
     }
   }
-  const filePath = avatarFilePath(userId, ext);
+  const filePath = path.join(dir, `${userId}.${ext}`);
   await writeFile(filePath, bytes);
   return { filePath, ext, contentType };
 }
 
 export async function readAvatarFile(userId: string) {
   for (const ext of ["jpg", "png", "webp"] as const) {
-    const filePath = avatarFilePath(userId, ext);
+    const filePath = await avatarFilePath(userId, ext);
     try {
       const bytes = await readFile(filePath);
       const contentType =

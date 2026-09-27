@@ -1,4 +1,5 @@
 import { createAdminClient } from "./auth";
+import { supabaseAuthConfigured } from "./auth-session";
 import {
   displayNameFromEmail,
   hasPortalAccess,
@@ -24,6 +25,10 @@ import {
 let supabaseTablesReady: boolean | null = null;
 
 async function supabaseMembershipTablesAvailable() {
+  if (!supabaseAuthConfigured()) {
+    supabaseTablesReady = false;
+    return false;
+  }
   if (supabaseTablesReady != null) return supabaseTablesReady;
   try {
     const admin = createAdminClient();

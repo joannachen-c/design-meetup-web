@@ -5,12 +5,17 @@ import {
   REFRESH_COOKIE_MAX_AGE,
   accessTokenExpired,
   authCookieOptions,
+  isLocalSessionToken,
   refreshSession,
 } from "@/lib/auth-session";
 
 export async function proxy(request: NextRequest) {
   const access = request.cookies.get(ACCESS_COOKIE)?.value;
   const refresh = request.cookies.get(REFRESH_COOKIE)?.value;
+
+  if (isLocalSessionToken(access) || isLocalSessionToken(refresh)) {
+    return NextResponse.next();
+  }
 
   if (!refresh || !accessTokenExpired(access)) {
     return NextResponse.next();

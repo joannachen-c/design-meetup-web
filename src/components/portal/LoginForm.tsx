@@ -98,10 +98,17 @@ export function LoginForm({
           next: nextPath,
         }),
       });
-      const payload = (await response.json()) as {
-        error?: string;
-        url?: string;
-      };
+      const raw = await response.text();
+      let payload: { error?: string; url?: string } = {};
+      if (raw) {
+        try {
+          payload = JSON.parse(raw) as { error?: string; url?: string };
+        } catch {
+          setError("couldn't sign in. try again in a moment.");
+          setPending(false);
+          return;
+        }
+      }
       if (!response.ok || !payload.url) {
         // Existing demo accounts should land on login, not a dead-end signup error.
         if (

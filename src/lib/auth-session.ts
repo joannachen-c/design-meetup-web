@@ -3,6 +3,11 @@ import type { User } from "@supabase/supabase-js";
 export const ACCESS_COOKIE = "dm_access_token";
 export const REFRESH_COOKIE = "dm_refresh_token";
 export const REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+export const LOCAL_SESSION_PREFIX = "local.";
+
+export function isLocalSessionToken(token: string | undefined) {
+  return Boolean(token?.startsWith(LOCAL_SESSION_PREFIX));
+}
 
 export type RefreshedSession = {
   access_token: string;
@@ -19,8 +24,12 @@ export function supabaseUrl() {
   );
 }
 
+export function supabaseAuthConfigured() {
+  return Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+}
+
 export function serviceRoleKey() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (!key) {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for member auth.");
   }
@@ -40,6 +49,8 @@ export function authCookieOptions(maxAge: number) {
 /** True when the JWT is missing, unreadable, or expires within `skewSeconds`. */
 export function accessTokenExpired(token: string | undefined, skewSeconds = 60) {
   if (!token) return true;
+  // Demo/preview sessions are not JWTs; treating them as expired would clear login.
+  if (isLocalSessionToken(token)) return false;
   const payload = token.split(".")[1];
   if (!payload) return true;
   try {
@@ -58,6 +69,9 @@ export function accessTokenExpired(token: string | undefined, skewSeconds = 60) 
 export async function refreshSession(
   refreshToken: string,
 ): Promise<RefreshedSession | null> {
+  if (isLocalSessionToken(refreshToken) || !supabaseAuthConfigured()) {
+    return null;
+  }
   const response = await fetch(
     `${supabaseUrl()}/auth/v1/token?grant_type=refresh_token`,
     {

@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { logoutAction } from "@/lib/auth-actions";
-
-const nav = [
-  { href: "/portal", label: "Home" },
-  { href: "/portal/membership", label: "Membership" },
-] as const;
 
 export function PortalHeader({
   displayName,
@@ -16,8 +10,6 @@ export function PortalHeader({
   displayName: string;
   avatarUrl?: string | null;
 }) {
-  const pathname = usePathname();
-
   return (
     <header className="sticky top-0 z-5 flex flex-wrap items-center justify-between gap-4 bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
       <Link
@@ -34,30 +26,6 @@ export function PortalHeader({
           decoding="async"
         />
       </Link>
-      <nav className="flex flex-wrap gap-1" aria-label="Member portal">
-        {nav.map((item) => {
-          const on =
-            item.href === "/portal"
-              ? pathname === "/portal"
-              : pathname.startsWith(item.href) ||
-                (item.href === "/portal/membership" &&
-                  pathname.startsWith("/portal/subscribe"));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={[
-                "inline-flex min-h-11 items-center rounded-[10px] px-4 text-base font-bold no-underline",
-                on
-                  ? "bg-ink text-white"
-                  : "bg-transparent text-ink hover:bg-surface-muted",
-              ].join(" ")}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
       <div className="flex items-center gap-2">
         <Link
           href="/portal/profile"

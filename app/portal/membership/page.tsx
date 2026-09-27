@@ -1,15 +1,5 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { ManageBillingButton } from "@/components/portal/ManageBillingButton";
-import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
-import { requireUser } from "@/lib/auth";
-import { TIER_CATALOG } from "@/lib/membership";
-import {
-  ensureProfile,
-  getMembership,
-  stripeConfigured,
-  userHasPortalAccess,
-} from "@/lib/membership-service";
 
 export const metadata: Metadata = {
   title: "Membership",
@@ -21,79 +11,7 @@ export default async function MembershipPage({
 }: {
   searchParams: Promise<{ mock_portal?: string }>;
 }) {
-  const user = await requireUser("/portal/membership");
-  await ensureProfile({ id: user.id, email: user.email });
-  const hasAccess = await userHasPortalAccess(user.id);
-  if (!hasAccess) redirect("/portal/subscribe");
-
-  const membership = await getMembership(user.id);
   const params = await searchParams;
-  if (!membership) redirect("/portal/subscribe");
-
-  const catalog = TIER_CATALOG[membership.tier];
-  const renews = membership.currentPeriodEnd
-    ? new Intl.DateTimeFormat("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }).format(new Date(membership.currentPeriodEnd))
-    : "—";
-
-  const summary = [
-    {
-      label: "current tier",
-      value: catalog.name,
-      note: catalog.priceLabel,
-    },
-    {
-      label: "status",
-      value: membership.status,
-      note: membership.cancelAtPeriodEnd
-        ? "cancels at period end"
-        : "renews automatically",
-    },
-    {
-      label: "billing renews",
-      value: renews,
-      note: stripeConfigured() ? "stripe billing" : "local mock period",
-    },
-  ];
-
-  return (
-    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
-      <div className="mb-12 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="m-0 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
-          membership
-        </h1>
-        <ManageBillingButton />
-      </div>
-
-      {params.mock_portal ? (
-        <p
-          className="mb-8 rounded-[20px] bg-surface-muted px-4 py-3 text-base text-muted"
-          role="status"
-        >
-          stripe customer portal needs a valid secret key. change plans below
-          for now.
-        </p>
-      ) : null}
-
-      <div className="mb-12 grid gap-4 sm:grid-cols-3">
-        {summary.map((item) => (
-          <div key={item.label} className="rounded-[20px] bg-surface-muted p-6">
-            <p className="m-0 mb-4 text-sm font-bold text-muted">{item.label}</p>
-            <p className="m-0 text-2xl font-bold leading-tight tracking-[-0.04em] normal-case">
-              {item.value}
-            </p>
-            <p className="mt-1 mb-0 text-sm text-subtle normal-case">{item.note}</p>
-          </div>
-        ))}
-      </div>
-
-      <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">
-        change plan
-      </h2>
-      <SubscribeButtons currentTier={membership.tier} />
-    </main>
-  );
+  const query = params.mock_portal ? "?mock_portal=1" : "";
+  redirect(`/portal${query}`);
 }

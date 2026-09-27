@@ -160,7 +160,6 @@ export function ProfileForm({
           type="text"
           defaultValue={initialSchool}
           autoComplete="organization"
-          placeholder="RISD"
         />
       </label>
 
@@ -174,7 +173,6 @@ export function ProfileForm({
           type="text"
           defaultValue={initialYear}
           autoComplete="off"
-          placeholder="2027"
         />
       </label>
 
@@ -188,7 +186,6 @@ export function ProfileForm({
           type="text"
           defaultValue={initialCompany}
           autoComplete="organization"
-          placeholder="Figma"
         />
       </label>
 
@@ -202,7 +199,6 @@ export function ProfileForm({
           type="text"
           defaultValue={initialPosition}
           autoComplete="organization-title"
-          placeholder="Product Designer"
         />
       </label>
 

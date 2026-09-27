@@ -95,14 +95,16 @@ export function SubscribeButtons({
               <div className="text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
                 {catalog.priceLabel}
               </div>
-              <p
+              <ul
                 className={[
-                  "m-0 text-base leading-normal",
+                  "m-0 list-disc space-y-2 pl-5 text-base leading-normal",
                   isCurrent ? "text-white/75" : "text-muted",
                 ].join(" ")}
               >
-                {catalog.body}
-              </p>
+                {catalog.benefits.map((benefit) => (
+                  <li key={benefit}>{benefit}</li>
+                ))}
+              </ul>
               <Primary
                 className="mt-auto lowercase"
                 type="submit"

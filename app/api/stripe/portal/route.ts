@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
   if (!stripeConfigured()) {
     return NextResponse.json({
-      url: `${origin}/portal/membership?mock_portal=1`,
+      url: `${origin}/portal?mock_portal=1`,
       mock: true,
     });
   }
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
   const session = await stripe.billingPortal.sessions.create({
     customer: profile.stripeCustomerId,
-    return_url: `${origin}/portal/membership`,
+    return_url: `${origin}/portal`,
   });
 
   return NextResponse.json({ url: session.url, mock: false });

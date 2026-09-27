@@ -38,20 +38,30 @@ export const TIER_CATALOG: Record<
     name: string;
     priceLabel: string;
     amountCents: number;
-    body: string;
+    benefits: string[];
   }
 > = {
   student: {
     name: "student",
     priceLabel: "$10 / month",
     amountCents: 1000,
-    body: "for undergraduate designers. guaranteed rsvp to every event (no waitlists), member directory, bi-weekly coworking, member-only events, and job opportunities and recruiting support from advisors and members.",
+    benefits: [
+      "for undergraduate designers",
+      "guaranteed rsvp to every event (no waitlists)",
+      "member directory",
+      "bi-weekly coworking",
+      "member-only events",
+      "job opportunities and recruiting support from advisors and members",
+    ],
   },
   professional: {
     name: "professional",
     priceLabel: "$35 / month",
     amountCents: 3500,
-    body: "everything in student, plus personal warm intros to design leads at partner companies.",
+    benefits: [
+      "everything in student",
+      "personal warm intros to design leads at partner companies",
+    ],
   },
 };
 

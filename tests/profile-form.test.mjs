@@ -13,9 +13,9 @@ function at(name) {
 }
 
 test("mobile profile stacks the form below the page title", () => {
-  assert.match(page, /grid grid-cols-1 gap-8/);
-  assert.match(page, /lg:grid-cols-\[auto_minmax\(0,1fr\)\]/);
-  assert.doesNotMatch(page, /flex-wrap/);
+  assert.match(page, /flex flex-wrap gap-8/);
+  assert.match(page, /lg:flex-nowrap/);
+  assert.match(page, /basis-full lg:basis-0 lg:flex-1/);
 });
 
 test("desktop profile keeps name, email, and location left of upload photo", () => {

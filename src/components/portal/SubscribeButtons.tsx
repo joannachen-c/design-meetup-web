@@ -59,8 +59,8 @@ export function SubscribeButtons({
             currentTier === "professional" && tier === "student";
           let cta = "choose plan";
           if (isCurrent) cta = "current plan";
-          else if (isUpgradeTarget) cta = "upgrade";
-          else if (isDowngrade) cta = "switch to student";
+          else if (isUpgradeTarget) cta = "switch";
+          else if (isDowngrade) cta = "switch";
           else if (!currentTier) cta = "get started";
 
           return (
@@ -72,22 +72,18 @@ export function SubscribeButtons({
                 void startCheckout(tier, event);
               }}
               className={[
-                "flex flex-col gap-6 rounded-[20px] p-6 lowercase",
-                isCurrent ? "bg-ink text-white" : "bg-surface-muted text-ink",
+                "flex flex-col gap-6 rounded-[20px] bg-surface-muted p-6 text-ink lowercase",
               ].join(" ")}
             >
               <input type="hidden" name="tier" value={tier} />
               <div className="flex items-center justify-between gap-3">
                 <span
-                  className={[
-                    "text-xl font-bold tracking-[-0.04em]",
-                    isCurrent ? "text-white/70" : "text-muted",
-                  ].join(" ")}
+                  className="text-xl font-bold tracking-[-0.04em] text-muted"
                 >
                   {catalog.name}
                 </span>
                 {isCurrent ? (
-                  <span className="pr-2 text-sm font-bold text-accent-primary">
+                  <span className="rounded-full bg-green-50 px-2.5 py-1 text-sm font-bold text-green-700">
                     current
                   </span>
                 ) : null}
@@ -96,10 +92,7 @@ export function SubscribeButtons({
                 {catalog.priceLabel}
               </div>
               <ul
-                className={[
-                  "m-0 list-disc space-y-2 pl-5 text-base leading-normal",
-                  isCurrent ? "text-white/75" : "text-muted",
-                ].join(" ")}
+                className="m-0 list-disc space-y-2 pl-5 text-base leading-normal text-muted"
               >
                 {catalog.benefits.map((benefit) => (
                   <li key={benefit}>{benefit}</li>
@@ -108,7 +101,7 @@ export function SubscribeButtons({
               <Primary
                 className="mt-auto lowercase"
                 type="submit"
-                variant={isCurrent ? "secondary" : "ink"}
+                variant="ink"
                 disabled={isCurrent || busy != null}
                 loading={busy === tier}
               >

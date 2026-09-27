@@ -92,7 +92,7 @@
 
 .body {
   display: grid;
-  grid-template-columns: clamp(96px, 26%, 140px) minmax(0, 1fr);
+  grid-template-columns: clamp(112px, 32%, 172px) minmax(0, 1fr);
   gap: clamp(14px, 3vw, 20px);
   flex: 1;
   min-height: 0;
@@ -382,7 +382,7 @@
 
 @media (max-width: 420px) {
   .body {
-    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-columns: 112px minmax(0, 1fr);
   }
 
   .facts {

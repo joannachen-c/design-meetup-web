@@ -83,7 +83,7 @@ export function SubscribeButtons({
                   {catalog.name}
                 </span>
                 {isCurrent ? (
-                  <span className="rounded-full bg-accent-primary px-2.5 py-1 text-sm font-bold text-muted">
+                  <span className="rounded-full bg-accent-primary px-2.5 py-1 text-sm font-bold text-ink">
                     current
                   </span>
                 ) : null}
@@ -99,7 +99,7 @@ export function SubscribeButtons({
                 ))}
               </ul>
               <Primary
-                className="mt-auto lowercase"
+                className="mt-auto lowercase disabled:text-gray-300"
                 type="submit"
                 variant="ink"
                 disabled={isCurrent || busy != null}

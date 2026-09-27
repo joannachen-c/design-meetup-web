@@ -101,7 +101,7 @@ export default async function PortalHomePage({
         {
           label: "billing renews",
           value: renews,
-          note: stripeConfigured() ? "billed through stripe" : "local mock period",
+          note: stripeConfigured() ? "billed through stripe" : null,
           action: true,
         },
       ]
@@ -170,9 +170,11 @@ export default async function PortalHomePage({
               <p className="m-0 text-2xl font-bold leading-tight tracking-[-0.04em] normal-case">
                 {item.value}
               </p>
-              <p className="mt-1 mb-0 text-sm text-subtle normal-case">
-                {item.note}
-              </p>
+              {item.note ? (
+                <p className="mt-1 mb-0 text-sm text-subtle normal-case">
+                  {item.note}
+                </p>
+              ) : null}
               {"action" in item && item.action ? (
                 <div className="mt-6">
                   <ManageBillingButton />

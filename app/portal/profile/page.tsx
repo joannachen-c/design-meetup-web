@@ -47,7 +47,7 @@ export default async function ProfilePage({
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-start justify-between gap-8 lg:flex-nowrap lg:gap-12">
+      <div className="flex flex-col items-start gap-8 lg:flex-row lg:justify-between lg:gap-12">
         <h1 className="m-0 max-w-[10ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
           your profile
         </h1>

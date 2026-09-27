@@ -30,7 +30,7 @@ test("school year and position company stay a 2x2 under the identity chunk", () 
   const position = at("position");
   const company = at("company");
   assert.ok(school < year && year < position && position < company);
-  const twoByTwo = form.indexOf('className="grid gap-5 sm:grid-cols-2"');
+  const twoByTwo = form.indexOf('className="grid grid-cols-2 gap-5"');
   assert.ok(twoByTwo > 0);
   assert.ok(twoByTwo < school);
 });

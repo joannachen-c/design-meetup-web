@@ -347,7 +347,7 @@ export function ProfileForm({
           </div>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-5">
           <Field id={fieldId("school")} label="school">
             <Input
               id={fieldId("school")}

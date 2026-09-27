@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
-import { ensureProfile, getProfile, stripeConfigured } from "@/lib/membership-service";
+import {
+  ensureProfile,
+  getProfile,
+  saveStripeCustomerId,
+  stripeConfigured,
+} from "@/lib/membership-service";
 import { getStripe, siteOriginFromRequest } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -22,18 +27,36 @@ export async function POST(request: Request) {
   }
 
   const stripe = getStripe();
-  const profile = await getProfile(user.id);
-  if (!stripe || !profile?.stripeCustomerId) {
+  if (!stripe) {
     return NextResponse.json(
-      { error: "No Stripe customer on file yet. Subscribe first." },
-      { status: 400 },
+      { error: "couldn't open billing. try again in a moment." },
+      { status: 500 },
     );
   }
 
-  const session = await stripe.billingPortal.sessions.create({
-    customer: profile.stripeCustomerId,
-    return_url: `${origin}/portal`,
-  });
+  try {
+    const profile = await getProfile(user.id);
+    let customerId = profile?.stripeCustomerId ?? null;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { supabase_user_id: user.id },
+      });
+      customerId = customer.id;
+      await saveStripeCustomerId(user.id, customerId);
+    }
 
-  return NextResponse.json({ url: session.url, mock: false });
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${origin}/portal`,
+    });
+
+    return NextResponse.json({ url: session.url, mock: false });
+  } catch (error) {
+    console.error("stripe portal failed", error);
+    return NextResponse.json(
+      { error: "couldn't open billing. try again in a moment." },
+      { status: 502 },
+    );
+  }
 }

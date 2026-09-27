@@ -11,6 +11,7 @@ import {
   YouTubeIcon,
 } from "@/components/portal/SocialIcons";
 import { PersonSilhouette } from "@/components/portal/PersonSilhouette";
+import { graduationYearLabel } from "@/lib/graduation";
 import { socialHref, type ProfileSocialLinks } from "@/lib/membership";
 import styles from "./MemberIdCard.module.css";
 
@@ -101,8 +102,8 @@ function UploadIcon() {
 
 function schoolLabel(school: string | null, year: string | null) {
   if (!school) return null;
-  const digits = (year || "").replace(/\D/g, "");
-  return digits.length >= 2 ? `${school} ’${digits.slice(-2)}` : school;
+  const suffix = graduationYearLabel(year);
+  return suffix ? `${school} ’${suffix}` : school;
 }
 
 function roleLabel(position: string | null, company: string | null) {

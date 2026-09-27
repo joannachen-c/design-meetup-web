@@ -44,3 +44,9 @@ test("portal proxy keeps local demo cookies instead of refreshing them", async (
   const proxy = await read("proxy.ts");
   assert.match(proxy, /isLocalSessionToken\(access\) \|\| isLocalSessionToken\(refresh\)/);
 });
+
+test("signup stores a confirmed supabase user so they can log in later", async () => {
+  const auth = await read("src/lib/auth.ts");
+  assert.match(auth, /admin\.auth\.admin\.createUser/);
+  assert.match(auth, /email_confirm:\s*true/);
+});

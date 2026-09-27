@@ -152,8 +152,13 @@ export default async function PortalHomePage({
         </div>
       </div>
 
+      <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">
+        membership
+      </h2>
+      <SubscribeButtons currentTier={membership?.tier ?? null} />
+
       {summary ? (
-        <div className="mb-12 grid gap-4 sm:grid-cols-3">
+        <div className="mt-12 grid gap-4 sm:grid-cols-3">
           {summary.map((item) => (
             <div
               key={item.label}
@@ -183,11 +188,6 @@ export default async function PortalHomePage({
           ))}
         </div>
       ) : null}
-
-      <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">
-        membership
-      </h2>
-      <SubscribeButtons currentTier={membership?.tier ?? null} />
     </main>
   );
 }

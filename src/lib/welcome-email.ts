@@ -89,14 +89,79 @@ export function buildWelcomeEmail(input: WelcomeEmailInput) {
   };
 }
 
-export async function sendWelcomeEmail(input: WelcomeEmailInput) {
+export function buildGraduationUpgradeEmail(input: WelcomeEmailInput) {
+  const origin = (input.origin || siteUrl).replace(/\/$/, "");
+  const loginUrl = `${origin}/login`;
+  const logoUrl = `${origin}/design-meetup-logo.png`;
+  const firstName = (input.firstName || "").trim();
+  const greeting = firstName ? `hi ${firstName.toLowerCase()} — ` : "";
+  const text = [
+    firstName ? `hi ${firstName.toLowerCase()},` : `hi,`,
+    "",
+    "your graduation date passed, so we moved you to the professional plan ($35 / month).",
+    "",
+    `View Account: ${loginUrl}`,
+    "",
+    siteName,
+  ].join("\n");
+
+  const socialRow = welcomeSocialLinks
+    .map(
+      (item) =>
+        `<td style="padding:0 16px 0 0;vertical-align:middle;"><a href="${item.href}" style="display:inline-block;line-height:0;text-decoration:none;" aria-label="${item.label}">${item.svg}</a></td>`,
+    )
+    .join("");
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+  <body style="margin:0;padding:0;background:#ffffff;color:${INK};font-family:Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ffffff;">
+      <tr>
+        <td align="left" style="padding:40px 32px 48px;">
+          <img src="${logoUrl}" alt="${siteName}" width="48" height="48" style="display:block;border:0;outline:none;">
+          <h1 style="margin:32px 0 16px;font-size:28px;line-height:1.1;letter-spacing:-0.04em;font-weight:700;color:${INK};">you're on professional now.</h1>
+          <p style="margin:0 0 28px;max-width:460px;font-size:16px;line-height:1.5;color:${INK};">${greeting}your graduation date passed, so we moved you to the professional plan ($35 / month).</p>
+          <a href="${loginUrl}" style="display:inline-block;background:${INK};color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;line-height:1;padding:14px 22px;border-radius:10px;">View Account</a>
+          <div style="height:40px;line-height:40px;font-size:0;">&nbsp;</div>
+          <div style="border-top:1px solid #ececec;font-size:0;line-height:0;">&nbsp;</div>
+          <div style="height:24px;line-height:24px;font-size:0;">&nbsp;</div>
+          <table role="presentation" cellspacing="0" cellpadding="0">
+            <tr>${socialRow}</tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  return {
+    to: input.email,
+    replyTo: siteEmail,
+    subject: "your design meetup plan",
+    text,
+    html,
+    loginUrl,
+    logoUrl,
+  };
+}
+
+async function sendBuiltEmail(
+  email: {
+    to: string;
+    replyTo: string;
+    subject: string;
+    text: string;
+    html: string;
+  },
+  skipped: string,
+  failed: string,
+) {
   if (!gmailConfigured()) {
-    console.warn("welcome email skipped: Gmail is not configured");
+    console.warn(skipped);
     return { ok: false as const };
   }
 
   try {
-    const email = buildWelcomeEmail(input);
     await sendGmailEmails([
       {
         to: email.to,
@@ -108,10 +173,26 @@ export async function sendWelcomeEmail(input: WelcomeEmailInput) {
     ]);
     return { ok: true as const };
   } catch (error) {
-    console.error("welcome email failed", {
+    console.error(failed, {
       error: error instanceof Error ? error.message : "Unknown SMTP error",
-      email: input.email,
+      email: email.to,
     });
     return { ok: false as const };
   }
+}
+
+export async function sendWelcomeEmail(input: WelcomeEmailInput) {
+  return sendBuiltEmail(
+    buildWelcomeEmail(input),
+    "welcome email skipped: Gmail is not configured",
+    "welcome email failed",
+  );
+}
+
+export async function sendGraduationUpgradeEmail(input: WelcomeEmailInput) {
+  return sendBuiltEmail(
+    buildGraduationUpgradeEmail(input),
+    "graduation upgrade email skipped: Gmail is not configured",
+    "graduation upgrade email failed",
+  );
 }

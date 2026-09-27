@@ -159,6 +159,7 @@ jobs:
             'SUPABASE_SERVICE_ROLE_KEY',
             'GMAIL_USER',
             'GMAIL_APP_PASSWORD',
+          ]
           present = {e.get('key') for e in d.get('envs', []) if 'preview' in (e.get('target') or [])}
           missing = [k for k in wanted if k not in present]
           for k in wanted:

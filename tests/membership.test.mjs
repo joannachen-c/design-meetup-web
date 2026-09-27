@@ -7,6 +7,7 @@ import {
   hasPortalAccess,
   normalizeMembershipStatus,
   priceIdForTier,
+  TIER_CATALOG,
   tierFromPriceId,
 } from "../src/lib/membership.ts";
 
@@ -56,4 +57,8 @@ test("stripe status normalization", () => {
   assert.equal(normalizeMembershipStatus("active"), "active");
   assert.equal(normalizeMembershipStatus("unpaid"), "incomplete");
   assert.equal(normalizeMembershipStatus("nope"), "incomplete");
+});
+
+test("professional lists everything in student first", () => {
+  assert.equal(TIER_CATALOG.professional.benefits[0], "everything in student");
 });

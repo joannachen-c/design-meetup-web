@@ -100,8 +100,8 @@ export const TIER_CATALOG: Record<
     priceLabel: "$35 / month",
     amountCents: 3500,
     benefits: [
-      "for designers working in industry",
       "everything in student",
+      "for designers working in industry",
       "personal warm intros to design leads at partner companies",
     ],
   },

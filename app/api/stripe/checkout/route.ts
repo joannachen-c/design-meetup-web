@@ -62,9 +62,11 @@ export async function POST(request: Request) {
   }
   const tier = parsed.tier;
 
+  const userId = user.id;
+
   async function checkoutError(message: string, code = "checkout", status = 502) {
     if (parsed.kind === "form") {
-      const paid = await userHasPortalAccess(user.id);
+      const paid = await userHasPortalAccess(userId);
       const dest = paid
         ? "/portal?checkout_error=1"
         : `/portal/subscribe?error=${code}`;

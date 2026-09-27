@@ -270,10 +270,9 @@ export function ensureLocalProfile(input: {
     const now = new Date().toISOString();
     if (existing) {
       let changed = false;
-      if (existing.email !== input.email) {
-        existing.email = input.email;
-        changed = true;
-      }
+      // Login identity lives on the session/auth user. Do not overwrite a
+      // saved profile email on every portal visit — that wiped directory
+      // data and made it look like the account did not persist.
       // Upgrade the seeded demo label if it still looks auto-generated.
       if (
         input.email.toLowerCase() === "demo@designmeetup.info" &&
@@ -373,6 +372,13 @@ export function setLocalStripeCustomerId(
 export async function getLocalMembership(userId: string) {
   const store = await readStore();
   return store.memberships.find((m) => m.userId === userId) ?? null;
+}
+
+export async function listLocalStudentUserIds() {
+  const store = await readStore();
+  return store.memberships
+    .filter((membership) => membership.tier === "student")
+    .map((membership) => membership.userId);
 }
 
 export function upsertLocalMembership(input: {

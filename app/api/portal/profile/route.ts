@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
-import { updateProfile } from "@/lib/membership-service";
+import { formatGraduation, persistGraduation } from "@/lib/graduation";
+import {
+  maybeUpgradeGraduatedStudent,
+  updateProfile,
+} from "@/lib/membership-service";
 import { requestOrigin } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -72,7 +76,13 @@ export async function POST(request: Request) {
       : optionalField(form.get("displayName"));
     email = optionalField(form.get("email")).toLowerCase();
     school = optionalField(form.get("school"));
-    year = optionalField(form.get("year"));
+    year =
+      persistGraduation(
+        formatGraduation(
+          optionalField(form.get("gradMonth")),
+          optionalField(form.get("gradYear")),
+        ) || optionalField(form.get("year")),
+      ) || "";
     company = optionalField(form.get("company"));
     position = optionalField(form.get("position"));
     location = optionalField(form.get("location"));
@@ -113,7 +123,13 @@ export async function POST(request: Request) {
         .trim()
         .toLowerCase();
       school = String(body.school || "").trim();
-      year = String(body.year || "").trim();
+      year =
+        persistGraduation(
+          formatGraduation(
+            String(body.gradMonth || "").trim(),
+            String(body.gradYear || "").trim(),
+          ) || String(body.year || "").trim(),
+        ) || "";
       company = String(body.company || "").trim();
       position = String(body.position || "").trim();
       location = String(body.location || "").trim();
@@ -156,6 +172,10 @@ export async function POST(request: Request) {
       github,
       avatarBytes,
       avatarContentType,
+    });
+    await maybeUpgradeGraduatedStudent({
+      userId: user.id,
+      origin,
     });
 
     return formRedirectOrJson(

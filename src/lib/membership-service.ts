@@ -1,7 +1,9 @@
 import { createAdminClient } from "./auth";
 import { supabaseAuthConfigured } from "./auth-session";
+import { hasGraduated, persistGraduation } from "./graduation";
 import {
   displayNameFromEmail,
+  firstNameFromDisplay,
   hasPortalAccess,
   normalizeMembershipStatus,
   priceIdForTier,
@@ -15,12 +17,14 @@ import {
   ensureLocalProfile,
   getLocalMembership,
   getLocalProfile,
+  listLocalStudentUserIds,
   readAvatarFile,
   saveAvatarFile,
   setLocalStripeCustomerId,
   updateLocalProfile,
   upsertLocalMembership,
 } from "./membership-store";
+import { sendGraduationUpgradeEmail } from "./welcome-email";
 
 const DEMO_EMAIL = "demo@designmeetup.info";
 
@@ -189,7 +193,8 @@ export async function updateProfile(input: {
   const displayName =
     input.displayName === undefined ? undefined : input.displayName.trim() || null;
   const school = input.school?.trim() || null;
-  const year = input.year?.trim() || null;
+  const year =
+    input.year === undefined ? undefined : persistGraduation(input.year);
   const company = input.company?.trim() || null;
   const position = input.position?.trim() || null;
   const location = input.location?.trim() || null;
@@ -212,8 +217,14 @@ export async function updateProfile(input: {
 
   if (await supabaseMembershipTablesAvailable()) {
     const admin = createAdminClient();
-    if (email) {
-      await admin.auth.admin.updateUserById(input.userId, { email });
+    const existing = await getProfile(input.userId);
+    // Keep the login identity confirmed. Changing email without
+    // email_confirm can lock the member out until they click a link.
+    if (email && email !== existing?.email) {
+      await admin.auth.admin.updateUserById(input.userId, {
+        email,
+        email_confirm: true,
+      });
     }
     const patch: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
@@ -360,6 +371,63 @@ export async function ensureDemoMembership(
   if (!hasPortalAccess(membership?.status ?? null)) {
     await activateMockMembership(userId, "student");
   }
+}
+
+/** Move graduated students onto Professional and persist that membership. */
+export async function maybeUpgradeGraduatedStudent(input: {
+  userId: string;
+  origin?: string;
+}) {
+  const membership = await getMembership(input.userId);
+  if (!membership || membership.tier !== "student") return null;
+  if (!hasPortalAccess(membership.status)) return null;
+
+  const profile = await getProfile(input.userId);
+  if (!hasGraduated(profile?.year)) return null;
+
+  try {
+    let upgraded = null;
+    if (isLiveStripeSubscriptionId(membership.stripeSubscriptionId)) {
+      upgraded = await changeMembershipTier(input.userId, "professional");
+      if (!upgraded) return null;
+    } else {
+      upgraded = await upsertMembership({
+        userId: input.userId,
+        tier: "professional",
+        status: membership.status,
+        stripeSubscriptionId: membership.stripeSubscriptionId,
+        stripePriceId: priceIdForTier("professional"),
+        currentPeriodEnd: membership.currentPeriodEnd,
+        cancelAtPeriodEnd: false,
+      });
+    }
+    if (profile?.email) {
+      await sendGraduationUpgradeEmail({
+        email: profile.email,
+        firstName: firstNameFromDisplay(profile.displayName, profile.email),
+        origin: input.origin,
+      });
+    }
+    return upgraded;
+  } catch (error) {
+    console.error("graduation upgrade failed", {
+      error: error instanceof Error ? error.message : "unknown error",
+      userId: input.userId,
+    });
+    return null;
+  }
+}
+
+export async function listStudentMemberIds() {
+  if (await supabaseMembershipTablesAvailable()) {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("memberships")
+      .select("user_id")
+      .eq("tier", "student");
+    return (data ?? []).map((row) => row.user_id as string);
+  }
+  return listLocalStudentUserIds();
 }
 
 /** Activate membership from a completed Checkout Session (works without webhooks). */

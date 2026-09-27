@@ -38,12 +38,18 @@ test("desktop profile keeps name, email, and location left of upload photo", () 
   assert.ok(avatar < school, "school/year 2x2 is under the identity + photo chunk");
 });
 
-test("school year and position company are a 2x2 on desktop and stacked on mobile", () => {
+test("school sits beside grad month and year dropdowns", () => {
   const school = at("school");
-  const year = at("year");
+  const month = at("gradMonth");
+  const year = at("gradYear");
+  const composed = at("year");
   const position = at("position");
   const company = at("company");
-  assert.ok(school < year && year < position && position < company);
+  assert.ok(school < composed && composed < month && month < year);
+  assert.ok(year < position && position < company);
   assert.match(form, /grid grid-cols-1 gap-5 lg:grid-cols-2/);
+  assert.match(form, /grid grid-cols-2 gap-5/);
+  assert.match(form, /parseGraduation\(initialYear\)/);
+  assert.match(form, /formatGraduation\(gradMonth, gradYear\)/);
 });
 

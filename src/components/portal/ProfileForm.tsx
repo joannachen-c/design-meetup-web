@@ -11,6 +11,13 @@ import {
 import { showSuccessToast } from "@/components/AppToaster";
 import { Input } from "@/components/Input";
 import { Primary } from "@/components/Primary";
+import { Select } from "@/components/Select";
+import {
+  GRAD_MONTHS,
+  GRAD_YEARS,
+  formatGraduation,
+  parseGraduation,
+} from "@/lib/graduation";
 import {
   InstagramIcon,
   LinkedInIcon,
@@ -156,6 +163,9 @@ export function ProfileForm({
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     initialAvatarUrl ?? null,
   );
+  const initialGraduation = parseGraduation(initialYear);
+  const [gradMonth, setGradMonth] = useState(initialGraduation.month);
+  const [gradYear, setGradYear] = useState(initialGraduation.year);
 
   function clearFieldError(name: keyof FieldErrors) {
     if (!fieldErrors[name]) return;
@@ -357,15 +367,40 @@ export function ProfileForm({
               autoComplete="organization"
             />
           </Field>
-          <Field id={fieldId("year")} label="year">
-            <Input
-              id={fieldId("year")}
+          <div className="grid grid-cols-2 gap-5">
+            <input
+              type="hidden"
               name="year"
-              type="text"
-              defaultValue={initialYear}
-              autoComplete="off"
+              value={formatGraduation(gradMonth, gradYear) || ""}
             />
-          </Field>
+            <Field id={fieldId("gradMonth")} label="grad month">
+              <input type="hidden" name="gradMonth" value={gradMonth} />
+              <Select
+                className="w-full"
+                id={fieldId("gradMonth")}
+                options={[...GRAD_MONTHS]}
+                placeholder="month"
+                value={gradMonth}
+                onValueChange={setGradMonth}
+                aria-label="grad month"
+              />
+            </Field>
+            <Field id={fieldId("gradYear")} label="grad year">
+              <input type="hidden" name="gradYear" value={gradYear} />
+              <Select
+                className="w-full"
+                id={fieldId("gradYear")}
+                options={GRAD_YEARS.map((year) => ({
+                  label: year,
+                  value: year,
+                }))}
+                placeholder="year"
+                value={gradYear}
+                onValueChange={setGradYear}
+                aria-label="grad year"
+              />
+            </Field>
+          </div>
           <Field id={fieldId("position")} label="position">
             <Input
               id={fieldId("position")}

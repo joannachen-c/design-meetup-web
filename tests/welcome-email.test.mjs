@@ -51,3 +51,12 @@ test("preview deploys copy Gmail credentials so signup receipts can send", async
   assert.match(workflow, /copy_prod_to_preview GMAIL_USER/);
   assert.match(workflow, /copy_prod_to_preview GMAIL_APP_PASSWORD/);
 });
+
+test("graduation upgrade email tells members they are on professional", async () => {
+  const welcome = await read("src/lib/welcome-email.ts");
+  assert.match(welcome, /export function buildGraduationUpgradeEmail/);
+  assert.match(welcome, /export async function sendGraduationUpgradeEmail/);
+  assert.match(welcome, /subject: "your design meetup plan"/);
+  assert.match(welcome, /you're on professional now\./);
+  assert.match(welcome, /moved you to the professional plan/);
+});

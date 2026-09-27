@@ -243,7 +243,7 @@ export function ProfileForm({
       onSubmit={(event) => {
         void onSubmit(event);
       }}
-      className="grid max-w-5xl gap-10"
+      className="grid w-full gap-10"
     >
       <div className="grid min-w-0 gap-10">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_200px] lg:items-start lg:gap-16">

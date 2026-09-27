@@ -13,9 +13,15 @@ function at(name) {
 }
 
 test("mobile profile stacks the form below the page title", () => {
-  assert.match(page, /flex flex-wrap gap-8/);
-  assert.match(page, /lg:flex-nowrap/);
-  assert.match(page, /basis-full lg:basis-0 lg:flex-1/);
+  assert.match(page, /className="upcoming-events"/);
+  assert.match(page, /upcoming-events-copy/);
+  assert.match(page, /upcoming-events-embed min-w-0/);
+});
+
+test("desktop profile form matches the Luma calendar embed columns", () => {
+  assert.match(page, /upcoming-events-embed/);
+  assert.doesNotMatch(page, /max-w-5xl/);
+  assert.doesNotMatch(form, /max-w-5xl/);
 });
 
 test("desktop profile keeps name, email, and location left of upload photo", () => {

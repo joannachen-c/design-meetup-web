@@ -47,11 +47,11 @@ export default async function ProfilePage({
         </p>
       ) : null}
 
-      <div className="flex flex-wrap gap-8 lg:flex-nowrap lg:items-start lg:gap-12">
-        <h1 className="m-0 max-w-[10ch] shrink-0 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
+      <div className="upcoming-events">
+        <h1 className="upcoming-events-copy m-0 max-w-[10ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
           your profile
         </h1>
-        <div className="w-full min-w-0 basis-full lg:basis-0 lg:flex-1 lg:max-w-5xl">
+        <div className="upcoming-events-embed min-w-0">
           <ProfileForm
             initialName={name}
             initialEmail={email}

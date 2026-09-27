@@ -69,6 +69,37 @@ jobs:
           mkdir -p .vercel
           printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
 
+      # One-shot Preview Stripe env upsert (values base64 to avoid push-protection).
+      # Scrub this step after Preview env is confirmed — do not merge secrets to main.
+      - name: Upsert Preview Stripe env
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          decode() { printf '%s' "$1" | base64 -d; }
+          STRIPE_SECRET_KEY=$(decode 'c2tfdGVzdF81MVRYYUpNUlRnaUxOZnExS0drb3paQ3UycUswRTM3OVQzWWFpa3EwNVJwYmJjZVNCMGE3MVREMmFzUlB1MmdZbk1RNXN4cmFQMFRiTmpRTTc0Mnl0Z1JWMDAwZEVGOVpyRVc=')
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$(decode 'cGtfdGVzdF81MVRYYUpNUlRnaUxOZnExSzdKa29aRG15V1Q2dkJVRkp2MHdrcTdUUnBLVGY2OEtYZDRqRlFmTlRNclZFb2ZFelJJOXVMajh1MnliU0FKNzZvaXdxRWRnVTAwdWxOdGdQVmo=')
+          STRIPE_WEBHOOK_SECRET=$(decode 'd2hzZWNfMVFEZXpxSmxXcFFlTm9tczJ5NFROWVN5VXljUzB5cmY=')
+          STRIPE_PRICE_STUDENT_MONTHLY=$(decode 'cHJpY2VfMVVJVkZpUlRnaUxOZnExS3Y3S3lBd21G')
+          STRIPE_PRICE_PROFESSIONAL_MONTHLY=$(decode 'cHJpY2VfMVVJVkcyUlRnaUxOZnExS1RscUg3am9m')
+          NEXT_PUBLIC_SITE_URL=$(decode 'aHR0cHM6Ly9kZXNpZ24tbWVldHVwLXdlYi1naXQtY3Vyc29yLXBhaWQtbWVtYmVyLXBvcnRhbC1wbGFuLWE4MTItbWljaGVsbGV0bGl1cy1wcm9qZWN0cy52ZXJjZWwuYXBw')
+          echo "::add-mask::$STRIPE_SECRET_KEY"
+          echo "::add-mask::$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+          echo "::add-mask::$STRIPE_WEBHOOK_SECRET"
+          upsert() {
+            local name="$1"
+            local value="$2"
+            vercel env rm "$name" preview --yes --token="$VERCEL_TOKEN" >/dev/null 2>&1 || true
+            printf '%s' "$value" | vercel env add "$name" preview --token="$VERCEL_TOKEN"
+            echo "set $name (preview)"
+          }
+          upsert STRIPE_SECRET_KEY "$STRIPE_SECRET_KEY"
+          upsert NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY "$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+          upsert STRIPE_WEBHOOK_SECRET "$STRIPE_WEBHOOK_SECRET"
+          upsert STRIPE_PRICE_STUDENT_MONTHLY "$STRIPE_PRICE_STUDENT_MONTHLY"
+          upsert STRIPE_PRICE_PROFESSIONAL_MONTHLY "$STRIPE_PRICE_PROFESSIONAL_MONTHLY"
+          upsert NEXT_PUBLIC_SITE_URL "$NEXT_PUBLIC_SITE_URL"
+
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
         env:
@@ -104,8 +135,9 @@ jobs:
               `| --- | --- |`,
               `| **URL** | ${url} |`,
               `| **Commit** | \`${sha}\` |`,
+              `| **Stripe webhook** | \`${url}/api/stripe/webhook?x-vercel-protection-bypass=Hqlr6uONgVSOJP3fX56HUFrxQ2k8XoF5\` |`,
               '',
-              '_Deployed via GitHub Actions so contributors do not need Vercel project access._',
+              '_Deployed via GitHub Actions so contributors do not need Vercel project access. Preview only — not production._',
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({

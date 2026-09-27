@@ -392,6 +392,23 @@ export async function syncMembershipFromCheckoutSession(input: {
   });
 }
 
+export async function setMembershipCancelAtPeriodEnd(
+  userId: string,
+  cancelAtPeriodEnd: boolean,
+) {
+  const membership = await getMembership(userId);
+  if (!membership) return null;
+  return upsertMembership({
+    userId,
+    tier: membership.tier,
+    status: membership.status,
+    stripeSubscriptionId: membership.stripeSubscriptionId,
+    stripePriceId: membership.stripePriceId,
+    currentPeriodEnd: membership.currentPeriodEnd,
+    cancelAtPeriodEnd,
+  });
+}
+
 export function resolveTierFromStripePrice(priceId: string | null | undefined) {
   return tierFromPriceId(priceId);
 }

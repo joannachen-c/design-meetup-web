@@ -18,14 +18,12 @@ export function ManageBillingButton() {
         error?: string;
         mock?: boolean;
       };
-      if (!response.ok || !payload.url || payload.mock) {
-        setError(
-          payload.error || "couldn't open billing. try again in a moment.",
-        );
-        setLoading(false);
+      if (payload.url && !payload.mock) {
+        window.location.href = payload.url;
         return;
       }
-      window.location.href = payload.url;
+      setError(payload.error || "couldn't open billing. try again in a moment.");
+      setLoading(false);
     } catch {
       setError("couldn't open billing. try again in a moment.");
       setLoading(false);

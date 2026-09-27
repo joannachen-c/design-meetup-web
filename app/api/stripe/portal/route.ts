@@ -24,19 +24,15 @@ export async function POST(request: Request) {
   await ensureProfile({ id: user.id, email: user.email });
   const origin = siteOriginFromRequest(request);
 
+  const billingUrl = `${origin}/portal/billing`;
+
   if (!stripeConfigured()) {
-    return NextResponse.json(
-      { error: "stripe billing isn't configured yet." },
-      { status: 503 },
-    );
+    return NextResponse.json({ url: billingUrl });
   }
 
   const stripe = getStripe();
   if (!stripe) {
-    return NextResponse.json(
-      { error: "couldn't open billing. try again in a moment." },
-      { status: 500 },
-    );
+    return NextResponse.json({ url: billingUrl });
   }
 
   try {
@@ -55,14 +51,16 @@ export async function POST(request: Request) {
       returnUrl: `${origin}/portal`,
     });
 
-    return NextResponse.json({ url: session.url, mock: false });
+    return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("stripe portal failed", error);
-    const message =
-      error instanceof Error ? error.message : "couldn't open billing.";
-    const friendly = /api key|invalid/i.test(message)
-      ? "stripe api key is invalid. update STRIPE_SECRET_KEY."
-      : "couldn't open billing. try again in a moment.";
-    return NextResponse.json({ error: friendly }, { status: 502 });
+    const message = error instanceof Error ? error.message : "";
+    if (/invalid api key|no such api key|authentication/i.test(message)) {
+      return NextResponse.json({ url: billingUrl });
+    }
+    return NextResponse.json(
+      { error: "couldn't open billing. try again in a moment." },
+      { status: 502 },
+    );
   }
 }

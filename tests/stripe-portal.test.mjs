@@ -35,3 +35,14 @@ test("manage billing never follows a mock stripe portal url", async () => {
   assert.match(button, /payload\.mock/);
   assert.doesNotMatch(page, /mock_portal/);
 });
+
+test("invalid stripe keys fall through to in-app billing instead of a secret-key error", async () => {
+  const route = await read("app/api/stripe/portal/route.ts");
+  const button = await read("src/components/portal/ManageBillingButton.tsx");
+  const page = await read("app/portal/billing/page.tsx");
+  assert.match(route, /\/portal\/billing/);
+  assert.match(route, /invalid api key/i);
+  assert.doesNotMatch(route, /STRIPE_SECRET_KEY/);
+  assert.doesNotMatch(button, /STRIPE_SECRET_KEY/);
+  assert.match(page, /cancel at period end/);
+});

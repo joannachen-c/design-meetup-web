@@ -57,7 +57,7 @@ test("homepage header navigation uses sentence case labels", () => {
     assert.match(home, new RegExp(`id="${target}"`));
   }
 
-  assert.match(header, /\{ href: "\/login", label: "Members" \}/);
+  assert.match(header, /\{ href: "\/login", label: "Login" \}/);
   assert.match(header, /whitespace-nowrap/);
 
   assert.doesNotMatch(header, /label: "CALENDAR"/);

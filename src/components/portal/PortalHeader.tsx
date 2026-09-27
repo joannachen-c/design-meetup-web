@@ -19,7 +19,7 @@ export function PortalHeader({
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4 bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
+    <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
       <Link
         href="/portal"
         className="w-fit leading-[0] no-underline"

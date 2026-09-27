@@ -18,7 +18,10 @@ export function getStripe() {
   const key = stripeSecretKey();
   if (!key) return null;
   if (!stripe || stripeKey !== key) {
-    stripe = new Stripe(key);
+    stripe = new Stripe(key, {
+      // Match the Dashboard webhook destination (not stripe-node's latest pin).
+      apiVersion: "2026-04-22.dahlia" as Stripe.LatestApiVersion,
+    });
     stripeKey = key;
     portalConfigurationId = null;
   }

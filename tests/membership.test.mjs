@@ -2,8 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   canUpgrade,
+  DEFAULT_STRIPE_PRICE_PROFESSIONAL,
+  DEFAULT_STRIPE_PRICE_STUDENT,
   hasPortalAccess,
   normalizeMembershipStatus,
+  priceIdForTier,
   tierFromPriceId,
 } from "../src/lib/membership.ts";
 
@@ -26,6 +29,27 @@ test("local price ids map to tiers", () => {
   assert.equal(tierFromPriceId("price_local_student"), "student");
   assert.equal(tierFromPriceId("price_local_professional"), "professional");
   assert.equal(tierFromPriceId("price_unknown"), null);
+});
+
+test("preview stripe price ids are the default catalog when env is unset", () => {
+  const previousStudent = process.env.STRIPE_PRICE_STUDENT_MONTHLY;
+  const previousProfessional = process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY;
+  delete process.env.STRIPE_PRICE_STUDENT_MONTHLY;
+  delete process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY;
+  try {
+    assert.equal(priceIdForTier("student"), DEFAULT_STRIPE_PRICE_STUDENT);
+    assert.equal(priceIdForTier("professional"), DEFAULT_STRIPE_PRICE_PROFESSIONAL);
+    assert.equal(tierFromPriceId(DEFAULT_STRIPE_PRICE_STUDENT), "student");
+    assert.equal(tierFromPriceId(DEFAULT_STRIPE_PRICE_PROFESSIONAL), "professional");
+  } finally {
+    if (previousStudent === undefined) delete process.env.STRIPE_PRICE_STUDENT_MONTHLY;
+    else process.env.STRIPE_PRICE_STUDENT_MONTHLY = previousStudent;
+    if (previousProfessional === undefined) {
+      delete process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY;
+    } else {
+      process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY = previousProfessional;
+    }
+  }
 });
 
 test("stripe status normalization", () => {

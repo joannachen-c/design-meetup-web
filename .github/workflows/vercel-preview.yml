@@ -69,7 +69,9 @@ jobs:
           mkdir -p .vercel
           printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
 
-      # One-shot Preview Stripe env upsert via Vercel API (avoid interactive CLI prompts).
+      # Preview Stripe + Supabase env via Vercel API (avoid interactive CLI prompts).
+      # Git-integration aliases (e.g. design-meetup-1frw5fo0m) only pick these up
+      # after they exist on the project Preview target — teamId is required.
       # Scrub this step after Preview env is confirmed — do not merge secrets to main.
       - name: Upsert Preview Stripe env
         env:
@@ -77,33 +79,37 @@ jobs:
         run: |
           set -euo pipefail
           decode() { printf '%s' "$1" | base64 -d; }
+          TEAM="teamId=$VERCEL_ORG_ID"
           STRIPE_SECRET_KEY=$(decode 'c2tfdGVzdF81MVRYYUpNUlRnaUxOZnExS0drb3paQ3UycUswRTM3OVQzWWFpa3EwNVJwYmJjZVNCMGE3MVREMmFzUlB1MmdZbk1RNXN4cmFQMFRiTmpRTTc0Mnl0Z1JWMDAwZEVGOVpyRVc=')
-          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$(decode 'cGtfdGVzdF81MVRYYUpNUlRnaUxOZnExSzdKa29aRG15V1Q2dkJVRkp2MHdrcTdUUnBLVGY2OEtYZDRqRlFmTlRNclZFb2ZFelJJOXVMajh1MnliU0FKNzZvaXdxRWRnVTAwdWxOdGdQVmo=')
           STRIPE_WEBHOOK_SECRET=$(decode 'd2hzZWNfMVFEZXpxSmxXcFFlTm9tczJ5NFROWVN5VXljUzB5cmY=')
           STRIPE_PRICE_STUDENT_MONTHLY=$(decode 'cHJpY2VfMVVJVkZpUlRnaUxOZnExS3Y3S3lBd21G')
-          STRIPE_PRICE_PROFESSIONAL_MONTHLY=$(decode 'cHJpY2VfMVVJVkcyUlRnaUxOZnExS1RscUg3am9m')
-          # Use this deployment's stable-ish preview host after deploy comment updates;
-          # for build-time redirects, point at the git-branch alias.
-          NEXT_PUBLIC_SITE_URL=$(decode 'aHR0cHM6Ly9kZXNpZ24tbWVldHVwLWU3YnU3bWZhYy1taWNoZWxsZXRsaXVzLXByb2plY3RzLnZlcmNlbC5hcHA=')
+          STRIPE_PRICE_PROFESSIONAL_MONTHLY=$(decode 'cHJpY2VfMVVJVkcyUlRnaUxOZnExS1RMcUg3am9m')
           echo "::add-mask::$STRIPE_SECRET_KEY"
-          echo "::add-mask::$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
           echo "::add-mask::$STRIPE_WEBHOOK_SECRET"
+
+          list_env() {
+            curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env?$TEAM"
+          }
+
+          delete_preview() {
+            local key="$1"
+            ids=$(list_env | KEY="$key" python3 -c 'import os,sys,json; d=json.load(sys.stdin); k=os.environ["KEY"]; print(" ".join(e["id"] for e in d.get("envs",[]) if e.get("key")==k and "preview" in (e.get("target") or [])))')
+            for id in $ids; do
+              curl -sS -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" \
+                "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$id?$TEAM" >/dev/null
+            done
+          }
 
           upsert() {
             local key="$1"
             local value="$2"
             local type="${3:-encrypted}"
-            ids=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \
-              "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env" \
-              | KEY="$key" python3 -c 'import os,sys,json; d=json.load(sys.stdin); k=os.environ["KEY"]; print(" ".join(e["id"] for e in d.get("envs",[]) if e.get("key")==k and "preview" in (e.get("target") or [])))')
-            for id in $ids; do
-              curl -sS -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" \
-                "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$id" >/dev/null
-            done
+            delete_preview "$key"
             payload=$(KEY="$key" VALUE="$value" TYPE="$type" python3 -c 'import os,json; print(json.dumps({"key":os.environ["KEY"],"value":os.environ["VALUE"],"type":os.environ["TYPE"],"target":["preview"]}))')
             code=$(curl -sS -o /tmp/env-upsert.json -w '%{http_code}' \
               -X POST -H "Authorization: Bearer $VERCEL_TOKEN" -H 'Content-Type: application/json' \
-              "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
+              "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?$TEAM" \
               -d "$payload")
             if [ "$code" != "200" ] && [ "$code" != "201" ]; then
               echo "Failed to set $key (HTTP $code): $(cat /tmp/env-upsert.json)"
@@ -112,12 +118,53 @@ jobs:
             echo "set $key (preview) HTTP $code"
           }
 
+          copy_prod_to_preview() {
+            local key="$1"
+            id=$(list_env | KEY="$key" python3 -c 'import os,sys,json; d=json.load(sys.stdin); k=os.environ["KEY"]; ids=[e["id"] for e in d.get("envs",[]) if e.get("key")==k and "production" in (e.get("target") or [])]; print(ids[0] if ids else "")')
+            if [ -z "$id" ]; then
+              echo "::warning::$key is not set in Production; Preview will not have it."
+              return 0
+            fi
+            value=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$id?$TEAM&decrypt=true" \
+              | python3 -c 'import sys,json; print(json.load(sys.stdin).get("value") or "")')
+            if [ -z "$value" ]; then
+              echo "::warning::Could not decrypt $key from Production."
+              return 0
+            fi
+            echo "::add-mask::$value"
+            upsert "$key" "$value" encrypted
+          }
+
           upsert STRIPE_SECRET_KEY "$STRIPE_SECRET_KEY" encrypted
-          upsert NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY "$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" plain
           upsert STRIPE_WEBHOOK_SECRET "$STRIPE_WEBHOOK_SECRET" encrypted
           upsert STRIPE_PRICE_STUDENT_MONTHLY "$STRIPE_PRICE_STUDENT_MONTHLY" plain
           upsert STRIPE_PRICE_PROFESSIONAL_MONTHLY "$STRIPE_PRICE_PROFESSIONAL_MONTHLY" plain
-          upsert NEXT_PUBLIC_SITE_URL "$NEXT_PUBLIC_SITE_URL" plain
+          # Checkout uses the request origin. A pinned Preview URL goes stale
+          # across git-integration aliases and Actions deploys.
+          delete_preview NEXT_PUBLIC_SITE_URL
+          delete_preview NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+          copy_prod_to_preview SUPABASE_SERVICE_ROLE_KEY
+
+          list_env | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          wanted = [
+            'STRIPE_SECRET_KEY',
+            'STRIPE_WEBHOOK_SECRET',
+            'STRIPE_PRICE_STUDENT_MONTHLY',
+            'STRIPE_PRICE_PROFESSIONAL_MONTHLY',
+            'SUPABASE_SERVICE_ROLE_KEY',
+          ]
+          present = {e.get('key') for e in d.get('envs', []) if 'preview' in (e.get('target') or [])}
+          missing = [k for k in wanted if k not in present]
+          for k in wanted:
+            print('preview %s: %s' % (k, 'yes' if k in present else 'NO'))
+          if missing:
+            print('Missing Preview env: ' + ', '.join(missing), file=sys.stderr)
+            if any(k.startswith('STRIPE_') for k in missing):
+              raise SystemExit(1)
+          "
 
       # Vercel Authentication blocks CSS/JS on preview shares (HTML gets bypass,
       # assets do not) → unstyled pages. Turn it off for Preview testing.
@@ -176,7 +223,7 @@ jobs:
               `| **Login** | ${url}/login |`,
               `| **Stripe webhook** | \`${url}/api/stripe/webhook\` |`,
               '',
-              '_Preview only — not production. Vercel Authentication disabled so CSS loads for shared links._',
+              '_Preview only — not production. Use this Actions URL (not git-integration aliases like `design-meetup-1frw5fo0m`). Vercel Authentication is off so CSS loads on shared links._',
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({

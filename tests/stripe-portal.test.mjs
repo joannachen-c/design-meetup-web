@@ -18,6 +18,7 @@ test("stripe helpers provision a customer and a portal configuration", async () 
   assert.match(stripe, /export async function createBillingPortalSession/);
   assert.match(stripe, /billingPortal\.configurations\.create/);
   assert.match(stripe, /billingPortal\.sessions\.create/);
+  assert.match(stripe, /apiVersion: "2026-04-22\.dahlia"/);
 });
 
 test("a present Stripe secret is treated as configured only when it looks like a key", async () => {
@@ -34,6 +35,58 @@ test("manage billing posts to stripe portal and never uses mock_portal", async (
   assert.doesNotMatch(button, /mock_portal/);
   assert.match(button, /action="\/api\/stripe\/portal"/);
   assert.doesNotMatch(page, /mock_portal/);
+});
+
+test("preview workflow upserts stripe env with teamId and skips the unused publishable key", async () => {
+  const workflow = await read(".github/workflows/vercel-preview.yml");
+  const envExample = await read(".env.example");
+  assert.match(workflow, /teamId=\$VERCEL_ORG_ID/);
+  assert.match(workflow, /upsert STRIPE_SECRET_KEY/);
+  assert.match(workflow, /upsert STRIPE_WEBHOOK_SECRET/);
+  assert.match(workflow, /upsert STRIPE_PRICE_STUDENT_MONTHLY/);
+  assert.match(workflow, /upsert STRIPE_PRICE_PROFESSIONAL_MONTHLY/);
+  assert.match(workflow, /copy_prod_to_preview SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(workflow, /delete_preview NEXT_PUBLIC_SITE_URL/);
+  assert.match(workflow, /delete_preview NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/);
+  assert.doesNotMatch(workflow, /upsert NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/);
+  assert.doesNotMatch(envExample, /NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/);
+  assert.match(envExample, /STRIPE_PRICE_STUDENT_MONTHLY=price_1UIVFiRTgiLNfq1Kv7KyAwmF/);
+  assert.match(
+    envExample,
+    /STRIPE_PRICE_PROFESSIONAL_MONTHLY=price_1UIVG2RTgiLNfq1KTLqH7jof/,
+  );
+});
+
+test("preview workflow price ids decode to the catalog defaults", async () => {
+  const workflow = await read(".github/workflows/vercel-preview.yml");
+  const encoded = [...workflow.matchAll(/decode '([A-Za-z0-9+/=]+)'/g)].map(
+    (match) => match[1],
+  );
+  const decoded = encoded.map((value) =>
+    Buffer.from(value, "base64").toString("utf8"),
+  );
+  assert.equal(
+    decoded.includes("price_1UIVFiRTgiLNfq1Kv7KyAwmF"),
+    true,
+  );
+  assert.equal(
+    decoded.includes("price_1UIVG2RTgiLNfq1KTLqH7jof"),
+    true,
+  );
+  assert.equal(
+    decoded.includes("price_1UIVG2RTgiLNfq1KTlqH7jof"),
+    false,
+  );
+});
+
+test("this branch ships the stripe checkout, portal, and webhook routes", async () => {
+  const checkout = await read("app/api/stripe/checkout/route.ts");
+  const portal = await read("app/api/stripe/portal/route.ts");
+  const webhook = await read("app/api/stripe/webhook/route.ts");
+  assert.match(checkout, /export async function POST/);
+  assert.match(portal, /export async function POST/);
+  assert.match(webhook, /export async function POST/);
+  assert.match(webhook, /syncSubscription/);
 });
 
 test("invalid stripe keys fall through to in-app billing instead of a secret-key error", async () => {

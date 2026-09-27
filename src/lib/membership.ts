@@ -107,24 +107,42 @@ export const TIER_CATALOG: Record<
   },
 };
 
+export const DEFAULT_STRIPE_PRICE_STUDENT =
+  "price_1UIVFiRTgiLNfq1Kv7KyAwmF";
+export const DEFAULT_STRIPE_PRICE_PROFESSIONAL =
+  "price_1UIVG2RTgiLNfq1KTLqH7jof";
+
+function configuredPriceId(tier: Tier) {
+  const fromEnv =
+    tier === "student"
+      ? process.env.STRIPE_PRICE_STUDENT_MONTHLY
+      : process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY;
+  const trimmed = fromEnv?.trim();
+  if (trimmed) return trimmed;
+  return tier === "student"
+    ? DEFAULT_STRIPE_PRICE_STUDENT
+    : DEFAULT_STRIPE_PRICE_PROFESSIONAL;
+}
+
 export function tierFromPriceId(priceId: string | null | undefined): Tier | null {
   if (!priceId) return null;
-  const student = process.env.STRIPE_PRICE_STUDENT_MONTHLY;
-  const professional = process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY;
-  if (student && priceId === student) return "student";
-  if (professional && priceId === professional) return "professional";
-  if (priceId === "price_local_student") return "student";
-  if (priceId === "price_local_professional") return "professional";
+  if (
+    priceId === configuredPriceId("student") ||
+    priceId === "price_local_student"
+  ) {
+    return "student";
+  }
+  if (
+    priceId === configuredPriceId("professional") ||
+    priceId === "price_local_professional"
+  ) {
+    return "professional";
+  }
   return null;
 }
 
 export function priceIdForTier(tier: Tier): string {
-  if (tier === "student") {
-    return process.env.STRIPE_PRICE_STUDENT_MONTHLY || "price_local_student";
-  }
-  return (
-    process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || "price_local_professional"
-  );
+  return configuredPriceId(tier);
 }
 
 export function hasPortalAccess(status: MembershipStatus | null | undefined) {

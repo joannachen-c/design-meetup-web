@@ -2,7 +2,7 @@
 .scene {
   perspective: 1200px;
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
   margin-inline: auto;
 }
 
@@ -21,16 +21,23 @@
   position: relative;
   display: grid;
   width: 100%;
-  aspect-ratio: 1.586 / 1;
+  aspect-ratio: 1.66 / 1;
   border: 0;
   padding: 0;
   background: transparent;
   color: inherit;
   font: inherit;
+  text-transform: none;
   cursor: pointer;
+  outline: none;
   transform-style: preserve-3d;
   transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
   will-change: transform;
+}
+
+.card:focus-visible .face {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
 }
 
 .card.flipped {
@@ -51,224 +58,261 @@
 }
 
 .front {
+  isolation: isolate;
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 2.2vw, 14px);
+  gap: clamp(12px, 2.4vw, 16px);
   background: #fff;
   color: var(--color-ink);
-  padding: clamp(14px, 3vw, 20px);
+  padding: clamp(16px, 3.4vw, 22px) clamp(16px, 3.6vw, 24px);
   text-align: left;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: clamp(8px, 1.8vw, 10px);
-  border-bottom: 2px solid var(--color-accent-primary);
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: clamp(0.85rem, 2vw, 1rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-
-.brand img {
-  display: block;
-  border-radius: 999px;
+.watermark {
+  position: absolute;
+  right: -18%;
+  bottom: -30%;
+  z-index: -1;
+  width: 70%;
+  height: auto;
+  opacity: 0.06;
+  pointer-events: none;
 }
 
 .docType {
-  font-size: 0.68rem;
+  margin: 0;
+  padding-bottom: clamp(8px, 1.8vw, 10px);
+  border-bottom: 2px solid var(--color-accent-primary);
+  font-size: clamp(0.8rem, 2vw, 0.95rem);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-subtle);
 }
 
 .body {
   display: grid;
-  grid-template-columns: clamp(76px, 22%, 104px) minmax(0, 1fr);
-  gap: clamp(12px, 2.6vw, 18px);
-  min-height: 0;
+  grid-template-columns: minmax(84px, 32%) minmax(0, 1fr);
+  gap: clamp(14px, 3vw, 20px);
   flex: 1;
+  min-height: 0;
 }
 
 .photoColumn {
   display: grid;
   align-content: start;
+  justify-items: center;
   gap: 6px;
   min-width: 0;
 }
 
-.photo,
-.photoEmpty {
+.photoButton {
+  position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 0;
   border-radius: 10px;
+  padding: 0;
+  background: var(--color-surface-muted);
+  cursor: pointer;
+}
+
+.photoButton:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
 }
 
 .photo {
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  box-shadow: inset 0 0 0 1px rgb(18 24 38 / 0.08);
 }
 
 .photoEmpty {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  padding-bottom: 10px;
-  border: 1.5px dashed rgb(18 24 38 / 0.12);
-  background: var(--color-surface-muted);
-  color: var(--color-subtle);
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-decoration: none;
-  text-transform: lowercase;
-}
-
-.photoEmpty:hover {
-  border-color: rgb(18 24 38 / 0.24);
-  color: var(--color-muted);
+  width: 100%;
+  height: 100%;
+  align-items: flex-end;
+  justify-content: center;
 }
 
 .silhouette {
-  width: 70%;
+  width: 88%;
   height: auto;
-  color: rgb(18 24 38 / 0.12);
+  color: rgb(255 255 255 / 0.75);
+}
+
+.photoOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  background: rgb(255 255 255 / 0.78);
+  backdrop-filter: blur(2px);
+  color: var(--color-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: lowercase;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.photoButton:hover .photoOverlay,
+.photoButton:focus-visible .photoOverlay,
+.photoOverlayBusy {
+  opacity: 1;
 }
 
 .signature {
-  margin: 0;
+  margin: 2px 0 0;
+  max-width: 100%;
   overflow: hidden;
   font-family: "Handflair", cursive;
-  font-size: clamp(1rem, 2.6vw, 1.3rem);
-  line-height: 1;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  line-height: 1.1;
   white-space: nowrap;
-  text-overflow: clip;
   color: var(--color-ink);
-  text-transform: none;
+}
+
+.uploadError {
+  margin: 2px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  text-align: center;
+  color: var(--color-red-700, #b91c1c);
 }
 
 .details {
   display: flex;
   flex-direction: column;
-  gap: clamp(6px, 1.4vw, 8px);
+  gap: 4px;
   min-width: 0;
-  padding-right: 52px;
 }
 
-.number {
+.name {
   margin: 0;
-  font-size: clamp(1rem, 2.6vw, 1.25rem);
+  overflow: hidden;
+  font-size: clamp(1.15rem, 3vw, 1.45rem);
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  color: var(--color-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.fields {
+.role {
   margin: 0;
+  overflow: hidden;
+  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.website {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(0.82rem, 2.1vw, 0.92rem);
+  font-weight: 700;
+  color: var(--color-subtle);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.website:hover {
+  color: var(--color-muted);
+}
+
+.facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(4px, 1vw, 6px) 12px;
+  gap: 6px 12px;
+  margin-top: clamp(6px, 1.6vw, 12px);
 }
 
-.field {
+.fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
+  overflow: hidden;
+  font-size: clamp(0.82rem, 2.1vw, 0.92rem);
+  font-weight: 700;
+  color: var(--color-muted);
+  white-space: nowrap;
 }
 
-.field dt {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
+.fact svg {
+  flex-shrink: 0;
+  color: var(--color-subtle);
+}
+
+.since {
+  margin-top: clamp(4px, 1.2vw, 8px);
+}
+
+.sinceLabel {
   margin: 0;
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-subtle);
 }
 
-.fieldIndex {
-  color: var(--color-muted);
-}
-
-.field dd {
-  margin: 1px 0 0;
-  overflow: hidden;
-  font-size: clamp(0.78rem, 1.9vw, 0.88rem);
+.sinceValue {
+  margin: 2px 0 0;
+  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
   font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  text-transform: lowercase;
-  color: var(--color-ink);
 }
 
 .hint {
-  margin: 0;
-  font-size: 0.78rem;
-}
-
-.hint a {
-  color: var(--color-subtle);
+  width: fit-content;
+  margin-top: 6px;
+  font-size: 0.8rem;
   font-weight: 700;
+  color: var(--color-subtle);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.hint a:hover {
+.hint:hover {
   color: var(--color-muted);
 }
 
 .socials {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: clamp(10px, 3vw, 18px);
   margin-top: auto;
+  padding-top: 8px;
 }
 
 .social {
   display: inline-flex;
-  width: 26px;
-  height: 26px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
-  color: var(--color-ink);
-  text-decoration: none;
+  color: var(--color-subtle);
 }
 
 .social:hover {
-  background: var(--color-skeleton);
+  color: var(--color-ink);
 }
 
 .social svg {
-  width: 14px;
-  height: 14px;
-}
-
-.ghostPhoto {
-  position: absolute;
-  right: clamp(14px, 3vw, 20px);
-  bottom: clamp(14px, 3vw, 20px);
-  width: 40px;
-  height: 52px;
-  border-radius: 6px;
-  object-fit: cover;
-  opacity: 0.32;
-  filter: grayscale(1);
-  pointer-events: none;
+  width: 20px;
+  height: 20px;
 }
 
 .back {
@@ -343,17 +387,13 @@
   }
 }
 
-@media (max-width: 400px) {
-  .fields {
+@media (max-width: 420px) {
+  .body {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .facts {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .details {
-    padding-right: 0;
-  }
-
-  .ghostPhoto {
-    display: none;
   }
 }
 

@@ -22,6 +22,25 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "June",
+  "July",
+  "Aug",
+  "Sept",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+function formatMemberSince(date: Date) {
+  return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+}
+
 export default async function PortalHomePage({
   searchParams,
 }: {
@@ -52,12 +71,8 @@ export default async function PortalHomePage({
     profile?.displayName?.trim() ||
     displayNameFromEmail(user.email || "member");
   const firstName = firstNameFromDisplay(displayName, user.email || "member");
-  const tierLabel = membership ? TIER_CATALOG[membership.tier].name : null;
   const memberSince = profile?.createdAt
-    ? new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        year: "numeric",
-      }).format(new Date(profile.createdAt))
+    ? formatMemberSince(new Date(profile.createdAt))
     : null;
 
   const renews = membership?.currentPeriodEnd
@@ -85,23 +100,14 @@ export default async function PortalHomePage({
         {
           label: "billing renews",
           value: renews,
-          note: stripeConfigured() ? "stripe billing" : "local mock period",
+          note: stripeConfigured() ? "billed through stripe" : "local mock period",
+          action: true,
         },
       ]
     : null;
 
   return (
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
-      {params.subscribed ? (
-        <p
-          className="mb-8 rounded-[20px] bg-accent-primary px-4 py-3 text-base text-ink"
-          role="status"
-        >
-          {params.mock
-            ? `local mock checkout activated ${params.tier || membership?.tier || "your"} plan. add a stripe secret key for real billing.`
-            : "welcome — your membership is active."}
-        </p>
-      ) : null}
       {params.canceled ? (
         <p className="mb-8 text-base text-muted" role="status">
           checkout canceled — pick a plan when you&apos;re ready.
@@ -117,14 +123,13 @@ export default async function PortalHomePage({
         </p>
       ) : null}
 
-      <div className="mb-12 flex flex-wrap items-end justify-between gap-6 lg:mb-16 lg:flex-nowrap lg:items-center lg:gap-10">
-        <div className="flex min-w-0 flex-1 flex-wrap items-end justify-between gap-4">
+      <div className="mb-12 flex flex-wrap items-end justify-between gap-6 lg:mb-16 lg:flex-nowrap lg:items-start lg:gap-10">
+        <div className="min-w-0 flex-1">
           <h1 className="m-0 max-w-[12ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
             {hasAccess ? "welcome back," : "welcome,"}
             <br />
             {firstName.toLowerCase()}.
           </h1>
-          {hasAccess ? <ManageBillingButton /> : null}
         </div>
         <div className="w-full shrink-0 lg:w-[440px]">
           <MemberIdCard
@@ -135,13 +140,12 @@ export default async function PortalHomePage({
             company={profile?.company}
             position={profile?.position}
             location={profile?.location}
-            memberId={user.id}
             website={profile?.website}
             instagram={profile?.instagram}
             x={profile?.x}
             linkedin={profile?.linkedin}
             youtube={profile?.youtube}
-            tierLabel={tierLabel}
+            github={profile?.github}
             memberSince={memberSince}
           />
         </div>
@@ -163,6 +167,11 @@ export default async function PortalHomePage({
               <p className="mt-1 mb-0 text-sm text-subtle normal-case">
                 {item.note}
               </p>
+              {"action" in item && item.action ? (
+                <div className="mt-6">
+                  <ManageBillingButton />
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

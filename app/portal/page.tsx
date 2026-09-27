@@ -101,7 +101,7 @@ export default async function PortalHomePage({
         {
           label: "billing renews",
           value: renews,
-          note: stripeConfigured() ? "billed through stripe" : null,
+          note: stripeConfigured() ? "billed through Stripe" : null,
           action: true,
         },
       ]

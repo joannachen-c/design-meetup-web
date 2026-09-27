@@ -42,7 +42,7 @@ export default async function BillingPage({
       <ProfileSavedToast saved={params.saved === "1"} message="Billing updated." />
       {params.error ? (
         <p className="mb-8 text-base text-red-700" role="alert">
-          couldn&apos;t update billing in stripe. try again.
+          couldn&apos;t update billing in <span className="normal-case">Stripe</span>. try again.
         </p>
       ) : null}
 
@@ -100,7 +100,7 @@ export default async function BillingPage({
                 no card on file
               </p>
               <p className="mt-1 mb-0 text-sm text-subtle">
-                add or update your card in stripe
+                add or update your card in <span className="normal-case">Stripe</span>
               </p>
             </>
           )}
@@ -148,7 +148,7 @@ export default async function BillingPage({
             </p>
           )}
           <div className="mt-6 flex justify-end">
-            <ManageBillingButton label="view in stripe" />
+            <ManageBillingButton label="view in Stripe" />
           </div>
         </div>
 

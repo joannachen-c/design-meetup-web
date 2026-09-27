@@ -114,6 +114,45 @@ function displayHost(url: string) {
   return url.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "");
 }
 
+function SocialLinks({
+  className,
+  flipped,
+  socials,
+  stop,
+}: {
+  className: string;
+  flipped: boolean;
+  socials: Array<{
+    key: SocialKey;
+    label: string;
+    href: string;
+    Icon: (props: { className?: string }) => React.ReactNode;
+  }>;
+  stop: (event: React.SyntheticEvent) => void;
+}) {
+  if (socials.length === 0) return null;
+
+  return (
+    <div className={className}>
+      {socials.map(({ key, label, href, Icon }) => (
+        <a
+          key={key}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={label}
+          className={styles.social}
+          onClick={stop}
+          onKeyDown={stop}
+          tabIndex={flipped ? -1 : 0}
+        >
+          <Icon />
+        </a>
+      ))}
+    </div>
+  );
+}
+
 export function MemberIdCard({
   displayName,
   avatarUrl = null,
@@ -230,25 +269,12 @@ export function MemberIdCard({
             />
             <div className={styles.masthead}>
               <p className={styles.docType}>Member ID</p>
-              {socials.length > 0 ? (
-                <div className={styles.socials}>
-                  {socials.map(({ key, label, href, Icon }) => (
-                    <a
-                      key={key}
-                      href={href}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label={label}
-                      className={styles.social}
-                      onClick={stop}
-                      onKeyDown={stop}
-                      tabIndex={flipped ? -1 : 0}
-                    >
-                      <Icon />
-                    </a>
-                  ))}
-                </div>
-              ) : null}
+              <SocialLinks
+                className={styles.socialsDesktop}
+                flipped={flipped}
+                socials={socials}
+                stop={stop}
+              />
             </div>
 
             <div className={styles.body}>
@@ -365,6 +391,13 @@ export function MemberIdCard({
                     complete your profile
                   </Link>
                 ) : null}
+
+                <SocialLinks
+                  className={styles.socialsMobile}
+                  flipped={flipped}
+                  socials={socials}
+                  stop={stop}
+                />
               </div>
             </div>
           </div>

@@ -21,7 +21,6 @@
   position: relative;
   display: grid;
   width: 100%;
-  aspect-ratio: 1.55 / 1;
   border: 0;
   padding: 0;
   background: transparent;
@@ -96,18 +95,21 @@
   border-bottom: 2px solid var(--color-accent-primary);
 }
 
-.socials {
+.socialsDesktop {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: clamp(16px, 4vw, 22px);
 }
 
+.socialsMobile {
+  display: none;
+}
+
 .body {
   display: grid;
   grid-template-columns: clamp(112px, 32%, 172px) minmax(0, 1fr);
   gap: clamp(14px, 3vw, 20px);
-  flex: 1;
   min-height: 0;
 }
 
@@ -215,6 +217,7 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  height: 100%;
 }
 
 .name {
@@ -398,8 +401,30 @@
 }
 
 @media (max-width: 720px) {
-  .card {
-    aspect-ratio: 1.15 / 1;
+  .masthead {
+    border-bottom: 0;
+  }
+
+  .docType {
+    padding-bottom: clamp(8px, 1.8vw, 10px);
+    border-bottom: 2px solid var(--color-accent-primary);
+  }
+
+  .socialsDesktop {
+    display: none;
+  }
+
+  .socialsMobile {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(16px, 4vw, 20px);
+    margin-top: auto;
+    padding-top: 8px;
+  }
+
+  .socialsMobile .social svg {
+    width: 20px;
+    height: 20px;
   }
 
   .scene:hover .tilt {

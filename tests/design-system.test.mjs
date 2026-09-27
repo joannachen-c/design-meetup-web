@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const readSource = (path) => readFile(new URL(path, root), "utf8");
 
-const [app, designSystem, iconButton, designSystemPage, styles, input, newsletterForm] =
+const [app, designSystem, iconButton, designSystemPage, styles, input, newsletterForm, toast] =
   await Promise.all([
     readSource("src/components/HomePage.tsx"),
     readSource("src/DesignSystem.tsx").catch(() => ""),
@@ -14,6 +14,7 @@ const [app, designSystem, iconButton, designSystemPage, styles, input, newslette
     readSource("app/globals.css"),
     readSource("src/components/Input.tsx").catch(() => ""),
     readSource("src/components/NewsletterForm.tsx").catch(() => ""),
+    readSource("src/components/Toast.tsx").catch(() => ""),
   ]);
 
 test("the design system is available at its own App Router route", () => {
@@ -33,6 +34,7 @@ test("the specimen page documents foundations and production components", () => 
     "links",
     "inputs",
     "tooltips",
+    "toasts",
   ]) {
     assert.match(designSystem, new RegExp(`>\\s*${section}\\s*<`));
   }
@@ -41,6 +43,7 @@ test("the specimen page documents foundations and production components", () => 
   assert.match(designSystem, /<Link/);
   assert.match(designSystem, /<Input/);
   assert.match(designSystem, /<Tooltip/);
+  assert.match(designSystem, /<Toast/);
   assert.match(designSystem, /loading/);
   assert.match(designSystem, /disabled/);
 });
@@ -57,6 +60,7 @@ test("design-system section and group headers are lowercase without changing spe
     ["links", "links"],
     ["inputs", "inputs"],
     ["tooltips", "tooltips"],
+    ["toasts", "toasts"],
   ]) {
     assert.match(
       designSystem,
@@ -88,6 +92,8 @@ test("design-system section and group headers are lowercase without changing spe
     "email address",
     "disabled",
     "dropdown",
+    "neutral",
+    "danger",
   ]) {
     assert.match(
       designSystem,
@@ -844,6 +850,20 @@ test("the tooltips section is hidden on mobile where hover chrome does not exist
   );
 });
 
+test("toasts document the shared production Toast at the surface radius", () => {
+  const toastsSection =
+    designSystem.match(/<section\s+id="toasts"[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  assert.match(designSystem, /import \{ Toast \} from "\.\/components\/Toast"/);
+  assert.match(toastsSection, /<SpecimenLabel>neutral<\/SpecimenLabel>/);
+  assert.match(toastsSection, /<SpecimenLabel>danger<\/SpecimenLabel>/);
+  assert.match(toastsSection, /<Toast>/);
+  assert.match(toastsSection, /<Toast variant="danger">/);
+  assert.match(toast, /rounded-\[11px\]/);
+  assert.doesNotMatch(toast, /rounded-\[20px\]/);
+  assert.doesNotMatch(toast, /rounded-full/);
+});
+
 test("icons section is omitted from the design system page", () => {
   assert.doesNotMatch(designSystem, /<section\s+id="icons"/);
   assert.doesNotMatch(designSystem, /const designSystemIcons = \[/);
@@ -889,6 +909,7 @@ test("design system header logo links home and sections have sub-nav anchors", (
     ["links", "links"],
     ["inputs", "inputs"],
     ["tooltips", "tooltips"],
+    ["toasts", "toasts"],
   ]) {
     assert.match(
       designSystem,

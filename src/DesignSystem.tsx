@@ -17,6 +17,7 @@ import { ScrollReveal } from "./components/ScrollReveal";
 import { Select } from "./components/Select";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
+import { Toast } from "./components/Toast";
 import { Tooltip, TooltipProvider } from "./components/Tooltip";
 
 const sectionClassName =
@@ -114,6 +115,7 @@ const sections = [
   { id: "links", label: "links" },
   { id: "inputs", label: "inputs" },
   { id: "tooltips", label: "tooltips" },
+  { id: "toasts", label: "toasts" },
 ] as const;
 
 const spacingScale = [
@@ -942,6 +944,34 @@ export default function DesignSystem() {
                 <p className="m-0 max-w-[36ch] text-pretty text-base text-muted">
                   Adjacent icon buttons each own a tooltip
                 </p>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="toasts"
+            className={sectionClassName}
+            aria-labelledby="toasts-title"
+          >
+            <h2 className={sectionTitleClassName} id="toasts-title">
+              toasts
+            </h2>
+            <div className="grid gap-8">
+              <div>
+                <SpecimenLabel>neutral</SpecimenLabel>
+                <div className={`${whiteSpecimenClassName} mt-4`}>
+                  <Toast>
+                    checkout canceled — pick a plan when you&apos;re ready.
+                  </Toast>
+                </div>
+              </div>
+              <div>
+                <SpecimenLabel>danger</SpecimenLabel>
+                <div className={`${whiteSpecimenClassName} mt-4`}>
+                  <Toast variant="danger">
+                    couldn&apos;t start checkout. please try again.
+                  </Toast>
+                </div>
               </div>
             </div>
           </section>

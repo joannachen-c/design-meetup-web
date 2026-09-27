@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toast } from "@/components/Toast";
 import { ManageBillingButton } from "@/components/portal/ManageBillingButton";
 import { MemberIdCard } from "@/components/portal/MemberIdCard";
 import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
@@ -110,23 +111,19 @@ export default async function PortalHomePage({
   return (
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
       {params.checkout_error ? (
-        <p className="mb-8 text-base text-red-700" role="alert">
-          couldn&apos;t start checkout. billing isn&apos;t set up correctly yet.
-        </p>
+        <Toast className="mb-8" variant="danger">
+          couldn&apos;t start checkout. please try again.
+        </Toast>
       ) : null}
       {params.canceled ? (
-        <p className="mb-8 text-base text-muted" role="status">
+        <Toast className="mb-8">
           checkout canceled — pick a plan when you&apos;re ready.
-        </p>
+        </Toast>
       ) : null}
       {params.mock_portal ? (
-        <p
-          className="mb-8 rounded-[20px] bg-surface-muted px-4 py-3 text-base text-muted"
-          role="status"
-        >
-          stripe customer portal needs a valid secret key. change plans below
-          for now.
-        </p>
+        <Toast className="mb-8">
+          couldn&apos;t open stripe billing. change plans below for now.
+        </Toast>
       ) : null}
 
       <div className="mb-12 flex flex-wrap items-end justify-between gap-6 lg:mb-16 lg:flex-nowrap lg:items-start lg:gap-10">

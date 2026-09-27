@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Primary } from "@/components/Primary";
+import { Toast } from "@/components/Toast";
 
 export function ManageBillingButton() {
   const [loading, setLoading] = useState(false);
@@ -14,13 +15,13 @@ export function ManageBillingButton() {
       const response = await fetch("/api/stripe/portal", { method: "POST" });
       const payload = (await response.json()) as { url?: string; error?: string };
       if (!response.ok || !payload.url) {
-        setError(payload.error || "could not open billing portal.");
+        setError(payload.error || "couldn't open billing. try again in a moment.");
         setLoading(false);
         return;
       }
       window.location.href = payload.url;
     } catch {
-      setError("could not open billing portal.");
+      setError("couldn't open billing. try again in a moment.");
       setLoading(false);
     }
   }
@@ -35,11 +36,7 @@ export function ManageBillingButton() {
       >
         manage billing
       </Primary>
-      {error ? (
-        <p className="m-0 text-sm lowercase text-red-700" role="alert">
-          {error}
-        </p>
-      ) : null}
+      {error ? <Toast variant="danger">{error}</Toast> : null}
     </div>
   );
 }

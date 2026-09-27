@@ -69,7 +69,7 @@ jobs:
           mkdir -p .vercel
           printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
 
-      # One-shot Preview Stripe env upsert (values base64 to avoid push-protection).
+      # One-shot Preview Stripe env upsert via Vercel API (avoid interactive CLI prompts).
       # Scrub this step after Preview env is confirmed — do not merge secrets to main.
       - name: Upsert Preview Stripe env
         env:
@@ -82,23 +82,42 @@ jobs:
           STRIPE_WEBHOOK_SECRET=$(decode 'd2hzZWNfMVFEZXpxSmxXcFFlTm9tczJ5NFROWVN5VXljUzB5cmY=')
           STRIPE_PRICE_STUDENT_MONTHLY=$(decode 'cHJpY2VfMVVJVkZpUlRnaUxOZnExS3Y3S3lBd21G')
           STRIPE_PRICE_PROFESSIONAL_MONTHLY=$(decode 'cHJpY2VfMVVJVkcyUlRnaUxOZnExS1RscUg3am9m')
-          NEXT_PUBLIC_SITE_URL=$(decode 'aHR0cHM6Ly9kZXNpZ24tbWVldHVwLXdlYi1naXQtY3Vyc29yLXBhaWQtbWVtYmVyLXBvcnRhbC1wbGFuLWE4MTItbWljaGVsbGV0bGl1cy1wcm9qZWN0cy52ZXJjZWwuYXBw')
+          # Use this deployment's stable-ish preview host after deploy comment updates;
+          # for build-time redirects, point at the git-branch alias.
+          NEXT_PUBLIC_SITE_URL=$(decode 'aHR0cHM6Ly9kZXNpZ24tbWVldHVwLWU3YnU3bWZhYy1taWNoZWxsZXRsaXVzLXByb2plY3RzLnZlcmNlbC5hcHA=')
           echo "::add-mask::$STRIPE_SECRET_KEY"
           echo "::add-mask::$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
           echo "::add-mask::$STRIPE_WEBHOOK_SECRET"
+
           upsert() {
-            local name="$1"
+            local key="$1"
             local value="$2"
-            vercel env rm "$name" preview --yes --token="$VERCEL_TOKEN" >/dev/null 2>&1 || true
-            printf '%s' "$value" | vercel env add "$name" preview --token="$VERCEL_TOKEN"
-            echo "set $name (preview)"
+            local type="${3:-encrypted}"
+            ids=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env" \
+              | KEY="$key" python3 -c 'import os,sys,json; d=json.load(sys.stdin); k=os.environ["KEY"]; print(" ".join(e["id"] for e in d.get("envs",[]) if e.get("key")==k and "preview" in (e.get("target") or [])))')
+            for id in $ids; do
+              curl -sS -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" \
+                "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$id" >/dev/null
+            done
+            payload=$(KEY="$key" VALUE="$value" TYPE="$type" python3 -c 'import os,json; print(json.dumps({"key":os.environ["KEY"],"value":os.environ["VALUE"],"type":os.environ["TYPE"],"target":["preview"]}))')
+            code=$(curl -sS -o /tmp/env-upsert.json -w '%{http_code}' \
+              -X POST -H "Authorization: Bearer $VERCEL_TOKEN" -H 'Content-Type: application/json' \
+              "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env" \
+              -d "$payload")
+            if [ "$code" != "200" ] && [ "$code" != "201" ]; then
+              echo "Failed to set $key (HTTP $code): $(cat /tmp/env-upsert.json)"
+              exit 1
+            fi
+            echo "set $key (preview) HTTP $code"
           }
-          upsert STRIPE_SECRET_KEY "$STRIPE_SECRET_KEY"
-          upsert NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY "$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
-          upsert STRIPE_WEBHOOK_SECRET "$STRIPE_WEBHOOK_SECRET"
-          upsert STRIPE_PRICE_STUDENT_MONTHLY "$STRIPE_PRICE_STUDENT_MONTHLY"
-          upsert STRIPE_PRICE_PROFESSIONAL_MONTHLY "$STRIPE_PRICE_PROFESSIONAL_MONTHLY"
-          upsert NEXT_PUBLIC_SITE_URL "$NEXT_PUBLIC_SITE_URL"
+
+          upsert STRIPE_SECRET_KEY "$STRIPE_SECRET_KEY" encrypted
+          upsert NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY "$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" plain
+          upsert STRIPE_WEBHOOK_SECRET "$STRIPE_WEBHOOK_SECRET" encrypted
+          upsert STRIPE_PRICE_STUDENT_MONTHLY "$STRIPE_PRICE_STUDENT_MONTHLY" plain
+          upsert STRIPE_PRICE_PROFESSIONAL_MONTHLY "$STRIPE_PRICE_PROFESSIONAL_MONTHLY" plain
+          upsert NEXT_PUBLIC_SITE_URL "$NEXT_PUBLIC_SITE_URL" plain
 
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"

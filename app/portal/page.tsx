@@ -120,7 +120,7 @@ export default async function PortalHomePage({
       <div className="mb-12 flex flex-wrap items-end justify-between gap-6 lg:mb-16 lg:flex-nowrap lg:items-center lg:gap-10">
         <div className="flex min-w-0 flex-1 flex-wrap items-end justify-between gap-4">
           <h1 className="m-0 max-w-[12ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
-            welcome back,
+            {hasAccess ? "welcome back," : "welcome,"}
             <br />
             {firstName.toLowerCase()}.
           </h1>
@@ -129,12 +129,13 @@ export default async function PortalHomePage({
         <div className="w-full shrink-0 lg:w-auto lg:max-w-[420px]">
           <MemberIdCard
             displayName={displayName}
-            email={profile?.email || user.email || ""}
             avatarUrl={profile?.avatarUrl ?? null}
             school={profile?.school}
             year={profile?.year}
             company={profile?.company}
             position={profile?.position}
+            location={profile?.location}
+            memberId={user.id}
             website={profile?.website}
             instagram={profile?.instagram}
             x={profile?.x}

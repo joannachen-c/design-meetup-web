@@ -14,8 +14,9 @@ import styles from "./MemberIdCard.module.css";
 
 export type MemberIdCardProps = {
   displayName: string;
-  email: string;
+  memberId?: string | null;
   avatarUrl?: string | null;
+  location?: string | null;
   school?: string | null;
   year?: string | null;
   company?: string | null;
@@ -32,9 +33,7 @@ export type MemberIdCardProps = {
 function PersonSilhouette() {
   return (
     <svg
-      className={styles["member-id-photo-person"]}
-      width="56"
-      height="56"
+      className={styles.silhouette}
       viewBox="0 0 56 56"
       fill="none"
       aria-hidden
@@ -43,45 +42,6 @@ function PersonSilhouette() {
       <path
         d="M8 48c2.5-10.5 10-16 20-16s17.5 5.5 20 16"
         fill="currentColor"
-      />
-    </svg>
-  );
-}
-
-function MetalTexture() {
-  return (
-    <svg
-      className={styles["member-id-metal"]}
-      viewBox="0 0 420 260"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden
-    >
-      <defs>
-        <radialGradient id="memberMetalSheen" cx="68%" cy="42%" r="70%">
-          <stop offset="0%" stopColor="#fff" stopOpacity="0.28" />
-          <stop offset="35%" stopColor="#fff" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="#000" stopOpacity="0.35" />
-        </radialGradient>
-      </defs>
-      {Array.from({ length: 46 }, (_, index) => {
-        const r = 8 + index * 7;
-        return (
-          <circle
-            key={r}
-            cx="292"
-            cy="108"
-            r={r}
-            fill="none"
-            stroke="rgba(255,255,255,0.085)"
-            strokeWidth={index % 3 === 0 ? 1.1 : 0.55}
-          />
-        );
-      })}
-      <rect
-        width="420"
-        height="260"
-        fill="url(#memberMetalSheen)"
-        opacity="0.9"
       />
     </svg>
   );
@@ -99,10 +59,17 @@ const SOCIAL_META: Array<{
   { key: "youtube", label: "youtube", Icon: YouTubeIcon },
 ];
 
+function formatMemberId(id: string | null | undefined) {
+  const hex = (id || "").replace(/[^a-f0-9]/gi, "").toUpperCase();
+  if (hex.length < 8) return "DM ————";
+  return `DM ${hex.slice(0, 4)} ${hex.slice(4, 8)}`;
+}
+
 export function MemberIdCard({
   displayName,
-  email,
+  memberId = null,
   avatarUrl = null,
+  location = null,
   school = null,
   year = null,
   company = null,
@@ -113,15 +80,24 @@ export function MemberIdCard({
   linkedin = null,
   youtube = null,
   tierLabel = null,
+  memberSince = null,
 }: MemberIdCardProps) {
   const [flipped, setFlipped] = useState(false);
 
-  const detailRows = [
+  const optionalRows = [
+    location ? { label: "location", value: location } : null,
     school ? { label: "school", value: school } : null,
     year ? { label: "year", value: year } : null,
     company ? { label: "company", value: company } : null,
     position ? { label: "position", value: position } : null,
   ].filter(Boolean) as { label: string; value: string }[];
+
+  const rows = [
+    { label: "name", value: displayName },
+    { label: "plan", value: tierLabel || "—" },
+    ...optionalRows,
+    ...(memberSince ? [{ label: "since", value: memberSince }] : []),
+  ];
 
   const socials = SOCIAL_META.map((item) => {
     const value = { website, instagram, x, linkedin, youtube }[item.key];
@@ -135,13 +111,10 @@ export function MemberIdCard({
   }>;
 
   return (
-    <div className={styles["member-id-scene"]}>
+    <div className={styles.scene}>
       <button
         type="button"
-        className={[
-          styles["member-id-card"],
-          flipped ? styles["is-flipped"] : "",
-        ]
+        className={[styles.card, flipped ? styles.flipped : ""]
           .filter(Boolean)
           .join(" ")}
         onClick={() => setFlipped((value) => !value)}
@@ -151,52 +124,55 @@ export function MemberIdCard({
             : "Flip member ID card to back"
         }
       >
-        <div
-          className={`${styles["member-id-face"]} ${styles["member-id-front"]}`}
-        >
-          <MetalTexture />
-          <div className={styles["member-id-front-grid"]}>
-            <div className={styles["member-id-photo-wrap"]}>
+        <div className={`${styles.face} ${styles.front}`}>
+          <div className={styles.header}>
+            <span className={styles.brand}>
+              <img src="/design-meetup-logo.png" alt="" width={22} height={22} />
+              design meetup
+            </span>
+            <span className={styles.docType}>member id</span>
+          </div>
+
+          <div className={styles.body}>
+            <div className={styles.photoColumn}>
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt=""
-                  className={styles["member-id-photo"]}
-                  width={112}
-                  height={112}
+                  className={styles.photo}
+                  width={104}
+                  height={136}
                 />
               ) : (
                 <Link
                   href="/portal/profile"
-                  className={styles["member-id-photo-empty"]}
+                  className={styles.photoEmpty}
                   onClick={(event) => event.stopPropagation()}
                 >
                   <PersonSilhouette />
                   <span>add photo</span>
                 </Link>
               )}
+              <p className={styles.signature} aria-hidden>
+                {displayName}
+              </p>
             </div>
-            <div className={styles["member-id-front-copy"]}>
-              <p className={styles["member-id-kicker"]}>member id</p>
-              <h2 className={styles["member-id-name"]}>{displayName}</h2>
-              <p className={styles["member-id-email"]}>{email}</p>
-              {tierLabel ? (
-                <p className={styles["member-id-tier"]}>{tierLabel} plan</p>
-              ) : null}
-              {detailRows.length > 0 ? (
-                <dl className={styles["member-id-meta"]}>
-                  {detailRows.map((row) => (
-                    <div
-                      key={row.label}
-                      className={styles["member-id-meta-row"]}
-                    >
-                      <dt>{row.label}</dt>
-                      <dd>{row.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : (
-                <p className={styles["member-id-hint"]}>
+
+            <div className={styles.details}>
+              <p className={styles.number}>{formatMemberId(memberId)}</p>
+              <dl className={styles.fields}>
+                {rows.map((row, index) => (
+                  <div key={row.label} className={styles.field}>
+                    <dt>
+                      <span className={styles.fieldIndex}>{index + 1}</span>
+                      {row.label}
+                    </dt>
+                    <dd>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              {optionalRows.length === 0 ? (
+                <p className={styles.hint}>
                   <Link
                     href="/portal/profile"
                     onClick={(event) => event.stopPropagation()}
@@ -204,9 +180,9 @@ export function MemberIdCard({
                     complete your profile
                   </Link>
                 </p>
-              )}
+              ) : null}
               {socials.length > 0 ? (
-                <div className={styles["member-id-socials"]}>
+                <div className={styles.socials}>
                   {socials.map(({ key, label, href, Icon }) => (
                     <a
                       key={key}
@@ -214,7 +190,7 @@ export function MemberIdCard({
                       target="_blank"
                       rel="noreferrer"
                       aria-label={label}
-                      className={styles["member-id-social"]}
+                      className={styles.social}
                       onClick={(event) => event.stopPropagation()}
                     >
                       <Icon />
@@ -224,15 +200,25 @@ export function MemberIdCard({
               ) : null}
             </div>
           </div>
-          <div className={styles["member-id-chip"]} aria-hidden />
+
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className={styles.ghostPhoto}
+              width={44}
+              height={56}
+              aria-hidden
+            />
+          ) : null}
         </div>
 
         <div
-          className={`${styles["member-id-face"]} ${styles["member-id-back"]}`}
+          className={`${styles.face} ${styles.back}`}
           aria-hidden={flipped ? undefined : true}
         >
           <img
-            className={styles["member-id-back-logo"]}
+            className={styles.backLogo}
             src="/design-meetup-logo.png"
             alt=""
             width={120}

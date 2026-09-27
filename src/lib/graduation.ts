@@ -21,7 +21,9 @@ export const GRAD_YEARS = Array.from(
   (_, index) => String(GRAD_YEAR_MIN + index),
 );
 
-const MONTH_VALUES = new Set(GRAD_MONTHS.map((month) => month.value));
+const MONTH_VALUES: Set<string> = new Set(
+  GRAD_MONTHS.map((month) => month.value),
+);
 
 export type Graduation = {
   month: string;

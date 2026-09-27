@@ -48,6 +48,45 @@ function PersonSilhouette() {
   );
 }
 
+function MetalTexture() {
+  return (
+    <svg
+      className={styles["member-id-metal"]}
+      viewBox="0 0 420 260"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden
+    >
+      <defs>
+        <radialGradient id="memberMetalSheen" cx="68%" cy="42%" r="70%">
+          <stop offset="0%" stopColor="#fff" stopOpacity="0.28" />
+          <stop offset="35%" stopColor="#fff" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="#000" stopOpacity="0.35" />
+        </radialGradient>
+      </defs>
+      {Array.from({ length: 46 }, (_, index) => {
+        const r = 8 + index * 7;
+        return (
+          <circle
+            key={r}
+            cx="292"
+            cy="108"
+            r={r}
+            fill="none"
+            stroke="rgba(255,255,255,0.085)"
+            strokeWidth={index % 3 === 0 ? 1.1 : 0.55}
+          />
+        );
+      })}
+      <rect
+        width="420"
+        height="260"
+        fill="url(#memberMetalSheen)"
+        opacity="0.9"
+      />
+    </svg>
+  );
+}
+
 const SOCIAL_META: Array<{
   key: keyof ProfileSocialLinks;
   label: string;
@@ -74,7 +113,6 @@ export function MemberIdCard({
   linkedin = null,
   youtube = null,
   tierLabel = null,
-  memberSince = null,
 }: MemberIdCardProps) {
   const [flipped, setFlipped] = useState(false);
 
@@ -116,6 +154,7 @@ export function MemberIdCard({
         <div
           className={`${styles["member-id-face"]} ${styles["member-id-front"]}`}
         >
+          <MetalTexture />
           <div className={styles["member-id-front-grid"]}>
             <div className={styles["member-id-photo-wrap"]}>
               {avatarUrl ? (
@@ -185,64 +224,20 @@ export function MemberIdCard({
               ) : null}
             </div>
           </div>
-          <div className={styles["member-id-stamp"]} aria-hidden>
-            <img src="/design-meetup-stamp.png" alt="" width={96} height={96} />
-          </div>
+          <div className={styles["member-id-chip"]} aria-hidden />
         </div>
 
         <div
           className={`${styles["member-id-face"]} ${styles["member-id-back"]}`}
           aria-hidden={flipped ? undefined : true}
         >
-          <div className={styles["member-id-back-pattern"]} />
-          <div className={styles["member-id-back-content"]}>
-            <img
-              className={styles["member-id-back-logo"]}
-              src="/design-meetup-stamp.png"
-              alt=""
-              width={72}
-              height={72}
-            />
-            <p className={styles["member-id-back-title"]}>design meetup</p>
-            <p className={styles["member-id-back-sub"]}>
-              a space for the world&apos;s most ambitious creatives.
-            </p>
-            <div className={styles["member-id-back-chip"]}>
-              <span>{tierLabel || "guest"}</span>
-              <span>{memberSince || "join the crew"}</span>
-            </div>
-            {socials.length > 0 ? (
-              <div
-                className={`${styles["member-id-socials"]} ${styles["member-id-socials-back"]}`}
-              >
-                {socials.map(({ key, label, href, Icon }) => (
-                  <a
-                    key={key}
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={label}
-                    className={styles["member-id-social"]}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <Icon />
-                  </a>
-                ))}
-              </div>
-            ) : null}
-            <div className={styles["member-id-barcode"]} aria-hidden>
-              {Array.from({ length: 28 }, (_, index) => (
-                <span
-                  key={index}
-                  style={{
-                    width: index % 5 === 0 ? 3 : 1.5,
-                    opacity: index % 3 === 0 ? 0.35 : 0.85,
-                  }}
-                />
-              ))}
-            </div>
-            <p className={styles["member-id-back-footer"]}>nyc · sf · la</p>
-          </div>
+          <img
+            className={styles["member-id-back-logo"]}
+            src="/design-meetup-logo.png"
+            alt=""
+            width={120}
+            height={120}
+          />
         </div>
       </button>
     </div>

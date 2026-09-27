@@ -1,4 +1,4 @@
-/* Member portal 3D ID card */
+/* Member portal metallic ID card */
 .member-id-scene {
   perspective: 1200px;
   width: min(100%, 420px);
@@ -43,20 +43,32 @@
   -webkit-backface-visibility: hidden;
   overflow: hidden;
   box-shadow:
-    0 10px 28px rgb(18 24 38 / 0.08),
-    inset 0 0 0 1px rgb(18 24 38 / 0.05);
+    0 18px 42px rgb(10 12 18 / 0.28),
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    inset 0 -1px 0 rgb(0 0 0 / 0.35);
 }
 
 .member-id-front {
   background:
-    radial-gradient(110% 70% at 0% 0%, rgb(236 242 109 / 0.22) 0%, transparent 58%),
-    linear-gradient(145deg, #fcfdff 0%, #f4f6f9 100%);
-  color: var(--color-ink);
+    linear-gradient(145deg, #6b6358 0%, #3f3a35 28%, #2a2623 58%, #1a1715 100%);
+  color: #f4efe8;
   padding: clamp(14px, 3vw, 20px);
   text-align: left;
 }
 
+.member-id-metal {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  opacity: 0.95;
+}
+
 .member-id-front-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: minmax(72px, 112px) minmax(0, 1fr);
   gap: clamp(10px, 2vw, 16px);
@@ -73,8 +85,11 @@
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 18px;
+  border-radius: 14px;
   object-fit: cover;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.18),
+    0 6px 16px rgb(0 0 0 / 0.28);
 }
 
 .member-id-photo-empty {
@@ -85,10 +100,10 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  border-radius: 18px;
-  border: 1.5px dashed rgb(18 24 38 / 0.14);
-  background: rgb(255 255 255 / 0.65);
-  color: var(--color-subtle);
+  border-radius: 14px;
+  border: 1.5px dashed rgb(244 239 232 / 0.28);
+  background: rgb(0 0 0 / 0.22);
+  color: rgb(244 239 232 / 0.55);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -97,27 +112,27 @@
 }
 
 .member-id-photo-empty:hover {
-  border-color: rgb(18 24 38 / 0.28);
-  color: var(--color-muted);
-  background: #fff;
+  border-color: rgb(244 239 232 / 0.5);
+  color: rgb(244 239 232 / 0.85);
+  background: rgb(0 0 0 / 0.32);
 }
 
 .member-id-photo-person {
-  color: rgb(18 24 38 / 0.16);
+  color: rgb(244 239 232 / 0.28);
 }
 
 .member-id-front-copy {
   min-width: 0;
-  padding-right: clamp(48px, 12vw, 88px);
+  padding-right: clamp(56px, 14vw, 96px);
 }
 
 .member-id-kicker {
   margin: 0 0 6px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: rgb(244 239 232 / 0.55);
 }
 
 .member-id-name {
@@ -127,6 +142,8 @@
   letter-spacing: -0.04em;
   line-height: 1.05;
   text-transform: lowercase;
+  color: #f7f3ed;
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
 }
 
 .member-id-email,
@@ -134,24 +151,24 @@
 .member-id-hint {
   margin: 6px 0 0;
   font-size: 0.9rem;
-  color: var(--color-muted);
+  color: rgb(244 239 232 / 0.68);
   overflow-wrap: anywhere;
 }
 
 .member-id-tier {
   font-weight: 700;
-  color: var(--color-ink);
+  color: #ecf26d;
 }
 
 .member-id-hint a {
-  color: var(--color-subtle);
+  color: rgb(244 239 232 / 0.55);
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
 .member-id-hint a:hover {
-  color: var(--color-muted);
+  color: rgb(244 239 232 / 0.85);
 }
 
 .member-id-meta {
@@ -169,13 +186,13 @@
 
 .member-id-meta-row dt {
   margin: 0;
-  color: var(--color-subtle);
+  color: rgb(244 239 232 / 0.45);
   font-weight: 700;
 }
 
 .member-id-meta-row dd {
   margin: 0;
-  color: var(--color-ink);
+  color: #f4efe8;
   font-weight: 700;
   overflow-wrap: anywhere;
 }
@@ -189,139 +206,60 @@
 
 .member-id-social {
   display: inline-flex;
-  size: 28px;
   width: 28px;
   height: 28px;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: rgb(18 24 38 / 0.06);
-  color: var(--color-ink);
+  background: rgb(0 0 0 / 0.28);
+  color: #f4efe8;
   text-decoration: none;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
 }
 
 .member-id-social:hover {
-  background: rgb(18 24 38 / 0.12);
+  background: rgb(0 0 0 / 0.42);
 }
 
-.member-id-socials-back .member-id-social {
-  background: rgb(252 253 255 / 0.12);
-  color: #fcfdff;
-}
-
-.member-id-stamp {
+.member-id-chip {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
-  width: clamp(64px, 18vw, 96px);
-  rotate: -10deg;
-  opacity: 0.92;
-  pointer-events: none;
+  right: clamp(16px, 4vw, 28px);
+  top: 50%;
+  z-index: 1;
+  width: clamp(36px, 9vw, 46px);
+  height: clamp(28px, 7vw, 34px);
+  translate: 0 -50%;
+  border-radius: 6px;
+  background:
+    linear-gradient(145deg, #d7d2c8 0%, #8f8a82 45%, #5c5852 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(0 0 0 / 0.35),
+    0 4px 10px rgb(0 0 0 / 0.25);
 }
 
-.member-id-stamp img {
-  display: block;
-  width: 100%;
-  height: auto;
+.member-id-chip::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, transparent 0 18%, rgb(0 0 0 / 0.18) 18% 22%, transparent 22% 38%, rgb(0 0 0 / 0.18) 38% 42%, transparent 42% 58%, rgb(0 0 0 / 0.18) 58% 62%, transparent 62% 78%, rgb(0 0 0 / 0.18) 78% 82%, transparent 82%);
+  opacity: 0.65;
 }
 
 .member-id-back {
   transform: rotateY(180deg);
-  background:
-    radial-gradient(circle at 20% 20%, rgb(236 242 109 / 0.35), transparent 40%),
-    linear-gradient(160deg, #151922 0%, #2a3344 55%, #11161f 100%);
+  display: grid;
+  place-items: center;
+  background: #0a0a0a;
   color: #fcfdff;
-}
-
-.member-id-back-pattern {
-  position: absolute;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(
-      -28deg,
-      transparent 0 10px,
-      rgb(255 255 255 / 0.03) 10px 12px
-    );
-  pointer-events: none;
-}
-
-.member-id-back-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 8px;
-  padding: clamp(16px, 3vw, 24px);
-  text-align: left;
 }
 
 .member-id-back-logo {
   display: block;
-  width: clamp(52px, 12vw, 72px);
+  width: clamp(88px, 28%, 120px);
   height: auto;
-}
-
-.member-id-back-title {
-  margin: 4px 0 0;
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-}
-
-.member-id-back-sub {
-  margin: 0;
-  max-width: 28ch;
-  font-size: 0.9rem;
-  line-height: 1.35;
-  color: rgb(252 253 255 / 0.72);
-}
-
-.member-id-back-chip {
-  margin-top: 8px;
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.member-id-back-chip span {
-  display: inline-flex;
-  min-height: 28px;
-  align-items: center;
-  border-radius: 999px;
-  background: rgb(252 253 255 / 0.1);
-  padding: 0 12px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.member-id-barcode {
-  margin-top: auto;
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 34px;
-  width: 100%;
-}
-
-.member-id-barcode span {
-  display: block;
-  height: 100%;
-  background: rgb(252 253 255 / 0.85);
-  border-radius: 1px;
-}
-
-.member-id-back-footer {
-  margin: 8px 0 0;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgb(252 253 255 / 0.55);
 }
 
 @keyframes member-id-gyrate {
@@ -361,7 +299,7 @@
   }
 
   .member-id-card.is-flipped .member-id-back {
-    display: block;
+    display: grid;
     transform: none;
   }
 
@@ -371,12 +309,6 @@
 
   .member-id-front-copy {
     padding-right: 72px;
-  }
-
-  .member-id-stamp {
-    right: 8px;
-    bottom: 8px;
-    width: 72px;
   }
 
   .member-id-scene:hover .member-id-card:not(.is-flipped) {
@@ -398,11 +330,10 @@
     padding-right: 0;
   }
 
-  .member-id-stamp {
-    top: 12px;
-    right: 12px;
-    bottom: auto;
-    width: 64px;
+  .member-id-chip {
+    top: 18px;
+    right: 16px;
+    translate: 0;
   }
 }
 
@@ -415,5 +346,3 @@
     transition: none;
   }
 }
-
-

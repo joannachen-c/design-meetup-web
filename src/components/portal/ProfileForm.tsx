@@ -8,10 +8,18 @@ export function ProfileForm({
   initialName,
   initialEmail,
   initialAvatarUrl,
+  initialSchool = "",
+  initialYear = "",
+  initialCompany = "",
+  initialPosition = "",
 }: {
   initialName: string;
   initialEmail: string;
   initialAvatarUrl?: string | null;
+  initialSchool?: string;
+  initialYear?: string;
+  initialCompany?: string;
+  initialPosition?: string;
 }) {
   const avatarInputId = useId();
   const [pending, setPending] = useState(false);
@@ -139,6 +147,62 @@ export function ProfileForm({
           defaultValue={initialEmail}
           autoComplete="email"
           placeholder="you@example.com"
+        />
+      </label>
+
+      <label className="grid gap-2">
+        <span className="text-sm font-bold text-muted">
+          school{" "}
+          <span className="font-normal text-subtle">(optional)</span>
+        </span>
+        <Input
+          name="school"
+          type="text"
+          defaultValue={initialSchool}
+          autoComplete="organization"
+          placeholder="RISD"
+        />
+      </label>
+
+      <label className="grid gap-2">
+        <span className="text-sm font-bold text-muted">
+          year{" "}
+          <span className="font-normal text-subtle">(optional)</span>
+        </span>
+        <Input
+          name="year"
+          type="text"
+          defaultValue={initialYear}
+          autoComplete="off"
+          placeholder="2027"
+        />
+      </label>
+
+      <label className="grid gap-2">
+        <span className="text-sm font-bold text-muted">
+          company{" "}
+          <span className="font-normal text-subtle">(optional)</span>
+        </span>
+        <Input
+          name="company"
+          type="text"
+          defaultValue={initialCompany}
+          autoComplete="organization"
+          placeholder="Figma"
+        />
+      </label>
+
+      <label className="grid gap-2">
+        <span className="text-sm font-bold text-muted">
+          position{" "}
+          <span className="font-normal text-subtle">(optional)</span>
+        </span>
+        <Input
+          name="position"
+          type="text"
+          defaultValue={initialPosition}
+          autoComplete="organization-title"
+          placeholder="Product Designer"
         />
       </label>
 

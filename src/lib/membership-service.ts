@@ -45,7 +45,7 @@ export async function ensureProfile(user: {
     const { data: existing } = await admin
       .from("profiles")
       .select(
-        "id,email,display_name,avatar_url,stripe_customer_id,created_at,updated_at",
+        "id,email,display_name,avatar_url,school,year,company,position,stripe_customer_id,created_at,updated_at",
       )
       .eq("id", user.id)
       .maybeSingle();
@@ -93,6 +93,10 @@ function mapProfile(row: {
   displayName?: string | null;
   avatar_url?: string | null;
   avatarUrl?: string | null;
+  school?: string | null;
+  year?: string | null;
+  company?: string | null;
+  position?: string | null;
   stripe_customer_id?: string | null;
   stripeCustomerId?: string | null;
   created_at?: string;
@@ -105,6 +109,10 @@ function mapProfile(row: {
     email: row.email,
     displayName: row.display_name ?? row.displayName ?? null,
     avatarUrl: row.avatar_url ?? row.avatarUrl ?? null,
+    school: row.school ?? null,
+    year: row.year ?? null,
+    company: row.company ?? null,
+    position: row.position ?? null,
     stripeCustomerId: row.stripe_customer_id ?? row.stripeCustomerId ?? null,
     createdAt: row.created_at ?? row.createdAt ?? new Date().toISOString(),
     updatedAt: row.updated_at ?? row.updatedAt ?? new Date().toISOString(),
@@ -117,7 +125,7 @@ export async function getProfile(userId: string) {
     const { data } = await admin
       .from("profiles")
       .select(
-        "id,email,display_name,avatar_url,stripe_customer_id,created_at,updated_at",
+        "id,email,display_name,avatar_url,school,year,company,position,stripe_customer_id,created_at,updated_at",
       )
       .eq("id", userId)
       .maybeSingle();
@@ -130,11 +138,19 @@ export async function updateProfile(input: {
   userId: string;
   email?: string;
   displayName?: string;
+  school?: string | null;
+  year?: string | null;
+  company?: string | null;
+  position?: string | null;
   avatarBytes?: Buffer | null;
   avatarContentType?: string | null;
 }) {
   const email = input.email?.trim().toLowerCase();
   const displayName = input.displayName?.trim() || null;
+  const school = input.school?.trim() || null;
+  const year = input.year?.trim() || null;
+  const company = input.company?.trim() || null;
+  const position = input.position?.trim() || null;
   let avatarUrl: string | null | undefined;
 
   if (input.avatarBytes && input.avatarContentType) {
@@ -157,6 +173,10 @@ export async function updateProfile(input: {
     if (email) patch.email = email;
     if (displayName !== undefined) patch.display_name = displayName;
     if (avatarUrl !== undefined) patch.avatar_url = avatarUrl;
+    if (input.school !== undefined) patch.school = school;
+    if (input.year !== undefined) patch.year = year;
+    if (input.company !== undefined) patch.company = company;
+    if (input.position !== undefined) patch.position = position;
     await admin.from("profiles").update(patch).eq("id", input.userId);
     return getProfile(input.userId);
   }
@@ -166,6 +186,10 @@ export async function updateProfile(input: {
     email,
     displayName,
     avatarUrl,
+    school: input.school !== undefined ? school : undefined,
+    year: input.year !== undefined ? year : undefined,
+    company: input.company !== undefined ? company : undefined,
+    position: input.position !== undefined ? position : undefined,
   });
 }
 

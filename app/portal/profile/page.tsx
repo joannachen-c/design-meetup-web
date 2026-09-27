@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ProfileForm } from "@/components/portal/ProfileForm";
 import { requireUser } from "@/lib/auth";
 import { displayNameFromEmail } from "@/lib/membership";
@@ -39,19 +38,10 @@ export default async function ProfilePage({
   const message = errorMessage(params.error);
 
   return (
-    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(24px,3vw,40px)] pb-24 lowercase">
-      <Link
-        href="/portal"
-        className="mb-8 inline-flex min-h-11 items-center rounded-[10px] text-base text-muted no-underline hover:text-ink"
-      >
-        back to home
-      </Link>
-      <h1 className="m-0 mb-4 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
+    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
+      <h1 className="m-0 mb-12 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
         your profile
       </h1>
-      <p className="mb-12 max-w-[48ch] text-base leading-normal text-muted normal-case">
-        update how you show up in the member portal — photo, name, and email.
-      </p>
 
       {params.saved ? (
         <p
@@ -71,6 +61,10 @@ export default async function ProfilePage({
         initialName={name}
         initialEmail={email}
         initialAvatarUrl={profile?.avatarUrl ?? null}
+        initialSchool={profile?.school ?? ""}
+        initialYear={profile?.year ?? ""}
+        initialCompany={profile?.company ?? ""}
+        initialPosition={profile?.position ?? ""}
       />
     </main>
   );

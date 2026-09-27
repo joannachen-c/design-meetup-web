@@ -23,6 +23,10 @@ export type ProfileRecord = {
   email: string;
   displayName: string | null;
   avatarUrl: string | null;
+  school: string | null;
+  year: string | null;
+  company: string | null;
+  position: string | null;
   stripeCustomerId: string | null;
   createdAt: string;
   updatedAt: string;

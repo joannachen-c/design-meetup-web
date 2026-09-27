@@ -25,6 +25,10 @@ async function readStore(): Promise<StoreShape> {
         ? parsed.profiles.map((profile) => ({
             ...profile,
             avatarUrl: profile.avatarUrl ?? null,
+            school: profile.school ?? null,
+            year: profile.year ?? null,
+            company: profile.company ?? null,
+            position: profile.position ?? null,
           }))
         : [],
       memberships: Array.isArray(parsed.memberships) ? parsed.memberships : [],
@@ -69,6 +73,10 @@ export async function ensureLocalProfile(input: {
     email: input.email,
     displayName: input.displayName ?? displayNameFromEmail(input.email),
     avatarUrl: null,
+    school: null,
+    year: null,
+    company: null,
+    position: null,
     stripeCustomerId: null,
     createdAt: now,
     updatedAt: now,
@@ -88,6 +96,10 @@ export async function updateLocalProfile(input: {
   email?: string;
   displayName?: string | null;
   avatarUrl?: string | null;
+  school?: string | null;
+  year?: string | null;
+  company?: string | null;
+  position?: string | null;
 }) {
   const store = await readStore();
   const profile = store.profiles.find((p) => p.id === input.userId);
@@ -95,6 +107,10 @@ export async function updateLocalProfile(input: {
   if (input.email != null) profile.email = input.email;
   if (input.displayName !== undefined) profile.displayName = input.displayName;
   if (input.avatarUrl !== undefined) profile.avatarUrl = input.avatarUrl;
+  if (input.school !== undefined) profile.school = input.school;
+  if (input.year !== undefined) profile.year = input.year;
+  if (input.company !== undefined) profile.company = input.company;
+  if (input.position !== undefined) profile.position = input.position;
   profile.updatedAt = new Date().toISOString();
   await writeStore(store);
   return profile;

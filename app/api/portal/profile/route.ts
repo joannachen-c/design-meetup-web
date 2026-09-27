@@ -1,21 +1,19 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
 import { updateProfile } from "@/lib/membership-service";
+import { requestOrigin } from "@/lib/site";
 
 export const runtime = "nodejs";
 
 const MAX_AVATAR_BYTES = 2.5 * 1024 * 1024;
 
-function siteOrigin(request: Request) {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    new URL(request.url).origin
-  );
+function optionalField(value: FormDataEntryValue | null | undefined) {
+  return String(value || "").trim();
 }
 
 export async function POST(request: Request) {
   const user = await getSessionUser();
-  const origin = siteOrigin(request);
+  const origin = requestOrigin(request);
   const contentType = request.headers.get("content-type") || "";
   const isForm = contentType.includes("multipart/form-data");
 
@@ -31,15 +29,21 @@ export async function POST(request: Request) {
 
   let displayName = "";
   let email = "";
+  let school = "";
+  let year = "";
+  let company = "";
+  let position = "";
   let avatarBytes: Buffer | null = null;
   let avatarContentType: string | null = null;
 
   if (isForm) {
     const form = await request.formData();
-    displayName = String(form.get("displayName") || "").trim();
-    email = String(form.get("email") || "")
-      .trim()
-      .toLowerCase();
+    displayName = optionalField(form.get("displayName"));
+    email = optionalField(form.get("email")).toLowerCase();
+    school = optionalField(form.get("school"));
+    year = optionalField(form.get("year"));
+    company = optionalField(form.get("company"));
+    position = optionalField(form.get("position"));
     const file = form.get("avatar");
     if (file && typeof file !== "string" && file.size > 0) {
       if (file.size > MAX_AVATAR_BYTES) {
@@ -62,11 +66,19 @@ export async function POST(request: Request) {
       const body = (await request.json()) as {
         displayName?: string;
         email?: string;
+        school?: string;
+        year?: string;
+        company?: string;
+        position?: string;
       };
       displayName = String(body.displayName || "").trim();
       email = String(body.email || "")
         .trim()
         .toLowerCase();
+      school = String(body.school || "").trim();
+      year = String(body.year || "").trim();
+      company = String(body.company || "").trim();
+      position = String(body.position || "").trim();
     } catch {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
@@ -90,6 +102,10 @@ export async function POST(request: Request) {
       userId: user.id,
       email,
       displayName,
+      school,
+      year,
+      company,
+      position,
       avatarBytes,
       avatarContentType,
     });

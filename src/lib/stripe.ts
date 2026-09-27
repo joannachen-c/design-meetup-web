@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { requestOrigin } from "@/lib/site";
 
 let stripe: Stripe | null = null;
 
@@ -15,8 +16,5 @@ export function getStripe() {
 }
 
 export function siteOriginFromRequest(request: Request) {
-  const env = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (env) return env;
-  const url = new URL(request.url);
-  return url.origin;
+  return requestOrigin(request);
 }

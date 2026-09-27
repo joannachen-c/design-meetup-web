@@ -26,3 +26,43 @@ export const siteSameAs = [
   "https://x.com/designmeetuphq",
   "https://luma.com/designmeetup",
 ] as const;
+
+/**
+ * Origin for redirects after browser POSTs (auth, checkout, profile).
+ * Prefer the request's Origin / Host over NEXT_PUBLIC_SITE_URL so localhost
+ * and ephemeral tunnels don't cross-redirect and drop auth cookies.
+ */
+export function requestOrigin(request: Request) {
+  const originHeader = request.headers.get("origin");
+  if (originHeader) {
+    try {
+      return new URL(originHeader).origin;
+    } catch {
+      // ignore invalid Origin
+    }
+  }
+
+  const referer = request.headers.get("referer");
+  if (referer) {
+    try {
+      return new URL(referer).origin;
+    } catch {
+      // ignore invalid Referer
+    }
+  }
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    const host = forwardedHost.split(",")[0]?.trim();
+    const proto =
+      request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+      "https";
+    if (host) return `${proto}://${host}`;
+  }
+
+  try {
+    return new URL(request.url).origin;
+  } catch {
+    return siteUrl;
+  }
+}

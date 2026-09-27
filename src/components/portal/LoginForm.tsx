@@ -116,7 +116,14 @@ export function LoginForm({
         setPending(false);
         return;
       }
-      window.location.assign(payload.url);
+      try {
+        const next = new URL(payload.url, window.location.origin);
+        window.location.assign(
+          `${next.pathname}${next.search}${next.hash}` || next.href,
+        );
+      } catch {
+        window.location.assign(payload.url);
+      }
     } catch {
       setError("Something went wrong. Check your connection and try again.");
       setPending(false);

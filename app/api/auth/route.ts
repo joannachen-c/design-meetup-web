@@ -5,15 +5,9 @@ import {
   passwordSignUp,
 } from "@/lib/auth";
 import { ensureProfile } from "@/lib/membership-service";
+import { requestOrigin } from "@/lib/site";
 
 export const runtime = "nodejs";
-
-function siteOrigin(request: Request) {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    new URL(request.url).origin
-  );
-}
 
 export async function POST(request: Request) {
   let body: Record<string, unknown>;
@@ -65,7 +59,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ok: true,
-    url: `${siteOrigin(request)}${nextPath}`,
+    url: `${requestOrigin(request)}${nextPath}`,
   });
 }
 

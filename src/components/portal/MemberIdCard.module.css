@@ -245,18 +245,17 @@
 
 .fact {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   min-width: 0;
   overflow-wrap: break-word;
   font-size: clamp(0.82rem, 2.1vw, 0.92rem);
-  font-weight: 700;
+  font-weight: 400;
   color: var(--color-muted);
 }
 
 .fact svg {
   flex-shrink: 0;
-  margin-top: 1px;
   color: var(--color-subtle);
 }
 
@@ -267,7 +266,7 @@
 .sinceLabel {
   margin: 0;
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-subtle);
@@ -296,7 +295,7 @@
 .socials {
   display: flex;
   flex-wrap: wrap;
-  gap: clamp(10px, 3vw, 18px);
+  gap: clamp(16px, 4vw, 20px);
   margin-top: auto;
   padding-top: 8px;
 }
@@ -397,15 +396,15 @@
   .scene:hover .tilt {
     animation: none;
   }
+
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 420px) {
   .body {
     grid-template-columns: 112px minmax(0, 1fr);
-  }
-
-  .facts {
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 

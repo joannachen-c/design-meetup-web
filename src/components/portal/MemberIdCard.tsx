@@ -228,7 +228,28 @@ export function MemberIdCard({
               height={320}
               aria-hidden
             />
-            <p className={styles.docType}>Member ID</p>
+            <div className={styles.masthead}>
+              <p className={styles.docType}>Member ID</p>
+              {socials.length > 0 ? (
+                <div className={styles.socials}>
+                  {socials.map(({ key, label, href, Icon }) => (
+                    <a
+                      key={key}
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={label}
+                      className={styles.social}
+                      onClick={stop}
+                      onKeyDown={stop}
+                      tabIndex={flipped ? -1 : 0}
+                    >
+                      <Icon />
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+            </div>
 
             <div className={styles.body}>
               <div className={styles.photoColumn}>
@@ -343,26 +364,6 @@ export function MemberIdCard({
                   >
                     complete your profile
                   </Link>
-                ) : null}
-
-                {socials.length > 0 ? (
-                  <div className={styles.socials}>
-                    {socials.map(({ key, label, href, Icon }) => (
-                      <a
-                        key={key}
-                        href={href}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label={label}
-                        className={styles.social}
-                        onClick={stop}
-                        onKeyDown={stop}
-                        tabIndex={flipped ? -1 : 0}
-                      >
-                        <Icon />
-                      </a>
-                    ))}
-                  </div>
                 ) : null}
               </div>
             </div>

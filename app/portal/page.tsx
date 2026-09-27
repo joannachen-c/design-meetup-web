@@ -134,7 +134,7 @@ export default async function PortalHomePage({
             {firstName.toLowerCase()}.
           </h1>
         </div>
-        <div className="w-full shrink-0 lg:w-[540px]">
+        <div className="w-full shrink-0 lg:mr-6 lg:w-[540px]">
           <MemberIdCard
             displayName={displayName}
             avatarUrl={profile?.avatarUrl ?? null}

@@ -138,7 +138,13 @@ export function PortalHeader({
       <div className="flex items-center justify-end gap-2">
         <Link
           href="/portal/profile"
-          className="flex min-h-11 items-center gap-2.5 rounded-[10px] px-1.5 no-underline hover:bg-surface-muted max-[640px]:hidden"
+          aria-current={pathname.startsWith("/portal/profile") ? "page" : undefined}
+          className={[
+            "flex min-h-11 items-center gap-2.5 rounded-[10px] pl-1.5 pr-3 no-underline max-[640px]:hidden",
+            pathname.startsWith("/portal/profile")
+              ? "bg-gray-100"
+              : "hover:bg-surface-muted",
+          ].join(" ")}
         >
           <Avatar url={avatarUrl} />
           <span className="text-base font-bold text-ink">{displayName}</span>

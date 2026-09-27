@@ -99,15 +99,25 @@ function SocialField({
           {icon}
         </span>
         {prefix ? (
-          <span className="shrink-0 text-base text-subtle">{prefix}</span>
-        ) : null}
-        <input
-          name={name}
-          type="text"
-          defaultValue={defaultValue}
-          placeholder={placeholder}
-          className="min-h-11 w-full min-w-0 border-0 bg-transparent px-1 text-base text-ink outline-none focus-visible:outline-none"
-        />
+          <span className="flex min-w-0 flex-1 items-center gap-0.5">
+            <span className="shrink-0 text-base text-subtle">{prefix}</span>
+            <input
+              name={name}
+              type="text"
+              defaultValue={defaultValue}
+              placeholder={placeholder}
+              className="min-h-11 w-full min-w-0 border-0 bg-transparent px-0 text-base text-ink outline-none focus-visible:outline-none"
+            />
+          </span>
+        ) : (
+          <input
+            name={name}
+            type="text"
+            defaultValue={defaultValue}
+            placeholder={placeholder}
+            className="min-h-11 w-full min-w-0 border-0 bg-transparent px-0 text-base text-ink outline-none focus-visible:outline-none"
+          />
+        )}
       </span>
     </label>
   );

@@ -33,6 +33,11 @@ export async function POST(request: Request) {
   let year = "";
   let company = "";
   let position = "";
+  let website = "";
+  let instagram = "";
+  let x = "";
+  let linkedin = "";
+  let youtube = "";
   let avatarBytes: Buffer | null = null;
   let avatarContentType: string | null = null;
 
@@ -44,6 +49,11 @@ export async function POST(request: Request) {
     year = optionalField(form.get("year"));
     company = optionalField(form.get("company"));
     position = optionalField(form.get("position"));
+    website = optionalField(form.get("website"));
+    instagram = optionalField(form.get("instagram"));
+    x = optionalField(form.get("x"));
+    linkedin = optionalField(form.get("linkedin"));
+    youtube = optionalField(form.get("youtube"));
     const file = form.get("avatar");
     if (file && typeof file !== "string" && file.size > 0) {
       if (file.size > MAX_AVATAR_BYTES) {
@@ -63,14 +73,7 @@ export async function POST(request: Request) {
     }
   } else {
     try {
-      const body = (await request.json()) as {
-        displayName?: string;
-        email?: string;
-        school?: string;
-        year?: string;
-        company?: string;
-        position?: string;
-      };
+      const body = (await request.json()) as Record<string, string | undefined>;
       displayName = String(body.displayName || "").trim();
       email = String(body.email || "")
         .trim()
@@ -79,6 +82,11 @@ export async function POST(request: Request) {
       year = String(body.year || "").trim();
       company = String(body.company || "").trim();
       position = String(body.position || "").trim();
+      website = String(body.website || "").trim();
+      instagram = String(body.instagram || "").trim();
+      x = String(body.x || "").trim();
+      linkedin = String(body.linkedin || "").trim();
+      youtube = String(body.youtube || "").trim();
     } catch {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
@@ -106,6 +114,11 @@ export async function POST(request: Request) {
       year,
       company,
       position,
+      website,
+      instagram,
+      x,
+      linkedin,
+      youtube,
       avatarBytes,
       avatarContentType,
     });

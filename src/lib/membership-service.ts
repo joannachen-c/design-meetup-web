@@ -45,7 +45,7 @@ export async function ensureProfile(user: {
     const { data: existing } = await admin
       .from("profiles")
       .select(
-        "id,email,display_name,avatar_url,school,year,company,position,stripe_customer_id,created_at,updated_at",
+        "id,email,display_name,avatar_url,school,year,company,position,website,instagram,x,linkedin,youtube,stripe_customer_id,created_at,updated_at",
       )
       .eq("id", user.id)
       .maybeSingle();
@@ -97,6 +97,11 @@ function mapProfile(row: {
   year?: string | null;
   company?: string | null;
   position?: string | null;
+  website?: string | null;
+  instagram?: string | null;
+  x?: string | null;
+  linkedin?: string | null;
+  youtube?: string | null;
   stripe_customer_id?: string | null;
   stripeCustomerId?: string | null;
   created_at?: string;
@@ -113,6 +118,11 @@ function mapProfile(row: {
     year: row.year ?? null,
     company: row.company ?? null,
     position: row.position ?? null,
+    website: row.website ?? null,
+    instagram: row.instagram ?? null,
+    x: row.x ?? null,
+    linkedin: row.linkedin ?? null,
+    youtube: row.youtube ?? null,
     stripeCustomerId: row.stripe_customer_id ?? row.stripeCustomerId ?? null,
     createdAt: row.created_at ?? row.createdAt ?? new Date().toISOString(),
     updatedAt: row.updated_at ?? row.updatedAt ?? new Date().toISOString(),
@@ -125,7 +135,7 @@ export async function getProfile(userId: string) {
     const { data } = await admin
       .from("profiles")
       .select(
-        "id,email,display_name,avatar_url,school,year,company,position,stripe_customer_id,created_at,updated_at",
+        "id,email,display_name,avatar_url,school,year,company,position,website,instagram,x,linkedin,youtube,stripe_customer_id,created_at,updated_at",
       )
       .eq("id", userId)
       .maybeSingle();
@@ -142,6 +152,11 @@ export async function updateProfile(input: {
   year?: string | null;
   company?: string | null;
   position?: string | null;
+  website?: string | null;
+  instagram?: string | null;
+  x?: string | null;
+  linkedin?: string | null;
+  youtube?: string | null;
   avatarBytes?: Buffer | null;
   avatarContentType?: string | null;
 }) {
@@ -151,6 +166,11 @@ export async function updateProfile(input: {
   const year = input.year?.trim() || null;
   const company = input.company?.trim() || null;
   const position = input.position?.trim() || null;
+  const website = input.website?.trim() || null;
+  const instagram = input.instagram?.trim().replace(/^@/, "") || null;
+  const x = input.x?.trim().replace(/^@/, "") || null;
+  const linkedin = input.linkedin?.trim().replace(/^\/?in\//, "") || null;
+  const youtube = input.youtube?.trim().replace(/^@/, "") || null;
   let avatarUrl: string | null | undefined;
 
   if (input.avatarBytes && input.avatarContentType) {
@@ -177,6 +197,11 @@ export async function updateProfile(input: {
     if (input.year !== undefined) patch.year = year;
     if (input.company !== undefined) patch.company = company;
     if (input.position !== undefined) patch.position = position;
+    if (input.website !== undefined) patch.website = website;
+    if (input.instagram !== undefined) patch.instagram = instagram;
+    if (input.x !== undefined) patch.x = x;
+    if (input.linkedin !== undefined) patch.linkedin = linkedin;
+    if (input.youtube !== undefined) patch.youtube = youtube;
     await admin.from("profiles").update(patch).eq("id", input.userId);
     return getProfile(input.userId);
   }
@@ -190,6 +215,11 @@ export async function updateProfile(input: {
     year: input.year !== undefined ? year : undefined,
     company: input.company !== undefined ? company : undefined,
     position: input.position !== undefined ? position : undefined,
+    website: input.website !== undefined ? website : undefined,
+    instagram: input.instagram !== undefined ? instagram : undefined,
+    x: input.x !== undefined ? x : undefined,
+    linkedin: input.linkedin !== undefined ? linkedin : undefined,
+    youtube: input.youtube !== undefined ? youtube : undefined,
   });
 }
 

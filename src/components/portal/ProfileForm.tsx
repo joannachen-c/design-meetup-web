@@ -3,6 +3,88 @@
 import { useId, useState, type ChangeEvent, type FormEvent } from "react";
 import { Input } from "@/components/Input";
 import { Primary } from "@/components/Primary";
+import {
+  InstagramIcon,
+  LinkedInIcon,
+  WebsiteIcon,
+  XIcon,
+  YouTubeIcon,
+} from "@/components/portal/SocialIcons";
+
+type ProfileFormProps = {
+  initialName: string;
+  initialEmail: string;
+  initialAvatarUrl?: string | null;
+  initialSchool?: string;
+  initialYear?: string;
+  initialCompany?: string;
+  initialPosition?: string;
+  initialWebsite?: string;
+  initialInstagram?: string;
+  initialX?: string;
+  initialLinkedin?: string;
+  initialYoutube?: string;
+};
+
+function Field({
+  label,
+  optional = false,
+  children,
+}: {
+  label: string;
+  optional?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="grid gap-2">
+      <span className="text-sm font-bold text-muted">
+        {label}
+        {optional ? (
+          <>
+            {" "}
+            <span className="font-normal text-subtle">(optional)</span>
+          </>
+        ) : null}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function SocialField({
+  name,
+  label,
+  prefix,
+  icon,
+  defaultValue,
+  placeholder,
+}: {
+  name: string;
+  label: string;
+  prefix?: string;
+  icon: React.ReactNode;
+  defaultValue: string;
+  placeholder?: string;
+}) {
+  return (
+    <label className="grid gap-2">
+      <span className="text-sm font-bold text-muted">{label}</span>
+      <span className="flex min-h-11 items-center gap-2 rounded-[10px] bg-surface-muted px-3">
+        <span className="shrink-0 text-muted">{icon}</span>
+        {prefix ? (
+          <span className="shrink-0 text-sm text-subtle">{prefix}</span>
+        ) : null}
+        <input
+          name={name}
+          type="text"
+          defaultValue={defaultValue}
+          placeholder={placeholder}
+          className="min-h-11 w-full min-w-0 border-0 bg-transparent px-1 text-base text-ink outline-none focus-visible:outline-none"
+        />
+      </span>
+    </label>
+  );
+}
 
 export function ProfileForm({
   initialName,
@@ -12,15 +94,12 @@ export function ProfileForm({
   initialYear = "",
   initialCompany = "",
   initialPosition = "",
-}: {
-  initialName: string;
-  initialEmail: string;
-  initialAvatarUrl?: string | null;
-  initialSchool?: string;
-  initialYear?: string;
-  initialCompany?: string;
-  initialPosition?: string;
-}) {
+  initialWebsite = "",
+  initialInstagram = "",
+  initialX = "",
+  initialLinkedin = "",
+  initialYoutube = "",
+}: ProfileFormProps) {
   const avatarInputId = useId();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,26 +165,24 @@ export function ProfileForm({
       onSubmit={(event) => {
         void onSubmit(event);
       }}
-      className="grid max-w-xl gap-8"
+      className="grid max-w-4xl gap-10"
     >
-      <div className="flex flex-wrap items-center gap-6">
-        <div className="relative">
+      <section className="grid gap-6 lg:grid-cols-[140px_minmax(0,1fr)] lg:items-start">
+        <div className="grid justify-items-start gap-3">
           {previewUrl ? (
             <img
               src={previewUrl}
               alt=""
-              className="size-24 rounded-full object-cover"
-              width={96}
-              height={96}
+              className="size-[112px] rounded-full object-cover"
+              width={112}
+              height={112}
             />
           ) : (
             <span
-              className="block size-24 rounded-full bg-skeleton"
+              className="block size-[112px] rounded-full bg-skeleton"
               aria-hidden
             />
           )}
-        </div>
-        <div className="grid gap-2">
           <label
             htmlFor={avatarInputId}
             className="inline-flex min-h-11 w-fit cursor-pointer items-center rounded-[10px] bg-surface-muted px-4 text-base font-bold text-ink hover:bg-gray-200"
@@ -120,87 +197,113 @@ export function ProfileForm({
             className="sr-only"
             onChange={onAvatarChange}
           />
-          <p className="m-0 text-sm text-subtle lowercase">
-            jpg, png, or webp · under 2.5 mb
-          </p>
+          <p className="m-0 text-sm text-subtle">jpg, png, or webp · under 2.5 mb</p>
         </div>
-      </div>
 
-      <label className="grid gap-2">
-        <span className="text-sm font-bold text-muted">name</span>
-        <Input
-          name="displayName"
-          type="text"
-          required
-          defaultValue={initialName}
-          autoComplete="name"
-          placeholder="Michelle Liu"
-        />
-      </label>
+        <div className="grid gap-5">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="name">
+              <Input
+                name="displayName"
+                type="text"
+                required
+                defaultValue={initialName}
+                autoComplete="name"
+              />
+            </Field>
+            <Field label="email">
+              <Input
+                name="email"
+                type="email"
+                required
+                defaultValue={initialEmail}
+                autoComplete="email"
+              />
+            </Field>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="school" optional>
+              <Input
+                name="school"
+                type="text"
+                defaultValue={initialSchool}
+                autoComplete="organization"
+              />
+            </Field>
+            <Field label="year" optional>
+              <Input
+                name="year"
+                type="text"
+                defaultValue={initialYear}
+                autoComplete="off"
+              />
+            </Field>
+            <Field label="company" optional>
+              <Input
+                name="company"
+                type="text"
+                defaultValue={initialCompany}
+                autoComplete="organization"
+              />
+            </Field>
+            <Field label="position" optional>
+              <Input
+                name="position"
+                type="text"
+                defaultValue={initialPosition}
+                autoComplete="organization-title"
+              />
+            </Field>
+          </div>
+        </div>
+      </section>
 
-      <label className="grid gap-2">
-        <span className="text-sm font-bold text-muted">email</span>
-        <Input
-          name="email"
-          type="email"
-          required
-          defaultValue={initialEmail}
-          autoComplete="email"
-          placeholder="you@example.com"
-        />
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm font-bold text-muted">
-          school{" "}
-          <span className="font-normal text-subtle">(optional)</span>
-        </span>
-        <Input
-          name="school"
-          type="text"
-          defaultValue={initialSchool}
-          autoComplete="organization"
-        />
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm font-bold text-muted">
-          year{" "}
-          <span className="font-normal text-subtle">(optional)</span>
-        </span>
-        <Input
-          name="year"
-          type="text"
-          defaultValue={initialYear}
-          autoComplete="off"
-        />
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm font-bold text-muted">
-          company{" "}
-          <span className="font-normal text-subtle">(optional)</span>
-        </span>
-        <Input
-          name="company"
-          type="text"
-          defaultValue={initialCompany}
-          autoComplete="organization"
-        />
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm font-bold text-muted">
-          position{" "}
-          <span className="font-normal text-subtle">(optional)</span>
-        </span>
-        <Input
-          name="position"
-          type="text"
-          defaultValue={initialPosition}
-          autoComplete="organization-title"
-        />
-      </label>
+      <section className="grid gap-4">
+        <h2 className="m-0 text-xl font-bold tracking-[-0.04em]">
+          website &amp; socials
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SocialField
+            name="website"
+            label="website"
+            icon={<WebsiteIcon />}
+            defaultValue={initialWebsite}
+            placeholder="liumichelle.com"
+          />
+          <SocialField
+            name="instagram"
+            label="instagram"
+            prefix="instagram.com/"
+            icon={<InstagramIcon />}
+            defaultValue={initialInstagram}
+            placeholder="username"
+          />
+          <SocialField
+            name="x"
+            label="x"
+            prefix="x.com/"
+            icon={<XIcon />}
+            defaultValue={initialX}
+            placeholder="username"
+          />
+          <SocialField
+            name="linkedin"
+            label="linkedin"
+            prefix="linkedin.com/in/"
+            icon={<LinkedInIcon />}
+            defaultValue={initialLinkedin}
+            placeholder="username"
+          />
+          <SocialField
+            name="youtube"
+            label="youtube"
+            prefix="youtube.com/@"
+            icon={<YouTubeIcon />}
+            defaultValue={initialYoutube}
+            placeholder="username"
+          />
+        </div>
+      </section>
 
       {error ? (
         <p className="m-0 text-base text-red-700" role="alert">

@@ -2,6 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import {
+  InstagramIcon,
+  LinkedInIcon,
+  WebsiteIcon,
+  XIcon,
+  YouTubeIcon,
+} from "@/components/portal/SocialIcons";
+import { socialHref, type ProfileSocialLinks } from "@/lib/membership";
 
 export type MemberIdCardProps = {
   displayName: string;
@@ -11,9 +19,45 @@ export type MemberIdCardProps = {
   year?: string | null;
   company?: string | null;
   position?: string | null;
+  website?: string | null;
+  instagram?: string | null;
+  x?: string | null;
+  linkedin?: string | null;
+  youtube?: string | null;
   tierLabel?: string | null;
   memberSince?: string | null;
 };
+
+function PersonSilhouette() {
+  return (
+    <svg
+      className="member-id-photo-person"
+      width="56"
+      height="56"
+      viewBox="0 0 56 56"
+      fill="none"
+      aria-hidden
+    >
+      <circle cx="28" cy="20" r="10" fill="currentColor" />
+      <path
+        d="M8 48c2.5-10.5 10-16 20-16s17.5 5.5 20 16"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+const SOCIAL_META: Array<{
+  key: keyof ProfileSocialLinks;
+  label: string;
+  Icon: (props: { className?: string }) => React.ReactNode;
+}> = [
+  { key: "website", label: "website", Icon: WebsiteIcon },
+  { key: "instagram", label: "instagram", Icon: InstagramIcon },
+  { key: "x", label: "x", Icon: XIcon },
+  { key: "linkedin", label: "linkedin", Icon: LinkedInIcon },
+  { key: "youtube", label: "youtube", Icon: YouTubeIcon },
+];
 
 export function MemberIdCard({
   displayName,
@@ -23,6 +67,11 @@ export function MemberIdCard({
   year = null,
   company = null,
   position = null,
+  website = null,
+  instagram = null,
+  x = null,
+  linkedin = null,
+  youtube = null,
   tierLabel = null,
   memberSince = null,
 }: MemberIdCardProps) {
@@ -35,14 +84,22 @@ export function MemberIdCard({
     position ? { label: "position", value: position } : null,
   ].filter(Boolean) as { label: string; value: string }[];
 
+  const socials = SOCIAL_META.map((item) => {
+    const value = { website, instagram, x, linkedin, youtube }[item.key];
+    const href = socialHref(item.key, value);
+    return href ? { ...item, href } : null;
+  }).filter(Boolean) as Array<{
+    key: keyof ProfileSocialLinks;
+    label: string;
+    href: string;
+    Icon: (props: { className?: string }) => React.ReactNode;
+  }>;
+
   return (
     <div className="member-id-scene">
       <button
         type="button"
-        className={[
-          "member-id-card",
-          flipped ? "is-flipped" : "",
-        ]
+        className={["member-id-card", flipped ? "is-flipped" : ""]
           .filter(Boolean)
           .join(" ")}
         onClick={() => setFlipped((value) => !value)}
@@ -69,9 +126,7 @@ export function MemberIdCard({
                   className="member-id-photo-empty"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  <span className="member-id-photo-empty-mark" aria-hidden>
-                    +
-                  </span>
+                  <PersonSilhouette />
                   <span>add photo</span>
                 </Link>
               )}
@@ -82,9 +137,7 @@ export function MemberIdCard({
               <p className="member-id-email">{email}</p>
               {tierLabel ? (
                 <p className="member-id-tier">{tierLabel} plan</p>
-              ) : (
-                <p className="member-id-tier">not subscribed yet</p>
-              )}
+              ) : null}
               {detailRows.length > 0 ? (
                 <dl className="member-id-meta">
                   {detailRows.map((row) => (
@@ -104,24 +157,42 @@ export function MemberIdCard({
                   </Link>
                 </p>
               )}
+              {socials.length > 0 ? (
+                <div className="member-id-socials">
+                  {socials.map(({ key, label, href, Icon }) => (
+                    <a
+                      key={key}
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={label}
+                      className="member-id-social"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <Icon />
+                    </a>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
           <div className="member-id-stamp" aria-hidden>
-            <img src="/design-meetup-logo.png" alt="" width={72} height={72} />
-            <span>design meetup</span>
+            <img src="/design-meetup-stamp.png" alt="" width={96} height={96} />
           </div>
-          <p className="member-id-flip-hint">click to flip</p>
         </div>
 
-        <div className="member-id-face member-id-back" aria-hidden={flipped ? undefined : true}>
+        <div
+          className="member-id-face member-id-back"
+          aria-hidden={flipped ? undefined : true}
+        >
           <div className="member-id-back-pattern" />
           <div className="member-id-back-content">
             <img
               className="member-id-back-logo"
-              src="/design-meetup-logo.png"
+              src="/design-meetup-stamp.png"
               alt=""
-              width={56}
-              height={56}
+              width={72}
+              height={72}
             />
             <p className="member-id-back-title">design meetup</p>
             <p className="member-id-back-sub">
@@ -131,6 +202,23 @@ export function MemberIdCard({
               <span>{tierLabel || "guest"}</span>
               <span>{memberSince || "join the crew"}</span>
             </div>
+            {socials.length > 0 ? (
+              <div className="member-id-socials member-id-socials-back">
+                {socials.map(({ key, label, href, Icon }) => (
+                  <a
+                    key={key}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={label}
+                    className="member-id-social"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Icon />
+                  </a>
+                ))}
+              </div>
+            ) : null}
             <div className="member-id-barcode" aria-hidden>
               {Array.from({ length: 28 }, (_, index) => (
                 <span

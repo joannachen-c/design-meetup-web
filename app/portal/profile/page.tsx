@@ -65,6 +65,11 @@ export default async function ProfilePage({
         initialYear={profile?.year ?? ""}
         initialCompany={profile?.company ?? ""}
         initialPosition={profile?.position ?? ""}
+        initialWebsite={profile?.website ?? ""}
+        initialInstagram={profile?.instagram ?? ""}
+        initialX={profile?.x ?? ""}
+        initialLinkedin={profile?.linkedin ?? ""}
+        initialYoutube={profile?.youtube ?? ""}
       />
     </main>
   );

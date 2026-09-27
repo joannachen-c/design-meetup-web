@@ -27,10 +27,46 @@ export type ProfileRecord = {
   year: string | null;
   company: string | null;
   position: string | null;
+  website: string | null;
+  instagram: string | null;
+  x: string | null;
+  linkedin: string | null;
+  youtube: string | null;
   stripeCustomerId: string | null;
   createdAt: string;
   updatedAt: string;
 };
+
+export type ProfileSocialLinks = {
+  website: string | null;
+  instagram: string | null;
+  x: string | null;
+  linkedin: string | null;
+  youtube: string | null;
+};
+
+export function socialHref(
+  kind: keyof ProfileSocialLinks,
+  value: string | null | undefined,
+) {
+  const raw = (value || "").trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  switch (kind) {
+    case "website":
+      return `https://${raw.replace(/^\/+/, "")}`;
+    case "instagram":
+      return `https://instagram.com/${raw.replace(/^@/, "")}`;
+    case "x":
+      return `https://x.com/${raw.replace(/^@/, "")}`;
+    case "linkedin":
+      return `https://linkedin.com/in/${raw.replace(/^\/?in\//, "")}`;
+    case "youtube":
+      return `https://youtube.com/@${raw.replace(/^@/, "")}`;
+    default:
+      return null;
+  }
+}
 
 export const TIER_CATALOG: Record<
   Tier,

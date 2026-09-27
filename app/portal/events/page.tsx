@@ -16,15 +16,15 @@ export default function PortalEventsPage() {
       <div className="upcoming-events-copy">
         <h1
           id="portal-events-title"
-          className="m-0 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] lowercase"
+          className="m-0 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]"
         >
-          events
+          Events
         </h1>
-        <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-ink lowercase">
-          rsvp on luma to join us at the next design meetup.
+        <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-ink">
+          RSVP on Luma to join us at the next Design Meetup.
         </p>
         <Primary
-          className="gap-2 lowercase"
+          className="gap-2"
           href={LUMA_PROFILE_URL}
           target="_blank"
           rel="noreferrer"
@@ -36,7 +36,7 @@ export default function PortalEventsPage() {
             alt=""
             aria-hidden="true"
           />
-          follow our luma
+          Follow our Luma
         </Primary>
       </div>
       <div className="upcoming-events-embed overflow-hidden rounded-[20px]">

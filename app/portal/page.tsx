@@ -159,7 +159,7 @@ export default async function PortalHomePage({
           {summary.map((item) => (
             <div
               key={item.label}
-              className="rounded-[20px] bg-surface-muted p-6"
+              className="flex flex-col rounded-[20px] bg-surface-muted p-6"
             >
               <p className="m-0 mb-4 text-sm font-bold text-muted">
                 {item.label}
@@ -171,12 +171,16 @@ export default async function PortalHomePage({
                 <p className="mt-1 mb-0 text-sm text-subtle normal-case">
                   {item.note}
                 </p>
-              ) : null}
-              {"action" in item && item.action ? (
-                <div className="mt-6">
+              ) : (
+                <p className="mt-1 mb-0 text-sm invisible" aria-hidden>
+                  &nbsp;
+                </p>
+              )}
+              <div className="mt-auto flex min-h-11 items-end justify-end pt-6">
+                {"action" in item && item.action ? (
                   <ManageBillingButton />
-                </div>
-              ) : null}
+                ) : null}
+              </div>
             </div>
           ))}
         </div>

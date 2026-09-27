@@ -27,6 +27,7 @@ export type ProfileRecord = {
   year: string | null;
   company: string | null;
   position: string | null;
+  location: string | null;
   website: string | null;
   instagram: string | null;
   x: string | null;

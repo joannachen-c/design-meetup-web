@@ -65,6 +65,7 @@ export default async function ProfilePage({
         initialYear={profile?.year ?? ""}
         initialCompany={profile?.company ?? ""}
         initialPosition={profile?.position ?? ""}
+        initialLocation={profile?.location ?? ""}
         initialWebsite={profile?.website ?? ""}
         initialInstagram={profile?.instagram ?? ""}
         initialX={profile?.x ?? ""}

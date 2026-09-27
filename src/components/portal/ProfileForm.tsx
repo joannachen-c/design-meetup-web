@@ -19,6 +19,7 @@ type ProfileFormProps = {
   initialYear?: string;
   initialCompany?: string;
   initialPosition?: string;
+  initialLocation?: string;
   initialWebsite?: string;
   initialInstagram?: string;
   initialX?: string;
@@ -94,6 +95,7 @@ export function ProfileForm({
   initialYear = "",
   initialCompany = "",
   initialPosition = "",
+  initialLocation = "",
   initialWebsite = "",
   initialInstagram = "",
   initialX = "",
@@ -222,6 +224,14 @@ export function ProfileForm({
             </Field>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="location" optional>
+              <Input
+                name="location"
+                type="text"
+                defaultValue={initialLocation}
+                autoComplete="address-level2"
+              />
+            </Field>
             <Field label="school" optional>
               <Input
                 name="school"

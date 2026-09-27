@@ -33,6 +33,7 @@ export async function POST(request: Request) {
   let year = "";
   let company = "";
   let position = "";
+  let location = "";
   let website = "";
   let instagram = "";
   let x = "";
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
     year = optionalField(form.get("year"));
     company = optionalField(form.get("company"));
     position = optionalField(form.get("position"));
+    location = optionalField(form.get("location"));
     website = optionalField(form.get("website"));
     instagram = optionalField(form.get("instagram"));
     x = optionalField(form.get("x"));
@@ -82,6 +84,7 @@ export async function POST(request: Request) {
       year = String(body.year || "").trim();
       company = String(body.company || "").trim();
       position = String(body.position || "").trim();
+      location = String(body.location || "").trim();
       website = String(body.website || "").trim();
       instagram = String(body.instagram || "").trim();
       x = String(body.x || "").trim();
@@ -114,6 +117,7 @@ export async function POST(request: Request) {
       year,
       company,
       position,
+      location,
       website,
       instagram,
       x,

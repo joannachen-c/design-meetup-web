@@ -45,7 +45,7 @@ export async function ensureProfile(user: {
     const { data: existing } = await admin
       .from("profiles")
       .select(
-        "id,email,display_name,avatar_url,school,year,company,position,website,instagram,x,linkedin,youtube,stripe_customer_id,created_at,updated_at",
+        "id,email,display_name,avatar_url,school,year,company,position,location,website,instagram,x,linkedin,youtube,stripe_customer_id,created_at,updated_at",
       )
       .eq("id", user.id)
       .maybeSingle();
@@ -97,6 +97,7 @@ function mapProfile(row: {
   year?: string | null;
   company?: string | null;
   position?: string | null;
+  location?: string | null;
   website?: string | null;
   instagram?: string | null;
   x?: string | null;
@@ -118,6 +119,7 @@ function mapProfile(row: {
     year: row.year ?? null,
     company: row.company ?? null,
     position: row.position ?? null,
+    location: row.location ?? null,
     website: row.website ?? null,
     instagram: row.instagram ?? null,
     x: row.x ?? null,
@@ -135,7 +137,7 @@ export async function getProfile(userId: string) {
     const { data } = await admin
       .from("profiles")
       .select(
-        "id,email,display_name,avatar_url,school,year,company,position,website,instagram,x,linkedin,youtube,stripe_customer_id,created_at,updated_at",
+        "id,email,display_name,avatar_url,school,year,company,position,location,website,instagram,x,linkedin,youtube,stripe_customer_id,created_at,updated_at",
       )
       .eq("id", userId)
       .maybeSingle();
@@ -152,6 +154,7 @@ export async function updateProfile(input: {
   year?: string | null;
   company?: string | null;
   position?: string | null;
+  location?: string | null;
   website?: string | null;
   instagram?: string | null;
   x?: string | null;
@@ -166,6 +169,7 @@ export async function updateProfile(input: {
   const year = input.year?.trim() || null;
   const company = input.company?.trim() || null;
   const position = input.position?.trim() || null;
+  const location = input.location?.trim() || null;
   const website = input.website?.trim() || null;
   const instagram = input.instagram?.trim().replace(/^@/, "") || null;
   const x = input.x?.trim().replace(/^@/, "") || null;
@@ -197,6 +201,7 @@ export async function updateProfile(input: {
     if (input.year !== undefined) patch.year = year;
     if (input.company !== undefined) patch.company = company;
     if (input.position !== undefined) patch.position = position;
+    if (input.location !== undefined) patch.location = location;
     if (input.website !== undefined) patch.website = website;
     if (input.instagram !== undefined) patch.instagram = instagram;
     if (input.x !== undefined) patch.x = x;
@@ -215,6 +220,7 @@ export async function updateProfile(input: {
     year: input.year !== undefined ? year : undefined,
     company: input.company !== undefined ? company : undefined,
     position: input.position !== undefined ? position : undefined,
+    location: input.location !== undefined ? location : undefined,
     website: input.website !== undefined ? website : undefined,
     instagram: input.instagram !== undefined ? instagram : undefined,
     x: input.x !== undefined ? x : undefined,

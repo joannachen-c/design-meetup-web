@@ -29,6 +29,7 @@ async function readStore(): Promise<StoreShape> {
             year: profile.year ?? null,
             company: profile.company ?? null,
             position: profile.position ?? null,
+            location: profile.location ?? null,
             website: profile.website ?? null,
             instagram: profile.instagram ?? null,
             x: profile.x ?? null,
@@ -82,6 +83,7 @@ export async function ensureLocalProfile(input: {
     year: null,
     company: null,
     position: null,
+    location: null,
     website: null,
     instagram: null,
     x: null,
@@ -110,6 +112,7 @@ export async function updateLocalProfile(input: {
   year?: string | null;
   company?: string | null;
   position?: string | null;
+  location?: string | null;
   website?: string | null;
   instagram?: string | null;
   x?: string | null;
@@ -126,6 +129,7 @@ export async function updateLocalProfile(input: {
   if (input.year !== undefined) profile.year = input.year;
   if (input.company !== undefined) profile.company = input.company;
   if (input.position !== undefined) profile.position = input.position;
+  if (input.location !== undefined) profile.location = input.location;
   if (input.website !== undefined) profile.website = input.website;
   if (input.instagram !== undefined) profile.instagram = input.instagram;
   if (input.x !== undefined) profile.x = input.x;

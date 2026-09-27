@@ -130,6 +130,7 @@ export function ProfileForm({
   const avatarInputId = fieldId("avatar");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     initialAvatarUrl ?? null,
@@ -144,14 +145,16 @@ export function ProfileForm({
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("choose a jpg, png, or webp image.");
+      event.target.value = "";
+      setAvatarError("choose a jpg, png, or webp image.");
       return;
     }
     if (file.size > 2.5 * 1024 * 1024) {
-      setError("keep the photo under 2.5 mb.");
+      event.target.value = "";
+      setAvatarError("image is too large. keep it under 2.5 mb.");
       return;
     }
-    setError(null);
+    setAvatarError(null);
     setPreviewUrl(URL.createObjectURL(file));
   }
 
@@ -240,9 +243,12 @@ export function ProfileForm({
           className="sr-only"
           onChange={onAvatarChange}
         />
-        <p className="m-0 text-sm text-subtle">
-          jpg, png, or webp, under 2.5 mb
-        </p>
+        <p className="m-0 text-sm text-subtle">jpg, png, or webp</p>
+        {avatarError ? (
+          <p className="m-0 text-sm text-red-700" role="alert">
+            {avatarError}
+          </p>
+        ) : null}
       </div>
 
       <div className="grid min-w-0 gap-10">
@@ -283,15 +289,6 @@ export function ProfileForm({
               onChange={() => clearFieldError("email")}
             />
           </Field>
-          <Field id={fieldId("location")} label="location">
-            <Input
-              id={fieldId("location")}
-              name="location"
-              type="text"
-              defaultValue={initialLocation}
-              autoComplete="address-level2"
-            />
-          </Field>
           <Field id={fieldId("school")} label="school">
             <Input
               id={fieldId("school")}
@@ -310,15 +307,6 @@ export function ProfileForm({
               autoComplete="off"
             />
           </Field>
-          <Field id={fieldId("company")} label="company">
-            <Input
-              id={fieldId("company")}
-              name="company"
-              type="text"
-              defaultValue={initialCompany}
-              autoComplete="organization"
-            />
-          </Field>
           <Field id={fieldId("position")} label="position">
             <Input
               id={fieldId("position")}
@@ -328,11 +316,29 @@ export function ProfileForm({
               autoComplete="organization-title"
             />
           </Field>
+          <Field id={fieldId("company")} label="company">
+            <Input
+              id={fieldId("company")}
+              name="company"
+              type="text"
+              defaultValue={initialCompany}
+              autoComplete="organization"
+            />
+          </Field>
+          <Field id={fieldId("location")} label="location">
+            <Input
+              id={fieldId("location")}
+              name="location"
+              type="text"
+              defaultValue={initialLocation}
+              autoComplete="address-level2"
+            />
+          </Field>
         </div>
 
         <section className="grid gap-5">
           <h2 className="m-0 text-xl font-bold tracking-[-0.04em]">
-            website &amp; socials
+            links
           </h2>
           <div className="grid gap-5 sm:grid-cols-2">
             <SocialField

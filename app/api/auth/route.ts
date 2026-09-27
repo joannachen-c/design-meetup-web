@@ -22,6 +22,7 @@ export async function POST(request: Request) {
     .trim()
     .toLowerCase();
   const password = String(body.password || "");
+  const displayName = String(body.displayName || body.name || "").trim();
   const nextPath =
     typeof body.next === "string" && body.next.startsWith("/")
       ? body.next
@@ -37,6 +38,9 @@ export async function POST(request: Request) {
   }
 
   if (mode === "signup") {
+    if (!displayName) {
+      return NextResponse.json({ error: "Enter your name." }, { status: 400 });
+    }
     if (password.length < 8) {
       return NextResponse.json(
         { error: "Password must be at least 8 characters." },
@@ -48,7 +52,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
     if (result.userId) {
-      await ensureProfile({ id: result.userId, email });
+      await ensureProfile({ id: result.userId, email, displayName });
     }
   } else {
     const result = await passwordSignIn(email, password);

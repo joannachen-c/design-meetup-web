@@ -80,6 +80,7 @@ export function LoginForm({
     email: string,
     password: string,
     authMode: "login" | "signup" = mode,
+    displayName?: string,
   ) {
     setPending(true);
     setError(null);
@@ -93,6 +94,7 @@ export function LoginForm({
           mode: authMode,
           email,
           password,
+          displayName,
           next: nextPath,
         }),
       });
@@ -136,13 +138,22 @@ export function LoginForm({
     if (pending) return;
 
     const form = new FormData(event.currentTarget);
+    const displayName = String(form.get("displayName") || "").trim();
     const email = String(form.get("email") || "").trim();
     const password = String(form.get("password") || "");
-    if (!email || !password) {
-      setError("Enter your email and password.");
+    if (mode === "signup" && !displayName) {
+      setError("Enter your name.");
       return;
     }
-    await authenticate(email, password);
+    if (!email || !password) {
+      setError(
+        mode === "signup"
+          ? "Enter your name, email, and password."
+          : "Enter your email and password.",
+      );
+      return;
+    }
+    await authenticate(email, password, mode, displayName);
   }
 
   return (
@@ -156,6 +167,18 @@ export function LoginForm({
       >
         <input type="hidden" name="mode" value={mode} />
         <input type="hidden" name="next" value={nextPath} />
+        {mode === "signup" ? (
+          <label className="grid gap-2">
+            <span className="text-sm font-bold text-muted">name</span>
+            <Input
+              name="displayName"
+              type="text"
+              autoComplete="name"
+              required
+              placeholder="your name"
+            />
+          </label>
+        ) : null}
         <label className="grid gap-2">
           <span className="text-sm font-bold text-muted">email address</span>
           <Input

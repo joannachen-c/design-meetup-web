@@ -45,17 +45,18 @@ export async function signupAction(
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") || "");
+  const displayName = String(formData.get("displayName") || "").trim();
   const next = safeNext(formData.get("next"));
 
-  if (!email || password.length < 8) {
-    return { error: "Use a valid email and a password with at least 8 characters." };
+  if (!displayName || !email || password.length < 8) {
+    return { error: "Use your name, a valid email, and a password with at least 8 characters." };
   }
 
   const result = await passwordSignUp(email, password);
   if (!result.ok) return { error: result.error };
 
   if (result.userId) {
-    await ensureProfile({ id: result.userId, email });
+    await ensureProfile({ id: result.userId, email, displayName });
   }
 
   redirect(next.includes("subscribe") ? next : "/portal/subscribe");

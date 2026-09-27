@@ -38,8 +38,11 @@ async function supabaseMembershipTablesAvailable() {
 export async function ensureProfile(user: {
   id: string;
   email?: string | null;
+  displayName?: string | null;
 }) {
   const email = (user.email || "").trim().toLowerCase();
+  const displayName =
+    user.displayName?.trim() || displayNameFromEmail(email);
   if (await supabaseMembershipTablesAvailable()) {
     const admin = createAdminClient();
     const { data: existing } = await admin
@@ -63,6 +66,15 @@ export async function ensureProfile(user: {
           })
           .eq("id", user.id);
         mapped.displayName = "Michelle Liu";
+      } else if (user.displayName?.trim() && !mapped.displayName) {
+        await admin
+          .from("profiles")
+          .update({
+            display_name: user.displayName.trim(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", user.id);
+        mapped.displayName = user.displayName.trim();
       }
       return mapped;
     }
@@ -70,7 +82,7 @@ export async function ensureProfile(user: {
     const row = {
       id: user.id,
       email,
-      display_name: displayNameFromEmail(email),
+      display_name: displayName,
       avatar_url: null,
       stripe_customer_id: null,
       created_at: now,
@@ -82,7 +94,7 @@ export async function ensureProfile(user: {
   return ensureLocalProfile({
     id: user.id,
     email,
-    displayName: displayNameFromEmail(email),
+    displayName,
   });
 }
 

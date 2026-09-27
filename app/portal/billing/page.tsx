@@ -61,7 +61,7 @@ export default async function BillingPage({
       </h1>
 
       <div className="grid max-w-xl gap-4">
-        <div className="rounded-[20px] bg-gray-50 p-6">
+        <div className="rounded-[20px] bg-gray-100 p-6">
           <p className="m-0 mb-4 text-sm font-bold text-muted">current plan</p>
           <p className="m-0 text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
             {TIER_CATALOG[membership.tier].name}
@@ -71,7 +71,7 @@ export default async function BillingPage({
           </p>
         </div>
 
-        <div className="rounded-[20px] bg-gray-50 p-6">
+        <div className="rounded-[20px] bg-gray-100 p-6">
           <p className="m-0 mb-4 text-sm font-bold text-muted">status</p>
           <p className="m-0 text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
             {membership.status}
@@ -83,7 +83,7 @@ export default async function BillingPage({
           </p>
         </div>
 
-        <div className="rounded-[20px] bg-gray-50 p-6">
+        <div className="rounded-[20px] bg-gray-100 p-6">
           <p className="m-0 mb-4 text-sm font-bold text-muted">payment method</p>
           {card ? (
             <>
@@ -109,7 +109,7 @@ export default async function BillingPage({
           </div>
         </div>
 
-        <div className="rounded-[20px] bg-gray-50 p-6">
+        <div className="rounded-[20px] bg-gray-100 p-6">
           <p className="m-0 mb-4 text-sm font-bold text-muted">invoices</p>
           {invoices.length ? (
             <ul className="m-0 grid list-none gap-4 p-0">
@@ -152,7 +152,7 @@ export default async function BillingPage({
           </div>
         </div>
 
-        <div className="rounded-[20px] bg-gray-50 p-6">
+        <div className="rounded-[20px] bg-gray-100 p-6">
           <p className="m-0 mb-4 text-sm font-bold text-muted">
             billing renews
           </p>
@@ -168,7 +168,7 @@ export default async function BillingPage({
             <Primary
               type="submit"
               variant="secondary"
-              className="lowercase bg-gray-100! text-ink hover:bg-gray-200!"
+              className="lowercase bg-gray-200! text-ink hover:bg-gray-300!"
             >
               {membership.cancelAtPeriodEnd
                 ? "keep subscription"

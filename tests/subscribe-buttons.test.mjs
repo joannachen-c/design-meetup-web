@@ -34,3 +34,11 @@ test("preview membership is persisted in a cookie when the filesystem is ephemer
   assert.match(store, /writeCookieStore/);
   assert.match(store, /readCookieStore/);
 });
+
+test("portal plan and status cards use one-step-darker gray", async () => {
+  const buttons = await read("src/components/portal/SubscribeButtons.tsx");
+  const home = await read("app/portal/page.tsx");
+  assert.match(buttons, /isCurrent \? "bg-gray-200" : "bg-gray-100"/);
+  assert.match(home, /rounded-\[20px\] bg-gray-100 p-6/);
+  assert.doesNotMatch(home, /bg-gray-50/);
+});

@@ -77,7 +77,7 @@ export function SubscribeButtons({
               }}
               className={[
                 "flex flex-col gap-6 rounded-[20px] p-6 text-ink lowercase",
-                isCurrent ? "bg-surface-muted" : "bg-gray-50",
+                isCurrent ? "bg-gray-200" : "bg-gray-100",
               ].join(" ")}
             >
               <input type="hidden" name="tier" value={tier} />

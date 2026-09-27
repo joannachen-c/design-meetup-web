@@ -35,11 +35,13 @@ test("a present Stripe secret is treated as configured only when it looks like a
   );
 });
 
-test("manage billing posts to stripe portal and never uses mock_portal", async () => {
+test("manage billing posts to stripe portal and follows the Stripe URL", async () => {
   const button = await read("src/components/portal/ManageBillingButton.tsx");
   const page = await read("app/portal/page.tsx");
   assert.doesNotMatch(button, /mock_portal/);
   assert.match(button, /action="\/api\/stripe\/portal"/);
+  assert.match(button, /window\.location\.assign\(next\.href\)/);
+  assert.match(button, /form\.submit\(\)/);
   assert.doesNotMatch(page, /mock_portal/);
 });
 
@@ -104,8 +106,8 @@ test("invalid stripe keys fall through to in-app billing instead of a secret-key
   const route = await read("app/api/stripe/portal/route.ts");
   const button = await read("src/components/portal/ManageBillingButton.tsx");
   const page = await read("app/portal/billing/page.tsx");
-  assert.match(route, /\/portal\/billing/);
-  assert.match(route, /invalid api key/i);
+  assert.match(route, /\/portal\/billing\?error=1/);
+  assert.match(route, /sendError/);
   assert.doesNotMatch(route, /STRIPE_SECRET_KEY/);
   assert.doesNotMatch(button, /STRIPE_SECRET_KEY/);
   assert.match(page, /cancel at period end/);
@@ -126,6 +128,8 @@ test("the billing page has a home breadcrumb, cards, and invoices", async () => 
   assert.match(page, /label="view in Stripe"/);
   assert.match(page, /normal-case">Stripe</);
   assert.match(page, /renews automatically, every month/);
+  assert.match(page, /rounded-\[20px\] bg-gray-100 p-6/);
+  assert.doesNotMatch(page, /bg-gray-50/);
   assert.match(button, /name="flow"/);
   assert.match(route, /flow_data|flow,/);
   assert.match(route, /payment_method_update/);

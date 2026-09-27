@@ -63,7 +63,7 @@ export default async function PortalCommunityPage() {
         >
           Member Directory
         </h2>
-        <div className="upcoming-events-frame mt-8 grid place-items-center rounded-[20px] bg-surface-muted">
+        <div className="upcoming-events-frame mt-8 grid place-items-center rounded-[20px] bg-gray-200">
           <p className="m-0 text-base tracking-[-0.04em] text-muted">
             coming soon! ;)
           </p>

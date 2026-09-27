@@ -83,7 +83,7 @@ export function SubscribeButtons({
                   {catalog.name}
                 </span>
                 {isCurrent ? (
-                  <span className="rounded-full bg-green-50 px-2.5 py-1 text-sm font-bold text-green-700">
+                  <span className="rounded-full bg-accent-primary px-2.5 py-1 text-sm font-bold text-muted">
                     current
                   </span>
                 ) : null}

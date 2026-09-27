@@ -62,7 +62,7 @@ export default function PortalCommunityPage() {
           Member Directory
         </h2>
         <div className="upcoming-events-frame mt-8 grid place-items-center rounded-[20px] bg-surface-muted">
-          <p className="m-0 text-2xl font-bold tracking-[-0.04em] text-muted">
+          <p className="m-0 text-2xl tracking-[-0.04em] text-muted">
             coming soon! ;)
           </p>
         </div>

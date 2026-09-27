@@ -1,41 +1,21 @@
 import { createClient, type User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
-const ACCESS_COOKIE = "dm_access_token";
-const REFRESH_COOKIE = "dm_refresh_token";
-
-function supabaseUrl() {
-  return (
-    process.env.SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    "https://sngjttldklmgyzebikxv.supabase.co"
-  );
-}
-
-function serviceRoleKey() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for member auth.");
-  }
-  return key;
-}
+import {
+  ACCESS_COOKIE,
+  REFRESH_COOKIE,
+  REFRESH_COOKIE_MAX_AGE,
+  authCookieOptions as cookieOptions,
+  refreshSession,
+  serviceRoleKey,
+  supabaseUrl,
+} from "./auth-session";
 
 /** Server-only admin client. Never import from client components. */
 export function createAdminClient() {
   return createClient(supabaseUrl(), serviceRoleKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-}
-
-function cookieOptions(maxAge: number) {
-  return {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge,
-  };
 }
 
 export async function setAuthCookies(session: {
@@ -46,7 +26,7 @@ export async function setAuthCookies(session: {
   const jar = await cookies();
   const maxAge = session.expires_in ?? 60 * 60 * 24 * 7;
   jar.set(ACCESS_COOKIE, session.access_token, cookieOptions(maxAge));
-  jar.set(REFRESH_COOKIE, session.refresh_token, cookieOptions(60 * 60 * 24 * 30));
+  jar.set(REFRESH_COOKIE, session.refresh_token, cookieOptions(REFRESH_COOKIE_MAX_AGE));
 }
 
 export async function clearAuthCookies() {
@@ -55,23 +35,25 @@ export async function clearAuthCookies() {
   jar.set(REFRESH_COOKIE, "", cookieOptions(0));
 }
 
-async function refreshSession(refreshToken: string) {
-  const response = await fetch(`${supabaseUrl()}/auth/v1/token?grant_type=refresh_token`, {
-    method: "POST",
-    headers: {
-      apikey: serviceRoleKey(),
-      Authorization: `Bearer ${serviceRoleKey()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  });
-  if (!response.ok) return null;
-  return (await response.json()) as {
-    access_token: string;
-    refresh_token: string;
-    expires_in?: number;
-    user?: User;
-  };
+/** Cookie writes only succeed in Route Handlers / Server Actions; renders skip them. */
+async function trySetAuthCookies(session: {
+  access_token: string;
+  refresh_token: string;
+  expires_in?: number;
+}) {
+  try {
+    await setAuthCookies(session);
+  } catch {
+    // Server Component render: the proxy persists refreshed cookies instead.
+  }
+}
+
+async function tryClearAuthCookies() {
+  try {
+    await clearAuthCookies();
+  } catch {
+    // Server Component render cannot mutate cookies.
+  }
 }
 
 export async function getSessionUser(): Promise<User | null> {
@@ -90,10 +72,10 @@ export async function getSessionUser(): Promise<User | null> {
   if (refresh) {
     const next = await refreshSession(refresh);
     if (!next?.access_token) {
-      await clearAuthCookies();
+      await tryClearAuthCookies();
       return null;
     }
-    await setAuthCookies(next);
+    await trySetAuthCookies(next);
     if (next.user) return next.user;
     const { data } = await admin.auth.getUser(next.access_token);
     return data.user ?? null;

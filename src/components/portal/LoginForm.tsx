@@ -4,7 +4,10 @@ import { useState, type FormEvent } from "react";
 import { Input } from "@/components/Input";
 import { Primary } from "@/components/Primary";
 import { Tooltip, TooltipProvider } from "@/components/Tooltip";
-import { UNAPPROVED_SIGNUP_ERROR } from "@/lib/signup-messages";
+import {
+  SIGNUP_APPLY_URL,
+  UNAPPROVED_SIGNUP_ERROR,
+} from "@/lib/signup-messages";
 
 function EyeIcon() {
   return (
@@ -219,27 +222,37 @@ export function LoginForm({
             </label>
           </div>
         ) : null}
-        <label className="grid gap-2">
-          <span className="text-sm font-bold text-muted">email address</span>
-          <Input
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            placeholder="you@example.com"
-            aria-invalid={emailError ? true : undefined}
-            aria-describedby={emailError ? "signup-email-error" : undefined}
-          />
+        <div className="grid gap-2">
+          <label className="grid gap-2">
+            <span className="text-sm font-bold text-muted">email address</span>
+            <Input
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              placeholder="you@example.com"
+              aria-invalid={emailError ? true : undefined}
+              aria-describedby={emailError ? "signup-email-error" : undefined}
+            />
+          </label>
           {emailError ? (
             <p
               id="signup-email-error"
               className="m-0 text-sm text-red-700"
               role="alert"
             >
-              {emailError}
+              {emailError}{" "}
+              <a
+                href={SIGNUP_APPLY_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="text-red-700 underline"
+              >
+                apply here!
+              </a>
             </p>
           ) : null}
-        </label>
+        </div>
         <label className="grid gap-2">
           <span className="text-sm font-bold text-muted">password</span>
           <span className="relative block">

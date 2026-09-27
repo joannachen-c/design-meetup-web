@@ -80,7 +80,7 @@ export function LoginForm({
     email: string,
     password: string,
     authMode: "login" | "signup" = mode,
-    displayName?: string,
+    names?: { firstName?: string; lastName?: string; displayName?: string },
   ) {
     setPending(true);
     setError(null);
@@ -94,7 +94,9 @@ export function LoginForm({
           mode: authMode,
           email,
           password,
-          displayName,
+          firstName: names?.firstName,
+          lastName: names?.lastName,
+          displayName: names?.displayName,
           next: nextPath,
         }),
       });
@@ -145,22 +147,30 @@ export function LoginForm({
     if (pending) return;
 
     const form = new FormData(event.currentTarget);
-    const displayName = String(form.get("displayName") || "").trim();
+    const firstName = String(form.get("firstName") || "").trim();
+    const lastName = String(form.get("lastName") || "").trim();
+    const displayName = firstName
+      ? `${firstName} ${lastName}`.trim()
+      : String(form.get("displayName") || "").trim();
     const email = String(form.get("email") || "").trim();
     const password = String(form.get("password") || "");
-    if (mode === "signup" && !displayName) {
-      setError("Enter your name.");
+    if (mode === "signup" && !firstName) {
+      setError("Enter your first name.");
       return;
     }
     if (!email || !password) {
       setError(
         mode === "signup"
-          ? "Enter your name, email, and password."
+          ? "Enter your first name, email, and password."
           : "Enter your email and password.",
       );
       return;
     }
-    await authenticate(email, password, mode, displayName);
+    await authenticate(email, password, mode, {
+      firstName,
+      lastName,
+      displayName,
+    });
   }
 
   return (
@@ -175,16 +185,25 @@ export function LoginForm({
         <input type="hidden" name="mode" value={mode} />
         <input type="hidden" name="next" value={nextPath} />
         {mode === "signup" ? (
-          <label className="grid gap-2">
-            <span className="text-sm font-bold text-muted">name</span>
-            <Input
-              name="displayName"
-              type="text"
-              autoComplete="name"
-              required
-              placeholder="your name"
-            />
-          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="grid gap-2">
+              <span className="text-sm font-bold text-muted">first name</span>
+              <Input
+                name="firstName"
+                type="text"
+                autoComplete="given-name"
+                required
+              />
+            </label>
+            <label className="grid gap-2">
+              <span className="text-sm font-bold text-muted">last name</span>
+              <Input
+                name="lastName"
+                type="text"
+                autoComplete="family-name"
+              />
+            </label>
+          </div>
         ) : null}
         <label className="grid gap-2">
           <span className="text-sm font-bold text-muted">email address</span>

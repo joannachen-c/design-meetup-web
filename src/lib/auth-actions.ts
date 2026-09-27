@@ -45,11 +45,15 @@ export async function signupAction(
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") || "");
-  const displayName = String(formData.get("displayName") || "").trim();
+  const firstName = String(formData.get("firstName") || "").trim();
+  const lastName = String(formData.get("lastName") || "").trim();
+  const displayName = firstName
+    ? `${firstName} ${lastName}`.trim()
+    : String(formData.get("displayName") || "").trim();
   const next = safeNext(formData.get("next"));
 
-  if (!displayName || !email || password.length < 8) {
-    return { error: "Use your name, a valid email, and a password with at least 8 characters." };
+  if (!firstName || !email || password.length < 8) {
+    return { error: "Use your first name, a valid email, and a password with at least 8 characters." };
   }
 
   const result = await passwordSignUp(email, password);

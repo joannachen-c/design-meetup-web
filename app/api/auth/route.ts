@@ -40,7 +40,11 @@ async function handleAuth(request: Request) {
     .trim()
     .toLowerCase();
   const password = String(body.password || "");
-  const displayName = String(body.displayName || body.name || "").trim();
+  const firstName = String(body.firstName || "").trim();
+  const lastName = String(body.lastName || "").trim();
+  const displayName = firstName
+    ? `${firstName} ${lastName}`.trim()
+    : String(body.displayName || body.name || "").trim();
   const nextPath =
     typeof body.next === "string" && body.next.startsWith("/")
       ? body.next
@@ -56,8 +60,11 @@ async function handleAuth(request: Request) {
   }
 
   if (mode === "signup") {
-    if (!displayName) {
-      return NextResponse.json({ error: "Enter your name." }, { status: 400 });
+    if (!firstName && !displayName) {
+      return NextResponse.json(
+        { error: "Enter your first name." },
+        { status: 400 },
+      );
     }
     if (password.length < 8) {
       return NextResponse.json(

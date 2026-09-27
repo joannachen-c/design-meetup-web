@@ -22,6 +22,8 @@ import {
   upsertLocalMembership,
 } from "./membership-store";
 
+const DEMO_EMAIL = "demo@designmeetup.info";
+
 let supabaseTablesReady: boolean | null = null;
 
 async function supabaseMembershipTablesAvailable() {
@@ -284,7 +286,10 @@ export async function getMembership(userId: string): Promise<MembershipRecord | 
 
 export async function userHasPortalAccess(userId: string) {
   const membership = await getMembership(userId);
-  return hasPortalAccess(membership?.status ?? null);
+  if (!hasPortalAccess(membership?.status ?? null)) return false;
+  if (isLiveStripeSubscriptionId(membership?.stripeSubscriptionId)) return true;
+  const profile = await getProfile(userId);
+  return (profile?.email || "").trim().toLowerCase() === DEMO_EMAIL;
 }
 
 export async function saveStripeCustomerId(userId: string, customerId: string) {
@@ -343,6 +348,18 @@ export async function activateMockMembership(userId: string, tier: Tier) {
     currentPeriodEnd: periodEnd.toISOString(),
     cancelAtPeriodEnd: false,
   });
+}
+
+/** Preview/demo login can open the dashboard. New accounts must pay first. */
+export async function ensureDemoMembership(
+  email: string | null | undefined,
+  userId: string,
+) {
+  if ((email || "").trim().toLowerCase() !== DEMO_EMAIL) return;
+  const membership = await getMembership(userId);
+  if (!hasPortalAccess(membership?.status ?? null)) {
+    await activateMockMembership(userId, "student");
+  }
 }
 
 /** Activate membership from a completed Checkout Session (works without webhooks). */

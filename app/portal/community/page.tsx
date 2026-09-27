@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { Primary } from "@/components/Primary";
 import { LUMA_CALENDAR_EMBED_SRC, LUMA_PROFILE_URL } from "@/lib/luma";
+import { requirePaidMembership } from "@/lib/portal-access";
 
 export const metadata: Metadata = {
   title: "Community",
   robots: { index: false, follow: false },
 };
 
-export default function PortalCommunityPage() {
+export default async function PortalCommunityPage() {
+  await requirePaidMembership("/portal/community");
   return (
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24">
       <section

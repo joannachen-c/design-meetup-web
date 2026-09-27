@@ -5,11 +5,10 @@ import {
   passwordSignIn,
   passwordSignUp,
 } from "@/lib/auth";
-import { supabaseAuthConfigured } from "@/lib/auth-session";
 import {
-  activateMockMembership,
+  ensureDemoMembership,
   ensureProfile,
-  getMembership,
+  userHasPortalAccess,
 } from "@/lib/membership-service";
 import { requestOrigin } from "@/lib/site";
 
@@ -45,7 +44,7 @@ async function handleAuth(request: Request) {
   const displayName = firstName
     ? `${firstName} ${lastName}`.trim()
     : String(body.displayName || body.name || "").trim();
-  const nextPath =
+  let nextPath =
     typeof body.next === "string" && body.next.startsWith("/")
       ? body.next
       : mode === "signup"
@@ -78,22 +77,22 @@ async function handleAuth(request: Request) {
     }
     if (result.userId) {
       await ensureProfile({ id: result.userId, email, displayName });
-      if (!supabaseAuthConfigured()) {
-        const membership = await getMembership(result.userId);
-        if (!membership) await activateMockMembership(result.userId, "student");
-      }
     }
+    nextPath = nextPath.includes("subscribe") ? nextPath : "/portal/subscribe";
   } else {
     const result = await passwordSignIn(email, password);
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
-    if (!supabaseAuthConfigured()) {
-      const user = await getSessionUser();
-      if (user?.email) {
-        await ensureProfile({ id: user.id, email: user.email });
-        const membership = await getMembership(user.id);
-        if (!membership) await activateMockMembership(user.id, "student");
+    const user = await getSessionUser();
+    if (user?.email) {
+      await ensureProfile({ id: user.id, email: user.email });
+      await ensureDemoMembership(user.email, user.id);
+      if (
+        !(await userHasPortalAccess(user.id)) &&
+        !nextPath.startsWith("/portal/subscribe")
+      ) {
+        nextPath = "/portal/subscribe";
       }
     }
   }

@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { AuthMemberPhoto } from "@/components/portal/AuthMemberPhoto";
 import { LoginForm } from "@/components/portal/LoginForm";
 import { getSessionUser } from "@/lib/auth";
+import {
+  ensureDemoMembership,
+  userHasPortalAccess,
+} from "@/lib/membership-service";
 
 export const metadata: Metadata = {
   title: "Log in",
@@ -23,7 +27,16 @@ export default async function LoginPage({
   const user = await getSessionUser();
   const params = await searchParams;
   const nextPath = nextFromSearch(params.next);
-  if (user) redirect(nextPath);
+  if (user) {
+    await ensureDemoMembership(user.email, user.id);
+    if (
+      !(await userHasPortalAccess(user.id)) &&
+      !nextPath.startsWith("/portal/subscribe")
+    ) {
+      redirect("/portal/subscribe");
+    }
+    redirect(nextPath);
+  }
   const errorParam = Array.isArray(params.error) ? params.error[0] : params.error;
 
   return (

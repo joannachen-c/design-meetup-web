@@ -2,13 +2,12 @@ import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
 import { isTier, priceIdForTier, TIER_CATALOG } from "@/lib/membership";
 import {
-  activateMockMembership,
   changeMembershipTier,
   ensureProfile,
   getProfile,
-  mockBillingAllowed,
   saveStripeCustomerId,
   stripeConfigured,
+  userHasPortalAccess,
 } from "@/lib/membership-service";
 import {
   ensureStripeCustomer,
@@ -63,12 +62,13 @@ export async function POST(request: Request) {
   }
   const tier = parsed.tier;
 
-  function checkoutError(message: string, status = 502) {
+  async function checkoutError(message: string, code = "checkout", status = 502) {
     if (parsed.kind === "form") {
-      return NextResponse.redirect(
-        new URL("/portal?checkout_error=1", origin),
-        303,
-      );
+      const paid = await userHasPortalAccess(user.id);
+      const dest = paid
+        ? "/portal?checkout_error=1"
+        : `/portal/subscribe?error=${code}`;
+      return NextResponse.redirect(new URL(dest, origin), 303);
     }
     return NextResponse.json({ error: message }, { status });
   }
@@ -76,17 +76,10 @@ export async function POST(request: Request) {
   await ensureProfile({ id: user.id, email: user.email });
 
   if (!stripeConfigured()) {
-    if (!mockBillingAllowed()) {
-      return checkoutError(
-        "billing isn't set up correctly yet. please try again later.",
-      );
-    }
-    await activateMockMembership(user.id, tier);
-    const url = `${origin}/portal?subscribed=1&mock=1&tier=${tier}`;
-    if (parsed.kind === "form") {
-      return NextResponse.redirect(url, 303);
-    }
-    return NextResponse.json({ url, mock: true });
+    return checkoutError(
+      "billing isn't set up correctly yet. please try again later.",
+      "stripe",
+    );
   }
 
   const stripe = getStripe();
@@ -168,17 +161,10 @@ export async function POST(request: Request) {
     const message =
       error instanceof Error ? error.message : "";
     if (/invalid api key|no such api key|authentication/i.test(message)) {
-      if (!mockBillingAllowed()) {
-        return checkoutError(
-          "billing isn't set up correctly yet. please try again later.",
-        );
-      }
-      await activateMockMembership(user.id, tier);
-      const url = `${origin}/portal?subscribed=1&tier=${tier}`;
-      if (parsed.kind === "form") {
-        return NextResponse.redirect(url, 303);
-      }
-      return NextResponse.json({ url });
+      return checkoutError(
+        "billing isn't set up correctly yet. please try again later.",
+        "stripe",
+      );
     }
     const friendly =
       /api key/i.test(message)

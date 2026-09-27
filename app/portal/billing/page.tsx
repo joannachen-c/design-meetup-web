@@ -5,12 +5,12 @@ import { ChevronLeftIcon } from "@/components/icons/ChevronLeftIcon";
 import { Primary } from "@/components/Primary";
 import { ManageBillingButton } from "@/components/portal/ManageBillingButton";
 import { ProfileSavedToast } from "@/components/portal/ProfileSavedToast";
-import { requireUser } from "@/lib/auth";
 import { TIER_CATALOG } from "@/lib/membership";
 import {
   getMemberBillingOverview,
   getMembership,
 } from "@/lib/membership-service";
+import { requirePaidMembership } from "@/lib/portal-access";
 
 export const metadata: Metadata = {
   title: "Billing",
@@ -22,9 +22,9 @@ export default async function BillingPage({
 }: {
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
-  const user = await requireUser("/portal/billing");
+  const user = await requirePaidMembership("/portal/billing");
   const membership = await getMembership(user.id);
-  if (!membership) redirect("/portal");
+  if (!membership) redirect("/portal/subscribe");
   const params = await searchParams;
   const { cards, invoices } = await getMemberBillingOverview(user.id);
   const card = cards[0] ?? null;

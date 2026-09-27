@@ -3,10 +3,15 @@
 import { redirect } from "next/navigation";
 import {
   clearAuthCookies,
+  getSessionUser,
   passwordSignIn,
   passwordSignUp,
 } from "@/lib/auth";
-import { ensureProfile } from "@/lib/membership-service";
+import {
+  ensureDemoMembership,
+  ensureProfile,
+  userHasPortalAccess,
+} from "@/lib/membership-service";
 
 function safeNext(raw: FormDataEntryValue | null) {
   if (typeof raw !== "string" || !raw.startsWith("/")) return "/portal";
@@ -25,7 +30,7 @@ export async function loginAction(
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") || "");
-  const next = safeNext(formData.get("next"));
+  let next = safeNext(formData.get("next"));
 
   if (!email || !password) {
     return { error: "Enter your email and password." };
@@ -33,6 +38,17 @@ export async function loginAction(
 
   const result = await passwordSignIn(email, password);
   if (!result.ok) return { error: result.error };
+
+  const user = await getSessionUser();
+  if (user?.email) {
+    await ensureDemoMembership(user.email, user.id);
+    if (
+      !(await userHasPortalAccess(user.id)) &&
+      !next.startsWith("/portal/subscribe")
+    ) {
+      next = "/portal/subscribe";
+    }
+  }
 
   redirect(next);
 }

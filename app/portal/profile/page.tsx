@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { ProfileForm } from "@/components/portal/ProfileForm";
 import { ProfileSavedToast } from "@/components/portal/ProfileSavedToast";
-import { requireUser } from "@/lib/auth";
 import { displayNameFromEmail } from "@/lib/membership";
 import { ensureProfile, getProfile } from "@/lib/membership-service";
+import { requirePaidMembership } from "@/lib/portal-access";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -28,7 +28,7 @@ export default async function ProfilePage({
 }: {
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
-  const user = await requireUser("/portal/profile");
+  const user = await requirePaidMembership("/portal/profile");
   await ensureProfile({ id: user.id, email: user.email });
   const profile = await getProfile(user.id);
   const params = await searchParams;

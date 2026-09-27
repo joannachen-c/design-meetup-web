@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AuthMemberPhoto } from "@/components/portal/AuthMemberPhoto";
 import { LoginForm } from "@/components/portal/LoginForm";
 import { getSessionUser } from "@/lib/auth";
+import { userHasPortalAccess } from "@/lib/membership-service";
 
 export const metadata: Metadata = {
   title: "Create account",
@@ -23,7 +24,12 @@ export default async function SignupPage({
   const user = await getSessionUser();
   const params = await searchParams;
   const nextPath = nextFromSearch(params.next);
-  if (user) redirect(nextPath);
+  if (user) {
+    if (await userHasPortalAccess(user.id)) {
+      redirect("/portal");
+    }
+    redirect("/portal/subscribe");
+  }
 
   return (
     <div className="grid min-h-dvh bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">

@@ -14,12 +14,12 @@ test("get started posts to stripe checkout as a form so the page always navigate
   assert.doesNotMatch(buttons, /setError/);
 });
 
-test("invalid stripe keys still start membership instead of a silent checkout error", async () => {
+test("invalid stripe keys do not grant membership without checkout", async () => {
   const route = await read("app/api/stripe/checkout/route.ts");
   assert.match(route, /invalid api key/i);
-  assert.match(route, /mockBillingAllowed\(\)/);
-  assert.match(route, /activateMockMembership\(user\.id, tier\)/);
-  assert.match(route, /\/portal\?subscribed=1&tier=/);
+  assert.match(route, /\/portal\/subscribe\?error=/);
+  assert.doesNotMatch(route, /activateMockMembership/);
+  assert.doesNotMatch(route, /mockBillingAllowed/);
 });
 
 test("checkout updates an existing live subscription instead of opening a second checkout", async () => {

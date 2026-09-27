@@ -1,7 +1,11 @@
 import { PortalHeader } from "@/components/portal/PortalHeader";
 import { requireUser } from "@/lib/auth";
 import { displayNameFromEmail } from "@/lib/membership";
-import { ensureProfile, getProfile } from "@/lib/membership-service";
+import {
+  ensureProfile,
+  getProfile,
+  userHasPortalAccess,
+} from "@/lib/membership-service";
 
 export default async function PortalLayout({
   children,
@@ -14,12 +18,14 @@ export default async function PortalLayout({
   const displayName =
     profile?.displayName?.trim() ||
     displayNameFromEmail(user.email || "member");
+  const paid = await userHasPortalAccess(user.id);
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface text-ink">
       <PortalHeader
         displayName={displayName}
         avatarUrl={profile?.avatarUrl ?? null}
+        paid={paid}
       />
       {children}
     </div>

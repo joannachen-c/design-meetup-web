@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Toast } from "@/components/Toast";
 import { ManageBillingButton } from "@/components/portal/ManageBillingButton";
 import { MemberIdCard } from "@/components/portal/MemberIdCard";
@@ -65,7 +66,10 @@ export default async function PortalHomePage({
     });
   }
 
-  const hasAccess = await userHasPortalAccess(user.id);
+  if (!(await userHasPortalAccess(user.id))) {
+    redirect("/portal/subscribe");
+  }
+
   const membership = await getMembership(user.id);
   const profile = await getProfile(user.id);
   const displayName =
@@ -123,7 +127,7 @@ export default async function PortalHomePage({
       <div className="mb-12 flex flex-wrap items-end justify-between gap-6 lg:mb-16 lg:flex-nowrap lg:items-start lg:gap-10">
         <div className="min-w-0 flex-1">
           <h1 className="m-0 max-w-[12ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
-            {hasAccess ? "welcome back," : "welcome,"}
+            welcome back,
             <br />
             {firstName.toLowerCase()}.
           </h1>

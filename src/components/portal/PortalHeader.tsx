@@ -22,9 +22,17 @@ export function PortalHeader({
     <header className="sticky top-0 z-5 flex flex-wrap items-center justify-between gap-4 bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
       <Link
         href="/portal"
-        className="text-lg font-bold leading-none tracking-[-0.06em] text-ink no-underline"
+        className="leading-[0] no-underline"
+        aria-label="Design Meetup home"
       >
-        design meetup
+        <img
+          className="block border-0 outline-none"
+          src="/design-meetup-logo.png"
+          alt=""
+          width={48}
+          height={48}
+          decoding="async"
+        />
       </Link>
       <nav className="flex flex-wrap gap-1" aria-label="Member portal">
         {nav.map((item) => {

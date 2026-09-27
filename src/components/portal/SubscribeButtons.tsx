@@ -6,10 +6,8 @@ import { TIER_CATALOG, type Tier } from "@/lib/membership";
 
 export function SubscribeButtons({
   currentTier = null,
-  memberName = null,
 }: {
   currentTier?: Tier | null;
-  memberName?: string | null;
 }) {
   const [busy, setBusy] = useState<Tier | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -30,11 +28,20 @@ export function SubscribeButtons({
       });
       const payload = (await response.json()) as { url?: string; error?: string };
       if (!response.ok || !payload.url) {
-        // Prefer a full navigation so the server can set cookies / redirect to login.
-        form.submit();
+        setError(payload.error || "Could not start checkout.");
+        setBusy(null);
         return;
       }
-      window.location.assign(payload.url);
+      // Stay on the current host — absolute URLs can point at a tunnel/env
+      // origin and drop localhost auth cookies.
+      try {
+        const next = new URL(payload.url, window.location.origin);
+        window.location.assign(
+          `${next.pathname}${next.search}${next.hash}` || next.href,
+        );
+      } catch {
+        window.location.assign(payload.url);
+      }
     } catch {
       form.submit();
     }
@@ -70,18 +77,13 @@ export function SubscribeButtons({
               ].join(" ")}
             >
               <input type="hidden" name="tier" value={tier} />
-              {memberName ? (
-                <p
+              <div className="flex items-center justify-between gap-3">
+                <span
                   className={[
-                    "m-0 text-base",
-                    isCurrent ? "text-white/55" : "text-subtle",
+                    "text-xl font-bold tracking-[-0.04em]",
+                    isCurrent ? "text-white/70" : "text-muted",
                   ].join(" ")}
                 >
-                  {memberName}
-                </p>
-              ) : null}
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl font-bold tracking-[-0.04em]">
                   {catalog.name}
                 </span>
                 {isCurrent ? (

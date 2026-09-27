@@ -8,7 +8,6 @@ import { TIER_CATALOG } from "@/lib/membership";
 import {
   ensureProfile,
   getMembership,
-  getProfile,
   stripeConfigured,
   userHasPortalAccess,
 } from "@/lib/membership-service";
@@ -29,7 +28,6 @@ export default async function MembershipPage({
   if (!hasAccess) redirect("/portal/subscribe");
 
   const membership = await getMembership(user.id);
-  const profile = await getProfile(user.id);
   const params = await searchParams;
   if (!membership) redirect("/portal/subscribe");
 
@@ -103,10 +101,7 @@ export default async function MembershipPage({
       <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">
         change plan
       </h2>
-      <SubscribeButtons
-        currentTier={membership.tier}
-        memberName={profile?.displayName ?? user.email ?? null}
-      />
+      <SubscribeButtons currentTier={membership.tier} />
     </main>
   );
 }

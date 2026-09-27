@@ -968,7 +968,7 @@ export default function DesignSystem() {
               <div>
                 <SpecimenLabel>success</SpecimenLabel>
                 <div className={`${whiteSpecimenClassName} mt-4`}>
-                  <Toast className="text-ink" icon={<ToastCheckIcon />}>
+                  <Toast variant="success" icon={<ToastCheckIcon />}>
                     Profile updated.
                   </Toast>
                 </div>

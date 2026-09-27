@@ -6,11 +6,15 @@ import { Toast, ToastCheckIcon } from "@/components/Toast";
 export function showSuccessToast(message: string) {
   toast.custom(
     () => (
-      <Toast className="text-ink" icon={<ToastCheckIcon />}>
+      <Toast variant="success" className="whitespace-nowrap" icon={<ToastCheckIcon />}>
         {message}
       </Toast>
     ),
-    { duration: 4000 },
+    {
+      duration: 4000,
+      unstyled: true,
+      className: "flex w-max list-none",
+    },
   );
 }
 

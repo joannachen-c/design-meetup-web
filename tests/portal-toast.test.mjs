@@ -19,9 +19,9 @@ test("the root layout mounts a bottom toaster that renders the design-system Toa
   assert.match(toaster, /from "sonner"/);
   assert.match(toaster, /from "@\/components\/Toast"/);
   assert.match(toaster, /toast\.custom/);
-  assert.match(toaster, /<Toast className="text-ink" icon=\{<ToastCheckIcon \/>\}>/);
+  assert.match(toaster, /<Toast variant="success" className="whitespace-nowrap" icon=\{<ToastCheckIcon \/>\}>/);
   assert.match(toaster, /position="bottom-center"/);
-  assert.match(toast, /bg-surface-muted/);
+  assert.match(toast, /success: "bg-surface-muted text-ink"/);
   assert.match(toast, /text-accent-primary/);
   assert.match(toast, /font-normal/);
   assert.doesNotMatch(toaster, /#22c55e/);

@@ -2,6 +2,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 
 const variantClassName = {
   neutral: "bg-surface-muted text-muted",
+  success: "bg-surface-muted text-ink",
   danger: "bg-red-50 text-red-700",
 } as const;
 

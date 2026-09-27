@@ -859,10 +859,10 @@ test("toasts document the shared production Toast at the surface radius", () => 
   assert.match(toastsSection, /<SpecimenLabel>success<\/SpecimenLabel>/);
   assert.match(toastsSection, /<SpecimenLabel>danger<\/SpecimenLabel>/);
   assert.match(toastsSection, /<Toast>/);
-  assert.match(toastsSection, /<Toast className="text-ink" icon=\{<ToastCheckIcon \/>\}>/);
+  assert.match(toastsSection, /<Toast variant="success" icon=\{<ToastCheckIcon \/>\}>/);
   assert.match(toastsSection, /<Toast variant="danger">/);
   assert.match(toast, /rounded-\[11px\]/);
-  assert.match(toast, /bg-surface-muted/);
+  assert.match(toast, /success: "bg-surface-muted text-ink"/);
   assert.match(toast, /font-normal/);
   assert.match(toast, /text-accent-primary/);
   assert.doesNotMatch(toast, /rounded-\[20px\]/);

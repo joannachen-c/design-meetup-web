@@ -2,7 +2,7 @@
 .scene {
   perspective: 1200px;
   width: 100%;
-  max-width: 480px;
+  max-width: 540px;
   margin-inline: auto;
 }
 
@@ -21,7 +21,7 @@
   position: relative;
   display: grid;
   width: 100%;
-  aspect-ratio: 1.66 / 1;
+  min-height: 300px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -92,7 +92,7 @@
 
 .body {
   display: grid;
-  grid-template-columns: minmax(84px, 32%) minmax(0, 1fr);
+  grid-template-columns: clamp(96px, 26%, 140px) minmax(0, 1fr);
   gap: clamp(14px, 3vw, 20px);
   flex: 1;
   min-height: 0;
@@ -200,36 +200,30 @@
 
 .name {
   margin: 0;
-  overflow: hidden;
   font-size: clamp(1.15rem, 3vw, 1.45rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
 }
 
 .role {
   margin: 0;
-  overflow: hidden;
   font-size: clamp(0.85rem, 2.2vw, 0.95rem);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
 }
 
 .website {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   width: fit-content;
   max-width: 100%;
-  overflow: hidden;
   font-size: clamp(0.82rem, 2.1vw, 0.92rem);
   font-weight: 700;
   color: var(--color-subtle);
   text-decoration: none;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
 }
 
 .website:hover {
@@ -245,18 +239,18 @@
 
 .fact {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   min-width: 0;
-  overflow: hidden;
+  overflow-wrap: break-word;
   font-size: clamp(0.82rem, 2.1vw, 0.92rem);
   font-weight: 700;
   color: var(--color-muted);
-  white-space: nowrap;
 }
 
 .fact svg {
   flex-shrink: 0;
+  margin-top: 1px;
   color: var(--color-subtle);
 }
 

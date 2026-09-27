@@ -43,14 +43,6 @@ export default async function ProfilePage({
         your profile
       </h1>
 
-      {params.saved ? (
-        <p
-          className="mb-8 rounded-[20px] bg-accent-primary px-4 py-3 text-base text-ink"
-          role="status"
-        >
-          profile saved.
-        </p>
-      ) : null}
       {message ? (
         <p className="mb-8 text-base text-red-700" role="alert">
           {message}
@@ -71,6 +63,7 @@ export default async function ProfilePage({
         initialX={profile?.x ?? ""}
         initialLinkedin={profile?.linkedin ?? ""}
         initialYoutube={profile?.youtube ?? ""}
+        initialGithub={profile?.github ?? ""}
       />
     </main>
   );

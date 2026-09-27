@@ -12,6 +12,7 @@ import { Primary } from "@/components/Primary";
 import {
   InstagramIcon,
   LinkedInIcon,
+  GitHubIcon,
   WebsiteIcon,
   XIcon,
   YouTubeIcon,
@@ -31,17 +32,18 @@ type ProfileFormProps = {
   initialX?: string;
   initialLinkedin?: string;
   initialYoutube?: string;
+  initialGithub?: string;
 };
 
-type FieldErrors = { displayName?: string; email?: string };
+type FieldErrors = { firstName?: string; email?: string };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validate(form: FormData): FieldErrors {
   const errors: FieldErrors = {};
-  const name = String(form.get("displayName") || "").trim();
+  const firstName = String(form.get("firstName") || "").trim();
   const email = String(form.get("email") || "").trim();
-  if (!name) errors.displayName = "name is required.";
+  if (!firstName) errors.firstName = "first name is required.";
   if (!email) errors.email = "email is required.";
   else if (!EMAIL_PATTERN.test(email)) errors.email = "enter a valid email.";
   return errors;
@@ -124,8 +126,11 @@ export function ProfileForm({
   initialX = "",
   initialLinkedin = "",
   initialYoutube = "",
+  initialGithub = "",
 }: ProfileFormProps) {
   const idPrefix = useId();
+  const [initialFirstName, ...restOfName] = initialName.trim().split(/\s+/);
+  const initialLastName = restOfName.join(" ");
   const fieldId = (name: string) => `${idPrefix}-${name}`;
   const avatarInputId = fieldId("avatar");
   const [pending, setPending] = useState(false);
@@ -166,9 +171,9 @@ export function ProfileForm({
     const data = new FormData(form);
     const errors = validate(data);
     setFieldErrors(errors);
-    if (errors.displayName || errors.email) {
+    if (errors.firstName || errors.email) {
       document
-        .getElementById(fieldId(errors.displayName ? "displayName" : "email"))
+        .getElementById(fieldId(errors.firstName ? "firstName" : "email"))
         ?.focus();
       return;
     }
@@ -253,27 +258,38 @@ export function ProfileForm({
 
       <div className="grid min-w-0 gap-10">
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field
-            id={fieldId("displayName")}
-            label="name"
-            error={fieldErrors.displayName}
-          >
-            <Input
-              id={fieldId("displayName")}
-              name="displayName"
-              type="text"
-              defaultValue={initialName}
-              autoComplete="name"
-              aria-invalid={fieldErrors.displayName ? true : undefined}
-              aria-describedby={
-                fieldErrors.displayName
-                  ? `${fieldId("displayName")}-error`
-                  : undefined
-              }
-              className={fieldErrors.displayName ? invalidInputClassName : ""}
-              onChange={() => clearFieldError("displayName")}
-            />
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              id={fieldId("firstName")}
+              label="first name"
+              error={fieldErrors.firstName}
+            >
+              <Input
+                id={fieldId("firstName")}
+                name="firstName"
+                type="text"
+                defaultValue={initialFirstName}
+                autoComplete="given-name"
+                aria-invalid={fieldErrors.firstName ? true : undefined}
+                aria-describedby={
+                  fieldErrors.firstName
+                    ? `${fieldId("firstName")}-error`
+                    : undefined
+                }
+                className={fieldErrors.firstName ? invalidInputClassName : ""}
+                onChange={() => clearFieldError("firstName")}
+              />
+            </Field>
+            <Field id={fieldId("lastName")} label="last name">
+              <Input
+                id={fieldId("lastName")}
+                name="lastName"
+                type="text"
+                defaultValue={initialLastName}
+                autoComplete="family-name"
+              />
+            </Field>
+          </div>
           <Field id={fieldId("email")} label="email" error={fieldErrors.email}>
             <Input
               id={fieldId("email")}
@@ -378,6 +394,14 @@ export function ProfileForm({
               prefix="youtube.com/@"
               icon={<YouTubeIcon />}
               defaultValue={initialYoutube}
+              placeholder="username"
+            />
+            <SocialField
+              name="github"
+              label="github"
+              prefix="github.com/"
+              icon={<GitHubIcon />}
+              defaultValue={initialGithub}
               placeholder="username"
             />
           </div>

@@ -270,7 +270,7 @@ export function MemberIdCard({
             <div className={styles.masthead}>
               <p className={styles.docType}>Member ID</p>
               <SocialLinks
-                className={styles.socialsDesktop}
+                className={styles.socials}
                 flipped={flipped}
                 socials={socials}
                 stop={stop}
@@ -391,13 +391,6 @@ export function MemberIdCard({
                     complete your profile
                   </Link>
                 ) : null}
-
-                <SocialLinks
-                  className={styles.socialsMobile}
-                  flipped={flipped}
-                  socials={socials}
-                  stop={stop}
-                />
               </div>
             </div>
           </div>

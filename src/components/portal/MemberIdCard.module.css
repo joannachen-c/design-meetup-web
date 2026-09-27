@@ -96,15 +96,12 @@
   border-bottom: 2px solid var(--color-accent-primary);
 }
 
-.socialsDesktop {
+.socials {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
-  gap: clamp(16px, 4vw, 22px);
-}
-
-.socialsMobile {
-  display: none;
+  align-items: center;
+  gap: clamp(12px, 3vw, 22px);
 }
 
 .body {
@@ -296,7 +293,8 @@
 .sinceValue {
   margin: 2px 0 0;
   font-size: clamp(0.85rem, 2.2vw, 0.95rem);
-  font-weight: 700;
+  font-weight: 400;
+  color: var(--color-muted);
 }
 
 .hint {
@@ -402,33 +400,6 @@
 }
 
 @media (max-width: 720px) {
-  .masthead {
-    border-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  .docType {
-    padding-bottom: clamp(8px, 1.8vw, 10px);
-    border-bottom: 2px solid var(--color-accent-primary);
-  }
-
-  .socialsDesktop {
-    display: none;
-  }
-
-  .socialsMobile {
-    display: flex;
-    flex-wrap: wrap;
-    gap: clamp(16px, 4vw, 20px);
-    margin-top: auto;
-    padding-top: 8px;
-  }
-
-  .socialsMobile .social svg {
-    width: 20px;
-    height: 20px;
-  }
-
   .scene:hover .tilt {
     animation: none;
   }

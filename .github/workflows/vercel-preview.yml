@@ -119,6 +119,25 @@ jobs:
           upsert STRIPE_PRICE_PROFESSIONAL_MONTHLY "$STRIPE_PRICE_PROFESSIONAL_MONTHLY" plain
           upsert NEXT_PUBLIC_SITE_URL "$NEXT_PUBLIC_SITE_URL" plain
 
+      # Vercel Authentication blocks CSS/JS on preview shares (HTML gets bypass,
+      # assets do not) → unstyled pages. Turn it off for Preview testing.
+      - name: Disable Vercel Authentication on project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/proj-patch.json -w '%{http_code}' \
+            -X PATCH \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H 'Content-Type: application/json' \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID" \
+            -d '{"ssoProtection":null}')
+          echo "PATCH project ssoProtection=null → HTTP $code"
+          cat /tmp/proj-patch.json | python3 -c 'import sys,json; d=json.load(sys.stdin); print("ssoProtection=", d.get("ssoProtection")); print("name=", d.get("name"))' || cat /tmp/proj-patch.json
+          if [ "$code" != "200" ]; then
+            echo "::warning::Could not disable Vercel Authentication automatically. Turn off Require Log In in Deployment Protection settings."
+          fi
+
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
         env:

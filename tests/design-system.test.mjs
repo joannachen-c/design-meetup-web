@@ -525,6 +525,7 @@ test("semantic color tokens back shared component styling", () => {
     "--color-ink",
     "--color-muted",
     "--color-subtle",
+    "--color-tertiary",
     "--color-surface",
     "--color-surface-muted",
     "--color-skeleton",
@@ -864,7 +865,8 @@ test("toasts document the shared production Toast at the surface radius", () => 
   assert.match(toast, /rounded-\[11px\]/);
   assert.match(toast, /success: "bg-surface-muted text-ink"/);
   assert.match(toast, /font-normal/);
-  assert.match(toast, /text-accent-primary/);
+  assert.match(toast, /text-tertiary/);
+  assert.doesNotMatch(toast, /text-accent-primary/);
   assert.doesNotMatch(toast, /rounded-\[20px\]/);
   assert.doesNotMatch(toast, /rounded-full/);
 });

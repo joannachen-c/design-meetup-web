@@ -4,6 +4,7 @@
   --color-ink: oklch(22% 0.025 250);
   --color-muted: #6a7282;
   --color-subtle: oklch(70.7% 0.022 261.325);
+  --color-tertiary: oklch(70.7% 0.022 261.325);
   --color-surface: oklch(99.4% 0.003 264.542);
   --color-surface-muted: oklch(96.7% 0.003 264.542);
   --color-skeleton: oklch(93.2% 0.004 264.542);

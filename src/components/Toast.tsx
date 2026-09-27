@@ -22,7 +22,7 @@ export function ToastCheckIcon() {
       height="16"
       viewBox="0 0 16 16"
       fill="none"
-      className="text-accent-primary"
+      className="text-tertiary"
       aria-hidden
     >
       <path

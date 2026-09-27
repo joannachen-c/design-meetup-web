@@ -246,7 +246,7 @@ export function ProfileForm({
       className="grid max-w-5xl gap-10"
     >
       <div className="grid min-w-0 gap-10">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_200px] lg:items-start lg:gap-16">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_200px] lg:items-start lg:gap-16">
           <div className="grid gap-5">
             <div className="grid grid-cols-2 gap-3">
               <Field
@@ -305,7 +305,7 @@ export function ProfileForm({
               />
             </Field>
           </div>
-          <div className="flex flex-col items-center gap-3 text-center lg:pt-7">
+          <div className="flex flex-col items-center gap-3 text-center max-lg:order-first lg:pt-7">
             {previewUrl ? (
               <img
                 src={previewUrl}
@@ -347,7 +347,7 @@ export function ProfileForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <Field id={fieldId("school")} label="school">
             <Input
               id={fieldId("school")}
@@ -390,7 +390,7 @@ export function ProfileForm({
           <h2 className="m-0 text-xl font-bold tracking-[-0.04em]">
             links
           </h2>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <SocialField
               name="website"
               label="website"

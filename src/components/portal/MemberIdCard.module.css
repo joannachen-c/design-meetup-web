@@ -92,6 +92,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
+  padding-bottom: clamp(12px, 2.4vw, 16px);
   border-bottom: 2px solid var(--color-accent-primary);
 }
 
@@ -403,6 +404,7 @@
 @media (max-width: 720px) {
   .masthead {
     border-bottom: 0;
+    padding-bottom: 0;
   }
 
   .docType {

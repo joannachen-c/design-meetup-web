@@ -10,6 +10,7 @@ import {
   YouTubeIcon,
 } from "@/components/portal/SocialIcons";
 import { socialHref, type ProfileSocialLinks } from "@/lib/membership";
+import styles from "./MemberIdCard.module.css";
 
 export type MemberIdCardProps = {
   displayName: string;
@@ -31,7 +32,7 @@ export type MemberIdCardProps = {
 function PersonSilhouette() {
   return (
     <svg
-      className="member-id-photo-person"
+      className={styles["member-id-photo-person"]}
       width="56"
       height="56"
       viewBox="0 0 56 56"
@@ -96,10 +97,13 @@ export function MemberIdCard({
   }>;
 
   return (
-    <div className="member-id-scene">
+    <div className={styles["member-id-scene"]}>
       <button
         type="button"
-        className={["member-id-card", flipped ? "is-flipped" : ""]
+        className={[
+          styles["member-id-card"],
+          flipped ? styles["is-flipped"] : "",
+        ]
           .filter(Boolean)
           .join(" ")}
         onClick={() => setFlipped((value) => !value)}
@@ -109,21 +113,23 @@ export function MemberIdCard({
             : "Flip member ID card to back"
         }
       >
-        <div className="member-id-face member-id-front">
-          <div className="member-id-front-grid">
-            <div className="member-id-photo-wrap">
+        <div
+          className={`${styles["member-id-face"]} ${styles["member-id-front"]}`}
+        >
+          <div className={styles["member-id-front-grid"]}>
+            <div className={styles["member-id-photo-wrap"]}>
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt=""
-                  className="member-id-photo"
+                  className={styles["member-id-photo"]}
                   width={112}
                   height={112}
                 />
               ) : (
                 <Link
                   href="/portal/profile"
-                  className="member-id-photo-empty"
+                  className={styles["member-id-photo-empty"]}
                   onClick={(event) => event.stopPropagation()}
                 >
                   <PersonSilhouette />
@@ -131,24 +137,27 @@ export function MemberIdCard({
                 </Link>
               )}
             </div>
-            <div className="member-id-front-copy">
-              <p className="member-id-kicker">member id</p>
-              <h2 className="member-id-name">{displayName}</h2>
-              <p className="member-id-email">{email}</p>
+            <div className={styles["member-id-front-copy"]}>
+              <p className={styles["member-id-kicker"]}>member id</p>
+              <h2 className={styles["member-id-name"]}>{displayName}</h2>
+              <p className={styles["member-id-email"]}>{email}</p>
               {tierLabel ? (
-                <p className="member-id-tier">{tierLabel} plan</p>
+                <p className={styles["member-id-tier"]}>{tierLabel} plan</p>
               ) : null}
               {detailRows.length > 0 ? (
-                <dl className="member-id-meta">
+                <dl className={styles["member-id-meta"]}>
                   {detailRows.map((row) => (
-                    <div key={row.label} className="member-id-meta-row">
+                    <div
+                      key={row.label}
+                      className={styles["member-id-meta-row"]}
+                    >
                       <dt>{row.label}</dt>
                       <dd>{row.value}</dd>
                     </div>
                   ))}
                 </dl>
               ) : (
-                <p className="member-id-hint">
+                <p className={styles["member-id-hint"]}>
                   <Link
                     href="/portal/profile"
                     onClick={(event) => event.stopPropagation()}
@@ -158,7 +167,7 @@ export function MemberIdCard({
                 </p>
               )}
               {socials.length > 0 ? (
-                <div className="member-id-socials">
+                <div className={styles["member-id-socials"]}>
                   {socials.map(({ key, label, href, Icon }) => (
                     <a
                       key={key}
@@ -166,7 +175,7 @@ export function MemberIdCard({
                       target="_blank"
                       rel="noreferrer"
                       aria-label={label}
-                      className="member-id-social"
+                      className={styles["member-id-social"]}
                       onClick={(event) => event.stopPropagation()}
                     >
                       <Icon />
@@ -176,34 +185,36 @@ export function MemberIdCard({
               ) : null}
             </div>
           </div>
-          <div className="member-id-stamp" aria-hidden>
+          <div className={styles["member-id-stamp"]} aria-hidden>
             <img src="/design-meetup-stamp.png" alt="" width={96} height={96} />
           </div>
         </div>
 
         <div
-          className="member-id-face member-id-back"
+          className={`${styles["member-id-face"]} ${styles["member-id-back"]}`}
           aria-hidden={flipped ? undefined : true}
         >
-          <div className="member-id-back-pattern" />
-          <div className="member-id-back-content">
+          <div className={styles["member-id-back-pattern"]} />
+          <div className={styles["member-id-back-content"]}>
             <img
-              className="member-id-back-logo"
+              className={styles["member-id-back-logo"]}
               src="/design-meetup-stamp.png"
               alt=""
               width={72}
               height={72}
             />
-            <p className="member-id-back-title">design meetup</p>
-            <p className="member-id-back-sub">
+            <p className={styles["member-id-back-title"]}>design meetup</p>
+            <p className={styles["member-id-back-sub"]}>
               a space for the world&apos;s most ambitious creatives.
             </p>
-            <div className="member-id-back-chip">
+            <div className={styles["member-id-back-chip"]}>
               <span>{tierLabel || "guest"}</span>
               <span>{memberSince || "join the crew"}</span>
             </div>
             {socials.length > 0 ? (
-              <div className="member-id-socials member-id-socials-back">
+              <div
+                className={`${styles["member-id-socials"]} ${styles["member-id-socials-back"]}`}
+              >
                 {socials.map(({ key, label, href, Icon }) => (
                   <a
                     key={key}
@@ -211,7 +222,7 @@ export function MemberIdCard({
                     target="_blank"
                     rel="noreferrer"
                     aria-label={label}
-                    className="member-id-social"
+                    className={styles["member-id-social"]}
                     onClick={(event) => event.stopPropagation()}
                   >
                     <Icon />
@@ -219,7 +230,7 @@ export function MemberIdCard({
                 ))}
               </div>
             ) : null}
-            <div className="member-id-barcode" aria-hidden>
+            <div className={styles["member-id-barcode"]} aria-hidden>
               {Array.from({ length: 28 }, (_, index) => (
                 <span
                   key={index}
@@ -230,7 +241,7 @@ export function MemberIdCard({
                 />
               ))}
             </div>
-            <p className="member-id-back-footer">nyc · sf · la</p>
+            <p className={styles["member-id-back-footer"]}>nyc · sf · la</p>
           </div>
         </div>
       </button>

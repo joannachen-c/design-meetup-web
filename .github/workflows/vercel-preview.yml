@@ -173,9 +173,10 @@ jobs:
               `| --- | --- |`,
               `| **URL** | ${url} |`,
               `| **Commit** | \`${sha}\` |`,
-              `| **Stripe webhook** | \`${url}/api/stripe/webhook?x-vercel-protection-bypass=Hqlr6uONgVSOJP3fX56HUFrxQ2k8XoF5\` |`,
+              `| **Login** | ${url}/login |`,
+              `| **Stripe webhook** | \`${url}/api/stripe/webhook\` |`,
               '',
-              '_Deployed via GitHub Actions so contributors do not need Vercel project access. Preview only — not production._',
+              '_Preview only — not production. Vercel Authentication disabled so CSS loads for shared links._',
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({

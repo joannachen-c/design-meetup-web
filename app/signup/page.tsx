@@ -27,26 +27,28 @@ export default async function SignupPage({
 
   return (
     <div className="grid min-h-dvh bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
-      <div className="flex min-w-0 flex-col justify-between gap-16 px-[clamp(20px,6vw,96px)] pt-[clamp(16px,2vw,30px)] pb-12">
+      <div className="flex min-h-dvh min-w-0 flex-col px-[clamp(20px,6vw,96px)] pt-[clamp(16px,2vw,30px)] pb-12">
         <a
           href="/"
-          className="text-xl font-bold leading-none tracking-[-0.06em] text-ink no-underline"
+          className="wordmark shrink-0 leading-[0] no-underline focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
+          aria-label="Design Meetup home"
         >
-          design meetup
+          <img
+            className="wordmark-logo border-0 outline-none"
+            src="/design-meetup-logo.png"
+            alt=""
+            width={60}
+            height={60}
+            decoding="async"
+          />
         </a>
-        <div className="w-full max-w-[440px]">
-          <h1 className="m-0 mb-4 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em] lowercase">
-            join the portal.
-          </h1>
-          <p className="mb-10 max-w-[44ch] text-base leading-normal text-muted lowercase">
-            create an account, then choose student ($10/mo) or professional
-            ($35/mo).
-          </p>
-          <LoginForm mode="signup" nextPath={nextPath} />
-        </div>
-        <div className="flex gap-6 text-sm text-subtle">
-          <span>designmeetup.info</span>
-          <span>members portal</span>
+        <div className="flex min-h-0 flex-1 flex-col justify-center py-10">
+          <div className="w-full max-w-[440px]">
+            <h1 className="m-0 mb-10 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em] lowercase">
+              join the portal.
+            </h1>
+            <LoginForm mode="signup" nextPath={nextPath} />
+          </div>
         </div>
       </div>
       <AuthMemberPhoto />

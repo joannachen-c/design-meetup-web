@@ -20,11 +20,11 @@ export const homeHeaderLinks: SiteHeaderLink[] = [
   { href: "/login", label: "Login" },
 ];
 
-const desktopNavLinkClassName =
+const navLinkClassName =
   "whitespace-nowrap text-medium text-base text-subtle no-underline hover:text-ink focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4";
 
 const mobileNavLinkClassName =
-  "site-header-menu-link block w-fit text-ink no-underline focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4";
+  "site-header-menu-link block w-fit text-[clamp(2.25rem,9.5vw,3.5rem)] font-bold leading-[1.05] tracking-[-0.03em] text-ink no-underline hover:text-muted focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4";
 
 const panelEase = [0.22, 1, 0.36, 1] as const;
 const linkEase = [0.22, 1, 0.36, 1] as const;
@@ -117,12 +117,12 @@ export function SiteHeader({
         {menuOpen ? <CloseIcon /> : <MenuIcon />}
       </IconButton>
       <nav
-        className="primary-navigation"
+        className="primary-navigation site-header-desktop-nav"
         aria-label={navAriaLabel}
         aria-hidden={menuOpen || undefined}
       >
         {links.map((link) => (
-          <a key={link.href} className={desktopNavLinkClassName} href={link.href}>
+          <a key={link.href} className={navLinkClassName} href={link.href}>
             {link.label}
           </a>
         ))}
@@ -137,7 +137,7 @@ export function SiteHeader({
         {menuOpen ? (
           <motion.div
             key="site-header-menu"
-            className="site-header-menu-panel"
+            className="site-header-menu-panel fixed inset-0 z-50 box-border flex min-h-dvh w-full items-center justify-start bg-surface pt-[max(96px,env(safe-area-inset-top))] pr-[clamp(20px,6vw,96px)] pb-[max(48px,env(safe-area-inset-bottom))] pl-[clamp(20px,6vw,96px)]"
             role="dialog"
             aria-modal="true"
             aria-label={navAriaLabel}
@@ -149,7 +149,11 @@ export function SiteHeader({
               ease: panelEase,
             }}
           >
-            <nav id={menuId} className="site-header-menu-nav" aria-label={navAriaLabel}>
+            <nav
+              id={menuId}
+              className="site-header-menu-nav flex w-[min(100%,22rem)] flex-col items-start gap-[clamp(10px,2.4vh,22px)]"
+              aria-label={navAriaLabel}
+            >
               {links.map((link, index) => (
                 <motion.a
                   key={link.href}
@@ -157,7 +161,9 @@ export function SiteHeader({
                   href={link.href}
                   onClick={closeMenu}
                   initial={
-                    reduceMotion ? false : { opacity: 0, y: 28, filter: "blur(4px)" }
+                    reduceMotion
+                      ? false
+                      : { opacity: 0, y: 28, filter: "blur(4px)" }
                   }
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={
@@ -187,10 +193,7 @@ export function SiteHeader({
 
   return (
     <>
-      <header
-        className="site-header px-[clamp(20px,6vw,96px)] pt-[clamp(16px,2vw,30px)] pb-[clamp(24px,3vw,46px)] text-base"
-        data-menu-open={menuOpen ? "true" : undefined}
-      >
+      <header className="site-header px-[clamp(20px,6vw,96px)] pt-[clamp(16px,2vw,30px)] pb-[clamp(24px,3vw,46px)] text-base">
         {reveal ? <ScrollReveal>{logo}</ScrollReveal> : logo}
         {reveal ? (
           <ScrollReveal delay={60}>{actions}</ScrollReveal>

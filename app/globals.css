@@ -1956,47 +1956,18 @@ footer {
     display: grid;
   }
 
-  .primary-navigation {
+  /* Marketing desktop links only — DS nav uses .design-system-navigation. */
+  .site-header-desktop-nav {
     display: none;
   }
 
-  .site-header-menu-panel {
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    box-sizing: border-box;
-    width: 100%;
-    min-height: 100dvh;
-    padding:
-      max(96px, env(safe-area-inset-top))
-      clamp(20px, 6vw, 96px)
-      max(48px, env(safe-area-inset-bottom));
-    background: var(--color-surface);
-  }
-
-  .site-header-menu-nav {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: clamp(10px, 2.4vh, 22px);
-    width: min(100%, 22rem);
-  }
-
   .site-header-menu-link {
-    font-size: clamp(2.25rem, 9.5vw, 3.5rem);
-    font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: -0.03em;
     text-shadow: -0.35px 0 currentColor, 0.35px 0 currentColor;
     transition: color 160ms ease-out, transform 160ms ease-out;
   }
 
   @media (hover: hover) and (pointer: fine) {
     .site-header-menu-link:hover {
-      color: var(--color-muted);
       transform: translateX(4px);
     }
   }

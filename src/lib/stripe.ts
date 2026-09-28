@@ -135,11 +135,19 @@ export async function createBillingPortalSession(
   stripeClient: Stripe,
   input: { customerId: string; returnUrl: string; flow?: PortalFlow | null },
 ) {
-  const configuration = await ensurePortalConfiguration(stripeClient);
+  let configuration: string | undefined;
+  try {
+    configuration = await ensurePortalConfiguration(stripeClient);
+  } catch (error) {
+    // Fall back to the Dashboard default portal so Update card still opens
+    // Stripe when a custom configuration cannot be created.
+    console.error("stripe portal configuration failed", error);
+  }
+
   return stripeClient.billingPortal.sessions.create({
     customer: input.customerId,
     return_url: input.returnUrl,
-    configuration,
+    ...(configuration ? { configuration } : {}),
     ...(input.flow ? { flow_data: { type: input.flow } } : {}),
   });
 }

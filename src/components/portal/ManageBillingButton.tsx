@@ -3,6 +3,8 @@
 import { type FormEvent, useState } from "react";
 import { Primary } from "@/components/Primary";
 
+const BILLING_ERROR_PATH = "/portal/billing?error=1";
+
 export function ManageBillingButton({
   label = "manage billing",
   flow,
@@ -13,7 +15,6 @@ export function ManageBillingButton({
   const [pending, setPending] = useState(false);
 
   async function openPortal(event: FormEvent<HTMLFormElement>) {
-    const form = event.currentTarget;
     event.preventDefault();
     if (pending) return;
     setPending(true);
@@ -34,18 +35,20 @@ export function ManageBillingButton({
         try {
           payload = JSON.parse(raw) as { url?: string; error?: string };
         } catch {
-          form.submit();
+          window.location.assign(BILLING_ERROR_PATH);
           return;
         }
       }
-      if (!response.ok || !payload.url) {
-        form.submit();
+      if (payload.url) {
+        const next = new URL(payload.url, window.location.origin);
+        window.location.assign(next.href);
         return;
       }
-      const next = new URL(payload.url, window.location.origin);
-      window.location.assign(next.href);
+      window.location.assign(BILLING_ERROR_PATH);
     } catch {
-      form.submit();
+      window.location.assign(BILLING_ERROR_PATH);
+    } finally {
+      setPending(false);
     }
   }
 

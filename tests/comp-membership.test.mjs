@@ -32,10 +32,12 @@ test("directory sheet emails get the coupon; other approved signups still pay", 
 test("a coupon applies only when the stripe coupon id is set", () => {
   const previousCoupon = process.env.STRIPE_COUPON_FREE_MEMBERSHIP;
   try {
-    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "coupon_testFree";
-    assert.equal(compCouponId(), "coupon_testFree");
+    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "vXejHxwc";
+    assert.equal(compCouponId(), "vXejHxwc");
     assert.equal(shouldApplyCompCoupon("studio@liumichelle.com"), true);
     assert.equal(shouldApplyCompCoupon("angelinawwu@ucla.edu"), false);
+    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "coupon_testFree";
+    assert.equal(compCouponId(), "coupon_testFree");
     process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "";
     assert.equal(shouldApplyCompCoupon("studio@liumichelle.com"), false);
   } finally {

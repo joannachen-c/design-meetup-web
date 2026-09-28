@@ -117,7 +117,10 @@ export function compCouponId(
   raw = process.env.STRIPE_COUPON_FREE_MEMBERSHIP,
 ) {
   const id = (raw || "").trim();
-  return id.startsWith("coupon_") ? id : "";
+  if (!id) return "";
+  // Stripe coupon ids are often short ids like "vXejHxwc", not "coupon_...".
+  if (/^(sk_|pk_|whsec_|price_|sub_)/i.test(id)) return "";
+  return id;
 }
 
 export function shouldApplyCompCoupon(email: string) {

@@ -176,6 +176,8 @@ html.is-loading body {
 }
 
 .site-header {
+  position: relative;
+  z-index: 40;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: clamp(16px, 2vw, 28px);

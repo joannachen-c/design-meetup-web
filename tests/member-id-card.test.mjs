@@ -34,3 +34,17 @@ test("the background stamp is a light watermark", async () => {
   const css = await read("src/components/portal/MemberIdCard.module.css");
   assert.match(css, /\.watermark\s*\{[^}]*opacity:\s*0\.025/s);
 });
+
+test("the empty photo well is a darker gray than the white card", async () => {
+  const css = await read("src/components/portal/MemberIdCard.module.css");
+  const tsx = await read("src/components/portal/MemberIdCard.tsx");
+  assert.match(
+    css,
+    /\.photoButton\s*\{[^}]*background:\s*var\(--color-gray-200\)/s,
+  );
+  assert.doesNotMatch(
+    css,
+    /\.photoButton\s*\{[^}]*background:\s*var\(--color-surface-muted\)/s,
+  );
+  assert.match(tsx, /photoOverlayVisible/);
+});

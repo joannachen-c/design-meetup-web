@@ -16,27 +16,37 @@ test("signup sends a welcome email without blocking a failed send", async () => 
   assert.doesNotMatch(route, /if \(!\(await sendWelcomeEmail/);
 });
 
-test("welcome email is a simple logo, message, View Account CTA, and footer socials", async () => {
+test("welcome email uses the account-ready copy and calendar link", async () => {
   const welcome = await read("src/lib/welcome-email.ts");
-  assert.match(welcome, /subject: "your design meetup account"/);
-  assert.match(welcome, /\$\{origin\}\/login/);
-  assert.match(welcome, /\$\{input\.origin\}\/design-meetup-logo\.png/);
-  assert.match(welcome, /https:\/\/www\.designmeetup\.info/);
-  assert.match(welcome, /ctaLabel: "View Account"/);
-  assert.match(welcome, /background:\$\{INK\}/);
-  assert.match(welcome, /your account is ready\./);
-  assert.match(welcome, /hi \$\{firstName\.toLowerCase\(\)\},/);
+  assert.match(welcome, /subject: "Welcome to Design Meetup"/);
   assert.match(
     welcome,
-    /thanks for creating a design meetup account! we're so excited to have you as part of the community\./,
+    /export const CALENDAR_URL = `\$\{PUBLIC_HOME_URL\}\/#calendar`/,
   );
-  assert.match(welcome, /log in anytime to view your membership\./);
-  assert.doesNotMatch(welcome, /<svg /);
+  assert.match(welcome, /Hi \$\{firstName\},/);
+  assert.match(welcome, /"Hi,"/);
+  assert.match(
+    welcome,
+    /Your Design Meetup account is officially set up\. Welcome to the community!/,
+  );
+  assert.match(welcome, /You can now:/);
+  assert.match(welcome, /Connect with designers in the Slack community/);
+  assert.match(welcome, /Get early and guaranteed access to our events/);
+  assert.match(
+    welcome,
+    /Take a look at what's coming up in NYC\/SF\/LA \$\{calendarLink\}\./,
+  );
+  assert.match(welcome, />here<\/a>/);
+  assert.match(welcome, /&lt;3,/);
+  assert.match(welcome, /"<3,"/);
+  assert.match(welcome, /https:\/\/www\.designmeetup\.info/);
+  assert.match(welcome, /\$\{input\.origin\}\/design-meetup-logo\.png/);
   assert.match(welcome, /\/email\/\$\{item\.icon\}/);
-  assert.match(welcome, /label: "Substack"/);
-  assert.match(welcome, /label: "Instagram"/);
-  assert.match(welcome, /label: "LinkedIn"/);
-  assert.match(welcome, /label: "X"/);
+  assert.doesNotMatch(welcome, /<svg /);
+  assert.doesNotMatch(
+    welcome,
+    /thanks for creating a design meetup account/,
+  );
 });
 
 test("welcome email socials match the site footer", async () => {
@@ -69,4 +79,5 @@ test("graduation upgrade email tells members they are on professional", async ()
   assert.match(welcome, /subject: "your design meetup plan"/);
   assert.match(welcome, /you're on professional now\./);
   assert.match(welcome, /moved you to the professional plan/);
+  assert.match(welcome, /ctaLabel: "View Account"/);
 });

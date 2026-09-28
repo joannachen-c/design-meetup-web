@@ -80,6 +80,7 @@ async function handleAuth(request: Request) {
     const result = await setRecoverySession({
       access_token: String(body.access_token || ""),
       refresh_token: String(body.refresh_token || ""),
+      token_hash: String(body.token_hash || ""),
       expires_in:
         typeof body.expires_in === "number" ? body.expires_in : undefined,
     });

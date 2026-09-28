@@ -19,8 +19,8 @@ import {
   isApprovedSignupEmail,
   UNAPPROVED_SIGNUP_ERROR,
 } from "./signup-allowlist";
-import { gmailConfigured } from "./gmail-smtp";
 import { sendPasswordResetEmail } from "./welcome-email";
+import { publicAppUrl } from "./site";
 
 /** Server-only admin client. Never import from client components. */
 export function createAdminClient() {
@@ -128,34 +128,29 @@ export async function requestPasswordReset(email: string, origin: string) {
   }
 
   try {
-    const redirectTo = `${origin.replace(/\/$/, "")}/reset-password`;
+    const resetOrigin = (origin || publicAppUrl).replace(/\/$/, "") || publicAppUrl;
     const admin = createAdminClient();
     const { data, error } = await admin.auth.admin.generateLink({
       type: "recovery",
       email: normalized,
-      options: { redirectTo },
     });
-    const resetUrl = data?.properties?.action_link;
-    if (error || !resetUrl) return { ok: true as const };
-
-    if (gmailConfigured()) {
-      await sendPasswordResetEmail({
-        email: normalized,
-        resetUrl,
-        origin,
+    const hashedToken = data?.properties?.hashed_token;
+    if (error || !hashedToken) {
+      console.error("password reset generateLink failed", {
+        error: error?.message || "missing hashed_token",
       });
       return { ok: true as const };
     }
 
-    await fetch(`${supabaseUrl()}/auth/v1/recover`, {
-      method: "POST",
-      headers: {
-        apikey: serviceRoleKey(),
-        Authorization: `Bearer ${serviceRoleKey()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: normalized }),
+    const resetUrl = `${resetOrigin}/reset-password?token_hash=${encodeURIComponent(hashedToken)}&type=recovery`;
+    const sent = await sendPasswordResetEmail({
+      email: normalized,
+      resetUrl,
+      origin: resetOrigin,
     });
+    if (!sent.ok) {
+      console.error("password reset email was not delivered");
+    }
   } catch (error) {
     console.error("password reset request failed", error);
   }
@@ -163,10 +158,46 @@ export async function requestPasswordReset(email: string, origin: string) {
 }
 
 export async function setRecoverySession(input: {
-  access_token: string;
-  refresh_token: string;
+  access_token?: string;
+  refresh_token?: string;
+  token_hash?: string;
   expires_in?: number;
 }) {
+  const tokenHash = input.token_hash?.trim();
+  if (tokenHash) {
+    if (!supabaseAuthConfigured()) {
+      return {
+        ok: false as const,
+        error: "this reset link is invalid or expired.",
+      };
+    }
+    try {
+      const admin = createAdminClient();
+      const { data, error } = await admin.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: "recovery",
+      });
+      const session = data.session;
+      if (error || !session?.access_token || !session.refresh_token) {
+        return {
+          ok: false as const,
+          error: "this reset link is invalid or expired.",
+        };
+      }
+      await setAuthCookies({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        expires_in: session.expires_in,
+      });
+      return { ok: true as const };
+    } catch {
+      return {
+        ok: false as const,
+        error: "this reset link is invalid or expired.",
+      };
+    }
+  }
+
   if (!input.access_token || !input.refresh_token) {
     return {
       ok: false as const,

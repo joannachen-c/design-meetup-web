@@ -19,6 +19,8 @@ export const siteOgImage = {
 
 export const siteEmail = "contactdesignmeetup@gmail.com";
 
+export const publicAppUrl = "https://www.designmeetup.info";
+
 export const siteSameAs = [
   "https://designmeetup.substack.com/",
   "https://www.instagram.com/designmeetup/",

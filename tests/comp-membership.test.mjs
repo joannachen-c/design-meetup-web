@@ -21,28 +21,38 @@ test("comp email list is case-insensitive and comma-separated", () => {
   assert.equal(emails.has("missing@x.com"), false);
 });
 
-test("a coupon applies only when the id and email both match", () => {
+test("directory sheet emails get the coupon; other approved signups still pay", () => {
+  assert.equal(isCompMembershipEmail("studio@liumichelle.com"), true);
+  assert.equal(isCompMembershipEmail("BL628@cornell.edu"), true);
+  assert.equal(isCompMembershipEmail("yunakeem3@gmail.com"), true);
+  assert.equal(isCompMembershipEmail("demo@designmeetup.info"), false);
+  assert.equal(isCompMembershipEmail("angelinawwu@ucla.edu"), false);
+});
+
+test("a coupon applies only when the stripe coupon id is set", () => {
   const previousCoupon = process.env.STRIPE_COUPON_FREE_MEMBERSHIP;
-  const previousEmails = process.env.STRIPE_COMP_EMAILS;
-  process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "coupon_testFree";
-  process.env.STRIPE_COMP_EMAILS = "comp@designmeetup.info";
   try {
+    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "coupon_testFree";
     assert.equal(compCouponId(), "coupon_testFree");
-    assert.equal(isCompMembershipEmail("COMP@designmeetup.info"), true);
-    assert.equal(shouldApplyCompCoupon("comp@designmeetup.info"), true);
-    assert.equal(shouldApplyCompCoupon("other@designmeetup.info"), false);
+    assert.equal(shouldApplyCompCoupon("studio@liumichelle.com"), true);
+    assert.equal(shouldApplyCompCoupon("angelinawwu@ucla.edu"), false);
+    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "";
+    assert.equal(shouldApplyCompCoupon("studio@liumichelle.com"), false);
   } finally {
     if (previousCoupon === undefined) delete process.env.STRIPE_COUPON_FREE_MEMBERSHIP;
     else process.env.STRIPE_COUPON_FREE_MEMBERSHIP = previousCoupon;
-    if (previousEmails === undefined) delete process.env.STRIPE_COMP_EMAILS;
-    else process.env.STRIPE_COMP_EMAILS = previousEmails;
   }
 });
 
 test("checkout applies the comp coupon and skips a card when the email is listed", async () => {
   const checkout = await read("app/api/stripe/checkout/route.ts");
+  const comp = await read("src/lib/comp-membership.ts");
   assert.match(checkout, /shouldApplyCompCoupon\(user\.email\)/);
   assert.match(checkout, /discounts: \[\{ coupon: compCouponId\(\) \}\]/);
   assert.match(checkout, /payment_method_collection: "if_required"/);
   assert.doesNotMatch(checkout, /allow_promotion_codes/);
+  assert.match(
+    comp,
+    /docs.google.com\/spreadsheets\/d\/1fT3s72MVCAxb8gXrE6YXfBrMEHxTbL6jG8LQI8l5hlM/,
+  );
 });

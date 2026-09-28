@@ -23,6 +23,7 @@ export function stripeErrorFields(error: unknown) {
       code: "",
       param: "",
       type: "",
+      requestLogUrl: "",
     };
   }
   const e = error as {
@@ -30,12 +31,15 @@ export function stripeErrorFields(error: unknown) {
     code?: string;
     param?: string;
     type?: string;
+    request_log_url?: string;
+    raw?: { request_log_url?: string; message?: string };
   };
   return {
-    message: e.message || "",
+    message: e.message || e.raw?.message || "",
     code: e.code || "",
     param: e.param || "",
     type: e.type || "",
+    requestLogUrl: e.request_log_url || e.raw?.request_log_url || "",
   };
 }
 
@@ -64,6 +68,26 @@ export function checkoutFailureCode(error: unknown) {
   return "checkout" as const;
 }
 
+function couponId(coupon: unknown) {
+  if (!coupon) return "";
+  if (typeof coupon === "string") return coupon;
+  if (typeof coupon === "object" && coupon && "id" in coupon) {
+    const id = (coupon as { id?: unknown }).id;
+    return typeof id === "string" ? id : "";
+  }
+  return "";
+}
+
+/** Current Stripe promo objects store the coupon on `promotion.coupon`. */
+export function couponIdFromPromo(promo: unknown) {
+  if (!promo || typeof promo !== "object") return "";
+  const record = promo as {
+    coupon?: unknown;
+    promotion?: { coupon?: unknown };
+  };
+  return couponId(record.promotion?.coupon) || couponId(record.coupon);
+}
+
 export async function lookupCompCheckoutDiscount(
   id: string,
   stripe: CompDiscountStripe,
@@ -75,8 +99,16 @@ export async function lookupCompCheckoutDiscount(
     throw missing;
   }
 
+  // Backend comps should apply the coupon, not the customer-facing promo
+  // (promo restrictions like first-time / min amount would block testers).
   if (trimmed.startsWith("promo_")) {
-    await stripe.promotionCodes.retrieve(trimmed);
+    try {
+      const promo = await stripe.promotionCodes.retrieve(trimmed);
+      const idFromPromo = couponIdFromPromo(promo);
+      if (idFromPromo) return { coupon: idFromPromo };
+    } catch (error) {
+      if (isMissingStripeResource(error)) throw error;
+    }
     return { promotion_code: trimmed };
   }
 

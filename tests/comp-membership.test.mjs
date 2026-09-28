@@ -58,6 +58,7 @@ test("checkout looks up the coupon in the current Stripe mode and still collects
   assert.match(checkout, /payment_method_collection: "always"/);
   assert.match(checkout, /error=coupon|"coupon"/);
   assert.match(subscribe, /case "coupon"/);
+  assert.match(subscribe, /params\.reason/);
   assert.doesNotMatch(checkout, /if_required/);
   assert.doesNotMatch(checkout, /allow_promotion_codes/);
   assert.match(comp, /promo_1UKjNQRTgiLNfq1KP5vNNePP/);

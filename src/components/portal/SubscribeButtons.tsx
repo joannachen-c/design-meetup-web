@@ -25,17 +25,25 @@ export function SubscribeButtons({
         body: JSON.stringify({ tier }),
       });
       const raw = await response.text();
-      let payload: { url?: string; error?: string } = {};
+      let payload: { url?: string; error?: string; code?: string } = {};
       if (raw) {
         try {
-          payload = JSON.parse(raw) as { url?: string; error?: string };
+          payload = JSON.parse(raw) as {
+            url?: string;
+            error?: string;
+            code?: string;
+          };
         } catch {
           form.submit();
           return;
         }
       }
       if (!response.ok || !payload.url) {
-        form.submit();
+        const params = new URLSearchParams({
+          error: payload.code || "checkout",
+        });
+        if (payload.error) params.set("reason", payload.error.slice(0, 240));
+        window.location.assign(`/portal/subscribe?${params}`);
         return;
       }
       const next = new URL(payload.url, window.location.origin);

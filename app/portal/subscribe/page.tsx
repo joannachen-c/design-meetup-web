@@ -13,7 +13,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-function subscribeError(code: string | undefined) {
+function subscribeError(code: string | undefined, reason: string | undefined) {
+  const detail = (reason || "").trim();
+  if (detail) return detail.toLowerCase();
   switch (code) {
     case "pick-tier":
       return "pick student or professional to continue.";
@@ -35,6 +37,7 @@ export default async function SubscribePage({
   searchParams: Promise<{
     canceled?: string;
     error?: string;
+    reason?: string;
     session_id?: string;
   }>;
 }) {
@@ -52,7 +55,7 @@ export default async function SubscribePage({
     redirect("/portal");
   }
 
-  const error = subscribeError(params.error);
+  const error = subscribeError(params.error, params.reason);
 
   return (
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">

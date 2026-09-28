@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   checkoutFailureCode,
+  couponIdFromPromo,
   lookupCompCheckoutDiscount,
 } from "../src/lib/comp-discount.ts";
 
@@ -41,7 +42,7 @@ test("lookup falls back to a customer-facing promotion code", async () => {
   assert.deepEqual(discount, { promotion_code: "promo_123" });
 });
 
-test("lookup uses a promo_ id directly", async () => {
+test("lookup uses the coupon attached to a promo_ id", async () => {
   const discount = await lookupCompCheckoutDiscount(
     "promo_1UKjNQRTgiLNfq1KP5vNNePP",
     {
@@ -51,7 +52,30 @@ test("lookup uses a promo_ id directly", async () => {
         },
       },
       promotionCodes: {
-        retrieve: async (id) => ({ id }),
+        retrieve: async (id) => ({
+          id,
+          promotion: { coupon: "nVubzSJY", type: "coupon" },
+        }),
+        list: async () => ({ data: [] }),
+      },
+    },
+  );
+  assert.deepEqual(discount, { coupon: "nVubzSJY" });
+});
+
+test("lookup falls back to promotion_code if promo retrieve is not missing", async () => {
+  const discount = await lookupCompCheckoutDiscount(
+    "promo_1UKjNQRTgiLNfq1KP5vNNePP",
+    {
+      coupons: {
+        retrieve: async () => {
+          throw new Error("unused");
+        },
+      },
+      promotionCodes: {
+        retrieve: async () => {
+          throw new Error("The provided key does not have the required permissions");
+        },
         list: async () => ({ data: [] }),
       },
     },
@@ -79,6 +103,16 @@ test("lookup throws when the id exists in neither live coupons nor promotion cod
       }),
     /No such coupon or promotion code/,
   );
+});
+
+test("coupon id is read from promotion.coupon or a top-level coupon", () => {
+  assert.equal(
+    couponIdFromPromo({ promotion: { coupon: "nVubzSJY", type: "coupon" } }),
+    "nVubzSJY",
+  );
+  assert.equal(couponIdFromPromo({ coupon: "legacy_id" }), "legacy_id");
+  assert.equal(couponIdFromPromo({ coupon: { id: "obj_id" } }), "obj_id");
+  assert.equal(couponIdFromPromo({}), "");
 });
 
 test("checkout maps missing coupons to coupon and bad keys to stripe", () => {

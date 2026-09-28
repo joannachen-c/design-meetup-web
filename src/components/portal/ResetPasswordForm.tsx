@@ -126,12 +126,9 @@ export function ResetPasswordForm({ nextPath }: { nextPath: string }) {
         <p className="m-0 text-base text-red-700" role="alert">
           {linkError}
         </p>
-        <a
-          className="inline-flex min-h-11 w-fit items-center rounded-[10px] px-4 text-base text-muted no-underline hover:bg-surface-muted hover:text-ink"
-          href="/login"
-        >
+        <Primary href="/login" variant="secondary">
           back to log in
-        </a>
+        </Primary>
       </div>
     );
   }

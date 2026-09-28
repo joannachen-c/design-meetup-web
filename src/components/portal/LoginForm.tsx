@@ -362,9 +362,9 @@ export function LoginForm({
                   send reset link
                 </Primary>
               )}
-              <button
+              <Primary
                 type="button"
-                className="inline-flex min-h-11 cursor-pointer items-center rounded-[10px] border-0 bg-transparent px-4 text-base text-muted hover:bg-surface-muted hover:text-ink"
+                variant="secondary"
                 onClick={() => {
                   setView("form");
                   setError(null);
@@ -372,7 +372,7 @@ export function LoginForm({
                 }}
               >
                 back to log in
-              </button>
+              </Primary>
             </>
           ) : (
             <>

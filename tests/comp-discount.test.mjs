@@ -42,18 +42,23 @@ test("lookup falls back to a customer-facing promotion code", async () => {
 });
 
 test("lookup uses a promo_ id directly", async () => {
-  const discount = await lookupCompCheckoutDiscount("promo_123", {
-    coupons: {
-      retrieve: async () => {
-        throw new Error("should not retrieve coupons");
+  const discount = await lookupCompCheckoutDiscount(
+    "promo_1UKjNQRTgiLNfq1KP5vNNePP",
+    {
+      coupons: {
+        retrieve: async () => {
+          throw new Error("should not retrieve coupons");
+        },
+      },
+      promotionCodes: {
+        retrieve: async (id) => ({ id }),
+        list: async () => ({ data: [] }),
       },
     },
-    promotionCodes: {
-      retrieve: async (id) => ({ id }),
-      list: async () => ({ data: [] }),
-    },
+  );
+  assert.deepEqual(discount, {
+    promotion_code: "promo_1UKjNQRTgiLNfq1KP5vNNePP",
   });
-  assert.deepEqual(discount, { promotion_code: "promo_123" });
 });
 
 test("lookup throws when the id exists in neither live coupons nor promotion codes", async () => {

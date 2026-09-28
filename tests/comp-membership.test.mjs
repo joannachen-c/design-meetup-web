@@ -29,17 +29,20 @@ test("directory sheet emails get the coupon; other approved signups still pay", 
   assert.equal(isCompMembershipEmail("angelinawwu@ucla.edu"), false);
 });
 
-test("a coupon applies only when the stripe coupon id is set", () => {
+test("directory comps use the live promo_ id, overridable by env", () => {
   const previousCoupon = process.env.STRIPE_COUPON_FREE_MEMBERSHIP;
   try {
-    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "vXejHxwc";
-    assert.equal(compCouponId(), "vXejHxwc");
+    delete process.env.STRIPE_COUPON_FREE_MEMBERSHIP;
+    assert.equal(compCouponId(), "promo_1UKjNQRTgiLNfq1KP5vNNePP");
     assert.equal(shouldApplyCompCoupon("studio@liumichelle.com"), true);
     assert.equal(shouldApplyCompCoupon("angelinawwu@ucla.edu"), false);
+    process.env.STRIPE_COUPON_FREE_MEMBERSHIP =
+      "promo_1UKjNQRTgiLNfq1KP5vNNePP";
+    assert.equal(compCouponId(), "promo_1UKjNQRTgiLNfq1KP5vNNePP");
     process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "coupon_testFree";
     assert.equal(compCouponId(), "coupon_testFree");
-    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "";
-    assert.equal(shouldApplyCompCoupon("studio@liumichelle.com"), false);
+    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "vXejHxwc";
+    assert.equal(compCouponId(), "promo_1UKjNQRTgiLNfq1KP5vNNePP");
   } finally {
     if (previousCoupon === undefined) delete process.env.STRIPE_COUPON_FREE_MEMBERSHIP;
     else process.env.STRIPE_COUPON_FREE_MEMBERSHIP = previousCoupon;
@@ -57,6 +60,7 @@ test("checkout looks up the coupon in the current Stripe mode and still collects
   assert.match(subscribe, /case "coupon"/);
   assert.doesNotMatch(checkout, /if_required/);
   assert.doesNotMatch(checkout, /allow_promotion_codes/);
+  assert.match(comp, /promo_1UKjNQRTgiLNfq1KP5vNNePP/);
   assert.match(
     comp,
     /docs.google.com\/spreadsheets\/d\/1fT3s72MVCAxb8gXrE6YXfBrMEHxTbL6jG8LQI8l5hlM/,

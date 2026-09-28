@@ -113,14 +113,16 @@ export function isCompMembershipEmail(
   );
 }
 
+/** Live promotion code for directory-sheet comps. Env overrides this. */
+export const DEFAULT_STRIPE_COMP_PROMOTION =
+  "promo_1UKjNQRTgiLNfq1KP5vNNePP";
+
 export function compCouponId(
   raw = process.env.STRIPE_COUPON_FREE_MEMBERSHIP,
 ) {
   const id = (raw || "").trim();
-  if (!id) return "";
-  // Stripe coupon ids are often short ids like "vXejHxwc", not "coupon_...".
-  if (/^(sk_|pk_|whsec_|price_|sub_)/i.test(id)) return "";
-  return id;
+  if (id.startsWith("promo_") || id.startsWith("coupon_")) return id;
+  return DEFAULT_STRIPE_COMP_PROMOTION;
 }
 
 export function shouldApplyCompCoupon(email: string) {

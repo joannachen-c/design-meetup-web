@@ -24,8 +24,9 @@ test("Upcoming events section sits above the partner CTA with a Luma calendar em
     app,
     /src=\{LUMA_CALENDAR_EMBED_SRC\}/,
   );
+  assert.match(app, /import \{ LUMA_CALENDAR_EMBED_SRC[^}]*\} from "@\/lib\/luma"/);
   assert.match(
-    app,
+    luma,
     /https:\/\/luma\.com\/embed\/calendar\/cal-HH5XBdHyWPt0yhB\/events\?lt=light/,
   );
   assert.match(app, /id="calendar"/);

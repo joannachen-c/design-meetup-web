@@ -1,0 +1,423 @@
+/* Member portal ID card, laid out like a license */
+.scene {
+  perspective: 1200px;
+  width: 100%;
+  max-width: 540px;
+  margin-inline: auto;
+}
+
+/* The hover sway and the flip live on separate layers so clicking mid-sway
+   never cancels one transform in favour of the other. */
+.tilt {
+  transform-style: preserve-3d;
+  transform: rotateY(-1.5deg) rotateX(0.5deg);
+}
+
+.scene:hover .tilt {
+  animation: gyrate 3.6s ease-in-out infinite;
+}
+
+.card {
+  position: relative;
+  display: grid;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: none;
+  cursor: pointer;
+  outline: none;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
+}
+
+.card:focus-visible .face {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+.card.flipped {
+  transform: rotateY(180deg);
+}
+
+.face {
+  position: relative;
+  grid-area: 1 / 1;
+  min-width: 0;
+  border-radius: 20px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  box-shadow:
+    0 14px 36px rgb(18 24 38 / 0.1),
+    inset 0 0 0 1px rgb(18 24 38 / 0.07);
+}
+
+.front {
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 2.4vw, 16px);
+  background: #fff;
+  color: var(--color-ink);
+  padding: clamp(16px, 3.4vw, 22px) clamp(16px, 3.6vw, 24px);
+  text-align: left;
+}
+
+.watermark {
+  position: absolute;
+  right: -6%;
+  bottom: -20%;
+  z-index: -1;
+  width: 60%;
+  height: auto;
+  opacity: 0.025;
+  pointer-events: none;
+}
+
+.docType {
+  margin: 0;
+  font-size: clamp(0.8rem, 2vw, 0.95rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-subtle);
+}
+
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: clamp(12px, 2.4vw, 16px);
+  border-bottom: 2px solid var(--color-accent-primary);
+}
+
+.socials {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: clamp(12px, 3vw, 22px);
+}
+
+.body {
+  display: grid;
+  grid-template-columns: clamp(112px, 32%, 172px) minmax(0, 1fr);
+  gap: clamp(14px, 3vw, 20px);
+  min-height: 0;
+}
+
+.photoColumn {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.photoButton {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 0;
+  border-radius: 10px;
+  padding: 0;
+  background: var(--color-surface-muted);
+  cursor: pointer;
+}
+
+.photoButton:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoEmpty {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.silhouette {
+  width: 88%;
+  height: auto;
+  color: rgb(255 255 255 / 0.75);
+}
+
+.photoOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  background: rgb(255 255 255 / 0.78);
+  backdrop-filter: blur(2px);
+  color: var(--color-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-transform: lowercase;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.photoButton:hover .photoOverlay,
+.photoButton:focus-visible .photoOverlay,
+.photoOverlayBusy {
+  opacity: 1;
+}
+
+.photoOverlayLabel {
+  display: block;
+  max-width: 100%;
+  line-height: 1;
+}
+
+.signature {
+  margin: 2px 0 0;
+  max-width: 100%;
+  overflow: hidden;
+  font-family: "Handflair", cursive;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  line-height: 1.1;
+  white-space: nowrap;
+  color: var(--color-ink);
+}
+
+.uploadError {
+  margin: 2px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  text-align: center;
+  color: var(--color-red-700, #b91c1c);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  height: 100%;
+}
+
+.name {
+  margin: 0;
+  font-size: clamp(1.15rem, 3vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  overflow-wrap: break-word;
+}
+
+.role {
+  margin: 0;
+  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+  overflow-wrap: break-word;
+}
+
+.website {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  font-size: clamp(0.82rem, 2.1vw, 0.92rem);
+  font-weight: 700;
+  color: var(--color-subtle);
+  text-decoration: none;
+  overflow-wrap: break-word;
+}
+
+.website:hover {
+  color: var(--color-muted);
+}
+
+.website svg {
+  flex-shrink: 0;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin-top: clamp(6px, 1.6vw, 12px);
+}
+
+.fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: break-word;
+  font-size: clamp(0.82rem, 2.1vw, 0.92rem);
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.fact svg {
+  flex-shrink: 0;
+  color: var(--color-subtle);
+}
+
+.since {
+  margin-top: clamp(4px, 1.2vw, 8px);
+}
+
+.sinceLabel {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-subtle);
+}
+
+.sinceValue {
+  margin: 2px 0 0;
+  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.hint {
+  width: fit-content;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-subtle);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.hint:hover {
+  color: var(--color-muted);
+}
+
+.social {
+  display: inline-flex;
+  color: var(--color-subtle);
+}
+
+.social:hover {
+  color: var(--color-ink);
+}
+
+.social svg {
+  width: 16px;
+  height: 16px;
+}
+
+.back {
+  transform: rotateY(180deg);
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgb(255 255 255 / 0.045) 0 1px,
+      rgb(0 0 0 / 0.04) 1px 2px,
+      transparent 2px 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.025) 0 1px,
+      transparent 1px 5px
+    ),
+    radial-gradient(120% 80% at 14% 0%, rgb(255 255 255 / 0.22), transparent 48%),
+    radial-gradient(80% 60% at 92% 100%, rgb(70 82 104 / 0.35), transparent 52%),
+    linear-gradient(148deg, #5a5f6a 0%, #32363f 24%, #16181d 50%, #2c313a 76%, #0c0d10 100%);
+  box-shadow:
+    0 14px 36px rgb(10 12 18 / 0.3),
+    inset 0 1px 0 rgb(255 255 255 / 0.32),
+    inset 0 -1px 0 rgb(0 0 0 / 0.55),
+    inset 0 0 0 1px rgb(255 255 255 / 0.1);
+}
+
+/* Specular band that slides across the metal while the card is hovered. */
+.back::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 28%,
+    rgb(255 255 255 / 0.06) 40%,
+    rgb(255 255 255 / 0.28) 50%,
+    rgb(255 255 255 / 0.06) 60%,
+    transparent 72%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  transition: background-position 1.2s cubic-bezier(0.65, 0, 0.35, 1);
+  pointer-events: none;
+}
+
+.scene:hover .back::before {
+  background-position: 0 0;
+}
+
+.backLogo {
+  display: block;
+  width: clamp(104px, 32%, 148px);
+  height: auto;
+  filter:
+    drop-shadow(0 1px 0 rgb(255 255 255 / 0.38))
+    drop-shadow(0 -1px 1px rgb(0 0 0 / 0.45));
+  mix-blend-mode: plus-lighter;
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+@keyframes gyrate {
+  0%,
+  100% {
+    transform: rotateY(-2deg) rotateX(0.8deg) translateY(0);
+  }
+  50% {
+    transform: rotateY(2deg) rotateX(-0.4deg) translateY(-1px);
+  }
+}
+
+@media (max-width: 720px) {
+  .scene:hover .tilt {
+    animation: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .body {
+    grid-template-columns: 112px minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene:hover .tilt {
+    animation: none;
+  }
+
+  .card,
+  .back::before {
+    transition: none;
+  }
+}

@@ -26,6 +26,10 @@ const contactEmail = await readFile(
   new URL("../src/lib/contact-email.ts", import.meta.url),
   "utf8",
 );
+const smtp = await readFile(
+  new URL("../src/lib/gmail-smtp.ts", import.meta.url),
+  "utf8",
+);
 const envExample = await readFile(
   new URL("../.env.example", import.meta.url),
   "utf8",
@@ -310,18 +314,21 @@ test("contact route validates, records the inquiry, and sends server mail", () =
 
 test("server email sends from Gmail to Design Meetup and the user", () => {
   assert.match(contactEmail, /import \{ siteEmail, siteName \} from "@\/lib\/site"/);
-  assert.match(contactEmail, /const SMTP_HOST = "smtp\.gmail\.com";/);
-  assert.match(contactEmail, /const SMTP_PORT = 465;/);
-  assert.match(contactEmail, /process\.env\.GMAIL_USER/);
-  assert.match(contactEmail, /process\.env\.GMAIL_APP_PASSWORD/);
-  assert.match(contactEmail, /user\.toLowerCase\(\) !== siteEmail/);
-  assert.match(contactEmail, /`From: \$\{siteName\} <\$\{siteEmail\}>`/);
+  assert.match(smtp, /const SMTP_HOST = "smtp\.gmail\.com";/);
+  assert.match(smtp, /const SMTP_PORT = 465;/);
+  assert.match(smtp, /process\.env\.GMAIL_USER/);
+  assert.match(smtp, /process\.env\.GMAIL_APP_PASSWORD/);
+  assert.match(smtp, /user\.toLowerCase\(\) !== siteEmail/);
+  assert.match(smtp, /`From: \$\{siteName\} <\$\{siteEmail\}>`/);
+  assert.match(contactEmail, /gmailConfigured\(\)/);
+  assert.match(contactEmail, /sendGmailEmails\(buildContactEmailBatch\(submission\)\)/);
   assert.match(contactEmail, /to: siteEmail/);
   assert.match(contactEmail, /replyTo: submission\.email/);
   assert.match(contactEmail, /to: submission\.email/);
   assert.match(contactEmail, /replyTo: siteEmail/);
-  assert.match(contactEmail, /AUTH PLAIN/);
+  assert.match(smtp, /AUTH PLAIN/);
   assert.doesNotMatch(contactEmail, /resend|RESEND_API_KEY|CONTACT_FROM_EMAIL/i);
+  assert.doesNotMatch(smtp, /resend|RESEND_API_KEY|CONTACT_FROM_EMAIL/i);
   assert.match(envExample, /GMAIL_USER=contactdesignmeetup@gmail\.com/);
   assert.match(envExample, /GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx/);
 });

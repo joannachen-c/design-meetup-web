@@ -5,6 +5,10 @@
 const LUMA_CALENDAR_API_ID = "cal-HH5XBdHyWPt0yhB";
 const LUMA_ITEMS_ENDPOINT = "https://api.lu.ma/calendar/get-items";
 
+export const LUMA_PROFILE_URL = "https://luma.com/designmeetup";
+export const LUMA_CALENDAR_EMBED_SRC =
+  "https://luma.com/embed/calendar/cal-HH5XBdHyWPt0yhB/events?lt=light";
+
 export type LumaEvent = {
   id: string;
   name: string;

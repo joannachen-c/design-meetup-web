@@ -52,7 +52,7 @@ import {
   sizedImageUrl,
   VISIBLE_COVER_RADIUS,
 } from "@/lib/image";
-import type { LumaEvent } from "@/lib/luma";
+import { LUMA_CALENDAR_EMBED_SRC, type LumaEvent } from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
 
 const partnerLogos = [
@@ -66,9 +66,6 @@ const partnerLogos = [
   { slug: "google", name: "Google", href: "https://www.google.com/", src: "/partners/google.png" },
   { slug: "rainbow", name: "Clay", href: "https://www.clay.com/", src: "/partners/partner-9.png" },
 ];
-
-const LUMA_CALENDAR_EMBED_SRC =
-  "https://luma.com/embed/calendar/cal-HH5XBdHyWPt0yhB/events?lt=light";
 
 // Every unfocused cover turns the same way, so the rail reads as one shelf of
 // records instead of a mirrored fan. The turn is a flat squeeze rather than a

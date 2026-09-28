@@ -19,7 +19,7 @@ type SelectProps = {
   onValueChange: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
-  value: string;
+  value?: string;
   "aria-label"?: string;
 };
 
@@ -75,7 +75,7 @@ export function Select({
     <SelectPrimitive.Root
       disabled={disabled}
       name={name}
-      value={value}
+      value={value || undefined}
       onValueChange={onValueChange}
     >
       <SelectPrimitive.Trigger

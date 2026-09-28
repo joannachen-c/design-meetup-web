@@ -1,0 +1,97 @@
+"use server";
+
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import {
+  clearAuthCookies,
+  getSessionUser,
+  passwordSignIn,
+  passwordSignUp,
+} from "@/lib/auth";
+import {
+  ensureDemoMembership,
+  ensureProfile,
+  userHasPortalAccess,
+} from "@/lib/membership-service";
+import { originFromHeaders, siteUrl } from "@/lib/site";
+import { sendWelcomeEmail } from "@/lib/welcome-email";
+
+function safeNext(raw: FormDataEntryValue | null) {
+  if (typeof raw !== "string" || !raw.startsWith("/")) return "/portal";
+  return raw;
+}
+
+export type AuthActionState = {
+  error?: string;
+};
+
+export async function loginAction(
+  _prev: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = String(formData.get("email") || "")
+    .trim()
+    .toLowerCase();
+  const password = String(formData.get("password") || "");
+  let next = safeNext(formData.get("next"));
+
+  if (!email || !password) {
+    return { error: "Enter your email and password." };
+  }
+
+  const result = await passwordSignIn(email, password);
+  if (!result.ok) return { error: result.error };
+
+  const user = await getSessionUser();
+  if (user?.email) {
+    await ensureDemoMembership(user.email, user.id);
+    if (
+      !(await userHasPortalAccess(user.id)) &&
+      !next.startsWith("/portal/subscribe")
+    ) {
+      next = "/portal/subscribe";
+    }
+  }
+
+  redirect(next);
+}
+
+export async function signupAction(
+  _prev: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const email = String(formData.get("email") || "")
+    .trim()
+    .toLowerCase();
+  const password = String(formData.get("password") || "");
+  const firstName = String(formData.get("firstName") || "").trim();
+  const lastName = String(formData.get("lastName") || "").trim();
+  const displayName = firstName
+    ? `${firstName} ${lastName}`.trim()
+    : String(formData.get("displayName") || "").trim();
+  const next = safeNext(formData.get("next"));
+
+  if (!firstName || !email || password.length < 8) {
+    return { error: "Use your first name, a valid email, and a password with at least 8 characters." };
+  }
+
+  const result = await passwordSignUp(email, password);
+  if (!result.ok) return { error: result.error };
+
+  if (result.userId) {
+    await ensureProfile({ id: result.userId, email, displayName });
+  }
+
+  await sendWelcomeEmail({
+    email,
+    firstName,
+    origin: originFromHeaders(await headers()) ?? siteUrl,
+  });
+
+  redirect(next.includes("subscribe") ? next : "/portal/subscribe");
+}
+
+export async function logoutAction() {
+  await clearAuthCookies();
+  redirect("/login");
+}

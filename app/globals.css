@@ -4,6 +4,7 @@
   --color-ink: oklch(22% 0.025 250);
   --color-muted: #6a7282;
   --color-subtle: oklch(70.7% 0.022 261.325);
+  --color-tertiary: oklch(70.7% 0.022 261.325);
   --color-surface: oklch(99.4% 0.003 264.542);
   --color-surface-muted: oklch(96.7% 0.003 264.542);
   --color-skeleton: oklch(93.2% 0.004 264.542);
@@ -66,6 +67,9 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100dvh;
+  font-family: "Alte Haas Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Balance short display copy while letting longer prose avoid a stranded final
@@ -183,7 +187,7 @@ html.is-loading body {
 }
 
 .site-header > :last-child {
-  grid-column: 9 / span 4;
+  grid-column: 6 / span 7;
   justify-self: end;
 }
 
@@ -203,7 +207,8 @@ html.is-loading body {
 
 .primary-navigation {
   display: flex;
-  gap: clamp(18px, 3vw, 42px);
+  flex-wrap: nowrap;
+  gap: clamp(14px, 2.2vw, 36px);
 }
 
 .site-header > .design-system-navigation {

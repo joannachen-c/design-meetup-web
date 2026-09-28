@@ -26,3 +26,57 @@ export const siteSameAs = [
   "https://x.com/designmeetuphq",
   "https://luma.com/designmeetup",
 ] as const;
+
+/**
+ * Origin for redirects after browser POSTs (auth, checkout, profile).
+ * Prefer the request's Origin / Host over NEXT_PUBLIC_SITE_URL so localhost
+ * and ephemeral tunnels don't cross-redirect and drop auth cookies.
+ */
+export function originFromHeaders(headerList: Headers) {
+  const originHeader = headerList.get("origin");
+  if (originHeader) {
+    try {
+      return new URL(originHeader).origin;
+    } catch {
+      // ignore invalid Origin
+    }
+  }
+
+  const referer = headerList.get("referer");
+  if (referer) {
+    try {
+      return new URL(referer).origin;
+    } catch {
+      // ignore invalid Referer
+    }
+  }
+
+  const forwardedHost = headerList.get("x-forwarded-host");
+  if (forwardedHost) {
+    const host = forwardedHost.split(",")[0]?.trim();
+    const proto =
+      headerList.get("x-forwarded-proto")?.split(",")[0]?.trim() || "https";
+    if (host) return `${proto}://${host}`;
+  }
+
+  const host = headerList.get("host");
+  if (host) {
+    const proto =
+      headerList.get("x-forwarded-proto")?.split(",")[0]?.trim() || "https";
+    return `${proto}://${host.split(",")[0]?.trim()}`;
+  }
+
+  return null;
+}
+
+export function requestOrigin(request: Request) {
+  return originFromHeaders(request.headers) ?? fallbackRequestOrigin(request);
+}
+
+function fallbackRequestOrigin(request: Request) {
+  try {
+    return new URL(request.url).origin;
+  } catch {
+    return siteUrl;
+  }
+}

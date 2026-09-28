@@ -144,12 +144,9 @@ export async function POST(request: Request) {
       subscription_data: {
         metadata: { supabase_user_id: user.id, tier },
       },
-      ...(applyComp
-        ? {
-            discounts: [{ coupon: compCouponId() }],
-            payment_method_collection: "if_required",
-          }
-        : {}),
+      ...(applyComp ? { discounts: [{ coupon: compCouponId() }] } : {}),
+      // Collect a card even when the coupon brings the total to $0.
+      payment_method_collection: "always",
     });
 
     if (!session.url) {

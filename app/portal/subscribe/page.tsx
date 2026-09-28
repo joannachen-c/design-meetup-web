@@ -65,13 +65,9 @@ export default async function SubscribePage({
         </Toast>
       ) : null}
 
-      <h1 className="m-0 mb-4 max-w-[16ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
+      <h1 className="m-0 mb-10 max-w-[16ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
         choose a membership.
       </h1>
-      <p className="m-0 mb-10 max-w-[46ch] text-base leading-normal text-muted">
-        student is $10 / month. professional is $35 / month. pay with{" "}
-        <span className="normal-case">Stripe</span> to open the portal.
-      </p>
       <SubscribeButtons />
     </main>
   );

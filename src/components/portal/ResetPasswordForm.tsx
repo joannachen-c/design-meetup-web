@@ -15,11 +15,13 @@ function readRecoveryTokens() {
     hash.get("access_token") || query.get("access_token") || "";
   const refresh_token =
     hash.get("refresh_token") || query.get("refresh_token") || "";
+  const token_hash = hash.get("token_hash") || query.get("token_hash") || "";
   const type = hash.get("type") || query.get("type") || "";
   const expires_in = Number(hash.get("expires_in") || query.get("expires_in") || "");
   return {
     access_token,
     refresh_token,
+    token_hash,
     type,
     expires_in: Number.isFinite(expires_in) ? expires_in : undefined,
   };
@@ -33,7 +35,10 @@ export function ResetPasswordForm({ nextPath }: { nextPath: string }) {
 
   useEffect(() => {
     const tokens = readRecoveryTokens();
-    if (!tokens.access_token || !tokens.refresh_token) {
+    if (
+      !tokens.token_hash &&
+      (!tokens.access_token || !tokens.refresh_token)
+    ) {
       setLinkError("this reset link is invalid or expired.");
       setReady(false);
       return;
@@ -48,6 +53,7 @@ export function ResetPasswordForm({ nextPath }: { nextPath: string }) {
           credentials: "same-origin",
           body: JSON.stringify({
             mode: "recovery-session",
+            token_hash: tokens.token_hash,
             access_token: tokens.access_token,
             refresh_token: tokens.refresh_token,
             expires_in: tokens.expires_in,

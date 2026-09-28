@@ -3,6 +3,7 @@ import { siteEmail, siteName, siteUrl } from "./site";
 
 const INK = "#191919";
 const PUBLIC_HOME_URL = "https://www.designmeetup.info";
+export const CALENDAR_URL = `${PUBLIC_HOME_URL}/#calendar`;
 
 export const welcomeSocialLinks = [
   {
@@ -33,27 +34,62 @@ export type WelcomeEmailInput = {
   origin?: string;
 };
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function paragraph(html: string, margin = "0 0 16px") {
+  return `<p style="margin:${margin};max-width:460px;font-size:16px;line-height:1.5;color:${INK};">${html}</p>`;
+}
+
+function paragraphsToHtml(paragraphs: string[]) {
+  return paragraphs
+    .map((item, index) =>
+      paragraph(
+        escapeHtml(item),
+        index === paragraphs.length - 1 ? "0 0 28px" : "0 0 16px",
+      ),
+    )
+    .join("");
+}
+
+function ctaButton(label: string, url: string) {
+  return `<table role="presentation" cellspacing="0" cellpadding="0" border="0">
+      <tr>
+        <td bgcolor="${INK}" style="background:${INK};border-radius:10px;">
+          <a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;background:${INK};color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;line-height:1;padding:14px 22px;border-radius:10px;">${escapeHtml(label)}</a>
+        </td>
+      </tr>
+    </table>`;
+}
+
 function emailChrome(input: {
   origin: string;
-  heading: string;
-  paragraphs: string[];
-  ctaLabel: string;
-  ctaUrl: string;
+  heading?: string;
+  bodyHtml: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  closingHtml?: string;
 }) {
   const homeUrl = PUBLIC_HOME_URL;
   const logoUrl = `${input.origin}/design-meetup-logo.png`;
   const socialRow = welcomeSocialLinks
     .map(
       (item) =>
-        `<td style="padding:0 16px 0 0;vertical-align:middle;"><a href="${item.href}" style="display:inline-block;line-height:0;text-decoration:none;" aria-label="${item.label}"><img src="${input.origin}/email/${item.icon}" alt="${item.label}" width="20" height="20" style="display:block;border:0;outline:none;"></a></td>`,
+        `<td style="padding:0 16px 0 0;vertical-align:middle;"><a href="${escapeHtml(item.href)}" style="display:inline-block;line-height:0;text-decoration:none;" aria-label="${escapeHtml(item.label)}"><img src="${escapeHtml(`${input.origin}/email/${item.icon}`)}" alt="${escapeHtml(item.label)}" width="20" height="20" style="display:block;border:0;outline:none;"></a></td>`,
     )
     .join("");
-  const body = input.paragraphs
-    .map((paragraph, index) => {
-      const margin = index === input.paragraphs.length - 1 ? "0 0 28px" : "0 0 16px";
-      return `<p style="margin:${margin};max-width:460px;font-size:16px;line-height:1.5;color:${INK};">${paragraph}</p>`;
-    })
-    .join("");
+  const heading = input.heading
+    ? `<h1 style="margin:32px 0 16px;font-size:28px;line-height:1.1;letter-spacing:-0.04em;font-weight:700;color:${INK};">${escapeHtml(input.heading)}</h1>`
+    : `<div style="height:32px;line-height:32px;font-size:0;">&nbsp;</div>`;
+  const cta =
+    input.ctaLabel && input.ctaUrl
+      ? ctaButton(input.ctaLabel, input.ctaUrl)
+      : "";
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -64,9 +100,10 @@ function emailChrome(input: {
           <a href="${homeUrl}" style="display:inline-block;line-height:0;text-decoration:none;">
             <img src="${logoUrl}" alt="${siteName}" width="48" height="48" style="display:block;border:0;outline:none;border-radius:50%;">
           </a>
-          <h1 style="margin:32px 0 16px;font-size:28px;line-height:1.1;letter-spacing:-0.04em;font-weight:700;color:${INK};">${input.heading}</h1>
-          ${body}
-          <a href="${input.ctaUrl}" style="display:inline-block;background:${INK};color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;line-height:1;padding:14px 22px;border-radius:10px;">${input.ctaLabel}</a>
+          ${heading}
+          ${input.bodyHtml}
+          ${cta}
+          ${input.closingHtml || ""}
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:40px;">
             <tr>
               <td style="border-top:1px solid #ececec;font-size:0;line-height:0;height:1px;">&nbsp;</td>
@@ -88,34 +125,56 @@ export function buildWelcomeEmail(input: WelcomeEmailInput) {
   const origin = (input.origin || siteUrl).replace(/\/$/, "");
   const loginUrl = `${origin}/login`;
   const firstName = (input.firstName || "").trim();
-  const greeting = firstName ? `hi ${firstName.toLowerCase()},` : "hi,";
-  const paragraphs = [
-    greeting,
-    "thanks for creating a design meetup account! we're so excited to have you as part of the community.",
-    "log in anytime to view your membership.",
-  ];
+  const greeting = firstName ? `Hi ${firstName},` : "Hi,";
+  const calendarLink = `<a href="${CALENDAR_URL}" style="color:${INK};text-decoration:underline;">here</a>`;
+  const bodyHtml = [
+    paragraph(escapeHtml(greeting)),
+    paragraph(
+      "Your Design Meetup account is officially set up. Welcome to the community!",
+    ),
+    paragraph("You can now:", "0 0 8px"),
+    `<ul style="margin:0 0 16px;padding:0 0 0 22px;max-width:460px;font-size:16px;line-height:1.5;color:${INK};">
+      <li style="margin:0 0 8px;">Connect with designers in the Slack community</li>
+      <li style="margin:0;">Get early and guaranteed access to our events</li>
+    </ul>`,
+    paragraph(`Take a look at what's coming up in NYC/SF/LA ${calendarLink}.`, "0 0 28px"),
+  ].join("");
+  const closingHtml = [
+    paragraph("&lt;3,", "28px 0 4px"),
+    paragraph("Design Meetup", "0 0 8px"),
+  ].join("");
   const text = [
-    ...paragraphs,
+    greeting,
+    "",
+    "Your Design Meetup account is officially set up. Welcome to the community!",
+    "",
+    "You can now:",
+    "- Connect with designers in the Slack community",
+    "- Get early and guaranteed access to our events",
+    "",
+    "Take a look at what's coming up in NYC/SF/LA here.",
+    CALENDAR_URL,
     "",
     `View Account: ${loginUrl}`,
     "",
-    siteName,
-  ].join("\n\n");
+    "<3,",
+    "Design Meetup",
+  ].join("\n");
   const { html, logoUrl } = emailChrome({
     origin,
-    heading: "your account is ready.",
-    paragraphs,
+    bodyHtml,
     ctaLabel: "View Account",
     ctaUrl: loginUrl,
+    closingHtml,
   });
 
   return {
     to: input.email,
     replyTo: siteEmail,
-    subject: "your design meetup account",
+    subject: "Welcome to Design Meetup",
     text,
     html,
-    loginUrl,
+    calendarUrl: CALENDAR_URL,
     logoUrl,
   };
 }
@@ -139,7 +198,7 @@ export function buildGraduationUpgradeEmail(input: WelcomeEmailInput) {
   const { html, logoUrl } = emailChrome({
     origin,
     heading: "you're on professional now.",
-    paragraphs,
+    bodyHtml: paragraphsToHtml(paragraphs),
     ctaLabel: "View Account",
     ctaUrl: loginUrl,
   });
@@ -230,7 +289,7 @@ export function buildPasswordResetEmail(input: PasswordResetEmailInput) {
   const { html, logoUrl } = emailChrome({
     origin,
     heading: "reset your password.",
-    paragraphs,
+    bodyHtml: paragraphsToHtml(paragraphs),
     ctaLabel: "Reset Password",
     ctaUrl: input.resetUrl,
   });

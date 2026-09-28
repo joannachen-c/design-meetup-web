@@ -279,11 +279,12 @@ export type PasswordResetEmailInput = {
 export function buildPasswordResetEmail(input: PasswordResetEmailInput) {
   const origin = (input.origin || siteUrl).replace(/\/$/, "");
   const paragraphs = [
-    "hi,",
-    "we got a request to reset your design meetup password. click below to choose a new one.",
-    "if you didn't ask for this, you can ignore this email.",
+    "This is a password reset for your Design Meetup account. Click below to choose a new password.",
+    "If you didn't ask for this, you can ignore this email.",
   ];
   const text = [
+    "Reset your Design Meetup password",
+    "",
     ...paragraphs,
     "",
     `Reset Password: ${input.resetUrl}`,
@@ -292,7 +293,7 @@ export function buildPasswordResetEmail(input: PasswordResetEmailInput) {
   ].join("\n\n");
   const { html, logoUrl } = emailChrome({
     origin,
-    heading: "reset your password.",
+    heading: "Reset your Design Meetup password",
     bodyHtml: paragraphsToHtml(paragraphs),
     ctaLabel: "Reset Password",
     ctaUrl: input.resetUrl,
@@ -301,7 +302,7 @@ export function buildPasswordResetEmail(input: PasswordResetEmailInput) {
   return {
     to: input.email,
     replyTo: siteEmail,
-    subject: "reset your design meetup password",
+    subject: "Reset your Design Meetup password",
     text,
     html,
     resetUrl: input.resetUrl,

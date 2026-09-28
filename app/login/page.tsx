@@ -22,7 +22,11 @@ function nextFromSearch(raw: string | string[] | undefined) {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string | string[]; error?: string | string[] }>;
+  searchParams: Promise<{
+    next?: string | string[];
+    error?: string | string[];
+    reset?: string | string[];
+  }>;
 }) {
   const user = await getSessionUser();
   const params = await searchParams;
@@ -38,6 +42,8 @@ export default async function LoginPage({
     redirect(nextPath);
   }
   const errorParam = Array.isArray(params.error) ? params.error[0] : params.error;
+  const resetParam = Array.isArray(params.reset) ? params.reset[0] : params.reset;
+  const passwordSaved = resetParam === "1" || resetParam === "true";
 
   return (
     <div className="grid min-h-dvh bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
@@ -61,6 +67,11 @@ export default async function LoginPage({
             <h1 className="m-0 mb-10 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em] lowercase">
               welcome back.
             </h1>
+            {passwordSaved ? (
+              <p className="mb-6 m-0 text-base text-ink">
+                password saved. log in with your new password.
+              </p>
+            ) : null}
             {errorParam ? (
               <p className="mb-6 m-0 text-base text-red-700" role="alert">
                 {errorParam}

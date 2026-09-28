@@ -57,6 +57,10 @@ function paragraphsToHtml(paragraphs: string[]) {
     .join("");
 }
 
+function ctaButton(label: string, url: string) {
+  return `<a href="${escapeHtml(url)}" style="display:inline-block;background:${INK};color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;line-height:1;padding:14px 22px;border-radius:10px;">${escapeHtml(label)}</a>`;
+}
+
 function emailChrome(input: {
   origin: string;
   heading?: string;
@@ -77,7 +81,7 @@ function emailChrome(input: {
     : `<div style="height:32px;line-height:32px;font-size:0;">&nbsp;</div>`;
   const cta =
     input.ctaLabel && input.ctaUrl
-      ? `<a href="${escapeHtml(input.ctaUrl)}" style="display:inline-block;background:${INK};color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;line-height:1;padding:14px 22px;border-radius:10px;">${escapeHtml(input.ctaLabel)}</a>`
+      ? ctaButton(input.ctaLabel, input.ctaUrl)
       : "";
 
   const html = `<!DOCTYPE html>
@@ -111,6 +115,7 @@ function emailChrome(input: {
 
 export function buildWelcomeEmail(input: WelcomeEmailInput) {
   const origin = (input.origin || siteUrl).replace(/\/$/, "");
+  const loginUrl = `${origin}/login`;
   const firstName = (input.firstName || "").trim();
   const greeting = firstName ? `Hi ${firstName},` : "Hi,";
   const calendarLink = `<a href="${CALENDAR_URL}" style="color:${INK};text-decoration:underline;">here</a>`;
@@ -125,6 +130,7 @@ export function buildWelcomeEmail(input: WelcomeEmailInput) {
       <li style="margin:0;">Get early and guaranteed access to our events</li>
     </ul>`,
     paragraph(`Take a look at what's coming up in NYC/SF/LA ${calendarLink}.`),
+    `<div style="margin:12px 0 28px;">${ctaButton("View Account", loginUrl)}</div>`,
     paragraph("&lt;3,", "0 0 4px"),
     paragraph("Design Meetup", "0 0 8px"),
   ].join("");
@@ -139,6 +145,8 @@ export function buildWelcomeEmail(input: WelcomeEmailInput) {
     "",
     "Take a look at what's coming up in NYC/SF/LA here.",
     CALENDAR_URL,
+    "",
+    `View Account: ${loginUrl}`,
     "",
     "<3,",
     "Design Meetup",

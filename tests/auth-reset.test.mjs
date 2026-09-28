@@ -58,5 +58,6 @@ test("password reset email uses the same chrome as welcome mail", async () => {
   assert.match(welcome, /reset your password\./);
   assert.match(welcome, /ctaLabel: "Reset Password"/);
   assert.match(welcome, /if you didn't ask for this/);
-  assert.match(welcome, /href="\$\{escapeHtml\(input\.ctaUrl\)\}"/);
+  assert.match(welcome, /function ctaButton/);
+  assert.match(welcome, /background:\$\{INK\}/);
 });

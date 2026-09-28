@@ -39,7 +39,8 @@ test("welcome email uses the account-ready copy and calendar link", async () => 
   assert.match(welcome, />here<\/a>/);
   assert.match(welcome, /&lt;3,/);
   assert.match(welcome, /"<3,"/);
-  assert.match(welcome, /ctaButton\("View Account", loginUrl\)/);
+  assert.match(welcome, /ctaLabel: "View Account"/);
+  assert.match(welcome, /ctaUrl: loginUrl/);
   assert.match(welcome, /View Account: \$\{loginUrl\}/);
   assert.match(welcome, /https:\/\/www\.designmeetup\.info/);
   assert.match(welcome, /\$\{input\.origin\}\/design-meetup-logo\.png/);

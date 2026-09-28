@@ -58,7 +58,13 @@ function paragraphsToHtml(paragraphs: string[]) {
 }
 
 function ctaButton(label: string, url: string) {
-  return `<a href="${escapeHtml(url)}" style="display:inline-block;background:${INK};color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;line-height:1;padding:14px 22px;border-radius:10px;">${escapeHtml(label)}</a>`;
+  return `<table role="presentation" cellspacing="0" cellpadding="0" border="0">
+      <tr>
+        <td bgcolor="${INK}" style="background:${INK};border-radius:10px;">
+          <a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;background:${INK};color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;line-height:1;padding:14px 22px;border-radius:10px;">${escapeHtml(label)}</a>
+        </td>
+      </tr>
+    </table>`;
 }
 
 function emailChrome(input: {
@@ -67,6 +73,7 @@ function emailChrome(input: {
   bodyHtml: string;
   ctaLabel?: string;
   ctaUrl?: string;
+  closingHtml?: string;
 }) {
   const homeUrl = PUBLIC_HOME_URL;
   const logoUrl = `${input.origin}/design-meetup-logo.png`;
@@ -96,6 +103,7 @@ function emailChrome(input: {
           ${heading}
           ${input.bodyHtml}
           ${cta}
+          ${input.closingHtml || ""}
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:40px;">
             <tr>
               <td style="border-top:1px solid #ececec;font-size:0;line-height:0;height:1px;">&nbsp;</td>
@@ -129,9 +137,10 @@ export function buildWelcomeEmail(input: WelcomeEmailInput) {
       <li style="margin:0 0 8px;">Connect with designers in the Slack community</li>
       <li style="margin:0;">Get early and guaranteed access to our events</li>
     </ul>`,
-    paragraph(`Take a look at what's coming up in NYC/SF/LA ${calendarLink}.`),
-    `<div style="margin:12px 0 28px;">${ctaButton("View Account", loginUrl)}</div>`,
-    paragraph("&lt;3,", "0 0 4px"),
+    paragraph(`Take a look at what's coming up in NYC/SF/LA ${calendarLink}.`, "0 0 28px"),
+  ].join("");
+  const closingHtml = [
+    paragraph("&lt;3,", "28px 0 4px"),
     paragraph("Design Meetup", "0 0 8px"),
   ].join("");
   const text = [
@@ -154,6 +163,9 @@ export function buildWelcomeEmail(input: WelcomeEmailInput) {
   const { html, logoUrl } = emailChrome({
     origin,
     bodyHtml,
+    ctaLabel: "View Account",
+    ctaUrl: loginUrl,
+    closingHtml,
   });
 
   return {

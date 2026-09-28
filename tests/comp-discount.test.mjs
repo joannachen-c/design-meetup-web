@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   checkoutFailureCode,
+  couponIdFromPromo,
   lookupCompCheckoutDiscount,
 } from "../src/lib/comp-discount.ts";
 
@@ -51,7 +52,10 @@ test("lookup uses the coupon attached to a promo_ id", async () => {
         },
       },
       promotionCodes: {
-        retrieve: async (id) => ({ id, coupon: "nVubzSJY" }),
+        retrieve: async (id) => ({
+          id,
+          promotion: { coupon: "nVubzSJY", type: "coupon" },
+        }),
         list: async () => ({ data: [] }),
       },
     },
@@ -99,6 +103,16 @@ test("lookup throws when the id exists in neither live coupons nor promotion cod
       }),
     /No such coupon or promotion code/,
   );
+});
+
+test("coupon id is read from promotion.coupon or a top-level coupon", () => {
+  assert.equal(
+    couponIdFromPromo({ promotion: { coupon: "nVubzSJY", type: "coupon" } }),
+    "nVubzSJY",
+  );
+  assert.equal(couponIdFromPromo({ coupon: "legacy_id" }), "legacy_id");
+  assert.equal(couponIdFromPromo({ coupon: { id: "obj_id" } }), "obj_id");
+  assert.equal(couponIdFromPromo({}), "");
 });
 
 test("checkout maps missing coupons to coupon and bad keys to stripe", () => {

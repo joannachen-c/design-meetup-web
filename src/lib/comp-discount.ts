@@ -7,9 +7,7 @@ export type CheckoutDiscount =
 export type CompDiscountStripe = {
   coupons: { retrieve: (id: string) => Promise<unknown> };
   promotionCodes: {
-    retrieve: (
-      id: string,
-    ) => Promise<{ coupon: string | { id?: string } | null }>;
+    retrieve: (id: string) => Promise<unknown>;
     list: (params: {
       code: string;
       active?: boolean;
@@ -70,12 +68,24 @@ export function checkoutFailureCode(error: unknown) {
   return "checkout" as const;
 }
 
-function couponIdFromPromo(
-  coupon: string | { id?: string } | null | undefined,
-) {
+function couponId(coupon: unknown) {
   if (!coupon) return "";
   if (typeof coupon === "string") return coupon;
-  return coupon.id || "";
+  if (typeof coupon === "object" && coupon && "id" in coupon) {
+    const id = (coupon as { id?: unknown }).id;
+    return typeof id === "string" ? id : "";
+  }
+  return "";
+}
+
+/** Current Stripe promo objects store the coupon on `promotion.coupon`. */
+export function couponIdFromPromo(promo: unknown) {
+  if (!promo || typeof promo !== "object") return "";
+  const record = promo as {
+    coupon?: unknown;
+    promotion?: { coupon?: unknown };
+  };
+  return couponId(record.promotion?.coupon) || couponId(record.coupon);
 }
 
 export async function lookupCompCheckoutDiscount(
@@ -94,8 +104,8 @@ export async function lookupCompCheckoutDiscount(
   if (trimmed.startsWith("promo_")) {
     try {
       const promo = await stripe.promotionCodes.retrieve(trimmed);
-      const couponId = couponIdFromPromo(promo.coupon);
-      if (couponId) return { coupon: couponId };
+      const idFromPromo = couponIdFromPromo(promo);
+      if (idFromPromo) return { coupon: idFromPromo };
     } catch (error) {
       if (isMissingStripeResource(error)) throw error;
     }

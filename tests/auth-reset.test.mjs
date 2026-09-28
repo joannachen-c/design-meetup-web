@@ -11,6 +11,7 @@ test("wrong login credentials reveal a forgot-password link", async () => {
   assert.match(form, /forgot your password\?/);
   assert.match(form, /mode: "recover"/);
   assert.match(form, /send reset link/);
+  assert.match(form, /variant="secondary"/);
   assert.match(
     form,
     /if an account exists for that email, we sent a link to reset your password/,

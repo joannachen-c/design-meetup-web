@@ -112,16 +112,35 @@ export const DEFAULT_STRIPE_PRICE_STUDENT =
 export const DEFAULT_STRIPE_PRICE_PROFESSIONAL =
   "price_1UIVG2RTgiLNfq1KTLqH7jof";
 
+const TEST_MODE_PRICE_IDS = new Set([
+  DEFAULT_STRIPE_PRICE_STUDENT,
+  DEFAULT_STRIPE_PRICE_PROFESSIONAL,
+]);
+
+function envValue(name: string) {
+  return (process.env[name] ?? "").trim();
+}
+
+function usingLiveStripeKey() {
+  return envValue("STRIPE_SECRET_KEY").startsWith("sk_live_");
+}
+
 function configuredPriceId(tier: Tier) {
-  const fromEnv =
+  const fromEnv = envValue(
     tier === "student"
-      ? process.env.STRIPE_PRICE_STUDENT_MONTHLY
-      : process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY;
-  const trimmed = fromEnv?.trim();
-  if (trimmed) return trimmed;
-  return tier === "student"
-    ? DEFAULT_STRIPE_PRICE_STUDENT
-    : DEFAULT_STRIPE_PRICE_PROFESSIONAL;
+      ? "STRIPE_PRICE_STUDENT_MONTHLY"
+      : "STRIPE_PRICE_PROFESSIONAL_MONTHLY",
+  );
+  const id =
+    fromEnv ||
+    (tier === "student"
+      ? DEFAULT_STRIPE_PRICE_STUDENT
+      : DEFAULT_STRIPE_PRICE_PROFESSIONAL);
+  // Test-mode catalog ids cannot be charged with a live secret key.
+  if (usingLiveStripeKey() && TEST_MODE_PRICE_IDS.has(id)) {
+    return `price_local_${tier}`;
+  }
+  return id;
 }
 
 export function tierFromPriceId(priceId: string | null | undefined): Tier | null {

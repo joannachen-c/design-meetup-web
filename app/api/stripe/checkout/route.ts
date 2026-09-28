@@ -129,17 +129,9 @@ export async function POST(request: Request) {
 
     const priceId = priceIdForTier(tier);
     if (priceId.startsWith("price_local_")) {
-      if (parsed.kind === "form") {
-        return NextResponse.redirect(
-          new URL("/portal/subscribe?error=price", origin),
-          303,
-        );
-      }
-      return NextResponse.json(
-        {
-          error: `Missing Stripe Price id for ${TIER_CATALOG[tier].name}. Set STRIPE_PRICE_${tier.toUpperCase()}_MONTHLY.`,
-        },
-        { status: 500 },
+      return checkoutError(
+        `Missing live Stripe Price id for ${TIER_CATALOG[tier].name}. Set STRIPE_PRICE_${tier.toUpperCase()}_MONTHLY to a live price id, then redeploy.`,
+        "price",
       );
     }
 
@@ -194,6 +186,13 @@ export async function POST(request: Request) {
         stripeMessage ||
           "couldn't apply the free membership coupon. please try again later.",
         "coupon",
+      );
+    }
+    if (code === "price") {
+      return checkoutError(
+        stripeMessage ||
+          "billing isn't set up correctly yet. please try again later.",
+        "price",
       );
     }
     return checkoutError(

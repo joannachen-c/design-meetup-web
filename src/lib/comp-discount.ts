@@ -57,6 +57,9 @@ export function checkoutFailureCode(error: unknown) {
     return "stripe" as const;
   }
   if (/api key/i.test(message)) return "stripe" as const;
+  if (/no such price|similar object exists in test mode/i.test(message)) {
+    return "price" as const;
+  }
   if (
     /no such coupon|no such promotion code/i.test(message) ||
     (/coupon|promotion code|discount/i.test(message) &&

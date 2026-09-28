@@ -127,6 +127,13 @@ test("checkout maps missing coupons to coupon and bad keys to stripe", () => {
     "stripe",
   );
   assert.equal(
+    checkoutFailureCode({
+      message:
+        "No such price: 'price_1UIVFiRTgiLNfq1Kv7KyAwmF'; a similar object exists in test mode, but a live mode key was used to make this request.",
+    }),
+    "price",
+  );
+  assert.equal(
     checkoutFailureCode({ message: "No such customer: 'cus_123'" }),
     "checkout",
   );

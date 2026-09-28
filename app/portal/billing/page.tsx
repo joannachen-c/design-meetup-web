@@ -60,8 +60,8 @@ export default async function BillingPage({
         billing
       </h1>
 
-      <div className="grid max-w-xl gap-4">
-        <div className="rounded-[20px] bg-gray-100 p-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="flex flex-col rounded-[20px] bg-gray-100 p-6">
           <p className="m-0 mb-4 text-sm font-bold text-muted">current plan</p>
           <p className="m-0 text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
             {TIER_CATALOG[membership.tier].name}
@@ -71,7 +71,7 @@ export default async function BillingPage({
           </p>
         </div>
 
-        <div className="rounded-[20px] bg-gray-100 p-6">
+        <div className="flex flex-col rounded-[20px] bg-gray-100 p-6">
           <p className="m-0 mb-4 text-sm font-bold text-muted">status</p>
           <p className="m-0 text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
             {membership.status}
@@ -83,7 +83,38 @@ export default async function BillingPage({
           </p>
         </div>
 
-        <div className="rounded-[20px] bg-gray-100 p-6">
+        <div className="flex flex-col rounded-[20px] bg-gray-100 p-6">
+          <p className="m-0 mb-4 text-sm font-bold text-muted">
+            billing renews
+          </p>
+          <p className="m-0 text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
+            {renews}
+          </p>
+          <form
+            action="/api/portal/billing"
+            method="post"
+            className="mt-auto flex justify-end pt-6"
+          >
+            <input
+              type="hidden"
+              name="action"
+              value={membership.cancelAtPeriodEnd ? "resume" : "cancel"}
+            />
+            <Primary
+              type="submit"
+              variant="secondary"
+              className="lowercase bg-gray-200! text-ink hover:bg-gray-300!"
+            >
+              {membership.cancelAtPeriodEnd
+                ? "keep subscription"
+                : "cancel at period end"}
+            </Primary>
+          </form>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="flex flex-col rounded-[20px] bg-gray-100 p-6">
           <p className="m-0 mb-4 text-sm font-bold text-muted">payment method</p>
           {card ? (
             <>
@@ -104,12 +135,12 @@ export default async function BillingPage({
               </p>
             </>
           )}
-          <div className="mt-6 flex justify-end">
+          <div className="mt-auto flex justify-end pt-6">
             <ManageBillingButton label="update card" flow="payment_method_update" />
           </div>
         </div>
 
-        <div className="rounded-[20px] bg-gray-100 p-6">
+        <div className="flex flex-col rounded-[20px] bg-gray-100 p-6">
           <p className="m-0 mb-4 text-sm font-bold text-muted">invoices</p>
           {invoices.length ? (
             <ul className="m-0 grid list-none gap-4 p-0">
@@ -147,34 +178,9 @@ export default async function BillingPage({
               invoices appear here after a payment.
             </p>
           )}
-          <div className="mt-6 flex justify-end">
+          <div className="mt-auto flex justify-end pt-6">
             <ManageBillingButton label="view in Stripe" />
           </div>
-        </div>
-
-        <div className="rounded-[20px] bg-gray-100 p-6">
-          <p className="m-0 mb-4 text-sm font-bold text-muted">
-            billing renews
-          </p>
-          <p className="m-0 text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
-            {renews}
-          </p>
-          <form action="/api/portal/billing" method="post" className="mt-6 flex justify-end">
-            <input
-              type="hidden"
-              name="action"
-              value={membership.cancelAtPeriodEnd ? "resume" : "cancel"}
-            />
-            <Primary
-              type="submit"
-              variant="secondary"
-              className="lowercase bg-gray-200! text-ink hover:bg-gray-300!"
-            >
-              {membership.cancelAtPeriodEnd
-                ? "keep subscription"
-                : "cancel at period end"}
-            </Primary>
-          </form>
         </div>
       </div>
     </main>

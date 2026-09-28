@@ -114,6 +114,9 @@ test("the billing page has a home breadcrumb, cards, and invoices", async () => 
   assert.match(page, /normal-case">Stripe</);
   assert.match(page, /renews automatically, every month/);
   assert.match(page, /rounded-\[20px\] bg-gray-100 p-6/);
+  assert.match(page, /md:grid-cols-3/);
+  assert.match(page, /md:grid-cols-2/);
+  assert.doesNotMatch(page, /max-w-xl/);
   assert.doesNotMatch(page, /bg-gray-50/);
   assert.match(button, /name="flow"/);
   assert.match(route, /flow_data|flow,/);

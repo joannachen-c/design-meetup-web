@@ -206,3 +206,50 @@ export async function sendGraduationUpgradeEmail(input: WelcomeEmailInput) {
     "graduation upgrade email failed",
   );
 }
+
+export type PasswordResetEmailInput = {
+  email: string;
+  resetUrl: string;
+  origin?: string;
+};
+
+export function buildPasswordResetEmail(input: PasswordResetEmailInput) {
+  const origin = (input.origin || siteUrl).replace(/\/$/, "");
+  const paragraphs = [
+    "hi,",
+    "we got a request to reset your design meetup password. click below to choose a new one.",
+    "if you didn't ask for this, you can ignore this email.",
+  ];
+  const text = [
+    ...paragraphs,
+    "",
+    `Reset Password: ${input.resetUrl}`,
+    "",
+    siteName,
+  ].join("\n\n");
+  const { html, logoUrl } = emailChrome({
+    origin,
+    heading: "reset your password.",
+    paragraphs,
+    ctaLabel: "Reset Password",
+    ctaUrl: input.resetUrl,
+  });
+
+  return {
+    to: input.email,
+    replyTo: siteEmail,
+    subject: "reset your design meetup password",
+    text,
+    html,
+    resetUrl: input.resetUrl,
+    logoUrl,
+  };
+}
+
+export async function sendPasswordResetEmail(input: PasswordResetEmailInput) {
+  return sendBuiltEmail(
+    buildPasswordResetEmail(input),
+    "password reset email skipped: Gmail is not configured",
+    "password reset email failed",
+  );
+}

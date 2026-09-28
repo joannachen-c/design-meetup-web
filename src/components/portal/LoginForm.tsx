@@ -80,6 +80,9 @@ export function LoginForm({
   const [emailError, setEmailError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotLink, setShowForgotLink] = useState(false);
+  const [view, setView] = useState<"form" | "forgot">("form");
+  const [resetSent, setResetSent] = useState(false);
 
   async function authenticate(
     email: string,
@@ -118,6 +121,7 @@ export function LoginForm({
         }
       }
       if (!response.ok || !payload.url) {
+        if (authMode === "login") setShowForgotLink(true);
         // Existing demo accounts should land on login, not a dead-end signup error.
         if (
           authMode === "signup" &&
@@ -171,6 +175,43 @@ export function LoginForm({
     const password = String(form.get("password") || "");
     setError(null);
     setEmailError(null);
+    if (view === "forgot") {
+      if (!email) {
+        setError("enter the email for your account.");
+        return;
+      }
+      setPending(true);
+      try {
+        const response = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ mode: "recover", email, next: nextPath }),
+        });
+        const raw = await response.text();
+        let payload: { error?: string; sent?: boolean } = {};
+        if (raw) {
+          try {
+            payload = JSON.parse(raw) as { error?: string; sent?: boolean };
+          } catch {
+            setError("couldn't send a reset link. try again in a moment.");
+            setPending(false);
+            return;
+          }
+        }
+        if (!response.ok) {
+          setError(payload.error || "couldn't send a reset link. try again in a moment.");
+          setPending(false);
+          return;
+        }
+        setResetSent(true);
+        setError(null);
+      } catch {
+        setError("couldn't send a reset link. try again in a moment.");
+      }
+      setPending(false);
+      return;
+    }
     if (mode === "signup" && !firstName) {
       setError("Enter your first name.");
       return;
@@ -253,63 +294,112 @@ export function LoginForm({
             </p>
           ) : null}
         </div>
-        <label className="grid gap-2">
-          <span className="text-sm font-bold text-muted">password</span>
-          <span className="relative block">
-            <Input
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete={
-                mode === "login" ? "current-password" : "new-password"
-              }
-              required
-              minLength={mode === "signup" ? 8 : undefined}
-              placeholder="••••••••"
-              className="pr-12"
-            />
-            <Tooltip
-              content={showPassword ? "hide password" : "show password"}
-            >
-              <button
-                type="button"
-                className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-subtle transition-colors duration-150 ease-out hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-                aria-label={showPassword ? "hide password" : "show password"}
-                aria-pressed={showPassword}
-                onClick={() => setShowPassword((value) => !value)}
+        {view === "forgot" ? (
+          <p className="m-0 text-base text-muted">
+            {resetSent
+              ? "if an account exists for that email, we sent a link to reset your password."
+              : "enter the email for your account. we'll send a link to reset your password."}
+          </p>
+        ) : (
+          <label className="grid gap-2">
+            <span className="text-sm font-bold text-muted">password</span>
+            <span className="relative block">
+              <Input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete={
+                  mode === "login" ? "current-password" : "new-password"
+                }
+                required
+                minLength={mode === "signup" ? 8 : undefined}
+                placeholder="••••••••"
+                className="pr-12"
+              />
+              <Tooltip
+                content={showPassword ? "hide password" : "show password"}
               >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </Tooltip>
-          </span>
-        </label>
+                <button
+                  type="button"
+                  className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-subtle transition-colors duration-150 ease-out hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                  aria-label={showPassword ? "hide password" : "show password"}
+                  aria-pressed={showPassword}
+                  onClick={() => setShowPassword((value) => !value)}
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </Tooltip>
+            </span>
+          </label>
+        )}
         {error ? (
           <p className="m-0 text-base text-red-700" role="alert">
             {error}
           </p>
         ) : null}
-        <div className="mt-2 flex flex-wrap items-center gap-3 lowercase">
-          <Primary
-            type="submit"
-            variant="ink"
-            loading={pending}
-            disabled={pending}
+        {mode === "login" && view === "form" && showForgotLink ? (
+          <button
+            type="button"
+            className="m-0 cursor-pointer border-0 bg-transparent p-0 text-left text-base text-muted underline decoration-1 underline-offset-4 hover:text-ink"
+            onClick={() => {
+              setView("forgot");
+              setError(null);
+              setResetSent(false);
+            }}
           >
-            {mode === "login" ? "log in" : "create account"}
-          </Primary>
-          {mode === "login" ? (
-            <a
-              className="inline-flex min-h-11 items-center rounded-[10px] px-4 text-base text-muted no-underline hover:bg-surface-muted hover:text-ink"
-              href={`/signup?next=${encodeURIComponent(nextPath)}`}
-            >
-              create an account
-            </a>
+            forgot your password?
+          </button>
+        ) : null}
+        <div className="mt-2 flex flex-wrap items-center gap-3 lowercase">
+          {view === "forgot" ? (
+            <>
+              {resetSent ? null : (
+                <Primary
+                  type="submit"
+                  variant="ink"
+                  loading={pending}
+                  disabled={pending}
+                >
+                  send reset link
+                </Primary>
+              )}
+              <button
+                type="button"
+                className="inline-flex min-h-11 cursor-pointer items-center rounded-[10px] border-0 bg-transparent px-4 text-base text-muted hover:bg-surface-muted hover:text-ink"
+                onClick={() => {
+                  setView("form");
+                  setError(null);
+                  setResetSent(false);
+                }}
+              >
+                back to log in
+              </button>
+            </>
           ) : (
-            <a
-              className="inline-flex min-h-11 items-center rounded-[10px] px-4 text-base text-muted no-underline hover:bg-surface-muted hover:text-ink"
-              href={`/login?next=${encodeURIComponent(nextPath)}`}
-            >
-              log in
-            </a>
+            <>
+              <Primary
+                type="submit"
+                variant="ink"
+                loading={pending}
+                disabled={pending}
+              >
+                {mode === "login" ? "log in" : "create account"}
+              </Primary>
+              {mode === "login" ? (
+                <a
+                  className="inline-flex min-h-11 items-center rounded-[10px] px-4 text-base text-muted no-underline hover:bg-surface-muted hover:text-ink"
+                  href={`/signup?next=${encodeURIComponent(nextPath)}`}
+                >
+                  create an account
+                </a>
+              ) : (
+                <a
+                  className="inline-flex min-h-11 items-center rounded-[10px] px-4 text-base text-muted no-underline hover:bg-surface-muted hover:text-ink"
+                  href={`/login?next=${encodeURIComponent(nextPath)}`}
+                >
+                  log in
+                </a>
+              )}
+            </>
           )}
         </div>
       </form>

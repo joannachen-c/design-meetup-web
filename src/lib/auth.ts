@@ -19,6 +19,8 @@ import {
   isApprovedSignupEmail,
   UNAPPROVED_SIGNUP_ERROR,
 } from "./signup-allowlist";
+import { gmailConfigured } from "./gmail-smtp";
+import { sendPasswordResetEmail } from "./welcome-email";
 
 /** Server-only admin client. Never import from client components. */
 export function createAdminClient() {
@@ -117,6 +119,130 @@ async function localPasswordSignUp(email: string, _password: string) {
   const userId = randomUUID();
   await setLocalAuthCookies({ id: userId, email: normalized });
   return { ok: true as const, userId };
+}
+
+export async function requestPasswordReset(email: string, origin: string) {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized || !supabaseAuthConfigured()) {
+    return { ok: true as const };
+  }
+
+  try {
+    const redirectTo = `${origin.replace(/\/$/, "")}/reset-password`;
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.admin.generateLink({
+      type: "recovery",
+      email: normalized,
+      options: { redirectTo },
+    });
+    const resetUrl = data?.properties?.action_link;
+    if (error || !resetUrl) return { ok: true as const };
+
+    if (gmailConfigured()) {
+      await sendPasswordResetEmail({
+        email: normalized,
+        resetUrl,
+        origin,
+      });
+      return { ok: true as const };
+    }
+
+    await fetch(`${supabaseUrl()}/auth/v1/recover`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey(),
+        Authorization: `Bearer ${serviceRoleKey()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: normalized }),
+    });
+  } catch (error) {
+    console.error("password reset request failed", error);
+  }
+  return { ok: true as const };
+}
+
+export async function setRecoverySession(input: {
+  access_token: string;
+  refresh_token: string;
+  expires_in?: number;
+}) {
+  if (!input.access_token || !input.refresh_token) {
+    return {
+      ok: false as const,
+      error: "this reset link is invalid or expired.",
+    };
+  }
+  if (!supabaseAuthConfigured()) {
+    const local = decodeLocalSession(input.access_token);
+    if (!local) {
+      return {
+        ok: false as const,
+        error: "this reset link is invalid or expired.",
+      };
+    }
+    await setAuthCookies({
+      access_token: input.access_token,
+      refresh_token: input.refresh_token,
+      expires_in: input.expires_in,
+    });
+    return { ok: true as const };
+  }
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.getUser(input.access_token);
+    if (error || !data.user) {
+      return {
+        ok: false as const,
+        error: "this reset link is invalid or expired.",
+      };
+    }
+    await setAuthCookies({
+      access_token: input.access_token,
+      refresh_token: input.refresh_token,
+      expires_in: input.expires_in,
+    });
+    return { ok: true as const };
+  } catch {
+    return {
+      ok: false as const,
+      error: "this reset link is invalid or expired.",
+    };
+  }
+}
+
+export async function updatePassword(password: string) {
+  if (password.length < 8) {
+    return {
+      ok: false as const,
+      error: "password must be at least 8 characters.",
+    };
+  }
+  const user = await getSessionUser();
+  if (!user) {
+    return {
+      ok: false as const,
+      error: "this reset link is invalid or expired.",
+    };
+  }
+  if (!supabaseAuthConfigured()) {
+    return { ok: true as const };
+  }
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin.auth.admin.updateUserById(user.id, {
+      password,
+    });
+    if (error) {
+      return { ok: false as const, error: error.message };
+    }
+    return { ok: true as const };
+  } catch {
+    return {
+      ok: false as const,
+      error: "couldn't update your password. try again in a moment.",
+    };
+  }
 }
 
 export async function getSessionUser(): Promise<User | null> {

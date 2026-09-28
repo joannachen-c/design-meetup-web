@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const root = new URL("../", import.meta.url);
@@ -20,12 +20,19 @@ test("welcome email is a simple logo, message, View Account CTA, and footer soci
   const welcome = await read("src/lib/welcome-email.ts");
   assert.match(welcome, /subject: "your design meetup account"/);
   assert.match(welcome, /\$\{origin\}\/login/);
-  assert.match(welcome, /\$\{origin\}\/design-meetup-logo\.png/);
-  assert.match(welcome, />View Account</);
+  assert.match(welcome, /\$\{input\.origin\}\/design-meetup-logo\.png/);
+  assert.match(welcome, /https:\/\/www\.designmeetup\.info/);
+  assert.match(welcome, /ctaLabel: "View Account"/);
   assert.match(welcome, /background:\$\{INK\}/);
   assert.match(welcome, /your account is ready\./);
-  assert.match(welcome, /hi \$\{firstName\.toLowerCase\(\)\} — /);
-  assert.match(welcome, /<svg /);
+  assert.match(welcome, /hi \$\{firstName\.toLowerCase\(\)\},/);
+  assert.match(
+    welcome,
+    /thanks for creating a design meetup account! we're so excited to have you as part of the community\./,
+  );
+  assert.match(welcome, /log in anytime to view your membership\./);
+  assert.doesNotMatch(welcome, /<svg /);
+  assert.match(welcome, /\/email\/\$\{item\.icon\}/);
   assert.match(welcome, /label: "Substack"/);
   assert.match(welcome, /label: "Instagram"/);
   assert.match(welcome, /label: "LinkedIn"/);
@@ -43,6 +50,9 @@ test("welcome email socials match the site footer", async () => {
   ]) {
     assert.ok(welcome.includes(href), `welcome email missing ${href}`);
     assert.ok(footer.includes(href), `footer missing ${href}`);
+  }
+  for (const icon of ["substack.png", "instagram.png", "linkedin.png", "x.png"]) {
+    await access(new URL(`public/email/${icon}`, root));
   }
 });
 

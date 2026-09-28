@@ -17,7 +17,12 @@ import {
 export const runtime = "nodejs";
 
 function wantsJson(request: Request) {
-  return (request.headers.get("accept") || "").includes("application/json");
+  const accept = request.headers.get("accept") || "";
+  const contentType = request.headers.get("content-type") || "";
+  return (
+    accept.includes("application/json") ||
+    contentType.includes("application/json")
+  );
 }
 
 function send(request: Request, url: string) {

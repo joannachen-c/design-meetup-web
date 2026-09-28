@@ -18,6 +18,7 @@ test("stripe helpers provision a customer and a portal configuration", async () 
   assert.match(stripe, /export async function createBillingPortalSession/);
   assert.match(stripe, /billingPortal\.configurations\.create/);
   assert.match(stripe, /billingPortal\.sessions\.create/);
+  assert.match(stripe, /stripe portal configuration failed/);
   assert.match(stripe, /invoice_history: \{ enabled: true \}/);
   assert.match(stripe, /payment_method_update: \{ enabled: true \}/);
   assert.match(stripe, /subscription_update/);
@@ -41,51 +42,32 @@ test("manage billing posts to stripe portal and follows the Stripe URL", async (
   assert.doesNotMatch(button, /mock_portal/);
   assert.match(button, /action="\/api\/stripe\/portal"/);
   assert.match(button, /window\.location\.assign\(next\.href\)/);
-  assert.match(button, /form\.submit\(\)/);
+  assert.match(button, /\/portal\/billing\?error=1/);
+  assert.doesNotMatch(button, /form\.submit\(/);
   assert.doesNotMatch(page, /mock_portal/);
 });
 
-test("preview workflow upserts stripe env with teamId and skips the unused publishable key", async () => {
+test("preview workflow copies production stripe env and skips the unused publishable key", async () => {
   const workflow = await read(".github/workflows/vercel-preview.yml");
   const envExample = await read(".env.example");
   assert.match(workflow, /teamId=\$VERCEL_ORG_ID/);
-  assert.match(workflow, /upsert STRIPE_SECRET_KEY/);
-  assert.match(workflow, /upsert STRIPE_WEBHOOK_SECRET/);
-  assert.match(workflow, /upsert STRIPE_PRICE_STUDENT_MONTHLY/);
-  assert.match(workflow, /upsert STRIPE_PRICE_PROFESSIONAL_MONTHLY/);
+  assert.match(workflow, /copy_prod_to_preview STRIPE_SECRET_KEY/);
+  assert.match(workflow, /copy_prod_to_preview STRIPE_WEBHOOK_SECRET/);
+  assert.match(workflow, /copy_prod_to_preview STRIPE_PRICE_STUDENT_MONTHLY/);
+  assert.match(workflow, /copy_prod_to_preview STRIPE_PRICE_PROFESSIONAL_MONTHLY/);
   assert.match(workflow, /copy_prod_to_preview SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(workflow, /copy_prod_to_preview GMAIL_USER/);
   assert.match(workflow, /copy_prod_to_preview GMAIL_APP_PASSWORD/);
   assert.match(workflow, /delete_preview NEXT_PUBLIC_SITE_URL/);
   assert.match(workflow, /delete_preview NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/);
   assert.doesNotMatch(workflow, /upsert NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/);
+  assert.doesNotMatch(workflow, /decode '/);
+  assert.doesNotMatch(workflow, /sk_test_/);
   assert.doesNotMatch(envExample, /NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/);
   assert.match(envExample, /STRIPE_PRICE_STUDENT_MONTHLY=price_1UIVFiRTgiLNfq1Kv7KyAwmF/);
   assert.match(
     envExample,
     /STRIPE_PRICE_PROFESSIONAL_MONTHLY=price_1UIVG2RTgiLNfq1KTLqH7jof/,
-  );
-});
-
-test("preview workflow price ids decode to the catalog defaults", async () => {
-  const workflow = await read(".github/workflows/vercel-preview.yml");
-  const encoded = [...workflow.matchAll(/decode '([A-Za-z0-9+/=]+)'/g)].map(
-    (match) => match[1],
-  );
-  const decoded = encoded.map((value) =>
-    Buffer.from(value, "base64").toString("utf8"),
-  );
-  assert.equal(
-    decoded.includes("price_1UIVFiRTgiLNfq1Kv7KyAwmF"),
-    true,
-  );
-  assert.equal(
-    decoded.includes("price_1UIVG2RTgiLNfq1KTLqH7jof"),
-    true,
-  );
-  assert.equal(
-    decoded.includes("price_1UIVG2RTgiLNfq1KTlqH7jof"),
-    false,
   );
 });
 
@@ -108,8 +90,11 @@ test("invalid stripe keys fall through to in-app billing instead of a secret-key
   const page = await read("app/portal/billing/page.tsx");
   assert.match(route, /\/portal\/billing\?error=1/);
   assert.match(route, /sendError/);
+  assert.match(route, /content-type/);
   assert.doesNotMatch(route, /STRIPE_SECRET_KEY/);
   assert.doesNotMatch(button, /STRIPE_SECRET_KEY/);
+  assert.doesNotMatch(button, /form\.submit\(/);
+  assert.match(button, /\/portal\/billing\?error=1/);
   assert.match(page, /cancel at period end/);
 });
 

@@ -72,20 +72,14 @@ jobs:
       # Preview Stripe + Supabase env via Vercel API (avoid interactive CLI prompts).
       # Git-integration aliases (e.g. design-meetup-1frw5fo0m) only pick these up
       # after they exist on the project Preview target — teamId is required.
-      # Scrub this step after Preview env is confirmed — do not merge secrets to main.
+      # Copy production Stripe credentials. The previous hardcoded test secret
+      # was revoked, so Update card / View in Stripe 401'd on every preview.
       - name: Upsert Preview Stripe env
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
-          decode() { printf '%s' "$1" | base64 -d; }
           TEAM="teamId=$VERCEL_ORG_ID"
-          STRIPE_SECRET_KEY=$(decode 'c2tfdGVzdF81MVRYYUpNUlRnaUxOZnExS0drb3paQ3UycUswRTM3OVQzWWFpa3EwNVJwYmJjZVNCMGE3MVREMmFzUlB1MmdZbk1RNXN4cmFQMFRiTmpRTTc0Mnl0Z1JWMDAwZEVGOVpyRVc=')
-          STRIPE_WEBHOOK_SECRET=$(decode 'd2hzZWNfMVFEZXpxSmxXcFFlTm9tczJ5NFROWVN5VXljUzB5cmY=')
-          STRIPE_PRICE_STUDENT_MONTHLY=$(decode 'cHJpY2VfMVVJVkZpUlRnaUxOZnExS3Y3S3lBd21G')
-          STRIPE_PRICE_PROFESSIONAL_MONTHLY=$(decode 'cHJpY2VfMVVJVkcyUlRnaUxOZnExS1RMcUg3am9m')
-          echo "::add-mask::$STRIPE_SECRET_KEY"
-          echo "::add-mask::$STRIPE_WEBHOOK_SECRET"
 
           list_env() {
             curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \
@@ -120,6 +114,7 @@ jobs:
 
           copy_prod_to_preview() {
             local key="$1"
+            local type="${2:-encrypted}"
             id=$(list_env | KEY="$key" python3 -c 'import os,sys,json; d=json.load(sys.stdin); k=os.environ["KEY"]; ids=[e["id"] for e in d.get("envs",[]) if e.get("key")==k and "production" in (e.get("target") or [])]; print(ids[0] if ids else "")')
             if [ -z "$id" ]; then
               echo "::warning::$key is not set in Production; Preview will not have it."
@@ -133,20 +128,20 @@ jobs:
               return 0
             fi
             echo "::add-mask::$value"
-            upsert "$key" "$value" encrypted
+            upsert "$key" "$value" "$type"
           }
 
-          upsert STRIPE_SECRET_KEY "$STRIPE_SECRET_KEY" encrypted
-          upsert STRIPE_WEBHOOK_SECRET "$STRIPE_WEBHOOK_SECRET" encrypted
-          upsert STRIPE_PRICE_STUDENT_MONTHLY "$STRIPE_PRICE_STUDENT_MONTHLY" plain
-          upsert STRIPE_PRICE_PROFESSIONAL_MONTHLY "$STRIPE_PRICE_PROFESSIONAL_MONTHLY" plain
+          copy_prod_to_preview STRIPE_SECRET_KEY encrypted
+          copy_prod_to_preview STRIPE_WEBHOOK_SECRET encrypted
+          copy_prod_to_preview STRIPE_PRICE_STUDENT_MONTHLY plain
+          copy_prod_to_preview STRIPE_PRICE_PROFESSIONAL_MONTHLY plain
           # Checkout uses the request origin. A pinned Preview URL goes stale
           # across git-integration aliases and Actions deploys.
           delete_preview NEXT_PUBLIC_SITE_URL
           delete_preview NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-          copy_prod_to_preview SUPABASE_SERVICE_ROLE_KEY
-          copy_prod_to_preview GMAIL_USER
-          copy_prod_to_preview GMAIL_APP_PASSWORD
+          copy_prod_to_preview SUPABASE_SERVICE_ROLE_KEY encrypted
+          copy_prod_to_preview GMAIL_USER encrypted
+          copy_prod_to_preview GMAIL_APP_PASSWORD encrypted
 
           list_env | python3 -c "
           import json, sys

@@ -20,6 +20,8 @@ function subscribeError(code: string | undefined) {
     case "stripe":
     case "price":
       return "billing isn't set up correctly yet. please try again later.";
+    case "coupon":
+      return "couldn't apply the free membership coupon. please try again later.";
     case "checkout":
       return "couldn't start checkout. please try again.";
     default:

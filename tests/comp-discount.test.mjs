@@ -1,0 +1,94 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {
+  checkoutFailureCode,
+  lookupCompCheckoutDiscount,
+} from "../src/lib/comp-discount.ts";
+
+function missing(message) {
+  const error = new Error(message);
+  error.code = "resource_missing";
+  return error;
+}
+
+test("lookup uses a coupon id when retrieve succeeds", async () => {
+  const discount = await lookupCompCheckoutDiscount("vXejHxwc", {
+    coupons: { retrieve: async (id) => ({ id }) },
+    promotionCodes: {
+      retrieve: async () => {
+        throw new Error("unused");
+      },
+      list: async () => ({ data: [] }),
+    },
+  });
+  assert.deepEqual(discount, { coupon: "vXejHxwc" });
+});
+
+test("lookup falls back to a customer-facing promotion code", async () => {
+  const discount = await lookupCompCheckoutDiscount("vXejHxwc", {
+    coupons: {
+      retrieve: async () => {
+        throw missing("No such coupon: 'vXejHxwc'");
+      },
+    },
+    promotionCodes: {
+      retrieve: async () => {
+        throw new Error("unused");
+      },
+      list: async () => ({ data: [{ id: "promo_123" }] }),
+    },
+  });
+  assert.deepEqual(discount, { promotion_code: "promo_123" });
+});
+
+test("lookup uses a promo_ id directly", async () => {
+  const discount = await lookupCompCheckoutDiscount("promo_123", {
+    coupons: {
+      retrieve: async () => {
+        throw new Error("should not retrieve coupons");
+      },
+    },
+    promotionCodes: {
+      retrieve: async (id) => ({ id }),
+      list: async () => ({ data: [] }),
+    },
+  });
+  assert.deepEqual(discount, { promotion_code: "promo_123" });
+});
+
+test("lookup throws when the id exists in neither live coupons nor promotion codes", async () => {
+  await assert.rejects(
+    () =>
+      lookupCompCheckoutDiscount("vXejHxwc", {
+        coupons: {
+          retrieve: async () => {
+            throw missing("No such coupon: 'vXejHxwc'");
+          },
+        },
+        promotionCodes: {
+          retrieve: async () => {
+            throw missing("No such promotion code");
+          },
+          list: async () => ({ data: [] }),
+        },
+      }),
+    /No such coupon or promotion code/,
+  );
+});
+
+test("checkout maps missing coupons to coupon and bad keys to stripe", () => {
+  assert.equal(
+    checkoutFailureCode(missing("No such coupon: 'vXejHxwc'")),
+    "coupon",
+  );
+  assert.equal(
+    checkoutFailureCode({
+      message: "Invalid API Key provided: sk_test_***",
+    }),
+    "stripe",
+  );
+  assert.equal(
+    checkoutFailureCode({ message: "No such customer: 'cus_123'" }),
+    "checkout",
+  );
+});

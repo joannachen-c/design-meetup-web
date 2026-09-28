@@ -46,12 +46,15 @@ test("a coupon applies only when the stripe coupon id is set", () => {
   }
 });
 
-test("checkout applies the comp coupon and still collects a card when the email is listed", async () => {
+test("checkout looks up the coupon in the current Stripe mode and still collects a card", async () => {
   const checkout = await read("app/api/stripe/checkout/route.ts");
+  const subscribe = await read("app/portal/subscribe/page.tsx");
   const comp = await read("src/lib/comp-membership.ts");
   assert.match(checkout, /shouldApplyCompCoupon\(user\.email\)/);
-  assert.match(checkout, /discounts: \[\{ coupon: compCouponId\(\) \}\]/);
+  assert.match(checkout, /lookupCompCheckoutDiscount\(compCouponId\(\), stripe\)/);
   assert.match(checkout, /payment_method_collection: "always"/);
+  assert.match(checkout, /error=coupon|"coupon"/);
+  assert.match(subscribe, /case "coupon"/);
   assert.doesNotMatch(checkout, /if_required/);
   assert.doesNotMatch(checkout, /allow_promotion_codes/);
   assert.match(

@@ -7,7 +7,11 @@ function recoveryLocation() {
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const query = new URLSearchParams(window.location.search);
   const type = hash.get("type") || query.get("type") || "";
-  const tokenHash = hash.get("token_hash") || query.get("token_hash") || "";
+  const tokenHash =
+    hash.get("token_hash") ||
+    query.get("token_hash") ||
+    query.get("token") ||
+    "";
   const accessToken = hash.get("access_token") || query.get("access_token") || "";
   const refreshToken =
     hash.get("refresh_token") || query.get("refresh_token") || "";

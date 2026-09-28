@@ -100,16 +100,11 @@ async function handleAuth(request: Request) {
     if (user?.email) {
       await ensureProfile({ id: user.id, email: user.email });
       await ensureDemoMembership(user.email, user.id);
-      if (
-        !(await userHasPortalAccess(user.id)) &&
-        !nextPath.startsWith("/portal/subscribe")
-      ) {
-        nextPath = "/portal/subscribe";
-      }
     }
+    await clearAuthCookies();
     return NextResponse.json({
       ok: true,
-      url: `${requestOrigin(request)}${nextPath}`,
+      url: `${requestOrigin(request)}/login?reset=1`,
     });
   }
 

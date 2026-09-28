@@ -50,16 +50,45 @@ test("reset password page captures the recovery session then updates the passwor
   assert.match(form, /mode: "update-password"/);
   assert.match(form, /passwords don't match/);
   assert.match(route, /mode === "update-password"/);
+  assert.match(route, /clearAuthCookies\(\)/);
+  assert.match(route, /\/login\?reset=1/);
   assert.match(auth, /admin\.updateUserById\(user\.id, \{\s*password/);
+  const login = await read("app/login/page.tsx");
+  assert.match(login, /password saved\. log in with your new password/);
+});
+
+test("recovery email template brands Design Meetup and skips Vercel SSO hosts", async () => {
+  const template = await read("src/lib/recovery-email.ts");
+  const html = await read("public/email/recovery.html");
+  const confirm = await read("app/auth/confirm/route.ts");
+  for (const source of [template, html]) {
+    assert.match(source, /Reset your Design Meetup password/);
+    assert.match(source, /password reset for your Design Meetup account/);
+    assert.match(source, /design-meetup-logo\.png/);
+    assert.match(
+      source,
+      /https:\/\/www\.designmeetup\.info\/reset-password\?token_hash=\{\{ \.TokenHash \}\}&type=recovery/,
+    );
+    assert.doesNotMatch(source, /ConfirmationURL/);
+    assert.doesNotMatch(source, /vercel\.app/);
+  }
+  assert.match(confirm, /publicAppUrl/);
+  assert.match(confirm, /\/reset-password/);
+  assert.match(confirm, /token_hash/);
 });
 
 test("password reset email uses the same chrome as welcome mail", async () => {
   const welcome = await read("src/lib/welcome-email.ts");
   assert.match(welcome, /export function buildPasswordResetEmail/);
-  assert.match(welcome, /subject: "reset your design meetup password"/);
-  assert.match(welcome, /reset your password\./);
+  assert.match(welcome, /subject: "Reset your Design Meetup password"/);
+  assert.match(welcome, /heading: "Reset your Design Meetup password"/);
+  assert.match(
+    welcome,
+    /This is a password reset for your Design Meetup account/,
+  );
   assert.match(welcome, /ctaLabel: "Reset Password"/);
-  assert.match(welcome, /if you didn't ask for this/);
+  assert.match(welcome, /If you didn't ask for this/);
   assert.match(welcome, /function ctaButton/);
   assert.match(welcome, /background:\$\{INK\}/);
+  assert.match(welcome, /design-meetup-logo\.png/);
 });

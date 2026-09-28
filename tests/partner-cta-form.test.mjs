@@ -318,7 +318,9 @@ test("server email sends from Gmail to Design Meetup and the user", () => {
   assert.match(smtp, /const SMTP_PORT = 465;/);
   assert.match(smtp, /process\.env\.GMAIL_USER/);
   assert.match(smtp, /process\.env\.GMAIL_APP_PASSWORD/);
-  assert.match(smtp, /user\.toLowerCase\(\) !== siteEmail/);
+  assert.match(smtp, /process\.env\.GMAIL_USER \|\| siteEmail/);
+  assert.match(smtp, /user !== siteEmail/);
+  assert.match(smtp, /new SmtpClient\(SMTP_HOST, SMTP_PORT, 4\)/);
   assert.match(smtp, /`From: \$\{siteName\} <\$\{siteEmail\}>`/);
   assert.match(contactEmail, /gmailConfigured\(\)/);
   assert.match(contactEmail, /sendGmailEmails\(buildContactEmailBatch\(submission\)\)/);

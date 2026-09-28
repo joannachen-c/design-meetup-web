@@ -12,27 +12,34 @@ export type GmailEmail = {
 
 const SMTP_HOST = "smtp.gmail.com";
 const SMTP_PORT = 465;
+const EMAIL_IN_TEXT = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
+
+export function gmailCredentials() {
+  const rawUser = (process.env.GMAIL_USER || siteEmail).trim();
+  const user =
+    rawUser.match(EMAIL_IN_TEXT)?.[0]?.toLowerCase() || siteEmail;
+  const password = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "") || "";
+  if (!password || user !== siteEmail) return null;
+  return { user, password };
+}
 
 export function gmailConfigured() {
-  const user = process.env.GMAIL_USER?.trim();
-  const password = process.env.GMAIL_APP_PASSWORD;
-  return Boolean(user && password && user.toLowerCase() === siteEmail);
+  return Boolean(gmailCredentials());
 }
 
 export async function sendGmailEmails(emails: GmailEmail[]) {
-  const user = process.env.GMAIL_USER?.trim();
-  const password = process.env.GMAIL_APP_PASSWORD;
-  if (!user || !password || user.toLowerCase() !== siteEmail) {
+  const credentials = gmailCredentials();
+  if (!credentials) {
     throw new Error("Gmail is not configured.");
   }
 
-  const client = new SmtpClient(SMTP_HOST, SMTP_PORT);
+  const { user, password } = credentials;
+  const client = await connectSmtp();
 
   try {
-    await client.connect();
     await client.command(`EHLO ${siteName.replace(/\s+/g, "-").toLowerCase()}`);
     await client.command(
-      `AUTH PLAIN ${Buffer.from(`\0${user}\0${password.replace(/\s+/g, "")}`).toString("base64")}`,
+      `AUTH PLAIN ${Buffer.from(`\0${user}\0${password}`).toString("base64")}`,
       235,
     );
 
@@ -49,6 +56,18 @@ export async function sendGmailEmails(emails: GmailEmail[]) {
   }
 }
 
+async function connectSmtp() {
+  try {
+    const ipv4 = new SmtpClient(SMTP_HOST, SMTP_PORT, 4);
+    await ipv4.connect();
+    return ipv4;
+  } catch {
+    const any = new SmtpClient(SMTP_HOST, SMTP_PORT);
+    await any.connect();
+    return any;
+  }
+}
+
 class SmtpClient {
   private socket: tls.TLSSocket | null = null;
   private buffer = "";
@@ -62,12 +81,18 @@ class SmtpClient {
   constructor(
     private readonly host: string,
     private readonly port: number,
+    private readonly family?: 4 | 6,
   ) {}
 
   connect() {
     return new Promise<void>((resolve, reject) => {
       const socket = tls.connect(
-        { host: this.host, port: this.port, servername: this.host },
+        {
+          host: this.host,
+          port: this.port,
+          servername: this.host,
+          ...(this.family ? { family: this.family } : {}),
+        },
         () => {
           this.socket = socket;
         },

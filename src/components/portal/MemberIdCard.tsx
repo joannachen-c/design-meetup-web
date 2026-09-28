@@ -303,6 +303,7 @@ export function MemberIdCard({
                     className={[
                       styles.photoOverlay,
                       uploading ? styles.photoOverlayBusy : "",
+                      !photo ? styles.photoOverlayVisible : "",
                     ]
                       .filter(Boolean)
                       .join(" ")}

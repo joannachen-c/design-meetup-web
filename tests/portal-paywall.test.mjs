@@ -31,6 +31,11 @@ test("unpaid members are sent to the plan picker, not the dashboard", async () =
   assert.match(home, /redirect\("\/portal\/subscribe"\)/);
   assert.match(subscribe, /choose a membership/);
   assert.match(subscribe, /<SubscribeButtons \/>/);
+  assert.doesNotMatch(
+    subscribe,
+    /student is \$10 \/ month\. professional is \$35 \/ month/,
+  );
+  assert.doesNotMatch(subscribe, /pay with/);
   assert.match(login, /redirect\("\/portal\/subscribe"\)/);
   assert.match(signup, /redirect\("\/portal\/subscribe"\)/);
 });

@@ -55,6 +55,8 @@ test("preview workflow copies production stripe env and skips the unused publish
   assert.match(workflow, /copy_prod_to_preview STRIPE_WEBHOOK_SECRET/);
   assert.match(workflow, /copy_prod_to_preview STRIPE_PRICE_STUDENT_MONTHLY/);
   assert.match(workflow, /copy_prod_to_preview STRIPE_PRICE_PROFESSIONAL_MONTHLY/);
+  assert.match(workflow, /copy_prod_to_preview STRIPE_COUPON_FREE_MEMBERSHIP/);
+  assert.match(workflow, /copy_prod_to_preview STRIPE_COMP_EMAILS/);
   assert.match(workflow, /copy_prod_to_preview SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(workflow, /copy_prod_to_preview GMAIL_USER/);
   assert.match(workflow, /copy_prod_to_preview GMAIL_APP_PASSWORD/);

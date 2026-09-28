@@ -9,6 +9,7 @@ import {
   stripeConfigured,
   userHasPortalAccess,
 } from "@/lib/membership-service";
+import { shouldApplyCompCoupon, compCouponId } from "@/lib/comp-membership";
 import {
   ensureStripeCustomer,
   getStripe,
@@ -131,6 +132,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const applyComp = shouldApplyCompCoupon(user.email);
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
@@ -142,6 +144,12 @@ export async function POST(request: Request) {
       subscription_data: {
         metadata: { supabase_user_id: user.id, tier },
       },
+      ...(applyComp
+        ? {
+            discounts: [{ coupon: compCouponId() }],
+            payment_method_collection: "if_required",
+          }
+        : {}),
     });
 
     if (!session.url) {

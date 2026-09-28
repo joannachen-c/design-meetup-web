@@ -9,6 +9,11 @@ import {
   stripeConfigured,
   userHasPortalAccess,
 } from "@/lib/membership-service";
+import {
+  checkoutFailureCode,
+  lookupCompCheckoutDiscount,
+  stripeErrorFields,
+} from "@/lib/comp-discount";
 import { shouldApplyCompCoupon, compCouponId } from "@/lib/comp-membership";
 import {
   ensureStripeCustomer,
@@ -133,6 +138,9 @@ export async function POST(request: Request) {
     }
 
     const applyComp = shouldApplyCompCoupon(user.email);
+    const discounts = applyComp
+      ? [await lookupCompCheckoutDiscount(compCouponId(), stripe)]
+      : undefined;
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
@@ -144,7 +152,7 @@ export async function POST(request: Request) {
       subscription_data: {
         metadata: { supabase_user_id: user.id, tier },
       },
-      ...(applyComp ? { discounts: [{ coupon: compCouponId() }] } : {}),
+      ...(discounts ? { discounts } : {}),
       // Collect a card even when the coupon brings the total to $0.
       payment_method_collection: "always",
     });
@@ -164,19 +172,21 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ url: session.url, mock: false });
   } catch (error) {
-    console.error("stripe checkout failed", error);
-    const message =
-      error instanceof Error ? error.message : "";
-    if (/invalid api key|no such api key|authentication/i.test(message)) {
+    const fields = stripeErrorFields(error);
+    console.error("stripe checkout failed", fields);
+    const code = checkoutFailureCode(error);
+    if (code === "stripe") {
       return checkoutError(
         "billing isn't set up correctly yet. please try again later.",
         "stripe",
       );
     }
-    const friendly =
-      /api key/i.test(message)
-        ? "billing isn't set up correctly yet. please try again later."
-        : "could not start checkout. please try again.";
-    return checkoutError(friendly);
+    if (code === "coupon") {
+      return checkoutError(
+        "couldn't apply the free membership coupon. please try again later.",
+        "coupon",
+      );
+    }
+    return checkoutError("could not start checkout. please try again.");
   }
 }

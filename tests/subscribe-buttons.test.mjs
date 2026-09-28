@@ -16,7 +16,9 @@ test("get started posts to stripe checkout as a form so the page always navigate
 
 test("invalid stripe keys do not grant membership without checkout", async () => {
   const route = await read("app/api/stripe/checkout/route.ts");
-  assert.match(route, /invalid api key/i);
+  const errors = await read("src/lib/comp-discount.ts");
+  assert.match(errors, /invalid api key/i);
+  assert.match(route, /checkoutFailureCode\(error\)/);
   assert.match(route, /\/portal\/subscribe\?error=/);
   assert.doesNotMatch(route, /activateMockMembership/);
   assert.doesNotMatch(route, /mockBillingAllowed/);

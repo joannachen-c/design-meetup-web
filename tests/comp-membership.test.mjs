@@ -29,31 +29,38 @@ test("directory sheet emails get the coupon; other approved signups still pay", 
   assert.equal(isCompMembershipEmail("angelinawwu@ucla.edu"), false);
 });
 
-test("a coupon applies only when the stripe coupon id is set", () => {
+test("directory comps use the live promo_ id, overridable by env", () => {
   const previousCoupon = process.env.STRIPE_COUPON_FREE_MEMBERSHIP;
   try {
-    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "vXejHxwc";
-    assert.equal(compCouponId(), "vXejHxwc");
+    delete process.env.STRIPE_COUPON_FREE_MEMBERSHIP;
+    assert.equal(compCouponId(), "promo_1UKjNQRTgiLNfq1KP5vNNePP");
     assert.equal(shouldApplyCompCoupon("studio@liumichelle.com"), true);
     assert.equal(shouldApplyCompCoupon("angelinawwu@ucla.edu"), false);
+    process.env.STRIPE_COUPON_FREE_MEMBERSHIP =
+      "promo_1UKjNQRTgiLNfq1KP5vNNePP";
+    assert.equal(compCouponId(), "promo_1UKjNQRTgiLNfq1KP5vNNePP");
     process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "coupon_testFree";
     assert.equal(compCouponId(), "coupon_testFree");
-    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "";
-    assert.equal(shouldApplyCompCoupon("studio@liumichelle.com"), false);
+    process.env.STRIPE_COUPON_FREE_MEMBERSHIP = "vXejHxwc";
+    assert.equal(compCouponId(), "promo_1UKjNQRTgiLNfq1KP5vNNePP");
   } finally {
     if (previousCoupon === undefined) delete process.env.STRIPE_COUPON_FREE_MEMBERSHIP;
     else process.env.STRIPE_COUPON_FREE_MEMBERSHIP = previousCoupon;
   }
 });
 
-test("checkout applies the comp coupon and still collects a card when the email is listed", async () => {
+test("checkout looks up the coupon in the current Stripe mode and still collects a card", async () => {
   const checkout = await read("app/api/stripe/checkout/route.ts");
+  const subscribe = await read("app/portal/subscribe/page.tsx");
   const comp = await read("src/lib/comp-membership.ts");
   assert.match(checkout, /shouldApplyCompCoupon\(user\.email\)/);
-  assert.match(checkout, /discounts: \[\{ coupon: compCouponId\(\) \}\]/);
+  assert.match(checkout, /lookupCompCheckoutDiscount\(compCouponId\(\), stripe\)/);
   assert.match(checkout, /payment_method_collection: "always"/);
+  assert.match(checkout, /error=coupon|"coupon"/);
+  assert.match(subscribe, /case "coupon"/);
   assert.doesNotMatch(checkout, /if_required/);
   assert.doesNotMatch(checkout, /allow_promotion_codes/);
+  assert.match(comp, /promo_1UKjNQRTgiLNfq1KP5vNNePP/);
   assert.match(
     comp,
     /docs.google.com\/spreadsheets\/d\/1fT3s72MVCAxb8gXrE6YXfBrMEHxTbL6jG8LQI8l5hlM/,

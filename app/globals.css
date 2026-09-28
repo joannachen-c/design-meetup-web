@@ -176,6 +176,8 @@ html.is-loading body {
 }
 
 .site-header {
+  position: relative;
+  z-index: 60;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: clamp(16px, 2vw, 28px);
@@ -205,6 +207,17 @@ html.is-loading body {
   object-fit: contain;
 }
 
+.site-header-actions {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.site-header-menu-toggle {
+  display: none;
+}
+
 .primary-navigation {
   display: flex;
   flex-wrap: nowrap;
@@ -213,6 +226,9 @@ html.is-loading body {
 
 .site-header > .design-system-navigation {
   grid-column: 5 / span 8;
+}
+
+.site-header > .design-system-navigation .primary-navigation {
   flex-wrap: wrap;
   justify-content: flex-end;
   row-gap: 8px;
@@ -1930,10 +1946,30 @@ footer {
 }
 
 @media (max-width: 820px) {
-  /* DS section links only; the marketing header nav stays. Unlayered
+  /* DS section links only; the marketing header keeps a hamburger. Unlayered
      .primary-navigation { display: flex } beats Tailwind hidden. */
   .design-system-navigation {
     display: none;
+  }
+
+  .site-header-menu-toggle {
+    display: grid;
+  }
+
+  /* Marketing desktop links only — DS nav uses .design-system-navigation. */
+  .site-header-desktop-nav {
+    display: none;
+  }
+
+  .site-header-menu-link {
+    text-shadow: -0.35px 0 currentColor, 0.35px 0 currentColor;
+    transition: color 160ms ease-out, transform 160ms ease-out;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .site-header-menu-link:hover {
+      transform: translateX(4px);
+    }
   }
 
   .intro {
@@ -2211,16 +2247,6 @@ footer {
 }
 
 @media (max-width: 520px) {
-  .site-header {
-    align-items: flex-start;
-  }
-
-  .primary-navigation {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 7px;
-  }
-
   /* Floors the rail against a slow-loading cover rather than reserving room the
      smaller phone covers never fill. */
   .gallery {

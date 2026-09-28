@@ -19,7 +19,7 @@ import {
   isApprovedSignupEmail,
   UNAPPROVED_SIGNUP_ERROR,
 } from "./signup-allowlist";
-import { gmailConfigured } from "./gmail-smtp";
+import { gmailConfigStatus } from "./gmail-smtp";
 import { sendPasswordResetEmail } from "./welcome-email";
 import { publicAppUrl } from "./site";
 
@@ -149,7 +149,7 @@ export async function requestPasswordReset(email: string, origin: string) {
       origin: publicAppUrl,
     });
     console.info("password reset email", {
-      configured: gmailConfigured(),
+      ...gmailConfigStatus(),
       delivered: sent.ok,
     });
     if (!sent.ok) {

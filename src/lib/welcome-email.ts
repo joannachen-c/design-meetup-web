@@ -1,4 +1,8 @@
-import { gmailConfigured, sendGmailEmails } from "./gmail-smtp";
+import {
+  gmailConfigured,
+  gmailConfigStatus,
+  sendGmailEmails,
+} from "./gmail-smtp";
 import { siteEmail, siteName, siteUrl } from "./site";
 
 const INK = "#191919";
@@ -226,7 +230,7 @@ async function sendBuiltEmail(
   failed: string,
 ) {
   if (!gmailConfigured()) {
-    console.warn(skipped);
+    console.warn(skipped, gmailConfigStatus());
     return { ok: false as const };
   }
 

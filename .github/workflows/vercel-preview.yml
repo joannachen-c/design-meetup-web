@@ -135,6 +135,8 @@ jobs:
           copy_prod_to_preview STRIPE_WEBHOOK_SECRET encrypted
           copy_prod_to_preview STRIPE_PRICE_STUDENT_MONTHLY plain
           copy_prod_to_preview STRIPE_PRICE_PROFESSIONAL_MONTHLY plain
+          copy_prod_to_preview STRIPE_COUPON_FREE_MEMBERSHIP encrypted
+          copy_prod_to_preview STRIPE_COMP_EMAILS encrypted
           # Checkout uses the request origin. A pinned Preview URL goes stale
           # across git-integration aliases and Actions deploys.
           delete_preview NEXT_PUBLIC_SITE_URL

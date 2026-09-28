@@ -41,7 +41,7 @@ test("lookup falls back to a customer-facing promotion code", async () => {
   assert.deepEqual(discount, { promotion_code: "promo_123" });
 });
 
-test("lookup uses a promo_ id directly", async () => {
+test("lookup uses the coupon attached to a promo_ id", async () => {
   const discount = await lookupCompCheckoutDiscount(
     "promo_1UKjNQRTgiLNfq1KP5vNNePP",
     {
@@ -51,7 +51,27 @@ test("lookup uses a promo_ id directly", async () => {
         },
       },
       promotionCodes: {
-        retrieve: async (id) => ({ id }),
+        retrieve: async (id) => ({ id, coupon: "nVubzSJY" }),
+        list: async () => ({ data: [] }),
+      },
+    },
+  );
+  assert.deepEqual(discount, { coupon: "nVubzSJY" });
+});
+
+test("lookup falls back to promotion_code if promo retrieve is not missing", async () => {
+  const discount = await lookupCompCheckoutDiscount(
+    "promo_1UKjNQRTgiLNfq1KP5vNNePP",
+    {
+      coupons: {
+        retrieve: async () => {
+          throw new Error("unused");
+        },
+      },
+      promotionCodes: {
+        retrieve: async () => {
+          throw new Error("The provided key does not have the required permissions");
+        },
         list: async () => ({ data: [] }),
       },
     },

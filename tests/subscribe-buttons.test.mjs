@@ -8,6 +8,8 @@ const read = (path) => readFile(new URL(path, root), "utf8");
 test("get started posts to stripe checkout as a form so the page always navigates", async () => {
   const buttons = await read("src/components/portal/SubscribeButtons.tsx");
   assert.match(buttons, /action="\/api\/stripe\/checkout"/);
+  assert.match(buttons, /params\.set\("reason"/);
+  assert.match(buttons, /payload\.code/);
   assert.match(buttons, /form\.submit\(\)/);
   assert.match(buttons, /next\.origin !== window\.location\.origin/);
   assert.match(buttons, /window\.location\.assign\(next\.href\)/);

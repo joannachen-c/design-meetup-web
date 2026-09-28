@@ -73,12 +73,18 @@ export async function POST(request: Request) {
   async function checkoutError(message: string, code = "checkout", status = 502) {
     if (parsed.kind === "form") {
       const paid = await userHasPortalAccess(userId);
-      const dest = paid
-        ? "/portal?checkout_error=1"
-        : `/portal/subscribe?error=${code}`;
-      return NextResponse.redirect(new URL(dest, origin), 303);
+      if (paid) {
+        return NextResponse.redirect(
+          new URL("/portal?checkout_error=1", origin),
+          303,
+        );
+      }
+      const dest = new URL("/portal/subscribe", origin);
+      dest.searchParams.set("error", code);
+      if (message) dest.searchParams.set("reason", message.slice(0, 240));
+      return NextResponse.redirect(dest, 303);
     }
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message, code }, { status });
   }
 
   await ensureProfile({ id: user.id, email: user.email });
@@ -175,18 +181,23 @@ export async function POST(request: Request) {
     const fields = stripeErrorFields(error);
     console.error("stripe checkout failed", fields);
     const code = checkoutFailureCode(error);
+    const stripeMessage = fields.message;
     if (code === "stripe") {
       return checkoutError(
-        "billing isn't set up correctly yet. please try again later.",
+        stripeMessage ||
+          "billing isn't set up correctly yet. please try again later.",
         "stripe",
       );
     }
     if (code === "coupon") {
       return checkoutError(
-        "couldn't apply the free membership coupon. please try again later.",
+        stripeMessage ||
+          "couldn't apply the free membership coupon. please try again later.",
         "coupon",
       );
     }
-    return checkoutError("could not start checkout. please try again.");
+    return checkoutError(
+      stripeMessage || "could not start checkout. please try again.",
+    );
   }
 }

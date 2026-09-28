@@ -4,6 +4,9 @@ import {
   getSessionUser,
   passwordSignIn,
   passwordSignUp,
+  requestPasswordReset,
+  setRecoverySession,
+  updatePassword,
 } from "@/lib/auth";
 import {
   ensureDemoMembership,
@@ -35,7 +38,14 @@ async function handleAuth(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const mode = body.mode === "signup" ? "signup" : "login";
+  const modeRaw = String(body.mode || "login");
+  const mode =
+    modeRaw === "signup" ||
+    modeRaw === "recover" ||
+    modeRaw === "recovery-session" ||
+    modeRaw === "update-password"
+      ? modeRaw
+      : "login";
   const email = String(body.email || "")
     .trim()
     .toLowerCase();
@@ -51,6 +61,55 @@ async function handleAuth(request: Request) {
       : mode === "signup"
         ? "/portal/subscribe"
         : "/portal";
+
+  if (mode === "recover") {
+    if (!email) {
+      return NextResponse.json(
+        { error: "enter the email for your account." },
+        { status: 400 },
+      );
+    }
+    await requestPasswordReset(email, requestOrigin(request));
+    return NextResponse.json({
+      ok: true,
+      sent: true,
+    });
+  }
+
+  if (mode === "recovery-session") {
+    const result = await setRecoverySession({
+      access_token: String(body.access_token || ""),
+      refresh_token: String(body.refresh_token || ""),
+      expires_in:
+        typeof body.expires_in === "number" ? body.expires_in : undefined,
+    });
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  if (mode === "update-password") {
+    const result = await updatePassword(password);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    const user = await getSessionUser();
+    if (user?.email) {
+      await ensureProfile({ id: user.id, email: user.email });
+      await ensureDemoMembership(user.email, user.id);
+      if (
+        !(await userHasPortalAccess(user.id)) &&
+        !nextPath.startsWith("/portal/subscribe")
+      ) {
+        nextPath = "/portal/subscribe";
+      }
+    }
+    return NextResponse.json({
+      ok: true,
+      url: `${requestOrigin(request)}${nextPath}`,
+    });
+  }
 
   if (!email || !password) {
     return NextResponse.json(

@@ -27,6 +27,9 @@ test("auth recover emails a site reset link instead of the supabase verify URL",
   assert.match(auth, /generateLink\(\{/);
   assert.match(auth, /type: "recovery"/);
   assert.match(auth, /hashed_token/);
+  assert.match(auth, /publicAppUrl/);
+  assert.match(auth, /gmailConfigStatus\(\)/);
+  assert.match(route, /maxDuration = 30/);
   assert.match(
     auth,
     /\/reset-password\?token_hash=\$\{encodeURIComponent\(hashedToken\)\}&type=recovery/,

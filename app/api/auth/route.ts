@@ -17,6 +17,7 @@ import { requestOrigin } from "@/lib/site";
 import { sendWelcomeEmail } from "@/lib/welcome-email";
 
 export const runtime = "nodejs";
+export const maxDuration = 30;
 
 export async function POST(request: Request) {
   try {

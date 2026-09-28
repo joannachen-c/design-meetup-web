@@ -19,6 +19,7 @@ import {
   isApprovedSignupEmail,
   UNAPPROVED_SIGNUP_ERROR,
 } from "./signup-allowlist";
+import { gmailConfigStatus } from "./gmail-smtp";
 import { sendPasswordResetEmail } from "./welcome-email";
 import { publicAppUrl } from "./site";
 
@@ -128,7 +129,6 @@ export async function requestPasswordReset(email: string, origin: string) {
   }
 
   try {
-    const resetOrigin = (origin || publicAppUrl).replace(/\/$/, "") || publicAppUrl;
     const admin = createAdminClient();
     const { data, error } = await admin.auth.admin.generateLink({
       type: "recovery",
@@ -142,11 +142,15 @@ export async function requestPasswordReset(email: string, origin: string) {
       return { ok: true as const };
     }
 
-    const resetUrl = `${resetOrigin}/reset-password?token_hash=${encodeURIComponent(hashedToken)}&type=recovery`;
+    const resetUrl = `${publicAppUrl}/reset-password?token_hash=${encodeURIComponent(hashedToken)}&type=recovery`;
     const sent = await sendPasswordResetEmail({
       email: normalized,
       resetUrl,
-      origin: resetOrigin,
+      origin: publicAppUrl,
+    });
+    console.info("password reset email", {
+      ...gmailConfigStatus(),
+      delivered: sent.ok,
     });
     if (!sent.ok) {
       console.error("password reset email was not delivered");

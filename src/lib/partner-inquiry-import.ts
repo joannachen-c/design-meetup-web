@@ -22,7 +22,7 @@ export function partnerInquiryRow(
     first_name: inquiry.firstName,
     last_name: inquiry.lastName,
     email: inquiry.email,
-    interest: inquiry.interest,
+    interest: inquiry.interest.join(","),
     city: inquiry.city,
     created_at: inquiry.submittedAt ?? new Date().toISOString(),
   };

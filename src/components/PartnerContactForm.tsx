@@ -3,6 +3,7 @@
 import { type FormEvent, useId, useState } from "react";
 import { Input } from "./Input";
 import { Primary } from "./Primary";
+import { MultiSelect } from "./MultiSelect";
 import { Select, type SelectOption } from "./Select";
 
 function createSubmissionId() {
@@ -48,7 +49,7 @@ export function PartnerContactForm() {
   const fieldId = useId();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [interest, setInterest] = useState(interestOptions[0].value);
+  const [interests, setInterests] = useState<string[]>([interestOptions[0].value]);
   const [city, setCity] = useState(cityOptions[0].value);
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
@@ -76,7 +77,7 @@ export function PartnerContactForm() {
         body: JSON.stringify({
           firstName,
           lastName,
-          interest,
+          interest: interests,
           city,
           email,
           company,
@@ -135,13 +136,13 @@ export function PartnerContactForm() {
         <label className="sr-only" htmlFor={`${fieldId}-interest`}>
           What you’re interested in
         </label>
-        <Select
+        <MultiSelect
           id={`${fieldId}-interest`}
           name="interest"
           options={interestOptions}
-          value={interest}
-          onValueChange={(nextInterest) => {
-            setInterest(nextInterest);
+          value={interests}
+          onValueChange={(nextInterests) => {
+            setInterests(nextInterests);
             resetStatus();
           }}
         />

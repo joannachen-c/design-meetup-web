@@ -70,7 +70,7 @@ Submitted: 2026-08-12T15:04:05.000Z
   assert.equal(parsed?.firstName, "Ada");
   assert.equal(parsed?.lastName, "Lovelace");
   assert.equal(parsed?.email, "ada@example.com");
-  assert.equal(parsed?.interest, "sponsor");
+  assert.deepEqual(parsed?.interest, ["sponsor"]);
   assert.equal(parsed?.city, "sf");
   assert.equal(parsed?.submittedAt, "2026-08-12T15:04:05.000Z");
   assert.equal(
@@ -106,7 +106,7 @@ Interest: sponsoring an event series
 City: New York
 Submitted: 2026-08-12T15:04:05.000Z
 `);
-  assert.equal(parsed?.interest, "sponsor");
+  assert.deepEqual(parsed?.interest, ["sponsor"]);
   assert.equal(parsed?.city, "nyc");
   assert.equal(parsed?.firstName, "Grace");
   assert.equal(parsed?.lastName, "Hopper");
@@ -121,8 +121,21 @@ Interest: joining the Board of Advisors
 City: any city
 Submitted: 2026-08-31T07:00:00.000Z
 `);
-  assert.equal(parsed?.interest, "advisor");
+  assert.deepEqual(parsed?.interest, ["advisor"]);
   assert.equal(parsed?.city, "any");
+});
+
+test("multiple interests in one inquiry parse into a key array", () => {
+  const parsed = parsePartnerInquiryEmail(`New partner inquiry
+
+Name: Ada Lovelace
+Email: ada@example.com
+Interest: partnering on an event, speaking at an event
+City: San Francisco
+Submitted: 2026-09-01T12:00:00.000Z
+`);
+  assert.deepEqual(parsed?.interest, ["sponsor", "panelist"]);
+  assert.equal(parsed?.city, "sf");
 });
 
 test("re-parsing the same Gmail body reuses the same submission id", () => {
@@ -163,7 +176,7 @@ Submitted: 2026-08-14T12:00:00.000Z
   const parsed = parsePartnerInquiryEmail(extracted);
   assert.equal(parsed?.firstName, "Jean");
   assert.equal(parsed?.city, "la");
-  assert.equal(parsed?.interest, "judge");
+  assert.deepEqual(parsed?.interest, ["judge"]);
 });
 
 test("import runs on Vercel where Gmail Sensitive env already exists", () => {

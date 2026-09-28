@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import {
   sendContactEmails,
+  serializeInterests,
   validateContactSubmission,
   type ContactSubmission,
 } from "@/lib/contact-email";
@@ -30,7 +31,7 @@ async function recordPartnerInquiry(submission: ContactSubmission) {
     first_name: submission.firstName,
     last_name: submission.lastName,
     email: submission.email,
-    interest: submission.interest,
+    interest: serializeInterests(submission.interest),
     city: submission.city,
   });
 

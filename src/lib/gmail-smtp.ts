@@ -184,7 +184,7 @@ class SmtpClient {
         ...(this.target.family ? { family: this.target.family } : {}),
       });
       this.bindSocket(socket);
-      this.readResponse(220).then(resolve, reject);
+      this.readResponse(220).then(() => resolve(), reject);
     });
   }
 
@@ -196,7 +196,7 @@ class SmtpClient {
         ...(this.target.family ? { family: this.target.family } : {}),
       });
       this.bindSocket(socket);
-      this.readResponse(220).then(resolve, reject);
+      this.readResponse(220).then(() => resolve(), reject);
     });
 
     await this.command(`EHLO ${siteName.replace(/\s+/g, "-").toLowerCase()}`);

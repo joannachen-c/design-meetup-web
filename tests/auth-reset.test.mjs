@@ -18,25 +18,23 @@ test("wrong login credentials reveal a forgot-password link", async () => {
   );
 });
 
-test("auth recover emails a site reset link instead of the supabase verify URL", async () => {
+test("auth recover sends through supabase HTTP mail, not Vercel SMTP", async () => {
   const route = await read("app/api/auth/route.ts");
   const auth = await read("src/lib/auth.ts");
+  const layout = await read("app/layout.tsx");
+  const redirect = await read("src/components/portal/RecoveryRedirect.tsx");
   assert.match(route, /mode === "recover"/);
   assert.match(route, /requestPasswordReset\(email, requestOrigin\(request\)\)/);
   assert.match(route, /sent: true/);
-  assert.match(auth, /generateLink\(\{/);
-  assert.match(auth, /type: "recovery"/);
-  assert.match(auth, /hashed_token/);
-  assert.match(auth, /publicAppUrl/);
-  assert.match(auth, /gmailConfigStatus\(\)/);
-  assert.match(route, /maxDuration = 30/);
-  assert.match(
-    auth,
-    /\/reset-password\?token_hash=\$\{encodeURIComponent\(hashedToken\)\}&type=recovery/,
-  );
-  assert.doesNotMatch(auth, /auth\/v1\/recover/);
+  assert.match(auth, /resetPasswordForEmail\(/);
+  assert.match(auth, /redirectTo: `\$\{publicAppUrl\}\/reset-password`/);
+  assert.doesNotMatch(auth, /generateLink\(/);
+  assert.doesNotMatch(auth, /sendPasswordResetEmail/);
   assert.doesNotMatch(auth, /action_link/);
   assert.match(auth, /return \{ ok: true as const \}/);
+  assert.match(layout, /RecoveryRedirect/);
+  assert.match(redirect, /\/reset-password/);
+  assert.match(redirect, /type === "recovery"/);
 });
 
 test("reset password page captures the recovery session then updates the password", async () => {

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { AgentationDev } from "@/components/AgentationDev";
 import { AppToaster } from "@/components/AppToaster";
+import { RecoveryRedirect } from "@/components/portal/RecoveryRedirect";
 import {
   siteDescription,
   siteName,
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="bg-surface" suppressHydrationWarning>
       <body className="bg-surface" suppressHydrationWarning>
+        <RecoveryRedirect />
         {children}
         <AppToaster />
         <Analytics />

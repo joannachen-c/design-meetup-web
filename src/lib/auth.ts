@@ -19,8 +19,6 @@ import {
   isApprovedSignupEmail,
   UNAPPROVED_SIGNUP_ERROR,
 } from "./signup-allowlist";
-import { gmailConfigStatus } from "./gmail-smtp";
-import { sendPasswordResetEmail } from "./welcome-email";
 import { publicAppUrl } from "./site";
 
 /** Server-only admin client. Never import from client components. */
@@ -130,30 +128,18 @@ export async function requestPasswordReset(email: string, origin: string) {
 
   try {
     const admin = createAdminClient();
-    const { data, error } = await admin.auth.admin.generateLink({
-      type: "recovery",
-      email: normalized,
-    });
-    const hashedToken = data?.properties?.hashed_token;
-    if (error || !hashedToken) {
-      console.error("password reset generateLink failed", {
-        error: error?.message || "missing hashed_token",
-      });
-      return { ok: true as const };
-    }
-
-    const resetUrl = `${publicAppUrl}/reset-password?token_hash=${encodeURIComponent(hashedToken)}&type=recovery`;
-    const sent = await sendPasswordResetEmail({
-      email: normalized,
-      resetUrl,
-      origin: publicAppUrl,
+    // Vercel blocks outbound SMTP (465/587). Gmail IMAP still works, but reset
+    // mail has to go through Supabase's HTTP mailer instead of smtp.gmail.com.
+    const { error } = await admin.auth.resetPasswordForEmail(normalized, {
+      redirectTo: `${publicAppUrl}/reset-password`,
     });
     console.info("password reset email", {
-      ...gmailConfigStatus(),
-      delivered: sent.ok,
+      via: "supabase",
+      delivered: !error,
+      error: error?.message,
     });
-    if (!sent.ok) {
-      console.error("password reset email was not delivered");
+    if (error) {
+      console.error("password reset email was not delivered", error.message);
     }
   } catch (error) {
     console.error("password reset request failed", error);

@@ -177,7 +177,7 @@ html.is-loading body {
 
 .site-header {
   position: relative;
-  z-index: 40;
+  z-index: 60;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: clamp(16px, 2vw, 28px);
@@ -1958,23 +1958,47 @@ footer {
 
   .primary-navigation {
     display: none;
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: 30;
-    min-width: 11.5rem;
-    flex-direction: column;
-    gap: 4px;
-    padding: 6px;
-    border-radius: 14px;
-    background: #fff;
-    box-shadow:
-      0 0 0 1px rgb(0 0 0 / 0.05),
-      0 12px 32px rgb(18 24 38 / 0.14);
   }
 
-  .site-header-actions[data-open="true"] .primary-navigation {
+  .site-header-menu-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
     display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 100dvh;
+    padding:
+      max(96px, env(safe-area-inset-top))
+      clamp(20px, 6vw, 96px)
+      max(48px, env(safe-area-inset-bottom));
+    background: var(--color-surface);
+  }
+
+  .site-header-menu-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(10px, 2.4vh, 22px);
+    width: min(100%, 22rem);
+  }
+
+  .site-header-menu-link {
+    font-size: clamp(2.25rem, 9.5vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    text-shadow: -0.35px 0 currentColor, 0.35px 0 currentColor;
+    transition: color 160ms ease-out, transform 160ms ease-out;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .site-header-menu-link:hover {
+      color: var(--color-muted);
+      transform: translateX(4px);
+    }
   }
 
   .intro {

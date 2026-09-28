@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useId, useState } from "react";
+import { createPortal } from "react-dom";
 import { CloseIcon, MenuIcon } from "./icons/MenuIcon";
 import { IconButton } from "./IconButton";
 import { ScrollReveal } from "./ScrollReveal";
@@ -18,8 +20,14 @@ export const homeHeaderLinks: SiteHeaderLink[] = [
   { href: "/login", label: "Login" },
 ];
 
-const navLinkClassName =
-  "site-header-nav-link whitespace-nowrap text-medium text-base text-subtle no-underline hover:text-ink focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4 max-[820px]:flex max-[820px]:min-h-11 max-[820px]:items-center max-[820px]:rounded-[10px] max-[820px]:px-3 max-[820px]:text-ink max-[820px]:hover:bg-surface-muted max-[820px]:hover:text-ink";
+const desktopNavLinkClassName =
+  "whitespace-nowrap text-medium text-base text-subtle no-underline hover:text-ink focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4";
+
+const mobileNavLinkClassName =
+  "site-header-menu-link block w-fit text-ink no-underline focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4";
+
+const panelEase = [0.22, 1, 0.36, 1] as const;
+const linkEase = [0.22, 1, 0.36, 1] as const;
 
 export function SiteHeader({
   homeHref = "/",
@@ -35,25 +43,29 @@ export function SiteHeader({
   reveal?: boolean;
 }) {
   const menuId = useId();
-  const menuRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
 
-    const onPointer = (event: PointerEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
     };
 
-    document.addEventListener("pointerdown", onPointer);
+    const { overflow } = document.body.style;
+    document.body.style.overflow = "hidden";
+    document.documentElement.classList.add("is-mobile-menu-open");
     document.addEventListener("keydown", onKey);
+
     return () => {
-      document.removeEventListener("pointerdown", onPointer);
+      document.body.style.overflow = overflow;
+      document.documentElement.classList.remove("is-mobile-menu-open");
       document.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);
@@ -67,11 +79,14 @@ export function SiteHeader({
     return () => media.removeEventListener("change", onChange);
   }, []);
 
+  const closeMenu = () => setMenuOpen(false);
+
   const logo = (
     <a
       className="wordmark leading-[0] no-underline focus-visible:underline focus-visible:decoration-2 focus-visible:underline-offset-4"
       href={homeHref}
       aria-label="Design Meetup home"
+      onClick={closeMenu}
     >
       <img
         className="wordmark-logo border-0 outline-none"
@@ -84,14 +99,13 @@ export function SiteHeader({
     </a>
   );
 
-  const navigation = (
+  const actions = (
     <div
-      ref={menuRef}
       className={["site-header-actions", navClassName].filter(Boolean).join(" ")}
       data-open={menuOpen ? "true" : undefined}
     >
       <IconButton
-        className="site-header-menu-toggle"
+        className="site-header-menu-toggle relative z-[60]"
         variant="ghost"
         tone="subtle"
         aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -103,17 +117,12 @@ export function SiteHeader({
         {menuOpen ? <CloseIcon /> : <MenuIcon />}
       </IconButton>
       <nav
-        id={menuId}
         className="primary-navigation"
         aria-label={navAriaLabel}
+        aria-hidden={menuOpen || undefined}
       >
         {links.map((link) => (
-          <a
-            key={link.href}
-            className={navLinkClassName}
-            href={link.href}
-            onClick={() => setMenuOpen(false)}
-          >
+          <a key={link.href} className={desktopNavLinkClassName} href={link.href}>
             {link.label}
           </a>
         ))}
@@ -121,14 +130,75 @@ export function SiteHeader({
     </div>
   );
 
+  const mobileMenu =
+    mounted &&
+    createPortal(
+      <AnimatePresence>
+        {menuOpen ? (
+          <motion.div
+            key="site-header-menu"
+            className="site-header-menu-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label={navAriaLabel}
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduceMotion ? undefined : { opacity: 0 }}
+            transition={{
+              duration: reduceMotion ? 0 : 0.28,
+              ease: panelEase,
+            }}
+          >
+            <nav id={menuId} className="site-header-menu-nav" aria-label={navAriaLabel}>
+              {links.map((link, index) => (
+                <motion.a
+                  key={link.href}
+                  className={mobileNavLinkClassName}
+                  href={link.href}
+                  onClick={closeMenu}
+                  initial={
+                    reduceMotion ? false : { opacity: 0, y: 28, filter: "blur(4px)" }
+                  }
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={
+                    reduceMotion
+                      ? undefined
+                      : {
+                          opacity: 0,
+                          y: 8,
+                          transition: { duration: 0.14, ease: "easeOut" },
+                        }
+                  }
+                  transition={{
+                    duration: reduceMotion ? 0 : 0.52,
+                    delay: reduceMotion ? 0 : 0.08 + index * 0.055,
+                    ease: linkEase,
+                  }}
+                >
+                  {link.label}
+                </motion.a>
+              ))}
+            </nav>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>,
+      document.body,
+    );
+
   return (
-    <header className="site-header px-[clamp(20px,6vw,96px)] pt-[clamp(16px,2vw,30px)] pb-[clamp(24px,3vw,46px)] text-base">
-      {reveal ? <ScrollReveal>{logo}</ScrollReveal> : logo}
-      {reveal ? (
-        <ScrollReveal delay={60}>{navigation}</ScrollReveal>
-      ) : (
-        navigation
-      )}
-    </header>
+    <>
+      <header
+        className="site-header px-[clamp(20px,6vw,96px)] pt-[clamp(16px,2vw,30px)] pb-[clamp(24px,3vw,46px)] text-base"
+        data-menu-open={menuOpen ? "true" : undefined}
+      >
+        {reveal ? <ScrollReveal>{logo}</ScrollReveal> : logo}
+        {reveal ? (
+          <ScrollReveal delay={60}>{actions}</ScrollReveal>
+        ) : (
+          actions
+        )}
+      </header>
+      {mobileMenu}
+    </>
   );
 }

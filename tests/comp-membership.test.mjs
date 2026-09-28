@@ -51,7 +51,8 @@ test("checkout applies the comp coupon and skips a card when the email is listed
   const comp = await read("src/lib/comp-membership.ts");
   assert.match(checkout, /shouldApplyCompCoupon\(user\.email\)/);
   assert.match(checkout, /discounts: \[\{ coupon: compCouponId\(\) \}\]/);
-  assert.match(checkout, /payment_method_collection: "if_required"/);
+  assert.match(checkout, /payment_method_collection: "always"/);
+  assert.doesNotMatch(checkout, /if_required/);
   assert.doesNotMatch(checkout, /allow_promotion_codes/);
   assert.match(
     comp,

@@ -53,6 +53,33 @@ test("preview stripe price ids are the default catalog when env is unset", () =>
   }
 });
 
+test("live stripe keys refuse the test-mode catalog price ids", () => {
+  const previousStudent = process.env.STRIPE_PRICE_STUDENT_MONTHLY;
+  const previousProfessional = process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY;
+  const previousSecret = process.env.STRIPE_SECRET_KEY;
+  delete process.env.STRIPE_PRICE_STUDENT_MONTHLY;
+  delete process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY;
+  process.env.STRIPE_SECRET_KEY = "sk_live_example";
+  try {
+    assert.equal(priceIdForTier("student"), "price_local_student");
+    assert.equal(priceIdForTier("professional"), "price_local_professional");
+    process.env.STRIPE_PRICE_STUDENT_MONTHLY = "price_live_student";
+    process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY = "price_live_pro";
+    assert.equal(priceIdForTier("student"), "price_live_student");
+    assert.equal(priceIdForTier("professional"), "price_live_pro");
+  } finally {
+    if (previousStudent === undefined) delete process.env.STRIPE_PRICE_STUDENT_MONTHLY;
+    else process.env.STRIPE_PRICE_STUDENT_MONTHLY = previousStudent;
+    if (previousProfessional === undefined) {
+      delete process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY;
+    } else {
+      process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY = previousProfessional;
+    }
+    if (previousSecret === undefined) delete process.env.STRIPE_SECRET_KEY;
+    else process.env.STRIPE_SECRET_KEY = previousSecret;
+  }
+});
+
 test("stripe status normalization", () => {
   assert.equal(normalizeMembershipStatus("active"), "active");
   assert.equal(normalizeMembershipStatus("unpaid"), "incomplete");

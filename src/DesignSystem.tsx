@@ -17,6 +17,7 @@ import { ScrollReveal } from "./components/ScrollReveal";
 import { Select } from "./components/Select";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
+import { showSuccessToast } from "./components/AppToaster";
 import { Toast, ToastCheckIcon } from "./components/Toast";
 import { Tooltip, TooltipProvider } from "./components/Tooltip";
 
@@ -26,9 +27,8 @@ const sectionTitleClassName =
   "m-0 text-balance text-xl font-bold leading-tight tracking-[-0.04em]";
 const specimenClassName =
   "flex min-h-32 flex-wrap items-center rounded-[11px]";
-const whiteSpecimenClassName = `${specimenClassName} gap-3 bg-white py-5 sm:py-8`;
-const linksSpecimenClassName =
-  "flex flex-wrap items-center gap-6 rounded-[11px] bg-white";
+const specimenRowClassName = "flex flex-wrap items-center gap-3";
+const linksSpecimenClassName = "flex flex-wrap items-center gap-6";
 const colorItemClassName = "grid gap-3";
 const specimenDescriptionClassName =
   "m-0 mt-1 text-pretty text-sm leading-[1.5] text-muted";
@@ -769,7 +769,7 @@ export default function DesignSystem() {
             <div className="grid gap-8">
               <div>
                 <SpecimenLabel>variants</SpecimenLabel>
-                <div className={`${whiteSpecimenClassName} mt-4`}>
+                <div className={`${specimenRowClassName} mt-4`}>
                   <Primary>Primary</Primary>
                   <Primary variant="secondary">
                     Secondary
@@ -787,7 +787,7 @@ export default function DesignSystem() {
               </div>
               <div>
                 <SpecimenLabel>states</SpecimenLabel>
-                <div className={`${whiteSpecimenClassName} mt-4`}>
+                <div className={`${specimenRowClassName} mt-4`}>
                   <Primary loading>Loading</Primary>
                   <Primary disabled>Disabled</Primary>
                   <Primary variant="secondary" disabled>
@@ -959,7 +959,7 @@ export default function DesignSystem() {
             <div className="grid gap-8">
               <div>
                 <SpecimenLabel>neutral</SpecimenLabel>
-                <div className={`${whiteSpecimenClassName} mt-4`}>
+                <div className={`${specimenRowClassName} mt-4`}>
                   <Toast>
                     checkout canceled — pick a plan when you&apos;re ready.
                   </Toast>
@@ -967,15 +967,21 @@ export default function DesignSystem() {
               </div>
               <div>
                 <SpecimenLabel>success</SpecimenLabel>
-                <div className={`${whiteSpecimenClassName} mt-4`}>
+                <div className={`${specimenRowClassName} mt-4`}>
                   <Toast variant="success" icon={<ToastCheckIcon />}>
                     Profile updated.
                   </Toast>
+                  <Primary
+                    variant="secondary"
+                    onClick={() => showSuccessToast("Profile updated.")}
+                  >
+                    Play animation
+                  </Primary>
                 </div>
               </div>
               <div>
                 <SpecimenLabel>danger</SpecimenLabel>
-                <div className={`${whiteSpecimenClassName} mt-4`}>
+                <div className={`${specimenRowClassName} mt-4`}>
                   <Toast variant="danger">
                     couldn&apos;t start checkout. please try again.
                   </Toast>

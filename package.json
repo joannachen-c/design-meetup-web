@@ -16,7 +16,8 @@
     "seed:sponsors": "node scripts/seed-sponsors.mjs",
     "trim:sponsor-logos": "node scripts/trim-sponsor-logos.mjs",
     "upload:sponsor-logos": "node scripts/upload-sponsor-logos.mjs",
-    "import:partner-inquiries": "node --experimental-strip-types scripts/import-partner-inquiries.mjs"
+    "import:partner-inquiries": "node --experimental-strip-types scripts/import-partner-inquiries.mjs",
+    "import:slack-members": "node --experimental-strip-types scripts/import-slack-members.mjs"
   },
   "repository": {
     "type": "git",

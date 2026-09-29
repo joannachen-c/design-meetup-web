@@ -18,30 +18,13 @@ import {
   syncMembershipFromCheckoutSession,
   userHasPortalAccess,
 } from "@/lib/membership-service";
+import { memberSinceLabel } from "@/lib/slack-join-dates";
+import { getSlackJoinedAt } from "@/lib/slack-members";
 
 export const metadata: Metadata = {
   title: "Portal",
   robots: { index: false, follow: false },
 };
-
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "June",
-  "July",
-  "Aug",
-  "Sept",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-function formatMemberSince(date: Date) {
-  return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
-}
 
 export default async function PortalHomePage({
   searchParams,
@@ -76,9 +59,8 @@ export default async function PortalHomePage({
     profile?.displayName?.trim() ||
     displayNameFromEmail(user.email || "member");
   const firstName = firstNameFromDisplay(displayName, user.email || "member");
-  const memberSince = profile?.createdAt
-    ? formatMemberSince(new Date(profile.createdAt))
-    : null;
+  const slackJoinedAt = await getSlackJoinedAt(profile?.email || user.email);
+  const memberSince = memberSinceLabel(slackJoinedAt, profile?.createdAt);
 
   const renews = membership?.currentPeriodEnd
     ? new Intl.DateTimeFormat("en-US", {

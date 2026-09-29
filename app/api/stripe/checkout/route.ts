@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
-import { isTier, priceIdForTier, TIER_CATALOG } from "@/lib/membership";
+import { isTier } from "@/lib/membership";
+import { resolveCheckoutPriceId } from "@/lib/stripe-price";
 import {
   changeMembershipTier,
   ensureProfile,
@@ -127,13 +128,7 @@ export async function POST(request: Request) {
       await saveStripeCustomerId(user.id, customerId);
     }
 
-    const priceId = priceIdForTier(tier);
-    if (priceId.startsWith("price_local_")) {
-      return checkoutError(
-        `Missing live Stripe Price id for ${TIER_CATALOG[tier].name}. Set STRIPE_PRICE_${tier.toUpperCase()}_MONTHLY to a live price id, then redeploy.`,
-        "price",
-      );
-    }
+    const priceId = await resolveCheckoutPriceId(tier, stripe);
 
     const applyComp = shouldApplyCompCoupon(user.email);
     const discounts = applyComp

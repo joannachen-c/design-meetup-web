@@ -21,7 +21,22 @@ test("a missing avatar falls back to the empty photo instead of a broken image",
   const card = await read("src/components/portal/MemberIdCard.tsx");
   const header = await read("src/components/portal/PortalHeader.tsx");
   const form = await read("src/components/portal/ProfileForm.tsx");
-  assert.match(card, /onError=\{\(\) => setPhoto\(null\)\}/);
-  assert.match(header, /onError=\{\(\) => setFailed\(url\)\}/);
-  assert.match(form, /onError=\{\(\) => setPreviewUrl\(null\)\}/);
+  assert.match(card, /<AvatarImage[\s\S]*?onFail=\{\(\) => setPhoto\(null\)\}/);
+  assert.match(header, /<AvatarImage[\s\S]*?onFail=\{\(\) => setFailed\(url\)\}/);
+  assert.match(form, /<AvatarImage[\s\S]*?onFail=\{\(\) => setPreviewUrl\(null\)\}/);
+});
+
+test("avatar images catch failures that happened before hydration and retry once", async () => {
+  const image = await read("src/components/portal/AvatarImage.tsx");
+  assert.match(image, /img\?\.complete && img\.naturalWidth === 0/);
+  assert.match(image, /retry=\$\{attempt\}/);
+  assert.match(image, /src\.startsWith\("blob:"\)/);
+});
+
+test("the avatar route only reads Supabase Storage when it is configured", async () => {
+  const service = await read("src/lib/membership-service.ts");
+  const route = await read("app/api/portal/avatar/[userId]/route.ts");
+  assert.match(service, /if \(!storage\) return readAvatarFile\(userId\);/);
+  assert.match(service, /TABLES_RECHECK_MS/);
+  assert.match(route, /status: 404,\s*headers: \{ "Cache-Control": "no-store" \}/);
 });

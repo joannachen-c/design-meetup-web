@@ -28,14 +28,24 @@ import { sendGraduationUpgradeEmail } from "./welcome-email";
 
 const DEMO_EMAIL = "demo@designmeetup.info";
 
+const TABLES_RECHECK_MS = 30_000;
 let supabaseTablesReady: boolean | null = null;
+let supabaseTablesCheckedAt = 0;
 
 async function supabaseMembershipTablesAvailable() {
   if (!supabaseAuthConfigured()) {
     supabaseTablesReady = false;
     return false;
   }
-  if (supabaseTablesReady != null) return supabaseTablesReady;
+  // A failed probe (cold start, network blip) is retried so one bad request
+  // does not pin a serverless instance to the per-instance file store.
+  if (
+    supabaseTablesReady ||
+    (supabaseTablesReady === false &&
+      Date.now() - supabaseTablesCheckedAt < TABLES_RECHECK_MS)
+  ) {
+    return supabaseTablesReady;
+  }
   try {
     const admin = createAdminClient();
     const { error } = await admin.from("profiles").select("id").limit(1);
@@ -43,6 +53,7 @@ async function supabaseMembershipTablesAvailable() {
   } catch {
     supabaseTablesReady = false;
   }
+  supabaseTablesCheckedAt = Date.now();
   return supabaseTablesReady;
 }
 
@@ -298,16 +309,18 @@ async function saveAvatar(userId: string, bytes: Buffer, contentType: string) {
 
 export async function getAvatarForUser(userId: string) {
   const storage = await avatarStorage();
-  if (storage) {
-    const { data } = await storage.download(userId);
-    if (data) {
-      return {
-        bytes: Buffer.from(await data.arrayBuffer()),
-        contentType: data.type || "image/jpeg",
-      };
+  if (!storage) return readAvatarFile(userId);
+  const { data, error } = await storage.download(userId);
+  if (!data) {
+    if (error && !/not found/i.test(error.message)) {
+      console.error("avatar download failed", { userId, error: error.message });
     }
+    return null;
   }
-  return readAvatarFile(userId);
+  return {
+    bytes: Buffer.from(await data.arrayBuffer()),
+    contentType: data.type || "image/jpeg",
+  };
 }
 
 export async function getMembership(userId: string): Promise<MembershipRecord | null> {

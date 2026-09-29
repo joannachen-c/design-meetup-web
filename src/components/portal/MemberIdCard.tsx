@@ -10,6 +10,7 @@ import {
   XIcon,
   YouTubeIcon,
 } from "@/components/portal/SocialIcons";
+import { AvatarImage } from "@/components/portal/AvatarImage";
 import { PersonSilhouette } from "@/components/portal/PersonSilhouette";
 import { graduationYearLabel } from "@/lib/graduation";
 import {
@@ -306,11 +307,10 @@ export function MemberIdCard({
                   tabIndex={flipped ? -1 : 0}
                 >
                   {photo ? (
-                    <img
+                    <AvatarImage
                       src={photo}
-                      alt=""
                       className={styles.photo}
-                      onError={() => setPhoto(null)}
+                      onFail={() => setPhoto(null)}
                     />
                   ) : (
                     <span className={styles.photoEmpty}>

@@ -15,7 +15,10 @@ export async function GET(
 
   const avatar = await getAvatarForUser(userId);
   if (!avatar) {
-    return new NextResponse(null, { status: 404 });
+    return new NextResponse(null, {
+      status: 404,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   return new NextResponse(new Uint8Array(avatar.bytes), {

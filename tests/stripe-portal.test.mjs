@@ -73,6 +73,17 @@ test("preview workflow copies production stripe env and skips the unused publish
   );
 });
 
+test("preview workflow never deletes an env var shared with production", async () => {
+  const workflow = await read(".github/workflows/vercel-preview.yml");
+  assert.match(workflow, /already shared by Production and Preview; leaving it alone/);
+  assert.match(workflow, /rest = \[t for t in targets if t != "preview"\]/);
+  assert.match(workflow, /-X PATCH/);
+  assert.doesNotMatch(
+    workflow,
+    /"preview" in \(e\.get\("target"\) or \[\]\)\)\)'\)\s*\n\s*for id in \$ids/,
+  );
+});
+
 test("this branch ships the stripe checkout, portal, and webhook routes", async () => {
   const checkout = await read("app/api/stripe/checkout/route.ts");
   const portal = await read("app/api/stripe/portal/route.ts");

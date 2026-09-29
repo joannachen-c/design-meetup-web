@@ -295,8 +295,61 @@ export async function getMembership(userId: string): Promise<MembershipRecord | 
   return getLocalMembership(userId);
 }
 
+const RECOVERY_MISS_TTL_MS = 15_000;
+const recoveryMisses = new Map<string, number>();
+
+/**
+ * Rebuild a missing membership from the member's live Stripe subscription.
+ * Covers a missed webhook and hosts without a durable membership store
+ * (no service-role key means memberships only live in a per-instance /tmp).
+ */
+async function recoverMembershipFromStripe(userId: string) {
+  const missedAt = recoveryMisses.get(userId);
+  if (missedAt && Date.now() - missedAt < RECOVERY_MISS_TTL_MS) return null;
+  if (!stripeConfigured()) return null;
+
+  const { getStripe } = await import("./stripe");
+  const stripe = getStripe();
+  if (!stripe) return null;
+
+  try {
+    const profile = await getProfile(userId);
+    const customerIds = new Set<string>();
+    if (profile?.stripeCustomerId) customerIds.add(profile.stripeCustomerId);
+    const email = (profile?.email || "").trim().toLowerCase();
+    if (email) {
+      const customers = await stripe.customers.list({ email, limit: 10 });
+      for (const customer of customers.data) customerIds.add(customer.id);
+    }
+
+    for (const customer of customerIds) {
+      const subscriptions = await stripe.subscriptions.list({
+        customer,
+        status: "all",
+        limit: 10,
+      });
+      const live = subscriptions.data.find((subscription) => {
+        const owner = subscription.metadata?.supabase_user_id;
+        return (
+          (!owner || owner === userId) &&
+          hasPortalAccess(normalizeMembershipStatus(subscription.status))
+        );
+      });
+      if (live) {
+        recoveryMisses.delete(userId);
+        return syncMembershipFromStripeSubscription(userId, live);
+      }
+    }
+  } catch (error) {
+    console.error("stripe membership recovery failed", error);
+  }
+  recoveryMisses.set(userId, Date.now());
+  return null;
+}
+
 export async function userHasPortalAccess(userId: string) {
-  const membership = await getMembership(userId);
+  const membership =
+    (await getMembership(userId)) ?? (await recoverMembershipFromStripe(userId));
   if (!hasPortalAccess(membership?.status ?? null)) return false;
   if (isLiveStripeSubscriptionId(membership?.stripeSubscriptionId)) return true;
   const profile = await getProfile(userId);

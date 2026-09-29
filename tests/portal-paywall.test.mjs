@@ -64,6 +64,6 @@ test("unpaid portal chrome hides dashboard nav until a plan is paid", async () =
   const header = await read("src/components/portal/PortalHeader.tsx");
   const layout = await read("app/portal/layout.tsx");
   assert.match(layout, /paid=\{paid\}/);
-  assert.match(header, /paid \? "\/portal" : "\/portal\/subscribe"/);
-  assert.match(header, /\{paid \? \(/);
+  assert.match(header, /showMemberNav \? "\/portal" : "\/portal\/subscribe"/);
+  assert.match(header, /\{showMemberNav \? \(/);
 });

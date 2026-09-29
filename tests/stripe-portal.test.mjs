@@ -84,6 +84,27 @@ test("preview workflow never deletes an env var shared with production", async (
   );
 });
 
+test("portal access recovers a missing membership from the live Stripe subscription", async () => {
+  const service = await read("src/lib/membership-service.ts");
+  assert.match(service, /async function recoverMembershipFromStripe/);
+  assert.match(service, /stripe\.customers\.list\(\{ email, limit: 10 \}\)/);
+  assert.match(service, /owner === userId/);
+  assert.match(
+    service,
+    /\(await getMembership\(userId\)\) \?\? \(await recoverMembershipFromStripe\(userId\)\)/,
+  );
+});
+
+test("the member nav shows on every paid portal page, even right after checkout", async () => {
+  const header = await read("src/components/portal/PortalHeader.tsx");
+  assert.match(
+    header,
+    /const showMemberNav = paid \|\| !pathname\.startsWith\("\/portal\/subscribe"\)/,
+  );
+  assert.match(header, /\{showMemberNav \? \(\s*<nav/);
+  assert.match(header, /href="\/portal\/profile"/);
+});
+
 test("this branch ships the stripe checkout, portal, and webhook routes", async () => {
   const checkout = await read("app/api/stripe/checkout/route.ts");
   const portal = await read("app/api/stripe/portal/route.ts");

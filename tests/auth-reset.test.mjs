@@ -74,8 +74,8 @@ test("recovery email template brands Design Meetup and skips Vercel SSO hosts", 
   const template = await read("src/lib/recovery-email.ts");
   const html = await read("public/email/recovery.html");
   const confirm = await read("app/auth/confirm/route.ts");
+  assert.match(template, /Choose a new Design Meetup password/);
   for (const source of [template, html]) {
-    assert.match(source, /Choose a new Design Meetup password/);
     assert.match(source, /password reset for your Design Meetup account/);
     assert.match(source, /design-meetup-logo\.png/);
     assert.match(

@@ -89,7 +89,7 @@ export function PortalHeader({
   return (
     <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
       <Link
-        href={showMemberNav ? "/portal" : "/portal/subscribe"}
+        href="/"
         className="w-fit leading-[0] no-underline"
         aria-label="Design Meetup home"
       >

@@ -64,8 +64,15 @@ test("unpaid portal chrome hides dashboard nav until a plan is paid", async () =
   const header = await read("src/components/portal/PortalHeader.tsx");
   const layout = await read("app/portal/layout.tsx");
   assert.match(layout, /paid=\{paid\}/);
-  assert.match(header, /showMemberNav \? "\/portal" : "\/portal\/subscribe"/);
   assert.match(header, /\{showMemberNav \? \(/);
+});
+
+test("portal logo links to the public homepage", async () => {
+  const header = await read("src/components/portal/PortalHeader.tsx");
+  assert.match(
+    header,
+    /<Link\s+href="\/"\s+className="w-fit[^"]*"\s+aria-label="Design Meetup home"/,
+  );
 });
 
 test("member portal pages use sentence case instead of forcing lowercase", async () => {

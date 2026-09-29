@@ -207,11 +207,7 @@ export async function updateProfile(input: {
   let avatarUrl: string | null | undefined;
 
   if (input.avatarBytes && input.avatarContentType) {
-    await saveAvatarFile(
-      input.userId,
-      input.avatarBytes,
-      input.avatarContentType,
-    );
+    await saveAvatar(input.userId, input.avatarBytes, input.avatarContentType);
     avatarUrl = `/api/portal/avatar/${input.userId}?v=${Date.now()}`;
   }
 
@@ -266,7 +262,51 @@ export async function updateProfile(input: {
   });
 }
 
+export const AVATAR_BUCKET = "member-avatars";
+
+let avatarBucketReady = false;
+
+/**
+ * Serverless disks are per-instance and wiped on cold start, so avatars live in
+ * Supabase Storage whenever it is configured. Local dev keeps the file store.
+ */
+async function avatarStorage() {
+  if (!(await supabaseMembershipTablesAvailable())) return null;
+  const admin = createAdminClient();
+  if (!avatarBucketReady) {
+    const { data } = await admin.storage.getBucket(AVATAR_BUCKET);
+    if (!data) {
+      await admin.storage.createBucket(AVATAR_BUCKET, { public: false });
+    }
+    avatarBucketReady = true;
+  }
+  return admin.storage.from(AVATAR_BUCKET);
+}
+
+async function saveAvatar(userId: string, bytes: Buffer, contentType: string) {
+  const storage = await avatarStorage();
+  if (!storage) {
+    await saveAvatarFile(userId, bytes, contentType);
+    return;
+  }
+  const { error } = await storage.upload(userId, bytes, {
+    contentType,
+    upsert: true,
+  });
+  if (error) throw new Error(`avatar upload failed: ${error.message}`);
+}
+
 export async function getAvatarForUser(userId: string) {
+  const storage = await avatarStorage();
+  if (storage) {
+    const { data } = await storage.download(userId);
+    if (data) {
+      return {
+        bytes: Buffer.from(await data.arrayBuffer()),
+        contentType: data.type || "image/jpeg",
+      };
+    }
+  }
   return readAvatarFile(userId);
 }
 

@@ -306,7 +306,12 @@ export function MemberIdCard({
                   tabIndex={flipped ? -1 : 0}
                 >
                   {photo ? (
-                    <img src={photo} alt="" className={styles.photo} />
+                    <img
+                      src={photo}
+                      alt=""
+                      className={styles.photo}
+                      onError={() => setPhoto(null)}
+                    />
                   ) : (
                     <span className={styles.photoEmpty}>
                       <PersonSilhouette className={styles.silhouette} />

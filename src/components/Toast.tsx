@@ -2,7 +2,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 
 const variantClassName = {
   neutral: "bg-surface-muted text-muted",
-  success: "bg-surface-muted text-ink",
+  success: "bg-green-50 text-green-700",
   danger: "bg-red-50 text-red-700",
 } as const;
 
@@ -22,7 +22,6 @@ export function ToastCheckIcon() {
       height="16"
       viewBox="0 0 16 16"
       fill="none"
-      className="text-tertiary"
       aria-hidden
     >
       <path

@@ -164,6 +164,14 @@ export function priceIdForTier(tier: Tier): string {
   return configuredPriceId(tier);
 }
 
+export function isStripeProductId(id: string) {
+  return id.startsWith("prod_");
+}
+
+export function isStripePriceId(id: string) {
+  return id.startsWith("price_") && !id.startsWith("price_local_");
+}
+
 export function hasPortalAccess(status: MembershipStatus | null | undefined) {
   return status === "active" || status === "trialing" || status === "past_due";
 }

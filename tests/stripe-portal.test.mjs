@@ -136,6 +136,7 @@ test("real stripe subscriptions are canceled and switched in stripe, not only lo
   assert.match(service, /stripe\.subscriptions\.update/);
   assert.match(service, /cancel_at_period_end: cancelAtPeriodEnd/);
   assert.match(service, /proration_behavior: "create_prorations"/);
+  assert.match(service, /resolveCheckoutPriceId\(tier, stripe\)/);
   assert.match(service, /saveStripeCustomerId\(userId, customerId\)/);
   assert.match(checkout, /changeMembershipTier\(user\.id, tier\)/);
   assert.doesNotMatch(checkout, /activateMockMembership/);

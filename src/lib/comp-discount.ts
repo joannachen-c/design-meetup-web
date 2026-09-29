@@ -57,7 +57,11 @@ export function checkoutFailureCode(error: unknown) {
     return "stripe" as const;
   }
   if (/api key/i.test(message)) return "stripe" as const;
-  if (/no such price|similar object exists in test mode/i.test(message)) {
+  if (
+    /no such price|no such product|similar object exists in test mode|missing live stripe price/i.test(
+      message,
+    )
+  ) {
     return "price" as const;
   }
   if (

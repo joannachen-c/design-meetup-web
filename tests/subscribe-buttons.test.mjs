@@ -21,6 +21,7 @@ test("invalid stripe keys do not grant membership without checkout", async () =>
   const errors = await read("src/lib/comp-discount.ts");
   assert.match(errors, /invalid api key/i);
   assert.match(route, /checkoutFailureCode\(error\)/);
+  assert.match(route, /resolveCheckoutPriceId\(tier, stripe\)/);
   assert.match(route, /\/portal\/subscribe\?error=/);
   assert.doesNotMatch(route, /activateMockMembership/);
   assert.doesNotMatch(route, /mockBillingAllowed/);

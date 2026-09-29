@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { priceIdForTier } from "@/lib/membership";
+import { resolveCheckoutPriceId } from "@/lib/stripe-price";
 import { requestOrigin } from "@/lib/site";
 
 let stripe: Stripe | null = null;
@@ -67,10 +67,13 @@ async function portalFeaturesWithPlanSwitch(stripeClient: Stripe) {
     ...portalFeatures,
   };
   try {
-    const prices = await Promise.all([
-      stripeClient.prices.retrieve(priceIdForTier("student")),
-      stripeClient.prices.retrieve(priceIdForTier("professional")),
+    const priceIds = await Promise.all([
+      resolveCheckoutPriceId("student", stripeClient),
+      resolveCheckoutPriceId("professional", stripeClient),
     ]);
+    const prices = await Promise.all(
+      priceIds.map((id) => stripeClient.prices.retrieve(id)),
+    );
     const byProduct = new Map<string, string[]>();
     for (const price of prices) {
       const product =

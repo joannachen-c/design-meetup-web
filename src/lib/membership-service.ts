@@ -594,8 +594,10 @@ export async function changeMembershipTier(userId: string, tier: Tier) {
     }
     const itemId = current.items.data[0]?.id;
     if (!itemId) return null;
+    const { resolveCheckoutPriceId } = await import("./stripe-price");
+    const nextPriceId = await resolveCheckoutPriceId(tier, stripe);
     const updated = await stripe.subscriptions.update(current.id, {
-      items: [{ id: itemId, price: priceIdForTier(tier) }],
+      items: [{ id: itemId, price: nextPriceId }],
       metadata: { supabase_user_id: userId, tier },
       proration_behavior: "create_prorations",
       cancel_at_period_end: false,

@@ -117,6 +117,10 @@ test("coupon id is read from promotion.coupon or a top-level coupon", () => {
 
 test("checkout maps missing coupons to coupon and bad keys to stripe", () => {
   assert.equal(
+    checkoutFailureCode(missing("No such product: 'prod_vLShasv4kagv9t'")),
+    "price",
+  );
+  assert.equal(
     checkoutFailureCode(missing("No such coupon: 'vXejHxwc'")),
     "coupon",
   );

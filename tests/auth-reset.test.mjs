@@ -23,10 +23,14 @@ test("auth recover sends through supabase HTTP mail, not Vercel SMTP", async () 
   const auth = await read("src/lib/auth.ts");
   const layout = await read("app/layout.tsx");
   const redirect = await read("src/components/portal/RecoveryRedirect.tsx");
+  const session = await read("src/lib/auth-session.ts");
   assert.match(route, /mode === "recover"/);
   assert.match(route, /requestPasswordReset\(email, requestOrigin\(request\)\)/);
   assert.match(route, /sent: true/);
   assert.match(auth, /resetPasswordForEmail\(/);
+  assert.match(auth, /supabasePublishableOrServiceKey/);
+  assert.match(session, /NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+  assert.match(session, /supabasePublishableOrServiceKey/);
   assert.match(auth, /redirectTo: `\$\{publicAppUrl\}\/reset-password`/);
   assert.doesNotMatch(auth, /generateLink\(/);
   assert.doesNotMatch(auth, /sendPasswordResetEmail/);

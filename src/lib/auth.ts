@@ -13,6 +13,7 @@ import {
   refreshSession,
   serviceRoleKey,
   supabaseAuthConfigured,
+  supabasePublishableOrServiceKey,
   supabaseUrl,
 } from "./auth-session";
 import {
@@ -120,17 +121,33 @@ async function localPasswordSignUp(email: string, _password: string) {
   return { ok: true as const, userId };
 }
 
+function createUserAuthClient() {
+  const key = supabasePublishableOrServiceKey();
+  if (!key) {
+    throw new Error("Supabase API key is required for password reset.");
+  }
+  return createClient(supabaseUrl(), key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 export async function requestPasswordReset(email: string, origin: string) {
   const normalized = email.trim().toLowerCase();
-  if (!normalized || !supabaseAuthConfigured()) {
+  const apiKey = supabasePublishableOrServiceKey();
+  if (!normalized || !apiKey) {
+    if (normalized && !apiKey) {
+      console.error("password reset skipped: missing supabase API key");
+    }
     return { ok: true as const };
   }
 
   try {
-    const admin = createAdminClient();
+    const client = createUserAuthClient();
     // Vercel blocks outbound SMTP (465/587). Gmail IMAP still works, but reset
     // mail has to go through Supabase's HTTP mailer instead of smtp.gmail.com.
-    const { error } = await admin.auth.resetPasswordForEmail(normalized, {
+    // The public anon key is enough for recover; production already inlines it
+    // for the homepage even when the service-role secret is missing.
+    const { error } = await client.auth.resetPasswordForEmail(normalized, {
       redirectTo: `${publicAppUrl}/reset-password`,
     });
     console.info("password reset email", {
@@ -155,15 +172,15 @@ export async function setRecoverySession(input: {
 }) {
   const tokenHash = input.token_hash?.trim();
   if (tokenHash) {
-    if (!supabaseAuthConfigured()) {
+    if (!supabasePublishableOrServiceKey()) {
       return {
         ok: false as const,
         error: "this reset link is invalid or expired.",
       };
     }
     try {
-      const admin = createAdminClient();
-      const { data, error } = await admin.auth.verifyOtp({
+      const client = createUserAuthClient();
+      const { data, error } = await client.auth.verifyOtp({
         token_hash: tokenHash,
         type: "recovery",
       });
@@ -183,7 +200,11 @@ export async function setRecoverySession(input: {
           expires_in: session.expires_in,
         });
       }
-      return { ok: true as const, userId };
+      return {
+        ok: true as const,
+        userId,
+        access_token: session?.access_token,
+      };
     } catch (error) {
       console.error("recovery verifyOtp failed", error);
       return {
@@ -253,10 +274,13 @@ export async function updatePassword(
     };
   }
   let userId: string | undefined;
+  let accessToken: string | undefined;
   if (recovery?.token_hash || recovery?.access_token) {
     const recovered = await setRecoverySession(recovery);
     if (!recovered.ok) return recovered;
     userId = recovered.userId;
+    accessToken =
+      "access_token" in recovered ? recovered.access_token : recovery.access_token;
   }
   if (!userId) {
     userId = (await getSessionUser())?.id;
@@ -267,24 +291,63 @@ export async function updatePassword(
       error: "this reset link is invalid or expired.",
     };
   }
-  if (!supabaseAuthConfigured()) {
-    return { ok: true as const };
-  }
-  try {
-    const admin = createAdminClient();
-    const { error } = await admin.auth.admin.updateUserById(userId, {
-      password,
-    });
-    if (error) {
-      return { ok: false as const, error: error.message };
+  if (supabaseAuthConfigured()) {
+    try {
+      const admin = createAdminClient();
+      const { error } = await admin.auth.admin.updateUserById(userId, {
+        password,
+      });
+      if (error) {
+        return { ok: false as const, error: error.message };
+      }
+      return { ok: true as const };
+    } catch {
+      return {
+        ok: false as const,
+        error: "couldn't update your password. try again in a moment.",
+      };
     }
-    return { ok: true as const };
-  } catch {
-    return {
-      ok: false as const,
-      error: "couldn't update your password. try again in a moment.",
-    };
   }
+  const apiKey = supabasePublishableOrServiceKey();
+  if (apiKey && accessToken) {
+    try {
+      const response = await fetch(`${supabaseUrl()}/auth/v1/user`, {
+        method: "PUT",
+        headers: {
+          apikey: apiKey,
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as {
+          message?: string;
+          error_description?: string;
+        };
+        return {
+          ok: false as const,
+          error:
+            payload.error_description ||
+            payload.message ||
+            "couldn't update your password. try again.",
+        };
+      }
+      return { ok: true as const };
+    } catch {
+      return {
+        ok: false as const,
+        error: "couldn't update your password. try again in a moment.",
+      };
+    }
+  }
+  if (!recovery?.token_hash) {
+    return { ok: true as const };
+  }
+  return {
+    ok: false as const,
+    error: "this reset link is invalid or expired.",
+  };
 }
 
 export async function getSessionUser(): Promise<User | null> {

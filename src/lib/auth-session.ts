@@ -47,15 +47,36 @@ function readServerEnv(name: string) {
 }
 
 export function supabaseUrl() {
+  const fromPublic = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
   return (
     readServerEnv("SUPABASE_URL") ||
-    readServerEnv("NEXT_PUBLIC_SUPABASE_URL") ||
+    fromPublic ||
     "https://sngjttldklmgyzebikxv.supabase.co"
   );
 }
 
 export function supabaseAuthConfigured() {
   return Boolean(readServerEnv("SUPABASE_SERVICE_ROLE_KEY"));
+}
+
+/**
+ * Public anon key. Must be a static `process.env.NEXT_PUBLIC_…` read so Next
+ * inlines it the same way the homepage loads events. Production already has
+ * this key; it does not have the service-role secret at runtime.
+ */
+export function supabaseAnonKey() {
+  const value = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "[SENSITIVE]" || trimmed === "your-anon-key") {
+    return "";
+  }
+  return trimmed;
+}
+
+/** Service role if present, otherwise the public anon key. Enough for recover + verify. */
+export function supabasePublishableOrServiceKey() {
+  return readServerEnv("SUPABASE_SERVICE_ROLE_KEY") || supabaseAnonKey();
 }
 
 export function serviceRoleKey() {

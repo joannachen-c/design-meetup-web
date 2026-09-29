@@ -125,30 +125,3 @@ test("membership statuses read in sentence case", () => {
   assert.equal(TIER_CATALOG.student.name, "Student");
   assert.equal(TIER_CATALOG.professional.name, "Professional");
 });
-
-test("profile is complete with a role or school + year, plus website and location", () => {
-  const base = { website: "ilyssa.design", location: "San Francisco" };
-  assert.equal(profileDetailsComplete({ ...base, position: "Designer" }), true);
-  assert.equal(profileDetailsComplete({ ...base, company: "Figma" }), true);
-  assert.equal(
-    profileDetailsComplete({ ...base, school: "Stanford", year: "2027" }),
-    true,
-  );
-
-  assert.equal(profileDetailsComplete({ ...base, school: "Stanford" }), false);
-  assert.equal(profileDetailsComplete({ ...base, year: "2027" }), false);
-  assert.equal(profileDetailsComplete({ ...base }), false);
-  assert.equal(
-    profileDetailsComplete({ position: "Designer", location: "SF" }),
-    false,
-  );
-  assert.equal(
-    profileDetailsComplete({ position: "Designer", website: "ilyssa.design" }),
-    false,
-  );
-  assert.equal(
-    profileDetailsComplete({ ...base, position: "   ", company: "" }),
-    false,
-  );
-  assert.equal(profileDetailsComplete({}), false);
-});

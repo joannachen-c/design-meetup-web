@@ -86,6 +86,8 @@
   margin: 0;
   font-size: clamp(0.8rem, 2vw, 0.95rem);
   font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--color-subtle);
 }
 
@@ -177,7 +179,7 @@
   font-weight: 700;
   line-height: 1;
   text-align: center;
-  text-transform: none;
+  text-transform: lowercase;
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -311,6 +313,8 @@
   margin: 0;
   font-size: 0.7rem;
   font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--color-subtle);
 }
 

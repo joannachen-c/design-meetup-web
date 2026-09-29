@@ -218,11 +218,11 @@ export function MemberIdCard({
     event.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setUploadError("Choose a JPG, PNG, or WebP image.");
+      setUploadError("choose a jpg, png, or webp image.");
       return;
     }
     if (file.size > MAX_AVATAR_BYTES) {
-      setUploadError("Image is too large. Keep it under 2.5 MB.");
+      setUploadError("image is too large. keep it under 2.5 mb.");
       return;
     }
     setUploadError(null);
@@ -243,14 +243,14 @@ export function MemberIdCard({
       } | null;
       if (!response.ok || !payload?.avatarUrl) {
         setPhoto(previous);
-        setUploadError(payload?.error || "Could not upload photo.");
+        setUploadError(payload?.error || "could not upload photo.");
         return;
       }
       setPhoto(payload.avatarUrl);
       router.refresh();
     } catch {
       setPhoto(previous);
-      setUploadError("Could not upload photo.");
+      setUploadError("could not upload photo.");
     } finally {
       setUploading(false);
     }
@@ -324,10 +324,10 @@ export function MemberIdCard({
                     <UploadIcon />
                     <span className={styles.photoOverlayLabel}>
                       {uploading
-                        ? "Uploading…"
+                        ? "uploading…"
                         : photo
-                          ? "Upload new image"
-                          : "Upload image"}
+                          ? "upload new image"
+                          : "upload image"}
                     </span>
                   </span>
                 </button>

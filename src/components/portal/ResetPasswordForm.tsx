@@ -15,7 +15,11 @@ function readRecoveryTokens() {
     hash.get("access_token") || query.get("access_token") || "";
   const refresh_token =
     hash.get("refresh_token") || query.get("refresh_token") || "";
-  const token_hash = hash.get("token_hash") || query.get("token_hash") || "";
+  const token_hash =
+    hash.get("token_hash") ||
+    query.get("token_hash") ||
+    query.get("token") ||
+    "";
   const type = hash.get("type") || query.get("type") || "";
   const expires_in = Number(hash.get("expires_in") || query.get("expires_in") || "");
   return {
@@ -43,46 +47,14 @@ export function ResetPasswordForm({ nextPath }: { nextPath: string }) {
       setReady(false);
       return;
     }
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const response = await fetch("/api/auth", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify({
-            mode: "recovery-session",
-            token_hash: tokens.token_hash,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            expires_in: tokens.expires_in,
-          }),
-        });
-        const payload = (await response.json()) as { error?: string };
-        if (cancelled) return;
-        if (!response.ok) {
-          setLinkError(payload.error || "this reset link is invalid or expired.");
-          setReady(false);
-          return;
-        }
-        window.history.replaceState(null, "", window.location.pathname);
-        setReady(true);
-      } catch {
-        if (!cancelled) {
-          setLinkError("this reset link is invalid or expired.");
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    setLinkError(null);
+    setReady(true);
   }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending || !ready) return;
+    const tokens = readRecoveryTokens();
     const form = new FormData(event.currentTarget);
     const password = String(form.get("password") || "");
     const confirm = String(form.get("confirm") || "");
@@ -105,6 +77,10 @@ export function ResetPasswordForm({ nextPath }: { nextPath: string }) {
           mode: "update-password",
           password,
           next: nextPath,
+          token_hash: tokens.token_hash,
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          expires_in: tokens.expires_in,
         }),
       });
       const payload = (await response.json()) as { error?: string; url?: string };

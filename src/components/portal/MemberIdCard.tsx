@@ -36,6 +36,7 @@ export type MemberIdCardProps = {
   youtube?: string | null;
   github?: string | null;
   memberSince?: string | null;
+  cohort?: number | null;
 };
 
 type SocialKey = Exclude<keyof ProfileSocialLinks, "website">;
@@ -173,6 +174,7 @@ export function MemberIdCard({
   youtube = null,
   github = null,
   memberSince = null,
+  cohort = null,
 }: MemberIdCardProps) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -216,11 +218,11 @@ export function MemberIdCard({
     event.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setUploadError("Choose a JPG, PNG, or WebP image.");
+      setUploadError("choose a jpg, png, or webp image.");
       return;
     }
     if (file.size > MAX_AVATAR_BYTES) {
-      setUploadError("Image is too large. Keep it under 2.5 MB.");
+      setUploadError("image is too large. keep it under 2.5 mb.");
       return;
     }
     setUploadError(null);
@@ -241,14 +243,14 @@ export function MemberIdCard({
       } | null;
       if (!response.ok || !payload?.avatarUrl) {
         setPhoto(previous);
-        setUploadError(payload?.error || "Could not upload photo.");
+        setUploadError(payload?.error || "could not upload photo.");
         return;
       }
       setPhoto(payload.avatarUrl);
       router.refresh();
     } catch {
       setPhoto(previous);
-      setUploadError("Could not upload photo.");
+      setUploadError("could not upload photo.");
     } finally {
       setUploading(false);
     }
@@ -299,7 +301,7 @@ export function MemberIdCard({
                     fileRef.current?.click();
                   }}
                   onKeyDown={stop}
-                  aria-label={photo ? "Upload new image" : "Upload image"}
+                  aria-label={photo ? "upload new image" : "upload image"}
                   disabled={uploading}
                   tabIndex={flipped ? -1 : 0}
                 >
@@ -322,10 +324,10 @@ export function MemberIdCard({
                     <UploadIcon />
                     <span className={styles.photoOverlayLabel}>
                       {uploading
-                        ? "Uploading…"
+                        ? "uploading…"
                         : photo
-                          ? "Upload new image"
-                          : "Upload image"}
+                          ? "upload new image"
+                          : "upload image"}
                     </span>
                   </span>
                 </button>
@@ -386,13 +388,6 @@ export function MemberIdCard({
                   </div>
                 ) : null}
 
-                {memberSince ? (
-                  <div className={styles.since}>
-                    <p className={styles.sinceLabel}>Member since</p>
-                    <p className={styles.sinceValue}>{memberSince}</p>
-                  </div>
-                ) : null}
-
                 {!hasDetails ? (
                   <Link
                     className={styles.hint}
@@ -403,6 +398,20 @@ export function MemberIdCard({
                   >
                     Complete your profile
                   </Link>
+                ) : null}
+
+                {memberSince || cohort != null ? (
+                  <div className={styles.footer}>
+                    {memberSince ? (
+                      <div className={styles.since}>
+                        <p className={styles.sinceLabel}>Member since</p>
+                        <p className={styles.sinceValue}>{memberSince}</p>
+                      </div>
+                    ) : null}
+                    {cohort != null ? (
+                      <p className={styles.cohort}>COHORT {cohort}</p>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             </div>

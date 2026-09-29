@@ -15,17 +15,17 @@ export async function POST(request: Request) {
   const form = await request.formData().catch(() => null);
   const file = form?.get("avatar");
   if (!file || typeof file === "string" || file.size === 0) {
-    return NextResponse.json({ error: "Choose an image." }, { status: 400 });
+    return NextResponse.json({ error: "choose an image." }, { status: 400 });
   }
   if (!file.type.startsWith("image/")) {
     return NextResponse.json(
-      { error: "Choose a JPG, PNG, or WebP image." },
+      { error: "choose a jpg, png, or webp image." },
       { status: 400 },
     );
   }
   if (file.size > MAX_AVATAR_BYTES) {
     return NextResponse.json(
-      { error: "Image is too large. Keep it under 2.5 MB." },
+      { error: "image is too large. keep it under 2.5 mb." },
       { status: 413 },
     );
   }

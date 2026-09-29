@@ -320,6 +320,7 @@ export function ProfileForm({
               <img
                 src={previewUrl}
                 alt=""
+                onError={() => setPreviewUrl(null)}
                 className="size-[120px] rounded-full object-cover"
                 width={120}
                 height={120}

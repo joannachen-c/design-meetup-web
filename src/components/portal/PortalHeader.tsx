@@ -11,13 +11,15 @@ const nav = [
 ] as const;
 
 function Avatar({ url }: { url?: string | null }) {
-  return url ? (
+  const [failed, setFailed] = useState<string | null>(null);
+  return url && failed !== url ? (
     <img
       src={url}
       alt=""
       className="block size-8 rounded-full object-cover"
       width={32}
       height={32}
+      onError={() => setFailed(url)}
     />
   ) : (
     <span className="block size-8 rounded-full bg-skeleton" aria-hidden />

@@ -48,6 +48,25 @@ export type ProfileSocialLinks = {
   github: string | null;
 };
 
+/** The card stops nudging to "Complete your profile" once these are filled. */
+export function profileDetailsComplete(profile: {
+  position?: string | null;
+  company?: string | null;
+  school?: string | null;
+  year?: string | null;
+  website?: string | null;
+  location?: string | null;
+}) {
+  const filled = (value: string | null | undefined) => Boolean(value?.trim());
+  const hasRole = filled(profile.position) || filled(profile.company);
+  const hasEducation = filled(profile.school) && filled(profile.year);
+  return (
+    (hasRole || hasEducation) &&
+    Boolean(socialHref("website", profile.website ?? null)) &&
+    filled(profile.location)
+  );
+}
+
 export function socialHref(
   kind: keyof ProfileSocialLinks,
   value: string | null | undefined,

@@ -30,6 +30,22 @@ test("the empty-state profile link capitalizes Complete", async () => {
   assert.doesNotMatch(tsx, />\s*complete your profile\s*</);
 });
 
+test("the card labels are sentence case, not forced upper or lower case", async () => {
+  const css = await read("src/components/portal/MemberIdCard.module.css");
+  const tsx = await read("src/components/portal/MemberIdCard.tsx");
+  assert.doesNotMatch(css, /text-transform:\s*(uppercase|lowercase)/);
+  assert.match(tsx, />Member ID</);
+  assert.match(tsx, />Member since</);
+  assert.match(tsx, /"Upload image"/);
+  assert.match(tsx, /"Upload new image"/);
+  assert.doesNotMatch(tsx, /"upload (new )?image"/);
+});
+
+test("the card hides the profile link using profileDetailsComplete", async () => {
+  const tsx = await read("src/components/portal/MemberIdCard.tsx");
+  assert.match(tsx, /hasDetails = profileDetailsComplete\(/);
+});
+
 test("the background stamp is a light watermark", async () => {
   const css = await read("src/components/portal/MemberIdCard.module.css");
   assert.match(css, /\.watermark\s*\{[^}]*opacity:\s*0\.025/s);

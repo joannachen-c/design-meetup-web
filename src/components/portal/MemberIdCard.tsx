@@ -12,7 +12,11 @@ import {
 } from "@/components/portal/SocialIcons";
 import { PersonSilhouette } from "@/components/portal/PersonSilhouette";
 import { graduationYearLabel } from "@/lib/graduation";
-import { socialHref, type ProfileSocialLinks } from "@/lib/membership";
+import {
+  profileDetailsComplete,
+  socialHref,
+  type ProfileSocialLinks,
+} from "@/lib/membership";
 import styles from "./MemberIdCard.module.css";
 
 const MAX_AVATAR_BYTES = 2.5 * 1024 * 1024;
@@ -186,7 +190,14 @@ export function MemberIdCard({
     const href = socialHref(item.key, values[item.key]);
     return href ? [{ ...item, href }] : [];
   });
-  const hasDetails = Boolean(role || websiteHref || location || education);
+  const hasDetails = profileDetailsComplete({
+    position,
+    company,
+    school,
+    year,
+    website,
+    location,
+  });
 
   function toggle() {
     setFlipped((value) => !value);
@@ -205,11 +216,11 @@ export function MemberIdCard({
     event.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setUploadError("choose a jpg, png, or webp image.");
+      setUploadError("Choose a JPG, PNG, or WebP image.");
       return;
     }
     if (file.size > MAX_AVATAR_BYTES) {
-      setUploadError("image is too large. keep it under 2.5 mb.");
+      setUploadError("Image is too large. Keep it under 2.5 MB.");
       return;
     }
     setUploadError(null);
@@ -230,14 +241,14 @@ export function MemberIdCard({
       } | null;
       if (!response.ok || !payload?.avatarUrl) {
         setPhoto(previous);
-        setUploadError(payload?.error || "could not upload photo.");
+        setUploadError(payload?.error || "Could not upload photo.");
         return;
       }
       setPhoto(payload.avatarUrl);
       router.refresh();
     } catch {
       setPhoto(previous);
-      setUploadError("could not upload photo.");
+      setUploadError("Could not upload photo.");
     } finally {
       setUploading(false);
     }
@@ -311,10 +322,10 @@ export function MemberIdCard({
                     <UploadIcon />
                     <span className={styles.photoOverlayLabel}>
                       {uploading
-                        ? "uploading…"
+                        ? "Uploading…"
                         : photo
-                          ? "upload new image"
-                          : "upload image"}
+                          ? "Upload new image"
+                          : "Upload image"}
                     </span>
                   </span>
                 </button>

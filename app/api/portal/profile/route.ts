@@ -99,7 +99,7 @@ export async function POST(request: Request) {
           request,
           origin,
           "/portal/profile?error=avatar-size",
-          { error: "keep the photo under 2.5 mb." },
+          { error: "Keep the photo under 2.5 MB." },
           400,
         );
       }
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
           request,
           origin,
           "/portal/profile?error=avatar-type",
-          { error: "use a jpg, png, or webp image." },
+          { error: "Use a JPG, PNG, or WebP image." },
           400,
         );
       }

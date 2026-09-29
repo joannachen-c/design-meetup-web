@@ -8,13 +8,13 @@ const read = (path) => readFile(new URL(path, root), "utf8");
 test("wrong login credentials reveal a forgot-password link", async () => {
   const form = await read("src/components/portal/LoginForm.tsx");
   assert.match(form, /setShowForgotLink\(true\)/);
-  assert.match(form, /forgot your password\?/);
+  assert.match(form, /Forgot your password\?/);
   assert.match(form, /mode: "recover"/);
-  assert.match(form, /send reset link/);
+  assert.match(form, /Send reset link/);
   assert.match(form, /variant="secondary"/);
   assert.match(
     form,
-    /if an account exists for that email, we sent a link to reset your password/,
+    /If an account exists for that email, we sent a link to reset your password/,
   );
 });
 
@@ -47,7 +47,7 @@ test("reset password page captures the recovery session then updates the passwor
   const route = await read("app/api/auth/route.ts");
   const auth = await read("src/lib/auth.ts");
   const session = await read("src/lib/auth-session.ts");
-  assert.match(page, /choose a new password/);
+  assert.match(page, /Choose a new password/);
   assert.match(form, /query.get\("token"\)/);
   assert.match(form, /mode: "update-password"/);
   assert.match(form, /token_hash: tokens.token_hash/);
@@ -59,7 +59,7 @@ test("reset password page captures the recovery session then updates the passwor
   assert.match(auth, /supabasePublishableOrServiceKey\(\)/);
   const loginForm = await read("src/components/portal/LoginForm.tsx");
   assert.match(loginForm, /mode: "recover"/);
-  assert.match(form, /passwords don't match/);
+  assert.match(form, /Passwords don't match/);
   assert.match(route, /mode === "update-password"/);
   assert.match(route, /clearAuthCookies\(\)/);
   assert.match(route, /\/login\?reset=1/);
@@ -67,7 +67,7 @@ test("reset password page captures the recovery session then updates the passwor
   assert.match(session, /readServerEnv/);
   assert.match(session, /\[SENSITIVE\]/);
   const login = await read("app/login/page.tsx");
-  assert.match(login, /password saved\. log in with your new password/);
+  assert.match(login, /Password saved\. Log in with your new password/);
 });
 
 test("recovery email template brands Design Meetup and skips Vercel SSO hosts", async () => {

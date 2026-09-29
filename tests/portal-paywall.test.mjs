@@ -29,7 +29,7 @@ test("unpaid members are sent to the plan picker, not the dashboard", async () =
   assert.match(access, /redirect\("\/portal\/subscribe"\)/);
   assert.match(home, /if \(!\(await userHasPortalAccess\(user\.id\)\)\)/);
   assert.match(home, /redirect\("\/portal\/subscribe"\)/);
-  assert.match(subscribe, /choose a membership/);
+  assert.match(subscribe, /Choose a membership/);
   assert.match(subscribe, /<SubscribeButtons \/>/);
   assert.doesNotMatch(
     subscribe,
@@ -66,4 +66,25 @@ test("unpaid portal chrome hides dashboard nav until a plan is paid", async () =
   assert.match(layout, /paid=\{paid\}/);
   assert.match(header, /showMemberNav \? "\/portal" : "\/portal\/subscribe"/);
   assert.match(header, /\{showMemberNav \? \(/);
+});
+
+test("member portal pages use sentence case instead of forcing lowercase", async () => {
+  const files = [
+    "app/portal/page.tsx",
+    "app/portal/billing/page.tsx",
+    "app/portal/profile/page.tsx",
+    "app/portal/subscribe/page.tsx",
+    "app/login/page.tsx",
+    "app/signup/page.tsx",
+    "app/reset-password/page.tsx",
+    "src/components/portal/LoginForm.tsx",
+    "src/components/portal/ResetPasswordForm.tsx",
+    "src/components/portal/SubscribeButtons.tsx",
+  ];
+  for (const file of files) {
+    assert.doesNotMatch(await read(file), /\blowercase\b/, file);
+  }
+  const home = await read("app/portal/page.tsx");
+  assert.match(home, /Welcome back,/);
+  assert.doesNotMatch(home, /firstName\.toLowerCase\(\)/);
 });

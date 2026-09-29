@@ -53,9 +53,9 @@ function validate(form: FormData): FieldErrors {
   const errors: FieldErrors = {};
   const firstName = String(form.get("firstName") || "").trim();
   const email = String(form.get("email") || "").trim();
-  if (!firstName) errors.firstName = "first name is required.";
-  if (!email) errors.email = "email is required.";
-  else if (!EMAIL_PATTERN.test(email)) errors.email = "enter a valid email.";
+  if (!firstName) errors.firstName = "First name is required.";
+  if (!email) errors.email = "Email is required.";
+  else if (!EMAIL_PATTERN.test(email)) errors.email = "Enter a valid email.";
   return errors;
 }
 
@@ -177,12 +177,12 @@ export function ProfileForm({
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       event.target.value = "";
-      setAvatarError("choose a jpg, png, or webp image.");
+      setAvatarError("Choose a JPG, PNG, or WebP image.");
       return;
     }
     if (file.size > 2.5 * 1024 * 1024) {
       event.target.value = "";
-      setAvatarError("image is too large. keep it under 2.5 mb.");
+      setAvatarError("Image is too large. Keep it under 2.5 MB.");
       return;
     }
     setAvatarError(null);
@@ -231,7 +231,7 @@ export function ProfileForm({
         const payload = (await response.json().catch(() => null)) as {
           error?: string;
         } | null;
-        setError(payload?.error || "could not save profile.");
+        setError(payload?.error || "Could not save profile.");
         setPending(false);
         return;
       }
@@ -261,7 +261,7 @@ export function ProfileForm({
             <div className="grid grid-cols-2 gap-3">
               <Field
                 id={fieldId("firstName")}
-                label="first name"
+                label="First name"
                 error={fieldErrors.firstName}
               >
                 <Input
@@ -280,7 +280,7 @@ export function ProfileForm({
                   onChange={() => clearFieldError("firstName")}
                 />
               </Field>
-              <Field id={fieldId("lastName")} label="last name">
+              <Field id={fieldId("lastName")} label="Last name">
                 <Input
                   id={fieldId("lastName")}
                   name="lastName"
@@ -290,7 +290,7 @@ export function ProfileForm({
                 />
               </Field>
             </div>
-            <Field id={fieldId("email")} label="email" error={fieldErrors.email}>
+            <Field id={fieldId("email")} label="Email" error={fieldErrors.email}>
               <Input
                 id={fieldId("email")}
                 name="email"
@@ -305,7 +305,7 @@ export function ProfileForm({
                 onChange={() => clearFieldError("email")}
               />
             </Field>
-            <Field id={fieldId("location")} label="location">
+            <Field id={fieldId("location")} label="Location">
               <Input
                 id={fieldId("location")}
                 name="location"
@@ -336,7 +336,7 @@ export function ProfileForm({
               htmlFor={avatarInputId}
               className="inline-flex min-h-11 w-fit cursor-pointer items-center rounded-[10px] bg-surface-muted px-4 text-base font-bold text-ink hover:bg-gray-200"
             >
-              upload photo
+              Upload photo
             </label>
             <input
               id={avatarInputId}
@@ -347,7 +347,7 @@ export function ProfileForm({
               onChange={onAvatarChange}
             />
             {previewUrl ? null : (
-              <p className="m-0 text-sm text-subtle">jpg, png, or webp</p>
+              <p className="m-0 text-sm text-subtle">JPG, PNG, or WebP</p>
             )}
             {avatarError ? (
               <p className="m-0 text-sm text-red-700" role="alert">
@@ -358,7 +358,7 @@ export function ProfileForm({
         </div>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <Field id={fieldId("school")} label="school">
+          <Field id={fieldId("school")} label="School">
             <Input
               id={fieldId("school")}
               name="school"
@@ -373,19 +373,19 @@ export function ProfileForm({
               name="year"
               value={formatGraduation(gradMonth, gradYear) || ""}
             />
-            <Field id={fieldId("gradMonth")} label="grad month">
+            <Field id={fieldId("gradMonth")} label="Grad month">
               <input type="hidden" name="gradMonth" value={gradMonth} />
               <Select
                 className="w-full"
                 id={fieldId("gradMonth")}
                 options={[...GRAD_MONTHS]}
-                placeholder="month"
+                placeholder="Month"
                 value={gradMonth}
                 onValueChange={setGradMonth}
-                aria-label="grad month"
+                aria-label="Grad month"
               />
             </Field>
-            <Field id={fieldId("gradYear")} label="grad year">
+            <Field id={fieldId("gradYear")} label="Grad year">
               <input type="hidden" name="gradYear" value={gradYear} />
               <Select
                 className="w-full"
@@ -394,14 +394,14 @@ export function ProfileForm({
                   label: year,
                   value: year,
                 }))}
-                placeholder="year"
+                placeholder="Year"
                 value={gradYear}
                 onValueChange={setGradYear}
-                aria-label="grad year"
+                aria-label="Grad year"
               />
             </Field>
           </div>
-          <Field id={fieldId("position")} label="position">
+          <Field id={fieldId("position")} label="Position">
             <Input
               id={fieldId("position")}
               name="position"
@@ -410,7 +410,7 @@ export function ProfileForm({
               autoComplete="organization-title"
             />
           </Field>
-          <Field id={fieldId("company")} label="company">
+          <Field id={fieldId("company")} label="Company">
             <Input
               id={fieldId("company")}
               name="company"
@@ -423,19 +423,19 @@ export function ProfileForm({
 
         <section className="grid gap-5">
           <h2 className="m-0 text-xl font-bold tracking-[-0.04em]">
-            links
+            Links
           </h2>
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <SocialField
               name="website"
-              label="website"
+              label="Website"
               icon={<WebsiteIcon />}
               defaultValue={initialWebsite}
               placeholder="portfolio.com"
             />
             <SocialField
               name="instagram"
-              label="instagram"
+              label="Instagram"
               prefix="instagram.com/"
               icon={<InstagramIcon />}
               defaultValue={initialInstagram}
@@ -443,7 +443,7 @@ export function ProfileForm({
             />
             <SocialField
               name="x"
-              label="x"
+              label="X"
               prefix="x.com/"
               icon={<XIcon />}
               defaultValue={initialX}
@@ -451,7 +451,7 @@ export function ProfileForm({
             />
             <SocialField
               name="linkedin"
-              label="linkedin"
+              label="LinkedIn"
               prefix="linkedin.com/in/"
               icon={<LinkedInIcon />}
               defaultValue={initialLinkedin}
@@ -459,7 +459,7 @@ export function ProfileForm({
             />
             <SocialField
               name="youtube"
-              label="youtube"
+              label="YouTube"
               prefix="youtube.com/@"
               icon={<YouTubeIcon />}
               defaultValue={initialYoutube}
@@ -467,7 +467,7 @@ export function ProfileForm({
             />
             <SocialField
               name="github"
-              label="github"
+              label="GitHub"
               prefix="github.com/"
               icon={<GitHubIcon />}
               defaultValue={initialGithub}
@@ -488,7 +488,7 @@ export function ProfileForm({
           loading={pending}
           disabled={pending}
         >
-          save profile
+          Save profile
         </Primary>
       </div>
     </form>

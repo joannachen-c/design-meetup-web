@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("auth failed", error);
     return NextResponse.json(
-      { error: "couldn't sign in. try again in a moment." },
+      { error: "Couldn't sign in. Try again in a moment." },
       { status: 500 },
     );
   }
@@ -66,7 +66,7 @@ async function handleAuth(request: Request) {
   if (mode === "recover") {
     if (!email) {
       return NextResponse.json(
-        { error: "enter the email for your account." },
+        { error: "Enter the email for your account." },
         { status: 400 },
       );
     }

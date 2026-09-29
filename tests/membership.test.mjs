@@ -6,6 +6,7 @@ import {
   DEFAULT_STRIPE_PRICE_STUDENT,
   hasPortalAccess,
   normalizeMembershipStatus,
+  membershipStatusLabel,
   priceIdForTier,
   profileDetailsComplete,
   TIER_CATALOG,
@@ -88,7 +89,7 @@ test("stripe status normalization", () => {
 });
 
 test("professional lists everything in student first", () => {
-  assert.equal(TIER_CATALOG.professional.benefits[0], "everything in student");
+  assert.equal(TIER_CATALOG.professional.benefits[0], "Everything in Student");
 });
 
 test("profile is complete with a role or school + year, plus website and location", () => {
@@ -116,4 +117,11 @@ test("profile is complete with a role or school + year, plus website and locatio
     false,
   );
   assert.equal(profileDetailsComplete({}), false);
+});
+
+test("membership statuses read in sentence case", () => {
+  assert.equal(membershipStatusLabel("active"), "Active");
+  assert.equal(membershipStatusLabel("past_due"), "Past due");
+  assert.equal(TIER_CATALOG.student.name, "Student");
+  assert.equal(TIER_CATALOG.professional.name, "Professional");
 });

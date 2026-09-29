@@ -15,17 +15,17 @@ export const metadata: Metadata = {
 
 function subscribeError(code: string | undefined, reason: string | undefined) {
   const detail = (reason || "").trim();
-  if (detail) return detail.toLowerCase();
+  if (detail) return detail;
   switch (code) {
     case "pick-tier":
-      return "pick student or professional to continue.";
+      return "Pick Student or Professional to continue.";
     case "stripe":
     case "price":
-      return "billing isn't set up correctly yet. please try again later.";
+      return "Billing isn't set up correctly yet. Please try again later.";
     case "coupon":
-      return "couldn't apply the free membership coupon. please try again later.";
+      return "Couldn't apply the free membership coupon. Please try again later.";
     case "checkout":
-      return "couldn't start checkout. please try again.";
+      return "Couldn't start checkout. Please try again.";
     default:
       return null;
   }
@@ -58,10 +58,10 @@ export default async function SubscribePage({
   const error = subscribeError(params.error, params.reason);
 
   return (
-    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
+    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24">
       {params.canceled ? (
         <Toast className="mb-8">
-          checkout canceled — pick a plan when you&apos;re ready.
+          Checkout canceled — pick a plan when you&apos;re ready.
         </Toast>
       ) : null}
       {error ? (
@@ -71,7 +71,7 @@ export default async function SubscribePage({
       ) : null}
 
       <h1 className="m-0 mb-10 max-w-[16ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
-        choose a membership.
+        Choose a membership.
       </h1>
       <SubscribeButtons />
     </main>

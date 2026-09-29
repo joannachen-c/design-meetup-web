@@ -26,6 +26,7 @@ import {
   XIcon,
   YouTubeIcon,
 } from "@/components/portal/SocialIcons";
+import { AvatarImage } from "@/components/portal/AvatarImage";
 import { PersonSilhouette } from "@/components/portal/PersonSilhouette";
 
 type ProfileFormProps = {
@@ -317,10 +318,9 @@ export function ProfileForm({
           </div>
           <div className="flex flex-col items-center gap-3 text-center max-lg:order-first lg:pt-7">
             {previewUrl ? (
-              <img
+              <AvatarImage
                 src={previewUrl}
-                alt=""
-                onError={() => setPreviewUrl(null)}
+                onFail={() => setPreviewUrl(null)}
                 className="size-[120px] rounded-full object-cover"
                 width={120}
                 height={120}

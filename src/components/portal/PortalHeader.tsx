@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { AvatarImage } from "@/components/portal/AvatarImage";
 import { logoutAction } from "@/lib/auth-actions";
 
 const nav = [
@@ -13,13 +14,12 @@ const nav = [
 function Avatar({ url }: { url?: string | null }) {
   const [failed, setFailed] = useState<string | null>(null);
   return url && failed !== url ? (
-    <img
+    <AvatarImage
       src={url}
-      alt=""
       className="block size-8 rounded-full object-cover"
       width={32}
       height={32}
-      onError={() => setFailed(url)}
+      onFail={() => setFailed(url)}
     />
   ) : (
     <span className="block size-8 rounded-full bg-skeleton" aria-hidden />

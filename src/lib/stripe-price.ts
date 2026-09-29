@@ -4,7 +4,7 @@ import {
   priceIdForTier,
   TIER_CATALOG,
   type Tier,
-} from "./membership";
+} from "./membership.ts";
 
 export type StripePriceLike = {
   id: string;

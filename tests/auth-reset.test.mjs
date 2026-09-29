@@ -54,6 +54,11 @@ test("reset password page captures the recovery session then updates the passwor
   assert.doesNotMatch(form, /mode: "recovery-session"/);
   assert.match(route, /token_hash: String\(body.token_hash \|\| ""\)/);
   assert.match(auth, /verifyOtp\(\{/);
+  assert.match(auth, /client\.auth\.updateUser\(\{ password \}\)/);
+  assert.match(auth, /admin\.updateUserById\(userId, \{\s*password/);
+  assert.match(auth, /supabasePublishableOrServiceKey\(\)/);
+  const loginForm = await read("src/components/portal/LoginForm.tsx");
+  assert.match(loginForm, /mode: "recover"/);
   assert.match(form, /passwords don't match/);
   assert.match(route, /mode === "update-password"/);
   assert.match(route, /clearAuthCookies\(\)/);

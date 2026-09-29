@@ -273,14 +273,46 @@ export async function updatePassword(
       error: "password must be at least 8 characters.",
     };
   }
+
+  if (recovery?.token_hash && supabasePublishableOrServiceKey()) {
+    try {
+      const client = createUserAuthClient();
+      const { data, error } = await client.auth.verifyOtp({
+        token_hash: recovery.token_hash.trim(),
+        type: "recovery",
+      });
+      if (error || !data.user) {
+        console.error("recovery verifyOtp failed", error?.message);
+        return {
+          ok: false as const,
+          error: "this reset link is invalid or expired.",
+        };
+      }
+      const { error: updateError } = await client.auth.updateUser({ password });
+      if (updateError) {
+        const message = updateError.message.toLowerCase();
+        return {
+          ok: false as const,
+          error: message.includes("different")
+            ? "new password must be different from your current password."
+            : updateError.message,
+        };
+      }
+      return { ok: true as const };
+    } catch (error) {
+      console.error("recovery password update failed", error);
+      return {
+        ok: false as const,
+        error: "couldn't update your password. try again in a moment.",
+      };
+    }
+  }
+
   let userId: string | undefined;
-  let accessToken: string | undefined;
-  if (recovery?.token_hash || recovery?.access_token) {
+  if (recovery?.access_token) {
     const recovered = await setRecoverySession(recovery);
     if (!recovered.ok) return recovered;
     userId = recovered.userId;
-    accessToken =
-      "access_token" in recovered ? recovered.access_token : recovery.access_token;
   }
   if (!userId) {
     userId = (await getSessionUser())?.id;
@@ -308,46 +340,7 @@ export async function updatePassword(
       };
     }
   }
-  const apiKey = supabasePublishableOrServiceKey();
-  if (apiKey && accessToken) {
-    try {
-      const response = await fetch(`${supabaseUrl()}/auth/v1/user`, {
-        method: "PUT",
-        headers: {
-          apikey: apiKey,
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ password }),
-      });
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => ({}))) as {
-          message?: string;
-          error_description?: string;
-        };
-        return {
-          ok: false as const,
-          error:
-            payload.error_description ||
-            payload.message ||
-            "couldn't update your password. try again.",
-        };
-      }
-      return { ok: true as const };
-    } catch {
-      return {
-        ok: false as const,
-        error: "couldn't update your password. try again in a moment.",
-      };
-    }
-  }
-  if (!recovery?.token_hash) {
-    return { ok: true as const };
-  }
-  return {
-    ok: false as const,
-    error: "this reset link is invalid or expired.",
-  };
+  return { ok: true as const };
 }
 
 export async function getSessionUser(): Promise<User | null> {
@@ -359,13 +352,13 @@ export async function getSessionUser(): Promise<User | null> {
   const local = decodeLocalSession(access) || decodeLocalSession(refresh);
   if (local) return localUser(local);
 
-  if (!supabaseAuthConfigured()) return null;
+  if (!supabasePublishableOrServiceKey()) return null;
 
   try {
-    const admin = createAdminClient();
+    const client = createUserAuthClient();
 
     if (access) {
-      const { data, error } = await admin.auth.getUser(access);
+      const { data, error } = await client.auth.getUser(access);
       if (!error && data.user) return data.user;
     }
 
@@ -377,7 +370,7 @@ export async function getSessionUser(): Promise<User | null> {
       }
       await trySetAuthCookies(next);
       if (next.user) return next.user;
-      const { data } = await admin.auth.getUser(next.access_token);
+      const { data } = await client.auth.getUser(next.access_token);
       return data.user ?? null;
     }
   } catch {
@@ -396,15 +389,16 @@ export async function requireUser(nextPath = "/portal") {
 }
 
 export async function passwordSignIn(email: string, password: string) {
-  if (!supabaseAuthConfigured()) {
+  const apiKey = supabasePublishableOrServiceKey();
+  if (!apiKey) {
     return localPasswordSignIn(email, password);
   }
   try {
     const response = await fetch(`${supabaseUrl()}/auth/v1/token?grant_type=password`, {
       method: "POST",
       headers: {
-        apikey: serviceRoleKey(),
-        Authorization: `Bearer ${serviceRoleKey()}`,
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),

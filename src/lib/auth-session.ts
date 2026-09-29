@@ -32,20 +32,34 @@ export type RefreshedSession = {
   user?: User;
 };
 
+/**
+ * Read a server env var without letting Next.js inline a missing / placeholder
+ * value at build time. GitHub Actions `vercel pull` cannot decrypt Sensitive
+ * Production secrets, so a static `process.env.SUPABASE_SERVICE_ROLE_KEY` gets
+ * baked in as empty and production falls back to local demo auth.
+ */
+function readServerEnv(name: string) {
+  const value = process.env[name];
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "[SENSITIVE]") return "";
+  return trimmed;
+}
+
 export function supabaseUrl() {
   return (
-    process.env.SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    readServerEnv("SUPABASE_URL") ||
+    readServerEnv("NEXT_PUBLIC_SUPABASE_URL") ||
     "https://sngjttldklmgyzebikxv.supabase.co"
   );
 }
 
 export function supabaseAuthConfigured() {
-  return Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+  return Boolean(readServerEnv("SUPABASE_SERVICE_ROLE_KEY"));
 }
 
 export function serviceRoleKey() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const key = readServerEnv("SUPABASE_SERVICE_ROLE_KEY");
   if (!key) {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for member auth.");
   }

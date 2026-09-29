@@ -168,19 +168,24 @@ export async function setRecoverySession(input: {
         type: "recovery",
       });
       const session = data.session;
-      if (error || !session?.access_token || !session.refresh_token) {
+      const userId = data.user?.id;
+      if (error || !userId) {
+        console.error("recovery verifyOtp failed", error?.message);
         return {
           ok: false as const,
           error: "this reset link is invalid or expired.",
         };
       }
-      await setAuthCookies({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-        expires_in: session.expires_in,
-      });
-      return { ok: true as const };
-    } catch {
+      if (session?.access_token && session.refresh_token) {
+        await setAuthCookies({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          expires_in: session.expires_in,
+        });
+      }
+      return { ok: true as const, userId };
+    } catch (error) {
+      console.error("recovery verifyOtp failed", error);
       return {
         ok: false as const,
         error: "this reset link is invalid or expired.",
@@ -207,7 +212,7 @@ export async function setRecoverySession(input: {
       refresh_token: input.refresh_token,
       expires_in: input.expires_in,
     });
-    return { ok: true as const };
+    return { ok: true as const, userId: local.id };
   }
   try {
     const admin = createAdminClient();
@@ -223,7 +228,7 @@ export async function setRecoverySession(input: {
       refresh_token: input.refresh_token,
       expires_in: input.expires_in,
     });
-    return { ok: true as const };
+    return { ok: true as const, userId: data.user.id };
   } catch {
     return {
       ok: false as const,
@@ -232,15 +237,31 @@ export async function setRecoverySession(input: {
   }
 }
 
-export async function updatePassword(password: string) {
+export async function updatePassword(
+  password: string,
+  recovery?: {
+    token_hash?: string;
+    access_token?: string;
+    refresh_token?: string;
+    expires_in?: number;
+  },
+) {
   if (password.length < 8) {
     return {
       ok: false as const,
       error: "password must be at least 8 characters.",
     };
   }
-  const user = await getSessionUser();
-  if (!user) {
+  let userId: string | undefined;
+  if (recovery?.token_hash || recovery?.access_token) {
+    const recovered = await setRecoverySession(recovery);
+    if (!recovered.ok) return recovered;
+    userId = recovered.userId;
+  }
+  if (!userId) {
+    userId = (await getSessionUser())?.id;
+  }
+  if (!userId) {
     return {
       ok: false as const,
       error: "this reset link is invalid or expired.",
@@ -251,7 +272,7 @@ export async function updatePassword(password: string) {
   }
   try {
     const admin = createAdminClient();
-    const { error } = await admin.auth.admin.updateUserById(user.id, {
+    const { error } = await admin.auth.admin.updateUserById(userId, {
       password,
     });
     if (error) {

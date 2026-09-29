@@ -127,20 +127,34 @@
   overflow: hidden;
   border: 0;
   border-radius: 10px;
+  /* Inside the preserve-3d card, overflow + radius does not clip the
+     overlay's backdrop-filter; clip-path does. */
+  clip-path: inset(0 round 10px);
+  isolation: isolate;
   padding: 0;
   background: var(--color-gray-200);
   cursor: pointer;
 }
 
 .photoButton:focus-visible {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 2px;
+  outline: none;
+}
+
+.photoButton:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px var(--color-ink);
+  pointer-events: none;
 }
 
 .photo {
   display: block;
   width: 100%;
   height: 100%;
+  border-radius: inherit;
   object-fit: cover;
 }
 
@@ -167,6 +181,7 @@
   justify-content: center;
   gap: 6px;
   padding: 8px;
+  border-radius: inherit;
   background: rgb(255 255 255 / 0.78);
   backdrop-filter: blur(2px);
   color: var(--color-ink);

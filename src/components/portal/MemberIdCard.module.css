@@ -43,10 +43,14 @@
   transform: rotateY(180deg);
 }
 
+/* ISO ID-1 (85.60 × 53.98 mm), the size of a driver's license. Content that
+   needs more room still grows the card instead of clipping. */
 .face {
   position: relative;
   grid-area: 1 / 1;
   min-width: 0;
+  aspect-ratio: 85.6 / 53.98;
+  min-height: min-content;
   border-radius: 20px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -103,6 +107,7 @@
 }
 
 .body {
+  flex: 1;
   display: grid;
   grid-template-columns: clamp(112px, 32%, 172px) minmax(0, 1fr);
   gap: clamp(14px, 3vw, 20px);
@@ -280,8 +285,26 @@
   color: var(--color-subtle);
 }
 
+.footer {
+  display: flex;
+  align-items: last baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: clamp(8px, 1.6vw, 12px);
+}
+
 .since {
-  margin-top: clamp(4px, 1.2vw, 8px);
+  min-width: 0;
+}
+
+.cohort {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--color-subtle);
 }
 
 .sinceLabel {

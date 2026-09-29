@@ -29,7 +29,7 @@ test("unapproved signup error is shown under the email input", async () => {
   assert.match(form, /from "@\/lib\/signup-messages"/);
   assert.doesNotMatch(form, /signup-allowlist/);
   assert.match(form, /setEmailError/);
-  assert.match(form, /apply here!/);
+  assert.match(form, /Apply here!/);
   assert.match(form, /href=\{SIGNUP_APPLY_URL\}/);
   assert.match(form, /text-red-700 underline/);
   assert.match(
@@ -38,7 +38,7 @@ test("unapproved signup error is shown under the email input", async () => {
   );
   const emailInputAt = form.indexOf('name="email"');
   const emailErrorAt = form.indexOf('id="signup-email-error"');
-  const applyAt = form.indexOf("apply here!");
+  const applyAt = form.indexOf("Apply here!");
   const passwordAt = form.indexOf('name="password"');
   assert.ok(
     emailInputAt > 0 &&
@@ -48,6 +48,6 @@ test("unapproved signup error is shown under the email input", async () => {
   );
   assert.equal(
     UNAPPROVED_SIGNUP_ERROR,
-    "this email isn't approved to create an account yet.",
+    "This email isn't approved to create an account yet.",
   );
 });

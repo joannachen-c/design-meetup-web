@@ -36,7 +36,7 @@ function sendError(request: Request, origin: string) {
   const errorUrl = new URL("/portal/billing?error=1", origin).toString();
   if (wantsJson(request)) {
     return NextResponse.json(
-      { error: "couldn't open billing. try again in a moment." },
+      { error: "Couldn't open billing. Try again in a moment." },
       { status: 502 },
     );
   }

@@ -6,7 +6,7 @@ import { Primary } from "@/components/Primary";
 const BILLING_ERROR_PATH = "/portal/billing?error=1";
 
 export function ManageBillingButton({
-  label = "manage billing",
+  label = "Manage billing",
   flow,
 }: {
   label?: string;

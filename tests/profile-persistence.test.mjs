@@ -60,7 +60,7 @@ test("portal home keeps billing cards under membership", async () => {
   const membership = page.indexOf("mb-6 text-xl font-bold tracking-[-0.04em]");
   const cards = page.indexOf("mt-12 grid gap-4 sm:grid-cols-3");
   assert.ok(membership > 0 && cards > membership);
-  assert.match(page, /<h2[\s\S]*?>\s*membership\s*</);
+  assert.match(page, /<h2[\s\S]*?>\s*Membership\s*</);
   assert.match(page, /<SubscribeButtons currentTier=\{membership\?\.tier \?\? null\} \/>/);
 });
 

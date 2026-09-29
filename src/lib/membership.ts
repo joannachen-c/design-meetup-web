@@ -102,26 +102,26 @@ export const TIER_CATALOG: Record<
   }
 > = {
   student: {
-    name: "student",
+    name: "Student",
     priceLabel: "$10 / month",
     amountCents: 1000,
     benefits: [
-      "for undergraduate designers",
-      "guaranteed rsvp to every event (no waitlists)",
-      "member directory",
-      "bi-weekly coworking",
-      "member-only events",
-      "job opportunities and recruiting support from advisors and members",
+      "For undergraduate designers",
+      "Guaranteed RSVP to every event (no waitlists)",
+      "Member directory",
+      "Bi-weekly coworking",
+      "Member-only events",
+      "Job opportunities and recruiting support from advisors and members",
     ],
   },
   professional: {
-    name: "professional",
+    name: "Professional",
     priceLabel: "$35 / month",
     amountCents: 3500,
     benefits: [
-      "everything in student",
-      "for designers working in industry",
-      "personal warm intros to design leads at partner companies",
+      "Everything in Student",
+      "For designers working in industry",
+      "Personal warm intros to design leads at partner companies",
     ],
   },
 };
@@ -201,6 +201,18 @@ export function canUpgrade(tier: Tier | null | undefined) {
 
 export function isTier(value: unknown): value is Tier {
   return value === "student" || value === "professional";
+}
+
+const MEMBERSHIP_STATUS_LABELS: Record<MembershipStatus, string> = {
+  active: "Active",
+  trialing: "Trialing",
+  past_due: "Past due",
+  canceled: "Canceled",
+  incomplete: "Incomplete",
+};
+
+export function membershipStatusLabel(status: MembershipStatus) {
+  return MEMBERSHIP_STATUS_LABELS[status];
 }
 
 export function normalizeMembershipStatus(

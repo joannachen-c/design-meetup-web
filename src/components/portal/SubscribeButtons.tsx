@@ -69,11 +69,11 @@ export function SubscribeButtons({
             currentTier === "student" && tier === "professional";
           const isDowngrade =
             currentTier === "professional" && tier === "student";
-          let cta = "choose plan";
-          if (isCurrent) cta = "current plan";
-          else if (isUpgradeTarget) cta = "switch";
-          else if (isDowngrade) cta = "switch";
-          else if (!currentTier) cta = "get started";
+          let cta = "Choose plan";
+          if (isCurrent) cta = "Current plan";
+          else if (isUpgradeTarget) cta = "Switch";
+          else if (isDowngrade) cta = "Switch";
+          else if (!currentTier) cta = "Get started";
 
           return (
             <form
@@ -84,7 +84,7 @@ export function SubscribeButtons({
                 void startCheckout(tier, event);
               }}
               className={[
-                "flex flex-col gap-6 rounded-[20px] p-6 text-ink lowercase",
+                "flex flex-col gap-6 rounded-[20px] p-6 text-ink",
                 isCurrent ? "bg-gray-200" : "bg-gray-100",
               ].join(" ")}
             >
@@ -97,7 +97,7 @@ export function SubscribeButtons({
                 </span>
                 {isCurrent ? (
                   <span className="rounded-full bg-accent-primary px-2.5 py-1 text-sm font-bold text-ink">
-                    current
+                    Current
                   </span>
                 ) : null}
               </div>
@@ -112,7 +112,7 @@ export function SubscribeButtons({
                 ))}
               </ul>
               <Primary
-                className="mt-auto lowercase disabled:text-gray-300"
+                className="mt-auto disabled:text-gray-300"
                 type="submit"
                 variant="ink"
                 disabled={isCurrent || busy != null}

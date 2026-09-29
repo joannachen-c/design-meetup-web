@@ -64,12 +64,12 @@ export default async function LoginPage({
         </a>
         <div className="flex min-h-0 flex-1 flex-col justify-start py-10 lg:justify-center">
           <div className="w-full max-w-[440px]">
-            <h1 className="m-0 mb-10 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em] lowercase">
-              welcome back.
+            <h1 className="m-0 mb-10 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.06em]">
+              Welcome back.
             </h1>
             {passwordSaved ? (
               <p className="mb-6 m-0 text-base text-ink">
-                password saved. log in with your new password.
+                Password saved. Log in with your new password.
               </p>
             ) : null}
             {errorParam ? (

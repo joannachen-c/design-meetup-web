@@ -102,6 +102,10 @@ export function parseCompEmails(raw: string | undefined | null) {
   );
 }
 
+export function isDirectorySheetEmail(email: string) {
+  return COMP_MEMBERSHIP_EMAILS.has(email.trim().toLowerCase());
+}
+
 export function isCompMembershipEmail(
   email: string,
   rawList = process.env.STRIPE_COMP_EMAILS,

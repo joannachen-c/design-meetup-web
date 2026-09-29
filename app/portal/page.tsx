@@ -5,10 +5,12 @@ import { ManageBillingButton } from "@/components/portal/ManageBillingButton";
 import { MemberIdCard } from "@/components/portal/MemberIdCard";
 import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
 import { requireUser } from "@/lib/auth";
+import { cohortForEmail } from "@/lib/cohort";
 import {
   TIER_CATALOG,
   displayNameFromEmail,
   firstNameFromDisplay,
+  membershipStatusLabel,
 } from "@/lib/membership";
 import {
   ensureProfile,
@@ -73,48 +75,48 @@ export default async function PortalHomePage({
   const summary = membership
     ? [
         {
-          label: "current tier",
+          label: "Current tier",
           value: TIER_CATALOG[membership.tier].name,
           note: TIER_CATALOG[membership.tier].priceLabel,
         },
         {
-          label: "status",
-          value: membership.status,
+          label: "Status",
+          value: membershipStatusLabel(membership.status),
           note: membership.cancelAtPeriodEnd
-            ? "cancels at period end"
-            : "renews automatically, every month",
+            ? "Cancels at period end"
+            : "Renews automatically, every month",
         },
         {
-          label: "billing renews",
+          label: "Billing renews",
           value: renews,
-          note: stripeConfigured() ? "billed through Stripe" : null,
+          note: stripeConfigured() ? "Billed through Stripe" : null,
           action: true,
         },
       ]
     : null;
 
   return (
-    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
+    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24">
       {params.checkout_error ? (
         <Toast className="mb-8" variant="danger">
-          couldn&apos;t start checkout. please try again.
+          Couldn&apos;t start checkout. Please try again.
         </Toast>
       ) : null}
       {params.canceled ? (
         <Toast className="mb-8">
-          checkout canceled — pick a plan when you&apos;re ready.
+          Checkout canceled — pick a plan when you&apos;re ready.
         </Toast>
       ) : null}
 
       <div className="mb-12 flex flex-wrap items-end justify-between gap-6 lg:mb-16 lg:flex-nowrap lg:items-start lg:gap-10">
         <div className="min-w-0 flex-1">
-          <h1 className="m-0 max-w-[12ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
-            welcome back,
+          <h1 className="m-0 max-w-[14ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
+            Welcome back,
             <br />
-            {firstName.toLowerCase()}.
+            {firstName}.
           </h1>
         </div>
-        <div className="w-full shrink-0 lg:mr-24 lg:w-[540px]">
+        <div className="w-full shrink-0 lg:w-[540px]">
           <MemberIdCard
             displayName={displayName}
             avatarUrl={profile?.avatarUrl ?? null}
@@ -130,12 +132,13 @@ export default async function PortalHomePage({
             youtube={profile?.youtube}
             github={profile?.github}
             memberSince={memberSince}
+            cohort={cohortForEmail(profile?.email || user.email)}
           />
         </div>
       </div>
 
       <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">
-        membership
+        Membership
       </h2>
       <SubscribeButtons currentTier={membership?.tier ?? null} />
 

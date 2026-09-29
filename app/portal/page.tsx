@@ -128,13 +128,13 @@ export default async function PortalHomePage({
 
       <div className="mb-12 flex flex-wrap items-end justify-between gap-6 lg:mb-16 lg:flex-nowrap lg:items-start lg:gap-10">
         <div className="min-w-0 flex-1">
-          <h1 className="m-0 max-w-[12ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
+          <h1 className="m-0 max-w-[14ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
             Welcome back,
             <br />
             {firstName}.
           </h1>
         </div>
-        <div className="w-full shrink-0 lg:mr-24 lg:w-[540px]">
+        <div className="w-full shrink-0 lg:w-[540px]">
           <MemberIdCard
             displayName={displayName}
             avatarUrl={profile?.avatarUrl ?? null}

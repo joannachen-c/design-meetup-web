@@ -104,6 +104,34 @@ const neutralColors = [
   { label: "gray-500", className: "bg-gray-500", hex: "#6a7282" },
 ] as const;
 
+// Tailwind defaults behind the success and danger toasts.
+const statusColors = [
+  {
+    label: "green-50",
+    description: "success background",
+    className: "bg-green-50",
+    hex: "#f0fdf4",
+  },
+  {
+    label: "green-700",
+    description: "success text · icon",
+    className: "bg-green-700",
+    hex: "#008236",
+  },
+  {
+    label: "red-50",
+    description: "danger background",
+    className: "bg-red-50",
+    hex: "#fef2f2",
+  },
+  {
+    label: "red-700",
+    description: "danger text",
+    className: "bg-red-700",
+    hex: "#c10007",
+  },
+] as const;
+
 const sections = [
   { id: "colors", label: "colors" },
   { id: "typography", label: "typography" },
@@ -432,6 +460,27 @@ export default function DesignSystem() {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div>
+                <SpecimenLabel>status</SpecimenLabel>
+                <ul className="m-0 mt-5 grid list-none grid-cols-2 gap-x-6 gap-y-4 p-0 sm:grid-cols-3 lg:grid-cols-5">
+                  {statusColors.map((color) => (
+                    <li className="flex items-center gap-3" key={color.label}>
+                      <ColorSwatch
+                        className={color.className}
+                        hex={color.hex}
+                        label={color.label}
+                        size="chip"
+                      />
+                      <div>
+                        <code className="text-sm text-muted">{color.label}</code>
+                        <p className="m-0 text-sm text-subtle">
+                          {color.description}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
               <div>
                 <SpecimenLabel>tailwind neutrals</SpecimenLabel>

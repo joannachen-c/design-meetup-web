@@ -165,7 +165,7 @@ export function PortalHeader({
             <form action={logoutAction} className="max-[640px]:hidden">
               <button
                 type="submit"
-                className="inline-flex min-h-11 cursor-pointer items-center whitespace-nowrap rounded-[10px] border-0 bg-transparent px-4 text-base text-muted hover:bg-surface-muted hover:text-ink"
+                className="inline-flex min-h-11 cursor-pointer items-center whitespace-nowrap rounded-[10px] border-0 bg-transparent px-4 text-base text-muted transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:bg-red-50 focus-visible:text-red-700"
               >
                 Log out
               </button>
@@ -199,7 +199,7 @@ export function PortalHeader({
                     <button
                       role="menuitem"
                       type="submit"
-                      className="flex min-h-11 w-full cursor-pointer items-center rounded-[10px] border-0 bg-transparent px-3 text-left text-base text-muted hover:bg-surface-muted hover:text-ink"
+                      className="flex min-h-11 w-full cursor-pointer items-center rounded-[10px] border-0 bg-transparent px-3 text-left text-base text-muted transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:bg-red-50 focus-visible:text-red-700"
                     >
                       Log out
                     </button>
@@ -212,7 +212,7 @@ export function PortalHeader({
           <form action={logoutAction}>
             <button
               type="submit"
-              className="inline-flex min-h-11 cursor-pointer items-center whitespace-nowrap rounded-[10px] border-0 bg-transparent px-4 text-base text-muted hover:bg-surface-muted hover:text-ink"
+              className="inline-flex min-h-11 cursor-pointer items-center whitespace-nowrap rounded-[10px] border-0 bg-transparent px-4 text-base text-muted transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:bg-red-50 focus-visible:text-red-700"
             >
               Log out
             </button>

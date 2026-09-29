@@ -56,3 +56,13 @@ test("billing updated uses the same bottom-center fading toast as profile", asyn
   assert.match(saved, /showSuccessToast\(message\)/);
   assert.match(toaster, /position="bottom-center"/);
 });
+
+test("log out turns red with a light red background on hover", async () => {
+  const header = await read("src/components/portal/PortalHeader.tsx");
+  const logouts = header.match(/className="[^"]*"\s*>\s*Log out/g) ?? [];
+  assert.equal(logouts.length, 3);
+  for (const button of logouts) {
+    assert.match(button, /hover:bg-red-50 hover:text-red-700/);
+    assert.doesNotMatch(button, /hover:bg-surface-muted/);
+  }
+});

@@ -562,10 +562,9 @@ test("color swatches use gap-3 before tightly grouped copy", () => {
     /className="m-0 mt-1 text-sm text-subtle"[\s\S]*\{color\.description\}/,
   );
   assert.equal(designSystem.match(/const semanticColors = \[/g)?.length, 1);
-  assert.equal(
-    [...designSystem.matchAll(/description: "/g)].length,
-    9,
-  );
+  const semanticBlock =
+    designSystem.match(/const semanticColors = \[[\s\S]*?\] as const;/)?.[0] ?? "";
+  assert.equal([...semanticBlock.matchAll(/description: "/g)].length, 9);
 });
 
 test("semantic color swatches use a denser responsive grid", () => {
@@ -929,4 +928,22 @@ test("design system page reuses the shared footer with a home logo link", () => 
     designSystem,
     /<SiteFooter\s+logoHref="\/"\s+logoAriaLabel="Design Meetup home"\s+hideDesignSystemPromo\s+\/>/,
   );
+});
+
+test("colors document the success and danger toast greens and reds", () => {
+  const colorsSection =
+    designSystem.match(/<section\s+id="colors"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.match(colorsSection, /<SpecimenLabel>status<\/SpecimenLabel>/);
+  assert.match(colorsSection, /statusColors\.map/);
+  for (const [label, hex] of [
+    ["green-50", "#f0fdf4"],
+    ["green-700", "#008236"],
+    ["red-50", "#fef2f2"],
+    ["red-700", "#c10007"],
+  ]) {
+    assert.match(
+      designSystem,
+      new RegExp(`label: "${label}",[\\s\\S]*?className: "bg-${label}",\\s*hex: "${hex}"`),
+    );
+  }
 });

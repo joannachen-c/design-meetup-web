@@ -34,6 +34,9 @@ export function PortalHeader({
   paid?: boolean;
 }) {
   const pathname = usePathname();
+  // Portal pages other than subscribe already redirect unpaid members, and the
+  // layout can check access before a Checkout return has synced membership.
+  const showMemberNav = paid || !pathname.startsWith("/portal/subscribe");
   const navRef = useRef<HTMLElement>(null);
   const [pill, setPill] = useState<{ left: number; width: number } | null>(
     null,
@@ -84,7 +87,7 @@ export function PortalHeader({
   return (
     <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
       <Link
-        href={paid ? "/portal" : "/portal/subscribe"}
+        href={showMemberNav ? "/portal" : "/portal/subscribe"}
         className="w-fit leading-[0] no-underline"
         aria-label="Design Meetup home"
       >
@@ -97,7 +100,7 @@ export function PortalHeader({
           decoding="async"
         />
       </Link>
-      {paid ? (
+      {showMemberNav ? (
         <nav
           ref={navRef}
           className="relative flex gap-1"
@@ -142,7 +145,7 @@ export function PortalHeader({
         <span aria-hidden />
       )}
       <div className="flex items-center justify-end gap-2">
-        {paid ? (
+        {showMemberNav ? (
           <>
             <Link
               href="/portal/profile"

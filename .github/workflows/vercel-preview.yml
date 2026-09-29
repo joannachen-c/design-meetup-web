@@ -86,12 +86,35 @@ jobs:
               "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env?$TEAM"
           }
 
+          # Only delete Preview-only records. A record shared with Production
+          # (e.g. "Production and Preview") keeps Production and just drops the
+          # preview target; deleting it would wipe the Production value.
           delete_preview() {
             local key="$1"
-            ids=$(list_env | KEY="$key" python3 -c 'import os,sys,json; d=json.load(sys.stdin); k=os.environ["KEY"]; print(" ".join(e["id"] for e in d.get("envs",[]) if e.get("key")==k and "preview" in (e.get("target") or [])))')
-            for id in $ids; do
-              curl -sS -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" \
-                "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$id?$TEAM" >/dev/null
+            list_env | KEY="$key" python3 -c '
+          import os, sys, json
+          k = os.environ["KEY"]
+          for e in json.load(sys.stdin).get("envs", []):
+              targets = e.get("target") or []
+              if e.get("key") != k or "preview" not in targets:
+                  continue
+              rest = [t for t in targets if t != "preview"]
+              print(e["id"], ",".join(rest))
+          ' | while read -r id rest; do
+              if [ -z "$rest" ]; then
+                curl -sS -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" \
+                  "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$id?$TEAM" >/dev/null
+              else
+                body=$(REST="$rest" python3 -c 'import os,json; print(json.dumps({"target": os.environ["REST"].split(",")}))')
+                code=$(curl -sS -o /tmp/env-patch.json -w '%{http_code}' \
+                  -X PATCH -H "Authorization: Bearer $VERCEL_TOKEN" -H 'Content-Type: application/json' \
+                  "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$id?$TEAM" \
+                  -d "$body")
+                if [ "$code" != "200" ]; then
+                  echo "Failed to drop preview from shared $key (HTTP $code): $(cat /tmp/env-patch.json)"
+                  exit 1
+                fi
+              fi
             done
           }
 
@@ -115,9 +138,13 @@ jobs:
           copy_prod_to_preview() {
             local key="$1"
             local type="${2:-encrypted}"
-            id=$(list_env | KEY="$key" python3 -c 'import os,sys,json; d=json.load(sys.stdin); k=os.environ["KEY"]; ids=[e["id"] for e in d.get("envs",[]) if e.get("key")==k and "production" in (e.get("target") or [])]; print(ids[0] if ids else "")')
-            if [ -z "$id" ]; then
+            read -r id shared < <(list_env | KEY="$key" python3 -c 'import os,sys,json; d=json.load(sys.stdin); k=os.environ["KEY"]; es=[e for e in d.get("envs",[]) if e.get("key")==k and "production" in (e.get("target") or [])]; e=es[0] if es else None; print((e["id"]+" "+("yes" if "preview" in (e.get("target") or []) else "no")) if e else "")') || true
+            if [ -z "${id:-}" ]; then
               echo "::warning::$key is not set in Production; Preview will not have it."
+              return 0
+            fi
+            if [ "${shared:-}" = "yes" ]; then
+              echo "$key is already shared by Production and Preview; leaving it alone."
               return 0
             fi
             value=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \

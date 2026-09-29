@@ -75,7 +75,7 @@ test("recovery email template brands Design Meetup and skips Vercel SSO hosts", 
   const html = await read("public/email/recovery.html");
   const confirm = await read("app/auth/confirm/route.ts");
   for (const source of [template, html]) {
-    assert.match(source, /Reset your Design Meetup password/);
+    assert.match(source, /Choose a new Design Meetup password/);
     assert.match(source, /password reset for your Design Meetup account/);
     assert.match(source, /design-meetup-logo\.png/);
     assert.match(
@@ -93,7 +93,7 @@ test("recovery email template brands Design Meetup and skips Vercel SSO hosts", 
 test("password reset email uses the same chrome as welcome mail", async () => {
   const welcome = await read("src/lib/welcome-email.ts");
   assert.match(welcome, /export function buildPasswordResetEmail/);
-  assert.match(welcome, /subject: "Reset your Design Meetup password"/);
+  assert.match(welcome, /subject: "Choose a new Design Meetup password"/);
   assert.match(welcome, /heading: "Reset your Design Meetup password"/);
   assert.match(
     welcome,

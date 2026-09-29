@@ -1,4 +1,4 @@
-export const RECOVERY_EMAIL_SUBJECT = "Reset your Design Meetup password";
+export const RECOVERY_EMAIL_SUBJECT = "Choose a new Design Meetup password";
 
 export const RECOVERY_RESET_URL =
   "https://www.designmeetup.info/reset-password?token_hash={{ .TokenHash }}&type=recovery";

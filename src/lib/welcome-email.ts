@@ -283,7 +283,7 @@ export function buildPasswordResetEmail(input: PasswordResetEmailInput) {
     "If you didn't ask for this, you can ignore this email.",
   ];
   const text = [
-    "Reset your Design Meetup password",
+    "Choose a new Design Meetup password",
     "",
     ...paragraphs,
     "",
@@ -302,7 +302,7 @@ export function buildPasswordResetEmail(input: PasswordResetEmailInput) {
   return {
     to: input.email,
     replyTo: siteEmail,
-    subject: "Reset your Design Meetup password",
+    subject: "Choose a new Design Meetup password",
     text,
     html,
     resetUrl: input.resetUrl,

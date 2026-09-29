@@ -120,16 +120,17 @@ export function accessTokenExpired(token: string | undefined, skewSeconds = 60) 
 export async function refreshSession(
   refreshToken: string,
 ): Promise<RefreshedSession | null> {
-  if (isLocalSessionToken(refreshToken) || !supabaseAuthConfigured()) {
+  if (isLocalSessionToken(refreshToken) || !supabasePublishableOrServiceKey()) {
     return null;
   }
+  const apiKey = supabasePublishableOrServiceKey();
   const response = await fetch(
     `${supabaseUrl()}/auth/v1/token?grant_type=refresh_token`,
     {
       method: "POST",
       headers: {
-        apikey: serviceRoleKey(),
-        Authorization: `Bearer ${serviceRoleKey()}`,
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ refresh_token: refreshToken }),

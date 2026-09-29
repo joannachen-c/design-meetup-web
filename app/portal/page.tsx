@@ -5,7 +5,7 @@ import { ManageBillingButton } from "@/components/portal/ManageBillingButton";
 import { MemberIdCard } from "@/components/portal/MemberIdCard";
 import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
 import { requireUser } from "@/lib/auth";
-import { cohortForEmail } from "@/lib/cohort";
+import { COHORT_1_JOINED_AT, cohortForEmail } from "@/lib/cohort";
 import {
   TIER_CATALOG,
   displayNameFromEmail,
@@ -61,8 +61,11 @@ export default async function PortalHomePage({
     profile?.displayName?.trim() ||
     displayNameFromEmail(user.email || "member");
   const firstName = firstNameFromDisplay(displayName, user.email || "member");
-  const slackJoinedAt = await getSlackJoinedAt(profile?.email || user.email);
-  const memberSince = memberSinceLabel(slackJoinedAt, profile?.createdAt);
+  const memberEmail = profile?.email || user.email;
+  const cohort = cohortForEmail(memberEmail);
+  const joinedAt =
+    cohort === 1 ? COHORT_1_JOINED_AT : await getSlackJoinedAt(memberEmail);
+  const memberSince = memberSinceLabel(joinedAt, profile?.createdAt);
 
   const renews = membership?.currentPeriodEnd
     ? new Intl.DateTimeFormat("en-US", {
@@ -132,7 +135,7 @@ export default async function PortalHomePage({
             youtube={profile?.youtube}
             github={profile?.github}
             memberSince={memberSince}
-            cohort={cohortForEmail(profile?.email || user.email)}
+            cohort={cohort}
           />
         </div>
       </div>

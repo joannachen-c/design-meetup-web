@@ -110,6 +110,11 @@ export function joinDatesFromSlackCsv(text: string): SlackJoinDate[] {
   const [headers = [], ...rows] = parseCsv(text);
   const emailIndex = findColumn(headers, EMAIL_HEADERS);
   const joinedIndex = findColumn(headers, JOINED_HEADERS);
+  if (joinedIndex === -1 && headers.includes("expiration-timestamp")) {
+    throw new Error(
+      "This is the Manage members export, which has no join dates. In Slack, export Analytics → Members instead (it has an \"Account created\" column).",
+    );
+  }
   if (emailIndex === -1 || joinedIndex === -1) {
     throw new Error(
       `Could not find an email column and a join-date column in the CSV. Headers: ${headers.join(", ")}`,

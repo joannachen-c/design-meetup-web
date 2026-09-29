@@ -70,7 +70,8 @@ test("the cohort sits bottom right of member since in tracked caps", async () =>
   assert.match(css, /\.footer\s*\{[^}]*align-items:\s*last baseline/s);
   assert.match(css, /\.footer\s*\{[^}]*margin-top:\s*auto/s);
   assert.match(css, /\.cohort\s*\{[^}]*letter-spacing:\s*0\.16em/s);
-  assert.match(page, /cohort=\{cohortForEmail\(/);
+  assert.match(page, /const cohort = cohortForEmail\(memberEmail\)/);
+  assert.match(page, /cohort=\{cohort\}/);
 });
 
 test("the card keeps its uppercase labels and lowercase upload copy", async () => {

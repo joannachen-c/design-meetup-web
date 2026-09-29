@@ -51,6 +51,14 @@ test("csv without a join-date column explains which headers it saw", () => {
   );
 });
 
+test("the Manage members export is rejected with a pointer to the analytics export", () => {
+  const csv = [
+    "username,email,status,billing-active,has-2fa,has-sso,userid,fullname,displayname,expiration-timestamp",
+    'iy53,iy53@cornell.edu,Admin,1,0,0,U0A6AJG820L,"Ilyssa Yan","Ilyssa Yan",',
+  ].join("\n");
+  assert.throws(() => joinDatesFromSlackCsv(csv), /Analytics → Members/);
+});
+
 test("first #general channel_join per person is their Slack join date", () => {
   const emails = new Map([
     ["U1", "Ilyssa@example.com"],
@@ -93,5 +101,6 @@ test("re-imports never move a join date later", () => {
 test("the portal card reads member since from the Slack join date", async () => {
   const page = await readFile(new URL("../app/portal/page.tsx", import.meta.url), "utf8");
   assert.match(page, /getSlackJoinedAt\(/);
-  assert.match(page, /memberSinceLabel\(slackJoinedAt, profile\?\.createdAt\)/);
+  assert.match(page, /cohort === 1 \? COHORT_1_JOINED_AT/);
+  assert.match(page, /memberSinceLabel\(joinedAt, profile\?\.createdAt\)/);
 });

@@ -101,6 +101,6 @@ test("re-imports never move a join date later", () => {
 test("the portal card reads member since from the Slack join date", async () => {
   const page = await readFile(new URL("../app/portal/page.tsx", import.meta.url), "utf8");
   assert.match(page, /getSlackJoinedAt\(/);
-  assert.match(page, /cohort === 1 \? COHORT_1_JOINED_AT/);
+  assert.match(page, /cohortJoinedAt\(cohort\) \?\?/);
   assert.match(page, /memberSinceLabel\(joinedAt, profile\?\.createdAt\)/);
 });

@@ -5,7 +5,7 @@ import { ManageBillingButton } from "@/components/portal/ManageBillingButton";
 import { MemberIdCard } from "@/components/portal/MemberIdCard";
 import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
 import { requireUser } from "@/lib/auth";
-import { COHORT_1_JOINED_AT, cohortForEmail } from "@/lib/cohort";
+import { cohortForEmail, cohortJoinedAt } from "@/lib/cohort";
 import {
   TIER_CATALOG,
   displayNameFromEmail,
@@ -64,7 +64,7 @@ export default async function PortalHomePage({
   const memberEmail = profile?.email || user.email;
   const cohort = cohortForEmail(memberEmail);
   const joinedAt =
-    cohort === 1 ? COHORT_1_JOINED_AT : await getSlackJoinedAt(memberEmail);
+    cohortJoinedAt(cohort) ?? (await getSlackJoinedAt(memberEmail));
   const memberSince = memberSinceLabel(joinedAt, profile?.createdAt);
 
   const renews = membership?.currentPeriodEnd

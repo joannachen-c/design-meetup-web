@@ -54,10 +54,12 @@ test("the empty photo well is a darker gray than the white card", async () => {
   assert.match(tsx, /photoOverlayVisible/);
 });
 
-test("the card is shaped like a standard ID-1 card", async () => {
+test("the card height follows its content so the signature lines up with member since", async () => {
   const css = await read("src/components/portal/MemberIdCard.module.css");
-  assert.match(css, /\.face\s*\{[^}]*aspect-ratio:\s*85\.6 \/ 53\.98/s);
-  assert.match(css, /\.face\s*\{[^}]*min-height:\s*min-content/s);
+  assert.doesNotMatch(css, /\.face\s*\{[^}]*aspect-ratio/s);
+  assert.match(css, /\.photoColumn\s*\{[^}]*align-content:\s*space-between/s);
+  assert.match(css, /\.footer\s*\{[^}]*margin-top:\s*auto/s);
+  assert.match(css, /\.sinceLabel\s*\{[^}]*white-space:\s*nowrap/s);
 });
 
 test("the cohort sits bottom right of member since in tracked caps", async () => {

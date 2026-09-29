@@ -43,14 +43,11 @@
   transform: rotateY(180deg);
 }
 
-/* ISO ID-1 (85.60 × 53.98 mm), the size of a driver's license. Content that
-   needs more room still grows the card instead of clipping. */
+/* Height follows the content so the footer lines up with the signature. */
 .face {
   position: relative;
   grid-area: 1 / 1;
   min-width: 0;
-  aspect-ratio: 85.6 / 53.98;
-  min-height: min-content;
   border-radius: 20px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -116,9 +113,11 @@
   min-height: 0;
 }
 
+/* space-between keeps the signature level with the footer when the details
+   column is the taller one (narrow screens, long roles). */
 .photoColumn {
   display: grid;
-  align-content: start;
+  align-content: space-between;
   justify-items: center;
   gap: 6px;
   min-width: 0;
@@ -337,6 +336,7 @@
   font-weight: 400;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  white-space: nowrap;
   color: var(--color-subtle);
 }
 

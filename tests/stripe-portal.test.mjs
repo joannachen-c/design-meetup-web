@@ -129,7 +129,7 @@ test("invalid stripe keys fall through to in-app billing instead of a secret-key
   assert.doesNotMatch(button, /STRIPE_SECRET_KEY/);
   assert.doesNotMatch(button, /form\.submit\(/);
   assert.match(button, /\/portal\/billing\?error=1/);
-  assert.match(page, /cancel at period end/);
+  assert.match(page, /Cancel at period end/);
 });
 
 test("the billing page has a home breadcrumb, cards, and invoices", async () => {
@@ -139,14 +139,14 @@ test("the billing page has a home breadcrumb, cards, and invoices", async () => 
   assert.match(page, /aria-label="Breadcrumb"/);
   assert.match(page, /href="\/portal"/);
   assert.match(page, /<ChevronLeftIcon/);
-  assert.match(page, />\s*home\s*</);
+  assert.match(page, />\s*Home\s*</);
   assert.match(page, /text-muted/);
-  assert.match(page, /payment method/);
-  assert.match(page, /invoices/);
-  assert.match(page, /label="update card" flow="payment_method_update"/);
-  assert.match(page, /label="view in Stripe"/);
-  assert.match(page, /normal-case">Stripe</);
-  assert.match(page, /renews automatically, every month/);
+  assert.match(page, /Payment method/);
+  assert.match(page, /Invoices/);
+  assert.match(page, /label="Update card" flow="payment_method_update"/);
+  assert.match(page, /label="View in Stripe"/);
+  assert.match(page, /Add or update your card in Stripe/);
+  assert.match(page, /Renews automatically, every month/);
   assert.match(page, /rounded-\[20px\] bg-gray-100 p-6/);
   assert.match(page, /md:grid-cols-3/);
   assert.match(page, /md:grid-cols-2/);

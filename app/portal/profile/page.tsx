@@ -13,11 +13,11 @@ export const metadata: Metadata = {
 function errorMessage(code: string | undefined) {
   switch (code) {
     case "required":
-      return "name and email are required.";
+      return "Name and email are required.";
     case "avatar-size":
-      return "keep the photo under 2.5 mb.";
+      return "Keep the photo under 2.5 MB.";
     case "avatar-type":
-      return "use a jpg, png, or webp image.";
+      return "Use a JPG, PNG, or WebP image.";
     default:
       return code || null;
   }
@@ -39,7 +39,7 @@ export default async function ProfilePage({
   const message = errorMessage(params.error);
 
   return (
-    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24 lowercase">
+    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24">
       <ProfileSavedToast saved={params.saved === "1"} />
       {message ? (
         <p className="mb-8 text-base text-red-700" role="alert">
@@ -49,7 +49,7 @@ export default async function ProfilePage({
 
       <div className="upcoming-events">
         <h1 className="upcoming-events-copy m-0 max-w-[10ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
-          your profile
+          Your profile
         </h1>
         <div className="upcoming-events-embed min-w-0">
           <ProfileForm

@@ -43,7 +43,7 @@ export function ResetPasswordForm({ nextPath }: { nextPath: string }) {
       !tokens.token_hash &&
       (!tokens.access_token || !tokens.refresh_token)
     ) {
-      setLinkError("this reset link is invalid or expired.");
+      setLinkError("This reset link is invalid or expired.");
       setReady(false);
       return;
     }
@@ -60,11 +60,11 @@ export function ResetPasswordForm({ nextPath }: { nextPath: string }) {
     const confirm = String(form.get("confirm") || "");
     setError(null);
     if (password.length < 8) {
-      setError("password must be at least 8 characters.");
+      setError("Password must be at least 8 characters.");
       return;
     }
     if (password !== confirm) {
-      setError("passwords don't match.");
+      setError("Passwords don't match.");
       return;
     }
     setPending(true);
@@ -85,38 +85,38 @@ export function ResetPasswordForm({ nextPath }: { nextPath: string }) {
       });
       const payload = (await response.json()) as { error?: string; url?: string };
       if (!response.ok || !payload.url) {
-        setError(payload.error || "couldn't update your password. try again.");
+        setError(payload.error || "Couldn't update your password. Try again.");
         setPending(false);
         return;
       }
       window.location.assign(payload.url);
     } catch {
-      setError("couldn't update your password. try again.");
+      setError("Couldn't update your password. Try again.");
       setPending(false);
     }
   }
 
   if (linkError) {
     return (
-      <div className="grid gap-6 lowercase">
+      <div className="grid gap-6">
         <p className="m-0 text-base text-red-700" role="alert">
           {linkError}
         </p>
         <Primary href="/login" variant="secondary">
-          back to log in
+          Back to log in
         </Primary>
       </div>
     );
   }
 
   if (!ready) {
-    return <p className="m-0 text-base text-muted lowercase">checking your reset link…</p>;
+    return <p className="m-0 text-base text-muted">Checking your reset link…</p>;
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-6 lowercase" noValidate>
+    <form onSubmit={onSubmit} className="grid gap-6" noValidate>
       <label className="grid gap-2">
-        <span className="text-sm font-bold text-muted">new password</span>
+        <span className="text-sm font-bold text-muted">New password</span>
         <Input
           name="password"
           type="password"
@@ -127,7 +127,7 @@ export function ResetPasswordForm({ nextPath }: { nextPath: string }) {
         />
       </label>
       <label className="grid gap-2">
-        <span className="text-sm font-bold text-muted">confirm password</span>
+        <span className="text-sm font-bold text-muted">Confirm password</span>
         <Input
           name="confirm"
           type="password"
@@ -143,7 +143,7 @@ export function ResetPasswordForm({ nextPath }: { nextPath: string }) {
         </p>
       ) : null}
       <Primary type="submit" variant="ink" loading={pending} disabled={pending}>
-        save password
+        Save password
       </Primary>
     </form>
   );

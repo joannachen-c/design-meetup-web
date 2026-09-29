@@ -92,7 +92,7 @@ export async function POST(request: Request) {
 
   if (!stripeConfigured()) {
     return checkoutError(
-      "billing isn't set up correctly yet. please try again later.",
+      "Billing isn't set up correctly yet. Please try again later.",
       "stripe",
     );
   }
@@ -172,26 +172,26 @@ export async function POST(request: Request) {
     if (code === "stripe") {
       return checkoutError(
         stripeMessage ||
-          "billing isn't set up correctly yet. please try again later.",
+          "Billing isn't set up correctly yet. Please try again later.",
         "stripe",
       );
     }
     if (code === "coupon") {
       return checkoutError(
         stripeMessage ||
-          "couldn't apply the free membership coupon. please try again later.",
+          "Couldn't apply the free membership coupon. Please try again later.",
         "coupon",
       );
     }
     if (code === "price") {
       return checkoutError(
         stripeMessage ||
-          "billing isn't set up correctly yet. please try again later.",
+          "Billing isn't set up correctly yet. Please try again later.",
         "price",
       );
     }
     return checkoutError(
-      stripeMessage || "could not start checkout. please try again.",
+      stripeMessage || "Could not start checkout. Please try again.",
     );
   }
 }

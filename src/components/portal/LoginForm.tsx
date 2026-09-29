@@ -115,7 +115,7 @@ export function LoginForm({
         try {
           payload = JSON.parse(raw) as { error?: string; url?: string };
         } catch {
-          setError("couldn't sign in. try again in a moment.");
+          setError("Couldn't sign in. Try again in a moment.");
           setPending(false);
           return;
         }
@@ -177,7 +177,7 @@ export function LoginForm({
     setEmailError(null);
     if (view === "forgot") {
       if (!email) {
-        setError("enter the email for your account.");
+        setError("Enter the email for your account.");
         return;
       }
       setPending(true);
@@ -194,20 +194,20 @@ export function LoginForm({
           try {
             payload = JSON.parse(raw) as { error?: string; sent?: boolean };
           } catch {
-            setError("couldn't send a reset link. try again in a moment.");
+            setError("Couldn't send a reset link. Try again in a moment.");
             setPending(false);
             return;
           }
         }
         if (!response.ok) {
-          setError(payload.error || "couldn't send a reset link. try again in a moment.");
+          setError(payload.error || "Couldn't send a reset link. Try again in a moment.");
           setPending(false);
           return;
         }
         setResetSent(true);
         setError(null);
       } catch {
-        setError("couldn't send a reset link. try again in a moment.");
+        setError("Couldn't send a reset link. Try again in a moment.");
       }
       setPending(false);
       return;
@@ -237,7 +237,7 @@ export function LoginForm({
         method="post"
         action="/api/auth"
         onSubmit={onSubmit}
-        className="grid gap-6 lowercase"
+        className="grid gap-6"
         noValidate
       >
         <input type="hidden" name="mode" value={mode} />
@@ -245,7 +245,7 @@ export function LoginForm({
         {mode === "signup" ? (
           <div className="grid grid-cols-2 gap-3">
             <label className="grid gap-2">
-              <span className="text-sm font-bold text-muted">first name</span>
+              <span className="text-sm font-bold text-muted">First name</span>
               <Input
                 name="firstName"
                 type="text"
@@ -254,7 +254,7 @@ export function LoginForm({
               />
             </label>
             <label className="grid gap-2">
-              <span className="text-sm font-bold text-muted">last name</span>
+              <span className="text-sm font-bold text-muted">Last name</span>
               <Input
                 name="lastName"
                 type="text"
@@ -265,7 +265,7 @@ export function LoginForm({
         ) : null}
         <div className="grid gap-2">
           <label className="grid gap-2">
-            <span className="text-sm font-bold text-muted">email address</span>
+            <span className="text-sm font-bold text-muted">Email address</span>
             <Input
               name="email"
               type="email"
@@ -289,7 +289,7 @@ export function LoginForm({
                 rel="noreferrer"
                 className="text-red-700 underline"
               >
-                apply here!
+                Apply here!
               </a>
             </p>
           ) : null}
@@ -297,12 +297,12 @@ export function LoginForm({
         {view === "forgot" ? (
           <p className="m-0 text-base text-muted">
             {resetSent
-              ? "if an account exists for that email, we sent a link to reset your password."
-              : "enter the email for your account. we'll send a link to reset your password."}
+              ? "If an account exists for that email, we sent a link to reset your password."
+              : "Enter the email for your account. We'll send a link to reset your password."}
           </p>
         ) : (
           <label className="grid gap-2">
-            <span className="text-sm font-bold text-muted">password</span>
+            <span className="text-sm font-bold text-muted">Password</span>
             <span className="relative block">
               <Input
                 name="password"
@@ -316,12 +316,12 @@ export function LoginForm({
                 className="pr-12"
               />
               <Tooltip
-                content={showPassword ? "hide password" : "show password"}
+                content={showPassword ? "Hide password" : "Show password"}
               >
                 <button
                   type="button"
                   className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-subtle transition-colors duration-150 ease-out hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-                  aria-label={showPassword ? "hide password" : "show password"}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   aria-pressed={showPassword}
                   onClick={() => setShowPassword((value) => !value)}
                 >
@@ -346,10 +346,10 @@ export function LoginForm({
               setResetSent(false);
             }}
           >
-            forgot your password?
+            Forgot your password?
           </button>
         ) : null}
-        <div className="mt-2 flex flex-wrap items-center gap-3 lowercase">
+        <div className="mt-2 flex flex-wrap items-center gap-3">
           {view === "forgot" ? (
             <>
               {resetSent ? null : (
@@ -359,7 +359,7 @@ export function LoginForm({
                   loading={pending}
                   disabled={pending}
                 >
-                  send reset link
+                  Send reset link
                 </Primary>
               )}
               <Primary
@@ -371,7 +371,7 @@ export function LoginForm({
                   setResetSent(false);
                 }}
               >
-                back to log in
+                Back to log in
               </Primary>
             </>
           ) : (
@@ -382,21 +382,21 @@ export function LoginForm({
                 loading={pending}
                 disabled={pending}
               >
-                {mode === "login" ? "log in" : "create account"}
+                {mode === "login" ? "Log in" : "Create account"}
               </Primary>
               {mode === "login" ? (
                 <a
                   className="inline-flex min-h-11 items-center rounded-[10px] px-4 text-base text-muted no-underline hover:bg-surface-muted hover:text-ink"
                   href={`/signup?next=${encodeURIComponent(nextPath)}`}
                 >
-                  create an account
+                  Create an account
                 </a>
               ) : (
                 <a
                   className="inline-flex min-h-11 items-center rounded-[10px] px-4 text-base text-muted no-underline hover:bg-surface-muted hover:text-ink"
                   href={`/login?next=${encodeURIComponent(nextPath)}`}
                 >
-                  log in
+                  Log in
                 </a>
               )}
             </>

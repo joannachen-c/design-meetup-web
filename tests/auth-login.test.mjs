@@ -17,7 +17,7 @@ test("preview auth does not crash when supabase is unconfigured", async () => {
   assert.match(auth, /localPasswordSignIn/);
   assert.match(auth, /demo@designmeetup.info/);
   assert.match(auth, /if \(!supabaseAuthConfigured\(\)\)/);
-  assert.match(route, /couldn't sign in\. try again in a moment\./);
+  assert.match(route, /Couldn't sign in\. Try again in a moment\./);
 });
 
 test("login form parses empty auth responses instead of a connection error", async () => {

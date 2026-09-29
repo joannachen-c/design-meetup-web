@@ -6,7 +6,9 @@ import {
   DEFAULT_STRIPE_PRICE_STUDENT,
   hasPortalAccess,
   normalizeMembershipStatus,
+  membershipStatusLabel,
   priceIdForTier,
+  profileDetailsComplete,
   TIER_CATALOG,
   tierFromPriceId,
 } from "../src/lib/membership.ts";
@@ -87,5 +89,39 @@ test("stripe status normalization", () => {
 });
 
 test("professional lists everything in student first", () => {
-  assert.equal(TIER_CATALOG.professional.benefits[0], "everything in student");
+  assert.equal(TIER_CATALOG.professional.benefits[0], "Everything in Student");
+});
+
+test("profile is complete with a role or school + year, plus website and location", () => {
+  const base = { website: "ilyssa.design", location: "San Francisco" };
+  assert.equal(profileDetailsComplete({ ...base, position: "Designer" }), true);
+  assert.equal(profileDetailsComplete({ ...base, company: "Figma" }), true);
+  assert.equal(
+    profileDetailsComplete({ ...base, school: "Stanford", year: "2027" }),
+    true,
+  );
+
+  assert.equal(profileDetailsComplete({ ...base, school: "Stanford" }), false);
+  assert.equal(profileDetailsComplete({ ...base, year: "2027" }), false);
+  assert.equal(profileDetailsComplete({ ...base }), false);
+  assert.equal(
+    profileDetailsComplete({ position: "Designer", location: "SF" }),
+    false,
+  );
+  assert.equal(
+    profileDetailsComplete({ position: "Designer", website: "ilyssa.design" }),
+    false,
+  );
+  assert.equal(
+    profileDetailsComplete({ ...base, position: "   ", company: "" }),
+    false,
+  );
+  assert.equal(profileDetailsComplete({}), false);
+});
+
+test("membership statuses read in sentence case", () => {
+  assert.equal(membershipStatusLabel("active"), "Active");
+  assert.equal(membershipStatusLabel("past_due"), "Past due");
+  assert.equal(TIER_CATALOG.student.name, "Student");
+  assert.equal(TIER_CATALOG.professional.name, "Professional");
 });

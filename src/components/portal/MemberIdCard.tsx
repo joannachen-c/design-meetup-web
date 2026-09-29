@@ -12,7 +12,11 @@ import {
 } from "@/components/portal/SocialIcons";
 import { PersonSilhouette } from "@/components/portal/PersonSilhouette";
 import { graduationYearLabel } from "@/lib/graduation";
-import { socialHref, type ProfileSocialLinks } from "@/lib/membership";
+import {
+  profileDetailsComplete,
+  socialHref,
+  type ProfileSocialLinks,
+} from "@/lib/membership";
 import styles from "./MemberIdCard.module.css";
 
 const MAX_AVATAR_BYTES = 2.5 * 1024 * 1024;
@@ -32,6 +36,7 @@ export type MemberIdCardProps = {
   youtube?: string | null;
   github?: string | null;
   memberSince?: string | null;
+  cohort?: number | null;
 };
 
 type SocialKey = Exclude<keyof ProfileSocialLinks, "website">;
@@ -169,6 +174,7 @@ export function MemberIdCard({
   youtube = null,
   github = null,
   memberSince = null,
+  cohort = null,
 }: MemberIdCardProps) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -186,7 +192,14 @@ export function MemberIdCard({
     const href = socialHref(item.key, values[item.key]);
     return href ? [{ ...item, href }] : [];
   });
-  const hasDetails = Boolean(role || websiteHref || location || education);
+  const hasDetails = profileDetailsComplete({
+    position,
+    company,
+    school,
+    year,
+    website,
+    location,
+  });
 
   function toggle() {
     setFlipped((value) => !value);
@@ -288,7 +301,7 @@ export function MemberIdCard({
                     fileRef.current?.click();
                   }}
                   onKeyDown={stop}
-                  aria-label={photo ? "Upload new image" : "Upload image"}
+                  aria-label={photo ? "upload new image" : "upload image"}
                   disabled={uploading}
                   tabIndex={flipped ? -1 : 0}
                 >
@@ -375,13 +388,6 @@ export function MemberIdCard({
                   </div>
                 ) : null}
 
-                {memberSince ? (
-                  <div className={styles.since}>
-                    <p className={styles.sinceLabel}>Member since</p>
-                    <p className={styles.sinceValue}>{memberSince}</p>
-                  </div>
-                ) : null}
-
                 {!hasDetails ? (
                   <Link
                     className={styles.hint}
@@ -392,6 +398,20 @@ export function MemberIdCard({
                   >
                     Complete your profile
                   </Link>
+                ) : null}
+
+                {memberSince || cohort != null ? (
+                  <div className={styles.footer}>
+                    {memberSince ? (
+                      <div className={styles.since}>
+                        <p className={styles.sinceLabel}>Member since</p>
+                        <p className={styles.sinceValue}>{memberSince}</p>
+                      </div>
+                    ) : null}
+                    {cohort != null ? (
+                      <p className={styles.cohort}>COHORT {cohort}</p>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             </div>

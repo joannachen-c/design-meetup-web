@@ -175,7 +175,7 @@ export async function setRecoverySession(input: {
     if (!supabasePublishableOrServiceKey()) {
       return {
         ok: false as const,
-        error: "this reset link is invalid or expired.",
+        error: "This reset link is invalid or expired.",
       };
     }
     try {
@@ -190,7 +190,7 @@ export async function setRecoverySession(input: {
         console.error("recovery verifyOtp failed", error?.message);
         return {
           ok: false as const,
-          error: "this reset link is invalid or expired.",
+          error: "This reset link is invalid or expired.",
         };
       }
       if (session?.access_token && session.refresh_token) {
@@ -209,7 +209,7 @@ export async function setRecoverySession(input: {
       console.error("recovery verifyOtp failed", error);
       return {
         ok: false as const,
-        error: "this reset link is invalid or expired.",
+        error: "This reset link is invalid or expired.",
       };
     }
   }
@@ -217,7 +217,7 @@ export async function setRecoverySession(input: {
   if (!input.access_token || !input.refresh_token) {
     return {
       ok: false as const,
-      error: "this reset link is invalid or expired.",
+      error: "This reset link is invalid or expired.",
     };
   }
   if (!supabaseAuthConfigured()) {
@@ -225,7 +225,7 @@ export async function setRecoverySession(input: {
     if (!local) {
       return {
         ok: false as const,
-        error: "this reset link is invalid or expired.",
+        error: "This reset link is invalid or expired.",
       };
     }
     await setAuthCookies({
@@ -241,7 +241,7 @@ export async function setRecoverySession(input: {
     if (error || !data.user) {
       return {
         ok: false as const,
-        error: "this reset link is invalid or expired.",
+        error: "This reset link is invalid or expired.",
       };
     }
     await setAuthCookies({
@@ -253,7 +253,7 @@ export async function setRecoverySession(input: {
   } catch {
     return {
       ok: false as const,
-      error: "this reset link is invalid or expired.",
+      error: "This reset link is invalid or expired.",
     };
   }
 }
@@ -270,7 +270,7 @@ export async function updatePassword(
   if (password.length < 8) {
     return {
       ok: false as const,
-      error: "password must be at least 8 characters.",
+      error: "Password must be at least 8 characters.",
     };
   }
 
@@ -285,7 +285,7 @@ export async function updatePassword(
         console.error("recovery verifyOtp failed", error?.message);
         return {
           ok: false as const,
-          error: "this reset link is invalid or expired.",
+          error: "This reset link is invalid or expired.",
         };
       }
       const { error: updateError } = await client.auth.updateUser({ password });
@@ -294,7 +294,7 @@ export async function updatePassword(
         return {
           ok: false as const,
           error: message.includes("different")
-            ? "new password must be different from your current password."
+            ? "New password must be different from your current password."
             : updateError.message,
         };
       }
@@ -303,7 +303,7 @@ export async function updatePassword(
       console.error("recovery password update failed", error);
       return {
         ok: false as const,
-        error: "couldn't update your password. try again in a moment.",
+        error: "Couldn't update your password. Try again in a moment.",
       };
     }
   }
@@ -320,7 +320,7 @@ export async function updatePassword(
   if (!userId) {
     return {
       ok: false as const,
-      error: "this reset link is invalid or expired.",
+      error: "This reset link is invalid or expired.",
     };
   }
   if (supabaseAuthConfigured()) {
@@ -336,7 +336,7 @@ export async function updatePassword(
     } catch {
       return {
         ok: false as const,
-        error: "couldn't update your password. try again in a moment.",
+        error: "Couldn't update your password. Try again in a moment.",
       };
     }
   }
@@ -430,7 +430,7 @@ export async function passwordSignIn(email: string, password: string) {
   } catch {
     return {
       ok: false as const,
-      error: "couldn't sign in. try again in a moment.",
+      error: "Couldn't sign in. Try again in a moment.",
     };
   }
 }
@@ -458,7 +458,7 @@ export async function passwordSignUp(email: string, password: string) {
   } catch {
     return {
       ok: false as const,
-      error: "couldn't sign in. try again in a moment.",
+      error: "Couldn't sign in. Try again in a moment.",
     };
   }
 }

@@ -111,7 +111,7 @@
 .body {
   flex: 1;
   display: grid;
-  grid-template-columns: clamp(112px, 32%, 172px) minmax(0, 1fr);
+  grid-template-columns: clamp(120px, 36%, 196px) minmax(0, 1fr);
   gap: clamp(14px, 3vw, 20px);
   min-height: 0;
 }
@@ -268,7 +268,14 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 6px;
-  margin-top: clamp(6px, 1.6vw, 12px);
+  margin-block: auto;
+  padding-top: clamp(6px, 1.6vw, 12px);
+}
+
+/* Let the facts' auto margins own the free space so they sit centered
+   between the website link and the footer. */
+.facts ~ .footer {
+  margin-top: 0;
 }
 
 .fact {
@@ -435,7 +442,7 @@
 
 @media (max-width: 420px) {
   .body {
-    grid-template-columns: 112px minmax(0, 1fr);
+    grid-template-columns: 120px minmax(0, 1fr);
   }
 }
 

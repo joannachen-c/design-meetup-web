@@ -2,15 +2,21 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import type { Advisor } from "@/lib/advisor-directory";
+import type { AdvisorsSource } from "@/lib/advisors";
+
+import { AdvisorsProvider } from "./AdvisorsProvider";
 import { PrototypePicker } from "./PrototypePicker";
 import { SectionContext } from "./SectionContext";
 import { CardGridVariant } from "./variants/CardGridVariant";
 import { CompactGridVariant } from "./variants/CompactGridVariant";
+import { DirectoryVariant } from "./variants/DirectoryVariant";
 import { GalleryStripVariant } from "./variants/GalleryStripVariant";
 import { InlineLedgerVariant } from "./variants/InlineLedgerVariant";
 import { RosterVariant } from "./variants/RosterVariant";
 
 const variants = [
+  { name: "Directory", Component: DirectoryVariant },
   { name: "Roster", Component: RosterVariant },
   { name: "Cards", Component: CardGridVariant },
   { name: "Compact", Component: CompactGridVariant },
@@ -25,7 +31,13 @@ function readInitialIndex() {
   return param - 1;
 }
 
-export function BoardOfAdvisorsPrototype() {
+export function BoardOfAdvisorsPrototype({
+  advisors,
+  source,
+}: {
+  advisors: Advisor[];
+  source: AdvisorsSource;
+}) {
   const [current, setCurrent] = useState(0);
   const [mountKey, setMountKey] = useState(0);
 
@@ -48,7 +60,7 @@ export function BoardOfAdvisorsPrototype() {
   const { Component } = variants[current];
 
   return (
-    <>
+    <AdvisorsProvider advisors={advisors} source={source}>
       <SectionContext key={mountKey}>
         <Component />
       </SectionContext>
@@ -58,7 +70,12 @@ export function BoardOfAdvisorsPrototype() {
         onChange={handleChange}
         onReplay={handleReplay}
         showReplay
+        status={
+          source === "supabase"
+            ? { label: `Supabase · ${advisors.length}`, tone: "live" }
+            : { label: "Bundled data", tone: "fallback" }
+        }
       />
-    </>
+    </AdvisorsProvider>
   );
 }

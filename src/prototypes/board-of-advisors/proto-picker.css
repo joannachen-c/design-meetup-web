@@ -94,3 +94,25 @@
   bottom: auto;
   top: 24px;
 }
+
+.proto-picker-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px 0 8px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.proto-picker-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #3ecf8e;
+}
+
+.proto-picker-status[data-tone="fallback"] .proto-picker-status-dot {
+  background: #f5a524;
+}

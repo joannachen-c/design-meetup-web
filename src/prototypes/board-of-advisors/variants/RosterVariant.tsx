@@ -1,5 +1,9 @@
+"use client";
+
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { advisorFullName, advisors, type Advisor } from "../advisors";
+import { AdvisorEmptyState, AdvisorFilterBar } from "../AdvisorFilterBar";
+import { useAdvisors } from "../AdvisorsProvider";
+import type { Advisor } from "../advisors";
 import {
   AdvisorAvatar,
   AdvisorLink,
@@ -27,6 +31,7 @@ function RosterRow({ advisor }: { advisor: Advisor }) {
 }
 
 export function RosterVariant() {
+  const { advisors } = useAdvisors();
   const midpoint = Math.ceil(advisors.length / 2);
   const leftColumn = advisors.slice(0, midpoint);
   const rightColumn = advisors.slice(midpoint);
@@ -47,17 +52,24 @@ export function RosterVariant() {
             visible at once.
           </p>
         </div>
-        <div className="grid min-w-0 gap-x-[clamp(24px,4vw,48px)] min-[821px]:grid-cols-2">
-          <ol className="m-0 list-none p-0" aria-label="Board of Advisors, first half">
-            {leftColumn.map((advisor) => (
-              <RosterRow advisor={advisor} key={advisorFullName(advisor)} />
-            ))}
-          </ol>
-          <ol className="m-0 list-none p-0" aria-label="Board of Advisors, second half">
-            {rightColumn.map((advisor) => (
-              <RosterRow advisor={advisor} key={advisorFullName(advisor)} />
-            ))}
-          </ol>
+        <div className="grid min-w-0 gap-6">
+          <AdvisorFilterBar />
+          {advisors.length === 0 ? (
+            <AdvisorEmptyState />
+          ) : (
+            <div className="grid min-w-0 gap-x-[clamp(24px,4vw,48px)] min-[821px]:grid-cols-2">
+              <ol className="m-0 list-none p-0" aria-label="Board of Advisors, first half">
+                {leftColumn.map((advisor) => (
+                  <RosterRow advisor={advisor} key={advisor.slug} />
+                ))}
+              </ol>
+              <ol className="m-0 list-none p-0" aria-label="Board of Advisors, second half">
+                {rightColumn.map((advisor) => (
+                  <RosterRow advisor={advisor} key={advisor.slug} />
+                ))}
+              </ol>
+            </div>
+          )}
         </div>
       </ScrollReveal>
     </section>

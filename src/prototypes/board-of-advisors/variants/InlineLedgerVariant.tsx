@@ -1,5 +1,9 @@
+"use client";
+
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { advisorFullName, advisors, type Advisor } from "../advisors";
+import { AdvisorEmptyState, AdvisorFilterBar } from "../AdvisorFilterBar";
+import { useAdvisors } from "../AdvisorsProvider";
+import type { Advisor } from "../advisors";
 import {
   AdvisorAvatar,
   AdvisorLink,
@@ -27,6 +31,7 @@ function LedgerRow({ advisor }: { advisor: Advisor }) {
 }
 
 export function InlineLedgerVariant() {
+  const { advisors } = useAdvisors();
   const midpoint = Math.ceil(advisors.length / 2);
   const leftColumn = advisors.slice(0, midpoint);
   const rightColumn = advisors.slice(midpoint);
@@ -47,18 +52,25 @@ export function InlineLedgerVariant() {
         </p>
       </ScrollReveal>
       <ScrollReveal delay={60}>
-        <div className="mt-[clamp(40px,6vw,72px)] grid min-w-0 gap-x-[clamp(24px,4vw,48px)] min-[821px]:grid-cols-2">
-          <ol className="m-0 list-none p-0" aria-label="Board of Advisors, first half">
-            {leftColumn.map((advisor) => (
-              <LedgerRow advisor={advisor} key={advisorFullName(advisor)} />
-            ))}
-          </ol>
-          <ol className="m-0 list-none p-0" aria-label="Board of Advisors, second half">
-            {rightColumn.map((advisor) => (
-              <LedgerRow advisor={advisor} key={advisorFullName(advisor)} />
-            ))}
-          </ol>
-        </div>
+        <AdvisorFilterBar className="mt-[clamp(40px,6vw,72px)]" />
+        {advisors.length === 0 ? (
+          <div className="mt-6">
+            <AdvisorEmptyState />
+          </div>
+        ) : (
+          <div className="mt-6 grid min-w-0 gap-x-[clamp(24px,4vw,48px)] min-[821px]:grid-cols-2">
+            <ol className="m-0 list-none p-0" aria-label="Board of Advisors, first half">
+              {leftColumn.map((advisor) => (
+                <LedgerRow advisor={advisor} key={advisor.slug} />
+              ))}
+            </ol>
+            <ol className="m-0 list-none p-0" aria-label="Board of Advisors, second half">
+              {rightColumn.map((advisor) => (
+                <LedgerRow advisor={advisor} key={advisor.slug} />
+              ))}
+            </ol>
+          </div>
+        )}
       </ScrollReveal>
     </section>
   );

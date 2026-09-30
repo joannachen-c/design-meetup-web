@@ -3,7 +3,9 @@
 import { motion, useReducedMotion } from "motion/react";
 
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { advisorFullName, advisors, type Advisor } from "../advisors";
+import { AdvisorEmptyState, AdvisorFilterBar } from "../AdvisorFilterBar";
+import { useAdvisors } from "../AdvisorsProvider";
+import type { Advisor } from "../advisors";
 import {
   AdvisorAvatar,
   AdvisorLink,
@@ -55,6 +57,7 @@ function AdvisorCard({
 
 export function CardGridVariant() {
   const reduceMotion = useReducedMotion();
+  const { advisors } = useAdvisors();
 
   return (
     <section
@@ -72,15 +75,21 @@ export function CardGridVariant() {
         </p>
       </ScrollReveal>
       <ScrollReveal delay={60}>
+        <AdvisorFilterBar className="mt-[clamp(40px,6vw,72px)]" />
+        {advisors.length === 0 ? (
+          <div className="mt-6">
+            <AdvisorEmptyState />
+          </div>
+        ) : null}
         <ul
-          className="m-0 mt-[clamp(40px,6vw,72px)] grid list-none grid-cols-2 gap-3 p-0 min-[520px]:grid-cols-3 min-[821px]:grid-cols-4 min-[1024px]:gap-4"
+          className="m-0 mt-6 grid list-none grid-cols-2 gap-3 p-0 min-[520px]:grid-cols-3 min-[821px]:grid-cols-4 min-[1024px]:gap-4"
           aria-label="Board of Advisors cards"
         >
           {advisors.map((advisor, index) => (
             <AdvisorCard
               advisor={advisor}
               index={index}
-              key={advisorFullName(advisor)}
+              key={advisor.slug}
               reduceMotion={reduceMotion}
             />
           ))}

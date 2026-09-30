@@ -3,7 +3,9 @@
 import { motion, useReducedMotion } from "motion/react";
 
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { advisorFullName, advisors, type Advisor } from "../advisors";
+import { AdvisorEmptyState, AdvisorFilterBar } from "../AdvisorFilterBar";
+import { useAdvisors } from "../AdvisorsProvider";
+import type { Advisor } from "../advisors";
 import {
   AdvisorAvatar,
   AdvisorLink,
@@ -54,6 +56,7 @@ function GalleryTile({
 
 export function GalleryStripVariant() {
   const reduceMotion = useReducedMotion();
+  const { advisors } = useAdvisors();
 
   return (
     <section
@@ -71,15 +74,21 @@ export function GalleryStripVariant() {
         </p>
       </ScrollReveal>
       <ScrollReveal delay={60}>
+        <AdvisorFilterBar className="mt-[clamp(40px,6vw,72px)]" />
+        {advisors.length === 0 ? (
+          <div className="mt-6">
+            <AdvisorEmptyState />
+          </div>
+        ) : null}
         <ul
-          className="m-0 mt-[clamp(40px,6vw,72px)] grid list-none grid-cols-3 gap-x-3 gap-y-8 p-0 min-[520px]:grid-cols-4 min-[821px]:grid-cols-5 min-[1024px]:grid-cols-6"
+          className="m-0 mt-8 grid list-none grid-cols-3 gap-x-3 gap-y-8 p-0 min-[520px]:grid-cols-4 min-[821px]:grid-cols-5 min-[1024px]:grid-cols-6"
           aria-label="Board of Advisors gallery"
         >
           {advisors.map((advisor, index) => (
             <GalleryTile
               advisor={advisor}
               index={index}
-              key={advisorFullName(advisor)}
+              key={advisor.slug}
               reduceMotion={reduceMotion}
             />
           ))}

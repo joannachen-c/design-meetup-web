@@ -3,7 +3,9 @@
 import { motion, useReducedMotion } from "motion/react";
 
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { advisorFullName, advisors, type Advisor } from "../advisors";
+import { AdvisorEmptyState, AdvisorFilterBar } from "../AdvisorFilterBar";
+import { useAdvisors } from "../AdvisorsProvider";
+import type { Advisor } from "../advisors";
 import {
   AdvisorAvatar,
   AdvisorLink,
@@ -58,6 +60,7 @@ function CompactTile({
 
 export function CompactGridVariant() {
   const reduceMotion = useReducedMotion();
+  const { advisors } = useAdvisors();
 
   return (
     <section
@@ -76,6 +79,8 @@ export function CompactGridVariant() {
           </p>
         </div>
         <ScrollReveal className="min-w-0 min-[821px]:col-span-8" delay={60}>
+          <AdvisorFilterBar className="mb-6" />
+          {advisors.length === 0 ? <AdvisorEmptyState /> : null}
           <ul
             className="m-0 grid list-none grid-cols-3 gap-x-2 gap-y-4 p-0 min-[520px]:grid-cols-4 min-[821px]:grid-cols-5 min-[1024px]:grid-cols-6"
             aria-label="Board of Advisors compact grid"
@@ -84,7 +89,7 @@ export function CompactGridVariant() {
               <CompactTile
                 advisor={advisor}
                 index={index}
-                key={advisorFullName(advisor)}
+                key={advisor.slug}
                 reduceMotion={reduceMotion}
               />
             ))}

@@ -1,0 +1,649 @@
+[
+  {
+    "slug": "dieter-rams",
+    "first_name": "Dieter",
+    "last_name": "Rams",
+    "title": "Former Chief Design Officer",
+    "company": "Braun",
+    "relationship": "advisor",
+    "fields": [
+      "Industrial Design",
+      "Leadership"
+    ],
+    "sort_order": 0
+  },
+  {
+    "slug": "jony-ive",
+    "first_name": "Jony",
+    "last_name": "Ive",
+    "title": "Design Partner",
+    "company": "LoveFrom",
+    "relationship": "advisor",
+    "fields": [
+      "Industrial Design",
+      "Product Design",
+      "Founders"
+    ],
+    "sort_order": 1
+  },
+  {
+    "slug": "margaret-calder",
+    "first_name": "Margaret",
+    "last_name": "Calder",
+    "title": "VP of Design",
+    "company": "Figma",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Product Design",
+      "Leadership"
+    ],
+    "sort_order": 2
+  },
+  {
+    "slug": "karri-saarinen",
+    "first_name": "Karri",
+    "last_name": "Saarinen",
+    "title": "CEO & Co-founder",
+    "company": "Linear",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Founders"
+    ],
+    "sort_order": 3
+  },
+  {
+    "slug": "julie-zhuo",
+    "first_name": "Julie",
+    "last_name": "Zhuo",
+    "title": "Former VP of Design",
+    "company": "Meta",
+    "relationship": "mentor",
+    "fields": [
+      "Leadership",
+      "Product Design",
+      "Founders"
+    ],
+    "sort_order": 4
+  },
+  {
+    "slug": "bret-victor",
+    "first_name": "Bret",
+    "last_name": "Victor",
+    "title": "Founder",
+    "company": "Dynamicland",
+    "relationship": "speaker",
+    "fields": [
+      "Design Engineering",
+      "Research"
+    ],
+    "sort_order": 5
+  },
+  {
+    "slug": "susan-kare",
+    "first_name": "Susan",
+    "last_name": "Kare",
+    "title": "Iconographer",
+    "company": "Independent",
+    "relationship": "speaker",
+    "fields": [
+      "Brand",
+      "Iconography"
+    ],
+    "sort_order": 6
+  },
+  {
+    "slug": "don-norman",
+    "first_name": "Don",
+    "last_name": "Norman",
+    "title": "Director",
+    "company": "Design Lab UCSD",
+    "relationship": "advisor",
+    "fields": [
+      "Research",
+      "Leadership"
+    ],
+    "sort_order": 7
+  },
+  {
+    "slug": "irene-au",
+    "first_name": "Irene",
+    "last_name": "Au",
+    "title": "Design Partner",
+    "company": "Khosla Ventures",
+    "relationship": "advisor",
+    "fields": [
+      "Investing",
+      "Leadership"
+    ],
+    "sort_order": 8
+  },
+  {
+    "slug": "john-maeda",
+    "first_name": "John",
+    "last_name": "Maeda",
+    "title": "VP of Design & AI",
+    "company": "Microsoft",
+    "relationship": "speaker",
+    "fields": [
+      "AI",
+      "Design Engineering",
+      "Leadership"
+    ],
+    "sort_order": 9
+  },
+  {
+    "slug": "kate-aronowitz",
+    "first_name": "Kate",
+    "last_name": "Aronowitz",
+    "title": "Design Advisor",
+    "company": "Greylock",
+    "relationship": "advisor",
+    "fields": [
+      "Investing",
+      "Leadership"
+    ],
+    "sort_order": 10
+  },
+  {
+    "slug": "frank-chimero",
+    "first_name": "Frank",
+    "last_name": "Chimero",
+    "title": "Design Director",
+    "company": "Stripe",
+    "relationship": "mentor",
+    "fields": [
+      "Product Design",
+      "Brand"
+    ],
+    "sort_order": 11
+  },
+  {
+    "slug": "tobias-van-schneider",
+    "first_name": "Tobias",
+    "last_name": "van Schneider",
+    "title": "Founder",
+    "company": "Semplice",
+    "relationship": "mentor",
+    "fields": [
+      "Brand",
+      "Founders"
+    ],
+    "sort_order": 12
+  },
+  {
+    "slug": "elizabeth-goodspeed",
+    "first_name": "Elizabeth",
+    "last_name": "Goodspeed",
+    "title": "Creative Director",
+    "company": "Google",
+    "relationship": "speaker",
+    "fields": [
+      "Brand",
+      "Type & Lettering"
+    ],
+    "sort_order": 13
+  },
+  {
+    "slug": "ryan-hamm",
+    "first_name": "Ryan",
+    "last_name": "Hamm",
+    "title": "Head of Design",
+    "company": "Notion",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Product Design",
+      "Leadership"
+    ],
+    "sort_order": 14
+  },
+  {
+    "slug": "linda-jiang",
+    "first_name": "Linda",
+    "last_name": "Jiang",
+    "title": "Design Lead",
+    "company": "Apple",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Product Design"
+    ],
+    "sort_order": 15
+  },
+  {
+    "slug": "marc-hedges",
+    "first_name": "Marc",
+    "last_name": "Hedges",
+    "title": "VP of Product Design",
+    "company": "Airbnb",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Product Design",
+      "Leadership"
+    ],
+    "sort_order": 16
+  },
+  {
+    "slug": "soleio-bernstein",
+    "first_name": "Soleio",
+    "last_name": "Bernstein",
+    "title": "Design Partner",
+    "company": "Collaborative Fund",
+    "relationship": "advisor",
+    "fields": [
+      "Investing",
+      "Product Design"
+    ],
+    "sort_order": 17
+  },
+  {
+    "slug": "wilson-miner",
+    "first_name": "Wilson",
+    "last_name": "Miner",
+    "title": "Head of Design",
+    "company": "Instagram",
+    "relationship": "mentor",
+    "fields": [
+      "Product Design",
+      "Design Engineering"
+    ],
+    "sort_order": 18
+  },
+  {
+    "slug": "nicole-fenton",
+    "first_name": "Nicole",
+    "last_name": "Fenton",
+    "title": "Content Design Lead",
+    "company": "Slack",
+    "relationship": "mentor",
+    "fields": [
+      "Content Design"
+    ],
+    "sort_order": 19
+  },
+  {
+    "slug": "josh-brewer",
+    "first_name": "Josh",
+    "last_name": "Brewer",
+    "title": "Former Design Lead",
+    "company": "Twitter",
+    "relationship": "mentor",
+    "fields": [
+      "Product Design",
+      "Founders"
+    ],
+    "sort_order": 20
+  },
+  {
+    "slug": "cameron-moll",
+    "first_name": "Cameron",
+    "last_name": "Moll",
+    "title": "Design Director",
+    "company": "Facebook",
+    "relationship": "mentor",
+    "fields": [
+      "Product Design",
+      "Type & Lettering"
+    ],
+    "sort_order": 21
+  },
+  {
+    "slug": "jessica-hische",
+    "first_name": "Jessica",
+    "last_name": "Hische",
+    "title": "Lettering Artist",
+    "company": "Independent",
+    "relationship": "speaker",
+    "fields": [
+      "Type & Lettering",
+      "Brand"
+    ],
+    "sort_order": 22
+  },
+  {
+    "slug": "aaron-draplin",
+    "first_name": "Aaron",
+    "last_name": "Draplin",
+    "title": "Founder",
+    "company": "DDC",
+    "relationship": "speaker",
+    "fields": [
+      "Brand",
+      "Founders"
+    ],
+    "sort_order": 23
+  },
+  {
+    "slug": "michael-bierut",
+    "first_name": "Michael",
+    "last_name": "Bierut",
+    "title": "Partner",
+    "company": "Pentagram",
+    "relationship": "advisor",
+    "fields": [
+      "Brand",
+      "Leadership"
+    ],
+    "sort_order": 24
+  },
+  {
+    "slug": "paula-scher",
+    "first_name": "Paula",
+    "last_name": "Scher",
+    "title": "Partner",
+    "company": "Pentagram",
+    "relationship": "advisor",
+    "fields": [
+      "Brand",
+      "Type & Lettering"
+    ],
+    "sort_order": 25
+  },
+  {
+    "slug": "stefan-sagmeister",
+    "first_name": "Stefan",
+    "last_name": "Sagmeister",
+    "title": "Founder",
+    "company": "Sagmeister & Walsh",
+    "relationship": "speaker",
+    "fields": [
+      "Brand"
+    ],
+    "sort_order": 26
+  },
+  {
+    "slug": "emily-oberman",
+    "first_name": "Emily",
+    "last_name": "Oberman",
+    "title": "Partner",
+    "company": "Pentagram",
+    "relationship": "speaker",
+    "fields": [
+      "Brand"
+    ],
+    "sort_order": 27
+  },
+  {
+    "slug": "natasha-jen",
+    "first_name": "Natasha",
+    "last_name": "Jen",
+    "title": "Partner",
+    "company": "Pentagram",
+    "relationship": "speaker",
+    "fields": [
+      "Brand",
+      "Type & Lettering"
+    ],
+    "sort_order": 28
+  },
+  {
+    "slug": "lucas-zanotto",
+    "first_name": "Lucas",
+    "last_name": "Zanotto",
+    "title": "Creative Director",
+    "company": "Yat Labs",
+    "relationship": "mentor",
+    "fields": [
+      "Motion",
+      "Brand"
+    ],
+    "sort_order": 29
+  },
+  {
+    "slug": "raquel-breeden",
+    "first_name": "Raquel",
+    "last_name": "Breeden",
+    "title": "Design Director",
+    "company": "Spotify",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Product Design",
+      "Leadership"
+    ],
+    "sort_order": 30
+  },
+  {
+    "slug": "diane-von-furstenberg",
+    "first_name": "Diane",
+    "last_name": "Von Furstenberg",
+    "title": "Fashion Designer",
+    "company": "DVF",
+    "relationship": "advisor",
+    "fields": [
+      "Fashion",
+      "Founders"
+    ],
+    "sort_order": 31
+  },
+  {
+    "slug": "tim-van-damme",
+    "first_name": "Tim",
+    "last_name": "Van Damme",
+    "title": "Head of Design",
+    "company": "Gusto",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Product Design"
+    ],
+    "sort_order": 32
+  },
+  {
+    "slug": "shaun-inman",
+    "first_name": "Shaun",
+    "last_name": "Inman",
+    "title": "Design Engineer",
+    "company": "Independent",
+    "relationship": "mentor",
+    "fields": [
+      "Design Engineering"
+    ],
+    "sort_order": 33
+  },
+  {
+    "slug": "rachel-inman",
+    "first_name": "Rachel",
+    "last_name": "Inman",
+    "title": "UX Director",
+    "company": "Google",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Research",
+      "Leadership"
+    ],
+    "sort_order": 34
+  },
+  {
+    "slug": "andy-allen",
+    "first_name": "Andy",
+    "last_name": "Allen",
+    "title": "Founder",
+    "company": "Not Boring",
+    "relationship": "mentor",
+    "fields": [
+      "Product Design",
+      "Founders"
+    ],
+    "sort_order": 35
+  },
+  {
+    "slug": "gabriel-valdivia",
+    "first_name": "Gabriel",
+    "last_name": "Valdivia",
+    "title": "Design Lead",
+    "company": "Meta",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Product Design",
+      "AI"
+    ],
+    "sort_order": 36
+  },
+  {
+    "slug": "lottie-bromley",
+    "first_name": "Lottie",
+    "last_name": "Bromley",
+    "title": "Head of Brand",
+    "company": "Ramp",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Brand"
+    ],
+    "sort_order": 37
+  },
+  {
+    "slug": "nicolas-dahan",
+    "first_name": "Nicolas",
+    "last_name": "Dahan",
+    "title": "Design Director",
+    "company": "Shopify",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Product Design",
+      "Design Systems"
+    ],
+    "sort_order": 38
+  },
+  {
+    "slug": "helen-tran",
+    "first_name": "Helen",
+    "last_name": "Tran",
+    "title": "Design Lead",
+    "company": "Adobe",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Design Systems",
+      "Product Design"
+    ],
+    "sort_order": 39
+  },
+  {
+    "slug": "pablo-stanley",
+    "first_name": "Pablo",
+    "last_name": "Stanley",
+    "title": "Head of Design",
+    "company": "Bun",
+    "relationship": "mentor",
+    "fields": [
+      "Product Design",
+      "Founders",
+      "AI"
+    ],
+    "sort_order": 40
+  },
+  {
+    "slug": "molly-hellmuth",
+    "first_name": "Molly",
+    "last_name": "Hellmuth",
+    "title": "Founder",
+    "company": "UI Prep",
+    "relationship": "mentor",
+    "fields": [
+      "Design Systems",
+      "Founders"
+    ],
+    "sort_order": 41
+  },
+  {
+    "slug": "brian-lovin",
+    "first_name": "Brian",
+    "last_name": "Lovin",
+    "title": "Product Designer",
+    "company": "GitHub",
+    "relationship": "mentor",
+    "fields": [
+      "Design Engineering",
+      "Product Design"
+    ],
+    "sort_order": 42
+  },
+  {
+    "slug": "ryo-lu",
+    "first_name": "Ryo",
+    "last_name": "Lu",
+    "title": "Head of Design",
+    "company": "Cursor",
+    "relationship": "advisor",
+    "fields": [
+      "AI",
+      "Design Engineering",
+      "Product Design"
+    ],
+    "sort_order": 43
+  },
+  {
+    "slug": "diana-mounter",
+    "first_name": "Diana",
+    "last_name": "Mounter",
+    "title": "Design Systems Lead",
+    "company": "GitHub",
+    "relationship": "mentor",
+    "fields": [
+      "Design Systems",
+      "Leadership"
+    ],
+    "sort_order": 44
+  },
+  {
+    "slug": "kris-sowersby",
+    "first_name": "Kris",
+    "last_name": "Sowersby",
+    "title": "Type Designer",
+    "company": "Klim Type Foundry",
+    "relationship": "speaker",
+    "fields": [
+      "Type & Lettering"
+    ],
+    "sort_order": 45
+  },
+  {
+    "slug": "lauren-hom",
+    "first_name": "Lauren",
+    "last_name": "Hom",
+    "title": "Lettering Artist",
+    "company": "Independent",
+    "relationship": "speaker",
+    "fields": [
+      "Type & Lettering",
+      "Brand"
+    ],
+    "sort_order": 46
+  },
+  {
+    "slug": "tobias-ahlin",
+    "first_name": "Tobias",
+    "last_name": "Ahlin",
+    "title": "Design Lead",
+    "company": "Spotify",
+    "relationship": "hiring_partner",
+    "fields": [
+      "Design Engineering",
+      "Motion"
+    ],
+    "sort_order": 47
+  },
+  {
+    "slug": "vitaly-friedman",
+    "first_name": "Vitaly",
+    "last_name": "Friedman",
+    "title": "Editor-in-Chief",
+    "company": "Smashing Magazine",
+    "relationship": "speaker",
+    "fields": [
+      "Research",
+      "Content Design"
+    ],
+    "sort_order": 48
+  },
+  {
+    "slug": "brad-frost",
+    "first_name": "Brad",
+    "last_name": "Frost",
+    "title": "Design Systems Advocate",
+    "company": "Independent",
+    "relationship": "mentor",
+    "fields": [
+      "Design Systems",
+      "Design Engineering"
+    ],
+    "sort_order": 49
+  }
+]

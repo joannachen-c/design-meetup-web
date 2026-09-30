@@ -14,6 +14,7 @@
     "refresh:summaries": "node scripts/refresh-event-summaries.mjs",
     "sync:luma": "node scripts/sync-luma-events.mjs",
     "seed:sponsors": "node scripts/seed-sponsors.mjs",
+    "seed:advisors": "node scripts/seed-advisors.mjs",
     "trim:sponsor-logos": "node scripts/trim-sponsor-logos.mjs",
     "upload:sponsor-logos": "node scripts/upload-sponsor-logos.mjs",
     "import:partner-inquiries": "node --experimental-strip-types scripts/import-partner-inquiries.mjs"

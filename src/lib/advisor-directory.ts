@@ -22,8 +22,12 @@ export type Advisor = {
   company: string;
   relationship: AdvisorRelationship;
   fields: string[];
+  locations: string[];
   bio: string | null;
   photoUrl: string | null;
+  websiteUrl: string | null;
+  linkedinUrl: string | null;
+  xUrl: string | null;
   href: string;
 };
 
@@ -35,9 +39,12 @@ export type AdvisorRow = {
   company: string;
   relationship: string;
   fields: string[] | null;
+  locations?: string[] | null;
   bio?: string | null;
   photo_url?: string | null;
   website_url?: string | null;
+  linkedin_url?: string | null;
+  x_url?: string | null;
   sort_order?: number | null;
 };
 
@@ -45,6 +52,7 @@ export type AdvisorFilters = {
   query: string;
   relationship: AdvisorRelationship | "all";
   field: string | "all";
+  location: string | "all";
 };
 
 export type AdvisorSort = "default" | "name" | "company";
@@ -53,6 +61,7 @@ export const EMPTY_ADVISOR_FILTERS: AdvisorFilters = {
   query: "",
   relationship: "all",
   field: "all",
+  location: "all",
 };
 
 export function isAdvisorRelationship(value: unknown): value is AdvisorRelationship {
@@ -71,9 +80,13 @@ export function advisorFromRow(row: AdvisorRow): Advisor {
     company: row.company,
     relationship: isAdvisorRelationship(row.relationship) ? row.relationship : "advisor",
     fields: row.fields ?? [],
+    locations: row.locations ?? [],
     bio: row.bio ?? null,
     photoUrl: row.photo_url ?? null,
-    href: row.website_url || "#",
+    websiteUrl: row.website_url ?? null,
+    linkedinUrl: row.linkedin_url ?? null,
+    xUrl: row.x_url ?? null,
+    href: row.website_url || row.linkedin_url || row.x_url || "#",
   };
 }
 
@@ -94,6 +107,7 @@ function searchableText(advisor: Advisor) {
       advisor.company,
       ADVISOR_RELATIONSHIP_LABELS[advisor.relationship],
       ...advisor.fields,
+      ...advisor.locations,
     ].join(" "),
   );
 }
@@ -106,6 +120,9 @@ export function filterAdvisors(advisors: Advisor[], filters: AdvisorFilters): Ad
       return false;
     }
     if (filters.field !== "all" && !advisor.fields.includes(filters.field)) {
+      return false;
+    }
+    if (filters.location !== "all" && !advisor.locations.includes(filters.location)) {
       return false;
     }
     if (terms.length === 0) return true;
@@ -125,17 +142,24 @@ export function sortAdvisors(advisors: Advisor[], sort: AdvisorSort): Advisor[] 
   );
 }
 
+function uniqueSorted(values: string[]) {
+  return [...new Set(values)].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }));
+}
+
 export function advisorFieldOptions(advisors: Advisor[]): string[] {
-  return [...new Set(advisors.flatMap((advisor) => advisor.fields))].sort((a, b) =>
-    a.localeCompare(b, "en", { sensitivity: "base" }),
-  );
+  return uniqueSorted(advisors.flatMap((advisor) => advisor.fields));
+}
+
+export function advisorLocationOptions(advisors: Advisor[]): string[] {
+  return uniqueSorted(advisors.flatMap((advisor) => advisor.locations));
 }
 
 export function hasActiveAdvisorFilters(filters: AdvisorFilters) {
   return (
     filters.query.trim() !== "" ||
     filters.relationship !== "all" ||
-    filters.field !== "all"
+    filters.field !== "all" ||
+    filters.location !== "all"
   );
 }
 
@@ -145,6 +169,7 @@ export function advisorFiltersFromSearchParams(params: URLSearchParams): Advisor
     query: params.get("q") ?? "",
     relationship: isAdvisorRelationship(relationship) ? relationship : "all",
     field: params.get("field") || "all",
+    location: params.get("loc") || "all",
   };
 }
 
@@ -156,6 +181,7 @@ export function writeAdvisorFiltersToSearchParams(
     ["q", filters.query.trim()],
     ["rel", filters.relationship === "all" ? "" : filters.relationship],
     ["field", filters.field === "all" ? "" : filters.field],
+    ["loc", filters.location === "all" ? "" : filters.location],
   ];
   for (const [key, value] of entries) {
     if (value) params.set(key, value);

@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const {
   ADVISOR_RELATIONSHIPS,
   EMPTY_ADVISOR_FILTERS,
   advisorFieldOptions,
+  advisorLocationOptions,
   advisorFiltersFromSearchParams,
   advisorFromRow,
   filterAdvisors,
@@ -32,6 +33,8 @@ const advisors = [
     company: "Analytical",
     relationship: "mentor",
     fields: ["Design Systems", "AI"],
+    locations: ["SF"],
+    linkedin_url: "https://www.linkedin.com/in/ada",
   },
   {
     slug: "zoe-ardèche",
@@ -41,6 +44,7 @@ const advisors = [
     company: "Brandworks",
     relationship: "advisor",
     fields: ["Brand"],
+    locations: ["NYC", "LA"],
   },
   {
     slug: "bo-chen",
@@ -50,6 +54,9 @@ const advisors = [
     company: "Acme",
     relationship: "hiring_partner",
     fields: ["Brand", "AI"],
+    locations: ["NYC"],
+    x_url: "https://x.com/bo",
+    website_url: "https://bo.design",
   },
 ].map(advisorFromRow);
 
@@ -70,6 +77,16 @@ test("advisorFromRow maps columns and falls back safely", () => {
   assert.deepEqual(advisor.fields, []);
   assert.equal(advisor.href, "#");
   assert.equal(advisor.photoUrl, null);
+  assert.deepEqual(advisor.locations, []);
+  assert.equal(advisor.linkedinUrl, null);
+  assert.equal(advisor.xUrl, null);
+});
+
+test("advisor href prefers website, then LinkedIn, then X", () => {
+  assert.equal(advisors[0].href, "https://www.linkedin.com/in/ada");
+  assert.equal(advisors[1].href, "#");
+  assert.equal(advisors[2].href, "https://bo.design");
+  assert.equal(advisors[2].xUrl, "https://x.com/bo");
 });
 
 test("filterAdvisors with no filters returns everyone in order", () => {
@@ -98,6 +115,13 @@ test("relationship and field filters combine with search", () => {
   assert.deepEqual(filter({ field: "Brand", relationship: "advisor" }), ["zoe-ardèche"]);
   assert.deepEqual(filter({ field: "AI", query: "acme" }), ["bo-chen"]);
   assert.deepEqual(filter({ field: "AI", relationship: "advisor" }), []);
+  assert.deepEqual(filter({ location: "NYC" }), ["zoe-ardèche", "bo-chen"]);
+  assert.deepEqual(filter({ location: "LA" }), ["zoe-ardèche"]);
+  assert.deepEqual(filter({ location: "SF", field: "Brand" }), []);
+});
+
+test("advisorLocationOptions returns unique sorted locations", () => {
+  assert.deepEqual(advisorLocationOptions(advisors), ["LA", "NYC", "SF"]);
 });
 
 test("sortAdvisors sorts by last name or company without mutating input", () => {
@@ -117,12 +141,15 @@ test("filters round-trip through URL search params", () => {
     query: " ada ",
     relationship: "mentor",
     field: "Design Systems",
+    location: "SF",
   });
   assert.equal(params.get("v"), "2");
+  assert.equal(params.get("loc"), "SF");
   assert.deepEqual(advisorFiltersFromSearchParams(params), {
     query: "ada",
     relationship: "mentor",
     field: "Design Systems",
+    location: "SF",
   });
   writeAdvisorFiltersToSearchParams(params, EMPTY_ADVISOR_FILTERS);
   assert.equal(params.toString(), "v=2");
@@ -130,6 +157,7 @@ test("filters round-trip through URL search params", () => {
   assert.equal(hasActiveAdvisorFilters(EMPTY_ADVISOR_FILTERS), false);
   assert.equal(hasActiveAdvisorFilters({ ...EMPTY_ADVISOR_FILTERS, query: "  " }), false);
   assert.equal(hasActiveAdvisorFilters({ ...EMPTY_ADVISOR_FILTERS, field: "AI" }), true);
+  assert.equal(hasActiveAdvisorFilters({ ...EMPTY_ADVISOR_FILTERS, location: "LA" }), true);
 });
 
 test("migration check constraint matches the app's relationship list", () => {
@@ -145,13 +173,22 @@ test("migration only exposes published advisors to the public", () => {
   assert.doesNotMatch(migration, /on public\.advisors\s+for (insert|update|delete|all)/);
 });
 
-test("seed data is valid for the advisors table", () => {
+test("seed data is valid for the advisors table", async () => {
   assert.ok(seedRows.length > 0);
   assert.equal(new Set(seedRows.map((row) => row.slug)).size, seedRows.length);
   for (const row of seedRows) {
     assert.ok(ADVISOR_RELATIONSHIPS.includes(row.relationship), `${row.slug} relationship`);
     assert.ok(row.fields.length > 0, `${row.slug} has fields`);
+    assert.ok(row.locations.length > 0, `${row.slug} has a location`);
     assert.match(row.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+    assert.equal(row.email, undefined, `${row.slug} must not ship an email`);
+    if (row.linkedin_url) assert.match(row.linkedin_url, /^https:\/\/www\.linkedin\.com\/in\/[^/]+\/?$/);
+    if (row.x_url) assert.match(row.x_url, /^https:\/\/x\.com\/[A-Za-z0-9_]+$/);
+    if (row.website_url) assert.match(row.website_url, /^https?:\/\//);
+    if (row.photo_url) {
+      assert.equal(row.photo_url, `/advisors/${row.slug}.jpg`);
+      await access(new URL(`../public${row.photo_url}`, import.meta.url));
+    }
   }
   assert.equal(pkg.scripts["seed:advisors"], "node scripts/seed-advisors.mjs");
 });

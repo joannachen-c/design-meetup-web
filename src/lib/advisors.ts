@@ -11,7 +11,7 @@ export type AdvisorsResult = {
 };
 
 const ADVISOR_SELECT =
-  "slug, first_name, last_name, title, company, relationship, fields, bio, photo_url, website_url, sort_order";
+  "slug, first_name, last_name, title, company, relationship, fields, locations, bio, photo_url, website_url, linkedin_url, x_url, sort_order";
 
 export function bundledAdvisors(): Advisor[] {
   return (bundledAdvisorRows as AdvisorRow[]).map(advisorFromRow);

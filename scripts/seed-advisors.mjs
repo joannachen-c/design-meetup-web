@@ -47,12 +47,16 @@ async function main() {
     last_name: advisor.last_name,
     title: advisor.title,
     company: advisor.company,
-    relationship: advisor.relationship,
-    fields: advisor.fields,
+    relationship: advisor.relationship ?? "advisor",
+    fields: advisor.fields ?? [],
+    locations: advisor.locations ?? [],
     bio: advisor.bio ?? null,
     photo_url: advisor.photo_url ?? null,
     website_url: advisor.website_url ?? null,
+    linkedin_url: advisor.linkedin_url ?? null,
+    x_url: advisor.x_url ?? null,
     sort_order: advisor.sort_order ?? index,
+    is_published: true,
     updated_at: now,
   }));
 
@@ -66,7 +70,22 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Seeded ${data.length} advisors into ${url}`);
+  const slugs = rows.map((row) => row.slug);
+  const { data: removed, error: removeError } = await supabase
+    .from("advisors")
+    .delete()
+    .not("slug", "in", `(${slugs.join(",")})`)
+    .select("slug");
+
+  if (removeError) {
+    console.error("Removing advisors no longer in the list failed:", removeError.message);
+    process.exit(1);
+  }
+
+  const withPhotos = rows.filter((row) => row.photo_url).length;
+  console.log(
+    `Seeded ${data.length} advisors (${withPhotos} with photos) into ${url}; removed ${removed.length} not in the list.`,
+  );
 }
 
 main().catch((error) => {

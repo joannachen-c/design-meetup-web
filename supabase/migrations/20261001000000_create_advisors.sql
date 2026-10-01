@@ -12,9 +12,12 @@ create table if not exists public.advisors (
   relationship text not null default 'advisor'
     check (relationship in ('advisor', 'mentor', 'speaker', 'hiring_partner')),
   fields text[] not null default '{}',
+  locations text[] not null default '{}',
   bio text,
   photo_url text,
   website_url text,
+  linkedin_url text,
+  x_url text,
   sort_order integer not null default 0,
   is_published boolean not null default true,
   created_at timestamptz not null default now(),
@@ -29,6 +32,9 @@ create index if not exists advisors_relationship_idx
 
 create index if not exists advisors_fields_idx
   on public.advisors using gin (fields);
+
+create index if not exists advisors_locations_idx
+  on public.advisors using gin (locations);
 
 create or replace function public.set_advisors_updated_at()
 returns trigger
@@ -53,22 +59,3 @@ create policy "Public read published advisors"
   for select
   to anon, authenticated
   using (is_published);
-
-insert into storage.buckets (id, name, public)
-values ('advisor-photos', 'advisor-photos', true)
-on conflict (id) do update set public = excluded.public;
-
-drop policy if exists "Public read advisor photos" on storage.objects;
-create policy "Public read advisor photos"
-  on storage.objects
-  for select
-  to anon, authenticated
-  using (bucket_id = 'advisor-photos');
-
-drop policy if exists "Service role manage advisor photos" on storage.objects;
-create policy "Service role manage advisor photos"
-  on storage.objects
-  for all
-  to service_role
-  using (bucket_id = 'advisor-photos')
-  with check (bucket_id = 'advisor-photos');

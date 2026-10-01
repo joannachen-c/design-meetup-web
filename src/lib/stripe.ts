@@ -29,6 +29,10 @@ export function getStripe() {
   return stripe;
 }
 
+// The site is English-only. Without this, Checkout and Stripe emails follow
+// the visitor's browser language, so members saw Spanish pages and emails.
+export const STRIPE_LOCALE = "en" as const;
+
 export async function ensureStripeCustomer(
   stripeClient: Stripe,
   input: { customerId?: string | null; email: string; userId: string },
@@ -36,7 +40,16 @@ export async function ensureStripeCustomer(
   if (input.customerId) {
     try {
       const existing = await stripeClient.customers.retrieve(input.customerId);
-      if (!existing.deleted) return existing.id;
+      if (!existing.deleted) {
+        if (existing.preferred_locales?.[0] !== STRIPE_LOCALE) {
+          await stripeClient.customers
+            .update(existing.id, { preferred_locales: [STRIPE_LOCALE] })
+            .catch((error) =>
+              console.error("stripe customer locale update failed", error),
+            );
+        }
+        return existing.id;
+      }
     } catch {
       // Stored id is missing or from a mock; create a real customer.
     }
@@ -44,6 +57,7 @@ export async function ensureStripeCustomer(
 
   const customer = await stripeClient.customers.create({
     email: input.email,
+    preferred_locales: [STRIPE_LOCALE],
     metadata: { supabase_user_id: input.userId },
   });
   return customer.id;
@@ -150,6 +164,7 @@ export async function createBillingPortalSession(
   return stripeClient.billingPortal.sessions.create({
     customer: input.customerId,
     return_url: input.returnUrl,
+    locale: STRIPE_LOCALE,
     ...(configuration ? { configuration } : {}),
     ...(input.flow ? { flow_data: { type: input.flow } } : {}),
   });

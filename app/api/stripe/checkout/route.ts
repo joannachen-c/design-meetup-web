@@ -20,6 +20,7 @@ import {
   ensureStripeCustomer,
   getStripe,
   siteOriginFromRequest,
+  STRIPE_LOCALE,
 } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -137,6 +138,7 @@ export async function POST(request: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
+      locale: STRIPE_LOCALE,
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/portal?subscribed=1&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/portal/subscribe?canceled=1`,

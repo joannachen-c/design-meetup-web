@@ -175,3 +175,13 @@ test("real stripe subscriptions are canceled and switched in stripe, not only lo
   assert.match(billing, /\/portal\/billing\?error=1/);
   assert.match(webhook, /syncMembershipFromStripeSubscription/);
 });
+
+test("stripe checkout, portal, and customers are pinned to English", async () => {
+  const stripe = await read("src/lib/stripe.ts");
+  const checkout = await read("app/api/stripe/checkout/route.ts");
+  assert.match(stripe, /export const STRIPE_LOCALE = "en"/);
+  assert.match(stripe, /preferred_locales: \[STRIPE_LOCALE\]/);
+  assert.match(stripe, /customers\s*\.update\(existing\.id, \{ preferred_locales/);
+  assert.match(stripe, /return_url: input\.returnUrl,\s*locale: STRIPE_LOCALE/);
+  assert.match(checkout, /customer: customerId,\s*locale: STRIPE_LOCALE/);
+});

@@ -52,7 +52,11 @@ import {
   sizedImageUrl,
   VISIBLE_COVER_RADIUS,
 } from "@/lib/image";
-import { LUMA_CALENDAR_EMBED_SRC, type LumaEvent } from "@/lib/luma";
+import {
+  LUMA_CALENDAR_EMBED_SRC,
+  LUMA_PROFILE_URL,
+  type LumaEvent,
+} from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
 
 const partnerLogos = [
@@ -2215,7 +2219,7 @@ export default function HomePage({
           </p>
           <Primary
             className="gap-2"
-            href="https://luma.com/designmeetup"
+            href={LUMA_PROFILE_URL}
             target="_blank"
             rel="noreferrer"
             variant="ink"

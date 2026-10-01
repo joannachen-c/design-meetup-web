@@ -5,7 +5,36 @@
 const LUMA_CALENDAR_API_ID = "cal-HH5XBdHyWPt0yhB";
 const LUMA_ITEMS_ENDPOINT = "https://api.lu.ma/calendar/get-items";
 
-export const LUMA_PROFILE_URL = "https://luma.com/designmeetup";
+const LUMA_INVITE_CODE = "ilyssa";
+const LUMA_HOSTS = new Set(["luma.com", "www.luma.com", "lu.ma", "www.lu.ma"]);
+
+// Every outbound Luma link carries our invite code so RSVPs are attributed.
+export function withLumaInvite(url: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return url;
+  }
+  if (!LUMA_HOSTS.has(parsed.hostname.toLowerCase())) return url;
+  parsed.searchParams.set("invite", LUMA_INVITE_CODE);
+  return parsed.toString();
+}
+
+export function withLumaInviteInHtml(html: string): string {
+  return html.replace(
+    /href="(https?:\/\/(?:www\.)?(?:luma\.com|lu\.ma)\/[^"]*)"/gi,
+    (_match, href: string) => {
+      const decoded = href.replace(/&amp;/g, "&");
+      return `href="${withLumaInvite(decoded).replace(/&/g, "&amp;")}"`;
+    },
+  );
+}
+
+export const LUMA_PROFILE_URL = withLumaInvite("https://luma.com/designmeetup");
+export const LUMA_PAST_EVENTS_URL = withLumaInvite(
+  "https://luma.com/designmeetup?period=past",
+);
 export const LUMA_CALENDAR_EMBED_SRC =
   "https://luma.com/embed/calendar/cal-HH5XBdHyWPt0yhB/events?lt=light";
 
@@ -90,7 +119,7 @@ function normalize(entry: LumaApiEntry): LumaEvent | null {
   return {
     id: event.api_id,
     name: event.name,
-    url: `https://luma.com/${event.url}`,
+    url: withLumaInvite(`https://luma.com/${event.url}`),
     coverUrl: event.cover_url ?? null,
     startAt: event.start_at,
     dateLabel: formatDateLabel(event.start_at, event.timezone),

@@ -24,7 +24,7 @@ test("Upcoming events section sits above the partner CTA with a Luma calendar em
     app,
     /src=\{LUMA_CALENDAR_EMBED_SRC\}/,
   );
-  assert.match(app, /import \{ LUMA_CALENDAR_EMBED_SRC[^}]*\} from "@\/lib\/luma"/);
+  assert.match(app, /import \{\s*LUMA_CALENDAR_EMBED_SRC[^}]*\} from "@\/lib\/luma"/);
   assert.match(
     luma,
     /https:\/\/luma\.com\/embed\/calendar\/cal-HH5XBdHyWPt0yhB\/events\?lt=light/,
@@ -40,7 +40,7 @@ test("Upcoming events section sits above the partner CTA with a Luma calendar em
 test("Upcoming events links to the Luma calendar with the supplied logo", () => {
   assert.match(
     app,
-    /<Primary[\s\S]*className="gap-2"[\s\S]*href="https:\/\/luma\.com\/designmeetup"[\s\S]*variant="ink"[\s\S]*className="size-5 brightness-0 invert"[\s\S]*src="\/luma-logo\.svg"[\s\S]*alt=""[\s\S]*Follow our Luma[\s\S]*<\/Primary>/,
+    /<Primary[\s\S]*className="gap-2"[\s\S]*href=\{LUMA_PROFILE_URL\}[\s\S]*variant="ink"[\s\S]*className="size-5 brightness-0 invert"[\s\S]*src="\/luma-logo\.svg"[\s\S]*alt=""[\s\S]*Follow our Luma[\s\S]*<\/Primary>/,
   );
   assert.doesNotMatch(app, /!bg-ink|!text-white|hover:!bg-gray-800|hover:!bg-black/);
   assert.doesNotMatch(app, /src="\/luma-logo\.svg"[^>]*\b(?:bg-|p-)/);
@@ -73,7 +73,8 @@ test("Empty Luma calendar falls back to the past events list", () => {
     app,
     /\{showRecentEvents \? \(\s*<RecentEventsPanel events=\{recentEvents\} \/>\s*\) : \(\s*<iframe/,
   );
-  assert.match(panel, /https:\/\/luma\.com\/designmeetup\?period=past/);
+  assert.match(panel, /href=\{LUMA_PAST_EVENTS_URL\}/);
+  assert.match(luma, /https:\/\/luma\.com\/designmeetup\?period=past/);
   assert.doesNotMatch(panel, />\s*Past events\s*</);
 });
 

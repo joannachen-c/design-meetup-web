@@ -5,30 +5,17 @@ import { useCallback, useEffect, useState } from "react";
 import type { Advisor } from "@/lib/advisor-directory";
 import type { AdvisorsSource } from "@/lib/advisors";
 
+import { AdvisorsDirectory } from "./AdvisorsDirectory";
 import { AdvisorsProvider } from "./AdvisorsProvider";
+import { ADVISOR_VIEWS, type AdvisorView } from "./AdvisorViewToggle";
 import { PrototypePicker } from "./PrototypePicker";
 import { SectionContext } from "./SectionContext";
-import { CardGridVariant } from "./variants/CardGridVariant";
-import { CompactGridVariant } from "./variants/CompactGridVariant";
-import { DirectoryVariant } from "./variants/DirectoryVariant";
-import { GalleryStripVariant } from "./variants/GalleryStripVariant";
-import { InlineLedgerVariant } from "./variants/InlineLedgerVariant";
-import { RosterVariant } from "./variants/RosterVariant";
 
-const variants = [
-  { name: "Directory", Component: DirectoryVariant },
-  { name: "Roster", Component: RosterVariant },
-  { name: "Cards", Component: CardGridVariant },
-  { name: "Compact", Component: CompactGridVariant },
-  { name: "Ledger", Component: InlineLedgerVariant },
-  { name: "Gallery", Component: GalleryStripVariant },
-] as const;
+const pickerViews = ADVISOR_VIEWS.map((view) => ({ name: view.label }));
 
-function readInitialIndex() {
-  if (typeof window === "undefined") return 0;
-  const param = parseInt(new URLSearchParams(window.location.search).get("v") ?? "1", 10);
-  if (Number.isNaN(param) || param < 1 || param > variants.length) return 0;
-  return param - 1;
+function readInitialView(): AdvisorView {
+  const param = new URLSearchParams(window.location.search).get("view");
+  return ADVISOR_VIEWS.some((view) => view.value === param) ? (param as AdvisorView) : "table";
 }
 
 export function BoardOfAdvisorsPrototype({
@@ -38,36 +25,33 @@ export function BoardOfAdvisorsPrototype({
   advisors: Advisor[];
   source: AdvisorsSource;
 }) {
-  const [current, setCurrent] = useState(0);
+  const [view, setView] = useState<AdvisorView>("table");
   const [mountKey, setMountKey] = useState(0);
 
   useEffect(() => {
-    setCurrent(readInitialIndex());
+    setView(readInitialView());
   }, []);
 
-  const handleChange = useCallback((index: number) => {
-    setCurrent(index);
+  const handleViewChange = useCallback((next: AdvisorView) => {
+    setView(next);
     const url = new URL(window.location.href);
-    url.searchParams.set("v", String(index + 1));
+    url.searchParams.set("view", next);
     window.history.replaceState(null, "", url);
-    setMountKey((key) => key + 1);
   }, []);
 
   const handleReplay = useCallback(() => {
     setMountKey((key) => key + 1);
   }, []);
 
-  const { Component } = variants[current];
-
   return (
     <AdvisorsProvider advisors={advisors} source={source}>
       <SectionContext key={mountKey}>
-        <Component />
+        <AdvisorsDirectory view={view} onViewChange={handleViewChange} />
       </SectionContext>
       <PrototypePicker
-        variants={variants}
-        current={current}
-        onChange={handleChange}
+        variants={pickerViews}
+        current={ADVISOR_VIEWS.findIndex((option) => option.value === view)}
+        onChange={(index) => handleViewChange(ADVISOR_VIEWS[index].value)}
         onReplay={handleReplay}
         showReplay
         status={

@@ -1,28 +1,17 @@
 "use client";
 
 import * as SelectPrimitive from "@radix-ui/react-select";
+import type { ReactNode } from "react";
 
 import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
-import {
-  ADVISOR_RELATIONSHIPS,
-  ADVISOR_RELATIONSHIP_LABELS,
-  isAdvisorRelationship,
-  type AdvisorSort,
-} from "@/lib/advisor-directory";
+import { LinkedInIcon, XIcon } from "@/components/icons/SocialIcons";
+import type { AdvisorSort } from "@/lib/advisor-directory";
 
 import { useAdvisors } from "./AdvisorsProvider";
-import { advisorAvatarClass, advisorInitials, type Advisor } from "./advisors";
+import { advisorAvatarClass, advisorFullName, advisorInitials, type Advisor } from "./advisors";
 
 export const monoLabelClassName = "font-mono text-[11px] uppercase tracking-[0.08em]";
 export const monoCellClassName = "font-mono text-xs leading-[1.5] text-muted";
-
-const relationshipSelectOptions = [
-  { label: "All relationships", value: "all" },
-  ...ADVISOR_RELATIONSHIPS.map((value) => ({
-    label: ADVISOR_RELATIONSHIP_LABELS[value],
-    value,
-  })),
-];
 
 export function Portrait({ advisor, className }: { advisor: Advisor; className: string }) {
   if (advisor.photoUrl) {
@@ -85,16 +74,17 @@ function HeaderSelect({
   );
 }
 
-export function RelationshipFilter() {
-  const { filters, setFilters } = useAdvisors();
+export function LocationFilter() {
+  const { locationOptions, filters, setFilters } = useAdvisors();
   return (
     <HeaderSelect
-      label="Relationship"
-      value={filters.relationship}
-      options={relationshipSelectOptions}
-      onValueChange={(value) =>
-        setFilters({ relationship: isAdvisorRelationship(value) ? value : "all" })
-      }
+      label="Location"
+      value={filters.location}
+      options={[
+        { label: "All locations", value: "all" },
+        ...locationOptions.map((location) => ({ label: location, value: location })),
+      ]}
+      onValueChange={(value) => setFilters({ location: value })}
     />
   );
 }
@@ -177,5 +167,65 @@ export function AdvisorEmptyState() {
         Clear filters
       </button>
     </div>
+  );
+}
+
+export function advisorLocationLabel(advisor: Advisor) {
+  return advisor.locations.join(" / ");
+}
+
+function GlobeIcon({ className }: { className: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.4" />
+      <path
+        d="M2 8h12M8 2c1.6 1.7 2.4 3.7 2.4 6S9.6 12.3 8 14C6.4 12.3 5.6 10.3 5.6 8S6.4 3.7 8 2Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function SocialLinks({ advisor, className = "" }: { advisor: Advisor; className?: string }) {
+  const name = advisorFullName(advisor);
+  const links: { href: string; label: string; icon: ReactNode }[] = [];
+  if (advisor.linkedinUrl) {
+    links.push({
+      href: advisor.linkedinUrl,
+      label: `${name} on LinkedIn`,
+      icon: <LinkedInIcon className="size-3.5" />,
+    });
+  }
+  if (advisor.xUrl) {
+    links.push({ href: advisor.xUrl, label: `${name} on X`, icon: <XIcon className="size-3.5" /> });
+  }
+  if (advisor.websiteUrl) {
+    links.push({
+      href: advisor.websiteUrl,
+      label: `${name}'s website`,
+      icon: <GlobeIcon className="size-4" />,
+    });
+  }
+
+  if (links.length === 0) return null;
+
+  return (
+    <span className={`relative z-[2] flex items-center gap-1 ${className}`}>
+      {links.map((link) => (
+        <a
+          key={link.href}
+          className="grid size-7 place-items-center rounded-full text-muted no-underline transition-colors duration-150 ease-out hover:bg-gray-200/70 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink"
+          href={link.href}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={link.label}
+          onClick={(event) => event.stopPropagation()}
+        >
+          {link.icon}
+        </a>
+      ))}
+    </span>
   );
 }

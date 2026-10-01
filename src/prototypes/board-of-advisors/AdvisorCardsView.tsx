@@ -3,16 +3,18 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { ArrowUpRightIcon } from "@/components/icons/ArrowUpRightIcon";
-import { ADVISOR_RELATIONSHIP_LABELS, type AdvisorSort } from "@/lib/advisor-directory";
+import type { AdvisorSort } from "@/lib/advisor-directory";
 
 import { advisorFullName, type Advisor } from "./advisors";
 import {
   AdvisorEmptyState,
   FieldFilter,
   FieldTags,
+  LocationFilter,
   Portrait,
-  RelationshipFilter,
+  SocialLinks,
   SortHeader,
+  advisorLocationLabel,
   monoLabelClassName,
 } from "./directory-ui";
 
@@ -41,28 +43,39 @@ function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
           className="pointer-events-none absolute inset-0 rounded-[9px] bg-[linear-gradient(180deg,rgb(255_255_255/0.45)_0%,rgb(255_255_255/0)_55%,rgb(0_0_0/0.04)_100%)]"
           aria-hidden="true"
         />
-        <span
-          className={`${monoLabelClassName} absolute top-2 left-2 z-[2] rounded-full bg-white/85 px-2.5 py-1 text-[10px] text-ink backdrop-blur-sm`}
-        >
-          {ADVISOR_RELATIONSHIP_LABELS[advisor.relationship]}
-        </span>
+        {advisor.locations.length > 0 ? (
+          <span
+            className={`${monoLabelClassName} absolute top-2 left-2 z-[2] rounded-full bg-white/85 px-2.5 py-1 text-[10px] text-ink backdrop-blur-sm`}
+          >
+            {advisorLocationLabel(advisor)}
+          </span>
+        ) : null}
       </div>
       <div className="flex flex-1 flex-col gap-1 px-2 pt-3.5 pb-2">
-        <a
-          className="inline-flex items-start justify-between gap-2 text-base font-bold leading-tight tracking-[-0.01em] text-ink no-underline after:absolute after:inset-0 after:rounded-[14px] after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-ink"
-          href={advisor.href}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <span className="min-w-0">{advisorFullName(advisor)}</span>
-          <ArrowUpRightIcon className="mt-0.5 size-3.5 shrink-0 text-subtle transition-[color,transform] duration-150 ease-out group-hover:-translate-y-px group-hover:translate-x-px group-hover:text-ink motion-reduce:transition-none" />
-        </a>
+        {advisor.href === "#" ? (
+          <span className="text-base font-bold leading-tight tracking-[-0.01em] text-ink">
+            {advisorFullName(advisor)}
+          </span>
+        ) : (
+          <a
+            className="inline-flex items-start justify-between gap-2 text-base font-bold leading-tight tracking-[-0.01em] text-ink no-underline after:absolute after:inset-0 after:rounded-[14px] after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-ink"
+            href={advisor.href}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="min-w-0">{advisorFullName(advisor)}</span>
+            <ArrowUpRightIcon className="mt-0.5 size-3.5 shrink-0 text-subtle transition-[color,transform] duration-150 ease-out group-hover:-translate-y-px group-hover:translate-x-px group-hover:text-ink motion-reduce:transition-none" />
+          </a>
+        )}
         <p className="m-0 text-sm leading-snug text-muted">
           {advisor.title}
           <span className="text-subtle"> · </span>
           {advisor.company}
         </p>
-        <FieldTags advisor={advisor} className="mt-auto pt-3" />
+        <div className="mt-auto flex items-end justify-between gap-2 pt-3">
+          <FieldTags advisor={advisor} className="min-w-0 pb-1" />
+          <SocialLinks advisor={advisor} className="-mr-1 shrink-0" />
+        </div>
       </div>
     </motion.li>
   );
@@ -89,7 +102,7 @@ export function AdvisorCardsView({
         <SortHeader label="Organization" sortKey="company" sort={sort} onSort={onSort} />
         <span className="mx-1 hidden h-4 w-px bg-gray-300 min-[520px]:block" aria-hidden="true" />
         <span className={`${monoLabelClassName} text-subtle`}>Filter</span>
-        <RelationshipFilter />
+        <LocationFilter />
         <FieldFilter />
       </div>
 

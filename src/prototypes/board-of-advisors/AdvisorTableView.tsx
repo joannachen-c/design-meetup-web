@@ -4,22 +4,24 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import { ArrowUpRightIcon } from "@/components/icons/ArrowUpRightIcon";
-import { ADVISOR_RELATIONSHIP_LABELS, type AdvisorSort } from "@/lib/advisor-directory";
+import type { AdvisorSort } from "@/lib/advisor-directory";
 
 import { advisorFullName, type Advisor } from "./advisors";
 import {
   AdvisorEmptyState,
   FieldFilter,
   FieldTags,
+  LocationFilter,
   Portrait,
-  RelationshipFilter,
+  SocialLinks,
   SortHeader,
+  advisorLocationLabel,
   monoCellClassName,
   monoLabelClassName,
 } from "./directory-ui";
 
 const rowGridClassName =
-  "grid grid-cols-[48px_minmax(0,1fr)] gap-x-3 min-[1024px]:grid-cols-[48px_minmax(0,1.1fr)_minmax(0,1.3fr)_minmax(0,0.8fr)_minmax(0,1.2fr)] min-[1024px]:gap-x-4";
+  "grid grid-cols-[48px_minmax(0,1fr)] gap-x-3 min-[1024px]:grid-cols-[48px_minmax(0,1.1fr)_minmax(0,1.3fr)_minmax(0,0.6fr)_minmax(0,1.1fr)_96px] min-[1024px]:gap-x-4";
 
 function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
   const reduceMotion = useReducedMotion();
@@ -51,12 +53,15 @@ function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
                 <p className="m-0 text-sm leading-snug text-muted">
                   {advisor.title} · {advisor.company}
                 </p>
-                <p className={`${monoLabelClassName} m-0 pt-1 text-ink`}>
-                  {ADVISOR_RELATIONSHIP_LABELS[advisor.relationship]}
-                </p>
+                {advisor.locations.length > 0 ? (
+                  <p className={`${monoLabelClassName} m-0 pt-1 text-ink`}>
+                    {advisorLocationLabel(advisor)}
+                  </p>
+                ) : null}
                 {advisor.bio ? (
                   <p className="m-0 text-sm leading-[1.6] text-ink">{advisor.bio}</p>
                 ) : null}
+                <SocialLinks advisor={advisor} className="-ml-1.5 pt-1" />
               </div>
             </motion.div>
           ) : (
@@ -92,22 +97,32 @@ function TableRow({
         aria-hidden="true"
       />
       <Portrait advisor={advisor} className="media-inset-edge-soft size-12 rounded-[4px] text-sm" />
-      <a
-        className="group inline-flex min-w-0 items-center gap-1 self-center text-base font-bold leading-tight text-ink no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-        href={advisor.href}
-        target="_blank"
-        rel="noreferrer"
-      >
-        <span className="truncate">{advisorFullName(advisor)}</span>
-        <ArrowUpRightIcon className="size-3.5 shrink-0 text-muted transition-transform duration-150 ease-out group-hover:-translate-y-px group-hover:translate-x-px motion-reduce:transition-none" />
-      </a>
+      {advisor.href === "#" ? (
+        <span className="min-w-0 truncate text-base font-bold leading-tight text-ink">
+          {advisorFullName(advisor)}
+        </span>
+      ) : (
+        <a
+          className="group inline-flex min-w-0 items-center gap-1 self-center text-base font-bold leading-tight text-ink no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          href={advisor.href}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span className="truncate">{advisorFullName(advisor)}</span>
+          <ArrowUpRightIcon className="size-3.5 shrink-0 text-muted transition-transform duration-150 ease-out group-hover:-translate-y-px group-hover:translate-x-px motion-reduce:transition-none" />
+        </a>
+      )}
       <span className={`${monoCellClassName} col-start-2 min-[1024px]:col-start-auto`}>
         {advisor.title}, {advisor.company}
       </span>
       <span className={`${monoCellClassName} col-start-2 text-ink min-[1024px]:col-start-auto`}>
-        {ADVISOR_RELATIONSHIP_LABELS[advisor.relationship]}
+        {advisorLocationLabel(advisor)}
       </span>
       <FieldTags advisor={advisor} className="col-start-2 min-[1024px]:col-start-auto" />
+      <SocialLinks
+        advisor={advisor}
+        className="col-start-2 -ml-1.5 min-[1024px]:col-start-auto min-[1024px]:ml-0 min-[1024px]:justify-end"
+      />
     </li>
   );
 }
@@ -146,11 +161,14 @@ export function AdvisorTableView({
           </span>
           <span className="col-start-2 flex flex-wrap gap-x-3 min-[1024px]:contents">
             <span className="min-w-0">
-              <RelationshipFilter />
+              <LocationFilter />
             </span>
             <span className="min-w-0">
               <FieldFilter />
             </span>
+          </span>
+          <span className={`${monoLabelClassName} hidden text-right text-muted min-[1024px]:block`}>
+            Links
           </span>
         </div>
 

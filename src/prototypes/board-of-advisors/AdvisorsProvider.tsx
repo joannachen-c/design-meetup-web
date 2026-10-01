@@ -13,6 +13,7 @@ import {
 import {
   EMPTY_ADVISOR_FILTERS,
   advisorFieldOptions,
+  advisorLocationOptions,
   advisorFiltersFromSearchParams,
   filterAdvisors,
   hasActiveAdvisorFilters,
@@ -26,6 +27,7 @@ type AdvisorsContextValue = {
   allAdvisors: Advisor[];
   advisors: Advisor[];
   fieldOptions: string[];
+  locationOptions: string[];
   filters: AdvisorFilters;
   isFiltered: boolean;
   source: AdvisorsSource;
@@ -67,6 +69,7 @@ export function AdvisorsProvider({
       allAdvisors,
       advisors: filterAdvisors(allAdvisors, filters),
       fieldOptions: advisorFieldOptions(allAdvisors),
+      locationOptions: advisorLocationOptions(allAdvisors),
       filters,
       isFiltered: hasActiveAdvisorFilters(filters),
       source,

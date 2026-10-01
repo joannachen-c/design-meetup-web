@@ -33,7 +33,7 @@ export function AdvisorAvatar({
       className={[
         advisorAvatarClass(advisor),
         avatarSizeClassName[size],
-        "media-inset-edge-soft grid shrink-0 place-items-center rounded-full font-bold text-ink",
+        "media-inset-edge-soft relative grid shrink-0 place-items-center rounded-full font-bold text-ink",
       ].join(" ")}
       aria-hidden="true"
     >

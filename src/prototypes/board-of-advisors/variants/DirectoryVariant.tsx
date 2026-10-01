@@ -36,7 +36,7 @@ function Portrait({ advisor, className }: { advisor: Advisor; className: string 
   }
   return (
     <span
-      className={`${className} ${advisorAvatarClass(advisor)} grid place-items-center font-bold text-ink`}
+      className={`${className} ${advisorAvatarClass(advisor)} relative grid place-items-center font-bold text-ink`}
       aria-hidden="true"
     >
       {advisorInitials(advisor)}

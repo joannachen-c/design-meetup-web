@@ -4,10 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Input } from "@/components/Input";
 import { Primary } from "@/components/Primary";
 import { Tooltip, TooltipProvider } from "@/components/Tooltip";
-import {
-  SIGNUP_APPLY_URL,
-  UNAPPROVED_SIGNUP_ERROR,
-} from "@/lib/signup-messages";
+import { UNAPPROVED_SIGNUP_ERROR } from "@/lib/signup-messages";
 
 function EyeIcon() {
   return (
@@ -282,15 +279,7 @@ export function LoginForm({
               className="m-0 text-sm text-red-700"
               role="alert"
             >
-              {emailError}{" "}
-              <a
-                href={SIGNUP_APPLY_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="text-red-700 underline"
-              >
-                Apply here!
-              </a>
+              {emailError}
             </p>
           ) : null}
         </div>

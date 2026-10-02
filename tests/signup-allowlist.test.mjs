@@ -29,22 +29,15 @@ test("unapproved signup error is shown under the email input", async () => {
   assert.match(form, /from "@\/lib\/signup-messages"/);
   assert.doesNotMatch(form, /signup-allowlist/);
   assert.match(form, /setEmailError/);
-  assert.match(form, /Apply here!/);
-  assert.match(form, /href=\{SIGNUP_APPLY_URL\}/);
-  assert.match(form, /text-red-700 underline/);
-  assert.match(
-    messages,
-    /docs.google.com\/forms\/d\/1tAnuE9AldcXvp0Ds6xEkM3FN36nH9gts57968caC9Pw/,
-  );
+  assert.doesNotMatch(form, /Apply here!/);
+  assert.doesNotMatch(form, /SIGNUP_APPLY_URL/);
   const emailInputAt = form.indexOf('name="email"');
   const emailErrorAt = form.indexOf('id="signup-email-error"');
-  const applyAt = form.indexOf("Apply here!");
   const passwordAt = form.indexOf('name="password"');
   assert.ok(
     emailInputAt > 0 &&
       emailErrorAt > emailInputAt &&
-      applyAt > emailErrorAt &&
-      passwordAt > applyAt,
+      passwordAt > emailErrorAt,
   );
   assert.equal(
     UNAPPROVED_SIGNUP_ERROR,

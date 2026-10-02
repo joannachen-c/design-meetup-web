@@ -61,7 +61,7 @@ test("portal home keeps billing cards under membership", async () => {
   const cards = page.indexOf("mt-12 grid gap-4 sm:grid-cols-3");
   assert.ok(membership > 0 && cards > membership);
   assert.match(page, /<h2[\s\S]*?>\s*Membership\s*</);
-  assert.match(page, /<SubscribeButtons currentTier=\{membership\?\.tier \?\? null\} \/>/);
+  assert.match(page, /<SubscribeButtons\s+currentTier=\{membership\?\.tier \?\? null\}/);
 });
 
 test("checkout captures user id before nested error handling", async () => {

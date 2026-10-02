@@ -7,6 +7,7 @@ test("the member directory sheet is cohort 0", () => {
   assert.equal(cohortForEmail("studio@liumichelle.com"), 0);
   assert.equal(cohortForEmail("  Studio@LiuMichelle.com "), 0);
   assert.equal(cohortForEmail("yunakeem3@gmail.com"), 0);
+  assert.equal(cohortForEmail("mikaelalabadan@gmail.com"), 0);
 });
 
 test("the rest of the signup allowlist is cohort 1", () => {

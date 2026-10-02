@@ -30,7 +30,7 @@ test("unpaid members are sent to the plan picker, not the dashboard", async () =
   assert.match(home, /if \(!\(await userHasPortalAccess\(user\.id\)\)\)/);
   assert.match(home, /redirect\("\/portal\/subscribe"\)/);
   assert.match(subscribe, /Choose a membership/);
-  assert.match(subscribe, /<SubscribeButtons \/>/);
+  assert.match(subscribe, /<SubscribeButtons comped=\{shouldApplyCompCoupon\(user\.email \?\? ""\)\} \/>/);
   assert.doesNotMatch(
     subscribe,
     /student is \$10 \/ month\. professional is \$35 \/ month/,

@@ -15,6 +15,7 @@ test("sheet and demo emails can sign up, unknown emails cannot", () => {
   assert.equal(isApprovedSignupEmail("sebastianmm.design@gmail.com"), true);
   assert.equal(isApprovedSignupEmail("studio@liumichelle.com"), true);
   assert.equal(isApprovedSignupEmail("JC2887@cornell.edu"), true);
+  assert.equal(isApprovedSignupEmail("mikaelalabadan@gmail.com"), true);
   assert.equal(isApprovedSignupEmail("stranger@example.com"), false);
   assert.equal(isApprovedSignupEmail(""), false);
 });
@@ -29,22 +30,15 @@ test("unapproved signup error is shown under the email input", async () => {
   assert.match(form, /from "@\/lib\/signup-messages"/);
   assert.doesNotMatch(form, /signup-allowlist/);
   assert.match(form, /setEmailError/);
-  assert.match(form, /Apply here!/);
-  assert.match(form, /href=\{SIGNUP_APPLY_URL\}/);
-  assert.match(form, /text-red-700 underline/);
-  assert.match(
-    messages,
-    /docs.google.com\/forms\/d\/1tAnuE9AldcXvp0Ds6xEkM3FN36nH9gts57968caC9Pw/,
-  );
+  assert.doesNotMatch(form, /Apply here!/);
+  assert.doesNotMatch(form, /SIGNUP_APPLY_URL/);
   const emailInputAt = form.indexOf('name="email"');
   const emailErrorAt = form.indexOf('id="signup-email-error"');
-  const applyAt = form.indexOf("Apply here!");
   const passwordAt = form.indexOf('name="password"');
   assert.ok(
     emailInputAt > 0 &&
       emailErrorAt > emailInputAt &&
-      applyAt > emailErrorAt &&
-      passwordAt > applyAt,
+      passwordAt > emailErrorAt,
   );
   assert.equal(
     UNAPPROVED_SIGNUP_ERROR,

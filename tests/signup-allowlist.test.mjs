@@ -15,6 +15,7 @@ test("sheet and demo emails can sign up, unknown emails cannot", () => {
   assert.equal(isApprovedSignupEmail("sebastianmm.design@gmail.com"), true);
   assert.equal(isApprovedSignupEmail("studio@liumichelle.com"), true);
   assert.equal(isApprovedSignupEmail("JC2887@cornell.edu"), true);
+  assert.equal(isApprovedSignupEmail("mikaelalabadan@gmail.com"), true);
   assert.equal(isApprovedSignupEmail("stranger@example.com"), false);
   assert.equal(isApprovedSignupEmail(""), false);
 });

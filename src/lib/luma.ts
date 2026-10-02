@@ -5,7 +5,7 @@
 const LUMA_CALENDAR_API_ID = "cal-HH5XBdHyWPt0yhB";
 const LUMA_ITEMS_ENDPOINT = "https://api.lu.ma/calendar/get-items";
 
-const LUMA_INVITE_CODE = "ilyssa";
+const LUMA_INVITE_CODE = "ilyssayan";
 const LUMA_HOSTS = new Set(["luma.com", "www.luma.com", "lu.ma", "www.lu.ma"]);
 
 // Every outbound Luma link carries our invite code so RSVPs are attributed.

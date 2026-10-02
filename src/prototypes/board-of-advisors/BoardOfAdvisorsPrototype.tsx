@@ -9,7 +9,6 @@ import { AdvisorsDirectory } from "./AdvisorsDirectory";
 import { AdvisorsProvider } from "./AdvisorsProvider";
 import { ADVISOR_VIEWS, type AdvisorView } from "./AdvisorViewToggle";
 import { PrototypePicker } from "./PrototypePicker";
-import { SectionContext } from "./SectionContext";
 
 const pickerViews = ADVISOR_VIEWS.map((view) => ({ name: view.label }));
 
@@ -18,25 +17,43 @@ function readInitialView(): AdvisorView {
   return ADVISOR_VIEWS.some((view) => view.value === param) ? (param as AdvisorView) : "table";
 }
 
-export function BoardOfAdvisorsPrototype({
-  advisors,
-  source,
-}: {
-  advisors: Advisor[];
-  source: AdvisorsSource;
-}) {
+function useAdvisorView() {
   const [view, setView] = useState<AdvisorView>("table");
-  const [mountKey, setMountKey] = useState(0);
 
   useEffect(() => {
     setView(readInitialView());
   }, []);
 
-  const handleViewChange = useCallback((next: AdvisorView) => {
+  const changeView = useCallback((next: AdvisorView) => {
     setView(next);
     const url = new URL(window.location.href);
     url.searchParams.set("view", next);
     window.history.replaceState(null, "", url);
+  }, []);
+
+  return [view, changeView] as const;
+}
+
+type AdvisorsSectionProps = {
+  advisors: Advisor[];
+  source: AdvisorsSource;
+};
+
+export function BoardOfAdvisorsSection({ advisors, source }: AdvisorsSectionProps) {
+  const [view, setView] = useAdvisorView();
+  return (
+    <AdvisorsProvider advisors={advisors} source={source}>
+      <AdvisorsDirectory view={view} onViewChange={setView} />
+    </AdvisorsProvider>
+  );
+}
+
+export function BoardOfAdvisorsPrototype({ advisors, source }: AdvisorsSectionProps) {
+  const [view, setView] = useAdvisorView();
+  const [mountKey, setMountKey] = useState(0);
+
+  useEffect(() => {
+    document.getElementById("advisors")?.scrollIntoView({ block: "start" });
   }, []);
 
   const handleReplay = useCallback(() => {
@@ -45,13 +62,11 @@ export function BoardOfAdvisorsPrototype({
 
   return (
     <AdvisorsProvider advisors={advisors} source={source}>
-      <SectionContext key={mountKey}>
-        <AdvisorsDirectory view={view} onViewChange={handleViewChange} />
-      </SectionContext>
+      <AdvisorsDirectory key={mountKey} view={view} onViewChange={setView} />
       <PrototypePicker
         variants={pickerViews}
         current={ADVISOR_VIEWS.findIndex((option) => option.value === view)}
-        onChange={(index) => handleViewChange(ADVISOR_VIEWS[index].value)}
+        onChange={(index) => setView(ADVISOR_VIEWS[index].value)}
         onReplay={handleReplay}
         showReplay
         status={

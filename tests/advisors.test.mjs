@@ -192,3 +192,14 @@ test("seed data is valid for the advisors table", async () => {
   }
   assert.equal(pkg.scripts["seed:advisors"], "node scripts/seed-advisors.mjs");
 });
+
+test("advisors directory renders inside the real homepage, right after About", async () => {
+  const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
+  const home = await read("../app/page.tsx");
+  const prototype = await read("../app/prototypes/board-of-advisors/page.tsx");
+  const loader = await read("../src/lib/home-page-data.ts");
+
+  assert.match(loader, /fetchAdvisors\(\)/);
+  assert.match(home, /advisorsSection=\{\s*<BoardOfAdvisorsSection /);
+  assert.match(prototype, /<HomePage[\s\S]*advisorsSection=\{\s*<BoardOfAdvisorsPrototype /);
+});

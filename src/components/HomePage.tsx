@@ -22,6 +22,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 import { ArrowUpRightIcon } from "./icons/ArrowUpRightIcon";
 import { InstagramIcon, SubstackIcon } from "./icons/SocialIcons";
@@ -630,12 +631,14 @@ export type HomePageProps = {
   initialError: string | null;
   // Only populated when the Luma calendar has no upcoming events.
   recentEvents: LumaEvent[];
+  advisorsSection?: ReactNode;
 };
 
 export default function HomePage({
   initialEvents,
   initialError,
   recentEvents,
+  advisorsSection,
 }: HomePageProps) {
   const events = initialEvents;
   const showRecentEvents = recentEvents.length > 0;
@@ -2333,6 +2336,8 @@ export default function HomePage({
           </div>
         </ScrollReveal>
       </section>
+
+      {advisorsSection}
 
       <section
         className="partner-cta bg-surface px-[clamp(20px,6vw,96px)] py-[200px] text-black max-[820px]:py-[96px]"

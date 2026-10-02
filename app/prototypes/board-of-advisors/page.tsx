@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
-import { fetchAdvisors } from "@/lib/advisors";
+import HomePage from "@/components/HomePage";
+import { loadHomePageData } from "@/lib/home-page-data";
 import { BoardOfAdvisorsPrototype } from "@/prototypes/board-of-advisors/BoardOfAdvisorsPrototype";
 
 export const metadata: Metadata = {
@@ -12,7 +13,13 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function BoardOfAdvisorsPrototypePage() {
-  const { advisors, source, error } = await fetchAdvisors();
-  if (error) console.warn(`[advisors] using bundled data: ${error}`);
-  return <BoardOfAdvisorsPrototype advisors={advisors} source={source} />;
+  const { advisors, ...homePage } = await loadHomePageData();
+  return (
+    <HomePage
+      {...homePage}
+      advisorsSection={
+        <BoardOfAdvisorsPrototype advisors={advisors.advisors} source={advisors.source} />
+      }
+    />
+  );
 }

@@ -6,6 +6,7 @@ import { MemberIdCard } from "@/components/portal/MemberIdCard";
 import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
 import { requireUser } from "@/lib/auth";
 import { cohortForEmail, cohortJoinedAt } from "@/lib/cohort";
+import { shouldApplyCompCoupon } from "@/lib/comp-membership";
 import {
   TIER_CATALOG,
   displayNameFromEmail,
@@ -143,7 +144,10 @@ export default async function PortalHomePage({
       <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">
         Membership
       </h2>
-      <SubscribeButtons currentTier={membership?.tier ?? null} />
+      <SubscribeButtons
+        currentTier={membership?.tier ?? null}
+        comped={shouldApplyCompCoupon(user.email ?? "")}
+      />
 
       {summary ? (
         <div className="mt-12 grid gap-4 sm:grid-cols-3">

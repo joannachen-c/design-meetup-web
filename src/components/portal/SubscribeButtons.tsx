@@ -6,8 +6,10 @@ import { TIER_CATALOG, type Tier } from "@/lib/membership";
 
 export function SubscribeButtons({
   currentTier = null,
+  comped = false,
 }: {
   currentTier?: Tier | null;
+  comped?: boolean;
 }) {
   const [busy, setBusy] = useState<Tier | null>(null);
 
@@ -101,9 +103,16 @@ export function SubscribeButtons({
                   </span>
                 ) : null}
               </div>
-              <div className="text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
-                {catalog.priceLabel}
-              </div>
+              {comped ? (
+                <div className="flex flex-wrap items-baseline gap-x-3 text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
+                  <s className="text-tertiary">{catalog.priceLabel}</s>
+                  <span className="text-ink">$0</span>
+                </div>
+              ) : (
+                <div className="text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
+                  {catalog.priceLabel}
+                </div>
+              )}
               <ul
                 className="m-0 list-disc space-y-2 pl-5 text-base leading-normal text-muted"
               >

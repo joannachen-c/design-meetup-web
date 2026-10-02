@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Toast } from "@/components/Toast";
 import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
 import { requireUser } from "@/lib/auth";
+import { shouldApplyCompCoupon } from "@/lib/comp-membership";
 import {
   syncMembershipFromCheckoutSession,
   userHasPortalAccess,
@@ -73,7 +74,7 @@ export default async function SubscribePage({
       <h1 className="m-0 mb-10 max-w-[16ch] text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em] text-balance">
         Choose a membership.
       </h1>
-      <SubscribeButtons />
+      <SubscribeButtons comped={shouldApplyCompCoupon(user.email ?? "")} />
     </main>
   );
 }

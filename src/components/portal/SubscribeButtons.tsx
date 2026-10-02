@@ -106,7 +106,7 @@ export function SubscribeButtons({
               {comped ? (
                 <div className="flex flex-wrap items-baseline gap-x-3 text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
                   <s className="text-tertiary">{catalog.priceLabel}</s>
-                  <span className="text-ink">$0</span>
+                  <span className="text-ink">$0 / month</span>
                 </div>
               ) : (
                 <div className="text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">

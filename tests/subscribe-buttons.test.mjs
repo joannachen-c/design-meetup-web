@@ -48,12 +48,12 @@ test("portal plan and status cards use one-step-darker gray", async () => {
   assert.doesNotMatch(home, /bg-gray-50/);
 });
 
-test("comped members see struck-through tertiary prices next to a black $0", async () => {
+test("comped members see struck-through tertiary prices next to a black $0 / month", async () => {
   const buttons = await read("src/components/portal/SubscribeButtons.tsx");
   const subscribe = await read("app/portal/subscribe/page.tsx");
   const home = await read("app/portal/page.tsx");
   assert.match(buttons, /<s className="text-tertiary">\{catalog\.priceLabel\}<\/s>/);
-  assert.match(buttons, /<span className="text-ink">\$0<\/span>/);
+  assert.match(buttons, /<span className="text-ink">\$0 \/ month<\/span>/);
   assert.match(subscribe, /comped=\{shouldApplyCompCoupon\(user\.email \?\? ""\)\}/);
   assert.match(home, /comped=\{shouldApplyCompCoupon\(user\.email \?\? ""\)\}/);
 });

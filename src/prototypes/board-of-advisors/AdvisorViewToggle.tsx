@@ -57,12 +57,12 @@ export function AdvisorViewToggle({
 
   return (
     <div
-      className="view-toggle shrink-0 rounded-full bg-white p-[3px] shadow-[0_1px_4px_rgba(0,0,0,0.08)]"
+      className="view-toggle shrink-0 rounded-full bg-surface-muted p-[3px]"
       role="group"
       aria-label="Advisor layout"
     >
       <span
-        className="view-toggle-thumb rounded-full bg-surface-muted"
+        className="view-toggle-thumb rounded-full bg-white"
         data-measured={thumb ? "" : undefined}
         aria-hidden="true"
         style={thumb ? { transform: `translateX(${thumb.x}px)`, width: thumb.width } : undefined}

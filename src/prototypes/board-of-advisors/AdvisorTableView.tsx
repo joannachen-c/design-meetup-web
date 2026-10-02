@@ -21,7 +21,7 @@ import {
 } from "./directory-ui";
 
 const rowGridClassName =
-  "grid grid-cols-[48px_minmax(0,1fr)] gap-x-3 min-[1024px]:grid-cols-[48px_minmax(0,1.1fr)_minmax(0,1.3fr)_minmax(0,0.6fr)_minmax(0,1.1fr)_96px] min-[1024px]:gap-x-4";
+  "grid grid-cols-[40px_minmax(0,1fr)] gap-x-3 min-[1024px]:grid-cols-[40px_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_96px_minmax(0,1fr)_88px] min-[1024px]:gap-x-5";
 
 function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
   const reduceMotion = useReducedMotion();
@@ -32,7 +32,7 @@ function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
       aria-live="polite"
       aria-label="Selected advisor"
     >
-      <div className="rounded-[11px] bg-white p-3 shadow-[0_3px_10px_rgba(0,0,0,0.06)]">
+      <div>
         <AnimatePresence mode="wait" initial={false}>
           {advisor ? (
             <motion.div
@@ -44,28 +44,24 @@ function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
             >
               <Portrait
                 advisor={advisor}
-                className="media-inset-edge-soft aspect-[4/5] w-full rounded-[7px] text-[clamp(4rem,9vw,7.5rem)] tracking-[-0.06em]"
+                className="aspect-[4/5] w-full rounded-[3px] text-6xl tracking-[-0.06em]"
               />
-              <div className="grid gap-2 px-2 pt-4 pb-2">
-                <p className="m-0 text-xl font-bold leading-tight tracking-[-0.02em] text-ink">
+              <div className="grid gap-1.5 pt-4">
+                <p className="m-0 text-lg font-bold leading-tight tracking-[-0.02em] text-ink">
                   {advisorFullName(advisor)}
                 </p>
-                <p className="m-0 text-sm leading-snug text-muted">
-                  {advisor.title} · {advisor.company}
+                <p className="m-0 text-sm leading-snug text-ink">{advisor.title}</p>
+                <p className={`${monoCellClassName} m-0`}>
+                  {[advisor.company, advisorLocationLabel(advisor)].filter(Boolean).join(" — ")}
                 </p>
-                {advisor.locations.length > 0 ? (
-                  <p className={`${monoLabelClassName} m-0 pt-1 text-ink`}>
-                    {advisorLocationLabel(advisor)}
-                  </p>
-                ) : null}
                 {advisor.bio ? (
-                  <p className="m-0 text-sm leading-[1.6] text-ink">{advisor.bio}</p>
+                  <p className="m-0 pt-2 text-sm leading-[1.6] text-muted">{advisor.bio}</p>
                 ) : null}
                 <SocialLinks advisor={advisor} className="-ml-1.5 pt-1" />
               </div>
             </motion.div>
           ) : (
-            <div className="grid aspect-[4/5] place-items-center rounded-[7px] bg-surface-muted text-sm text-muted">
+            <div className="grid aspect-[4/5] place-items-center rounded-[3px] bg-surface-muted text-sm text-muted">
               No one selected
             </div>
           )}
@@ -86,17 +82,13 @@ function TableRow({
 }) {
   return (
     <li
-      className={`${rowGridClassName} relative items-center border-t border-gray-200 px-3 py-3 transition-colors duration-150 ease-out motion-reduce:transition-none ${active ? "bg-surface-muted" : "bg-transparent"}`}
+      className={`${rowGridClassName} items-center rounded-[6px] px-2 py-2 transition-colors duration-150 ease-out motion-reduce:transition-none ${active ? "bg-surface-muted" : "bg-transparent"}`}
       onMouseEnter={onActivate}
       onFocus={onActivate}
       onClick={onActivate}
       data-active={active ? "" : undefined}
     >
-      <span
-        className={`absolute inset-y-0 left-0 w-[3px] bg-ink transition-opacity duration-150 ease-out ${active ? "opacity-100" : "opacity-0"}`}
-        aria-hidden="true"
-      />
-      <Portrait advisor={advisor} className="media-inset-edge-soft size-12 rounded-[4px] text-sm" />
+      <Portrait advisor={advisor} className="size-10 rounded-[3px] text-xs" />
       {advisor.href === "#" ? (
         <span className="min-w-0 truncate text-base font-bold leading-tight text-ink">
           {advisorFullName(advisor)}
@@ -113,7 +105,10 @@ function TableRow({
         </a>
       )}
       <span className={`${monoCellClassName} col-start-2 min-[1024px]:col-start-auto`}>
-        {advisor.title}, {advisor.company}
+        {advisor.title}
+      </span>
+      <span className={`${monoCellClassName} col-start-2 text-ink min-[1024px]:col-start-auto`}>
+        {advisor.company}
       </span>
       <span className={`${monoCellClassName} col-start-2 text-ink min-[1024px]:col-start-auto`}>
         {advisorLocationLabel(advisor)}
@@ -146,18 +141,21 @@ export function AdvisorTableView({
   }, [rows, activeSlug]);
 
   return (
-    <div className="grid min-w-0 gap-[clamp(24px,3vw,40px)] min-[821px]:grid-cols-[minmax(240px,0.38fr)_minmax(0,1fr)]">
+    <div className="grid min-w-0 gap-[clamp(24px,3vw,40px)] min-[821px]:grid-cols-[200px_minmax(0,1fr)] min-[1280px]:grid-cols-[220px_minmax(0,1fr)]">
       <SpotlightPanel advisor={activeAdvisor} />
-      <div className="min-w-0 overflow-hidden rounded-[8px] border border-gray-200">
+      <div className="min-w-0">
         <div
-          className={`${rowGridClassName} items-center bg-surface-muted px-3 py-2`}
+          className={`${rowGridClassName} items-center px-2 pb-2`}
           role="group"
           aria-label="Sort and filter columns"
         >
           <span aria-hidden="true" />
           <SortHeader label="Name" sortKey="name" sort={sort} onSort={onSort} />
           <span className="hidden min-[1024px]:block">
-            <SortHeader label="Title & Organization" sortKey="company" sort={sort} onSort={onSort} />
+            <span className={`${monoLabelClassName} text-muted`}>Title</span>
+          </span>
+          <span className="hidden min-[1024px]:block">
+            <SortHeader label="Company" sortKey="company" sort={sort} onSort={onSort} />
           </span>
           <span className="col-start-2 flex flex-wrap gap-x-3 min-[1024px]:contents">
             <span className="min-w-0">
@@ -173,9 +171,7 @@ export function AdvisorTableView({
         </div>
 
         {rows.length === 0 ? (
-          <div className="border-t border-gray-200 p-3">
-            <AdvisorEmptyState />
-          </div>
+          <AdvisorEmptyState />
         ) : (
           <ol className="m-0 list-none p-0" aria-label="Board of Advisors table">
             {rows.map((advisor) => (

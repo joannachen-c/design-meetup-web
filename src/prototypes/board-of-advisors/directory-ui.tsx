@@ -15,7 +15,12 @@ export const monoCellClassName = "font-mono text-xs leading-[1.5] text-muted";
 
 export function Portrait({ advisor, className }: { advisor: Advisor; className: string }) {
   if (advisor.photoUrl) {
-    return <img src={advisor.photoUrl} alt="" className={`${className} object-cover grayscale`} />;
+    return <img
+        src={advisor.photoUrl}
+        alt=""
+        decoding="async"
+        className={`${className} bg-surface-muted object-cover grayscale`}
+      />;
   }
   return (
     <span
@@ -157,7 +162,7 @@ export function FieldTags({ advisor, className = "" }: { advisor: Advisor; class
 export function AdvisorEmptyState() {
   const { clearFilters } = useAdvisors();
   return (
-    <div className="grid justify-items-start gap-3 rounded-[11px] bg-surface-muted px-6 py-10">
+    <div className="grid justify-items-start gap-3 py-10">
       <p className="m-0 text-base font-bold text-ink">No advisors match those filters.</p>
       <button
         type="button"

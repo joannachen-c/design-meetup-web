@@ -1,0 +1,928 @@
+[
+  {
+    "slug": "angela-chu",
+    "first_name": "Angela",
+    "last_name": "Chu",
+    "title": "Founder & Head of Design",
+    "company": "achu design",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Leadership",
+      "Founders"
+    ],
+    "locations": [
+      "LA"
+    ],
+    "bio": "Angela Chu is an LA-based product design leader who runs achu design, a fractional design studio for startups, after leading Discovery design teams at Pinterest.",
+    "photo_url": "/advisors/angela-chu.jpg",
+    "website_url": "https://achudesign.com",
+    "linkedin_url": "https://www.linkedin.com/in/angelasychu",
+    "x_url": null,
+    "sort_order": 0
+  },
+  {
+    "slug": "jin-park",
+    "first_name": "Jin",
+    "last_name": "Park",
+    "title": "Member of Design Staff",
+    "company": "Cognition",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI",
+      "Design Engineering"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Jin Su Park is a Brooklyn-based product designer and developer on the design staff at Cognition, previously at Notion and founding designer at Castle.",
+    "photo_url": "/advisors/jin-park.jpg",
+    "website_url": null,
+    "linkedin_url": "https://www.linkedin.com/in/jinsupark-in",
+    "x_url": "https://x.com/jinsu",
+    "sort_order": 1
+  },
+  {
+    "slug": "sophia-cassidy",
+    "first_name": "Sophia",
+    "last_name": "Cassidy",
+    "title": "Startups & Education Lead",
+    "company": "Framer",
+    "relationship": "advisor",
+    "fields": [
+      "Community",
+      "Product Design"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Sophia Cassidy leads startups and education programs at Framer in New York, helping students and builders bring ideas to life with Framer.",
+    "photo_url": "/advisors/sophia-cassidy.jpg",
+    "website_url": null,
+    "linkedin_url": "https://www.linkedin.com/in/sophiacassidy",
+    "x_url": "https://x.com/sophiaacassidy",
+    "sort_order": 2
+  },
+  {
+    "slug": "elizabeth-lin",
+    "first_name": "Elizabeth",
+    "last_name": "Lin",
+    "title": "Design Program Manager",
+    "company": "Ramp",
+    "relationship": "advisor",
+    "fields": [
+      "Community",
+      "Product Design",
+      "Leadership"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Elizabeth Lin is Ramp's first design program manager and the founder of Design Is a Party, a Brooklyn-based design education project; she also teaches at SVA.",
+    "photo_url": "/advisors/elizabeth-lin.jpg",
+    "website_url": "https://lalizlabeth.com",
+    "linkedin_url": "https://www.linkedin.com/in/elizabethylin",
+    "x_url": "https://x.com/lalizlabeth",
+    "sort_order": 3
+  },
+  {
+    "slug": "jamey-gannon",
+    "first_name": "Jamey",
+    "last_name": "Gannon",
+    "title": "AI Creative Director & Brand Designer",
+    "company": "Independent",
+    "relationship": "advisor",
+    "fields": [
+      "Brand",
+      "AI",
+      "Creative Direction"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Jamey Gannon is an NYC-based brand designer and AI creative director who runs brand sprints for startups and teaches the course The AI Creative Director.",
+    "photo_url": "/advisors/jamey-gannon.jpg",
+    "website_url": "https://www.jameygannon.com",
+    "linkedin_url": "https://www.linkedin.com/in/jameygannon",
+    "x_url": "https://x.com/jameygannon",
+    "sort_order": 4
+  },
+  {
+    "slug": "adam-ho",
+    "first_name": "Adam",
+    "last_name": "Ho",
+    "title": "Head of Design",
+    "company": "fal",
+    "relationship": "advisor",
+    "fields": [
+      "Brand",
+      "AI",
+      "Creative Direction"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Adam Ho is head of design at fal and runs Adam Ho, I.S.P., a Queens-based independent studio focused on brand identity and interaction design.",
+    "photo_url": "/advisors/adam-ho.jpg",
+    "website_url": "https://www.adamho.com",
+    "linkedin_url": "https://www.linkedin.com/in/adam-ho-6786a419",
+    "x_url": "https://x.com/omgadamho",
+    "sort_order": 5
+  },
+  {
+    "slug": "jordyn-harrison",
+    "first_name": "Jordyn",
+    "last_name": "Harrison",
+    "title": "UX Designer",
+    "company": "Google",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Jordyn Harrison is a UX designer on Google Chrome's Identity team, previously designing at Meta (WhatsApp) and Adobe, and co-founded OmniSynkAI.",
+    "photo_url": "/advisors/jordyn-harrison.jpg",
+    "website_url": "https://www.jrdnhrrsn.com",
+    "linkedin_url": "https://www.linkedin.com/in/jrdnhrrsn",
+    "x_url": null,
+    "sort_order": 6
+  },
+  {
+    "slug": "tise-alatise",
+    "first_name": "Tise",
+    "last_name": "Alatise",
+    "title": "Product Designer",
+    "company": "Clay",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Tise Alatise is a product designer at Clay who previously designed at Ramp and interned at Figma and Meta.",
+    "photo_url": "/advisors/tise-alatise.jpg",
+    "website_url": "https://www.tisebuilds.com",
+    "linkedin_url": "https://www.linkedin.com/in/tise-faith-alatise",
+    "x_url": "https://x.com/tisebuilds",
+    "sort_order": 7
+  },
+  {
+    "slug": "matthew-vernon",
+    "first_name": "Matthew",
+    "last_name": "Vernon",
+    "title": "Head of Design",
+    "company": "Cosmos",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Founders",
+      "Creative Direction"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Matthew Vernon is head of design at Cosmos and co-founded Foundation Labs, where he led design for the NFT platform Foundation and the social app Rodeo.",
+    "photo_url": "/advisors/matthew-vernon.jpg",
+    "website_url": "https://matthewvernon.co",
+    "linkedin_url": "https://www.linkedin.com/in/matthew-vernon-7394b597",
+    "x_url": "https://x.com/dApp_boi",
+    "sort_order": 8
+  },
+  {
+    "slug": "doug-demarco",
+    "first_name": "Doug",
+    "last_name": "DeMarco",
+    "title": "Director, Design Engineering",
+    "company": "Peacock",
+    "relationship": "advisor",
+    "fields": [
+      "Design Engineering",
+      "Leadership",
+      "Community"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Doug DeMarco leads the Design Engineering team at Peacock/NBCUniversal and organizes the NYC Design Engineering Meetup.",
+    "photo_url": "/advisors/doug-demarco.jpg",
+    "website_url": "https://www.dougdemarco.com",
+    "linkedin_url": "https://www.linkedin.com/in/douglasrdemarco",
+    "x_url": null,
+    "sort_order": 9
+  },
+  {
+    "slug": "dennis-jin",
+    "first_name": "Dennis",
+    "last_name": "Jin",
+    "title": "Design Engineer",
+    "company": "Meta",
+    "relationship": "advisor",
+    "fields": [
+      "Design Engineering",
+      "Product Design",
+      "Founders"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Dennis Jin is a Brooklyn-based design engineer building Threads at Meta and co-founder of Dip, makers of cmdk; previously at Snapchat and Zenly.",
+    "photo_url": "/advisors/dennis-jin.jpg",
+    "website_url": "https://dennisjin.com",
+    "linkedin_url": "https://www.linkedin.com/in/dennis-jin-13788110b",
+    "x_url": "https://x.com/seldom",
+    "sort_order": 10
+  },
+  {
+    "slug": "grace-chen",
+    "first_name": "Grace",
+    "last_name": "Chen",
+    "title": "Senior Product Designer",
+    "company": "Instagram",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Grace Chen is an NYC-based product designer working on trust and safety for Instagram and Threads; previously at Roblox and founding designer at Ember AI.",
+    "photo_url": "/advisors/grace-chen.jpg",
+    "website_url": "https://www.gracechen.io",
+    "linkedin_url": "https://www.linkedin.com/in/gracechendesign",
+    "x_url": null,
+    "sort_order": 11
+  },
+  {
+    "slug": "jocelyn-zhao",
+    "first_name": "Jocelyn",
+    "last_name": "Zhao",
+    "title": "Designer",
+    "company": "Google Creative Lab",
+    "relationship": "advisor",
+    "fields": [
+      "Brand",
+      "Creative Direction",
+      "AI"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Jocelyn (Ziying) Zhao is a designer at Google Creative Lab NYC working on brand, product and launch work for AI tools such as Project Genie and Flow.",
+    "photo_url": "/advisors/jocelyn-zhao.jpg",
+    "website_url": "https://jocelynzhao.com",
+    "linkedin_url": "https://www.linkedin.com/in/jocelyn-zhao-76838216b",
+    "x_url": null,
+    "sort_order": 12
+  },
+  {
+    "slug": "laura-sandoval",
+    "first_name": "Laura",
+    "last_name": "Sandoval",
+    "title": "Product Designer",
+    "company": "Notion",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Laura Sandoval is a Brooklyn-based product designer at Notion working on AI and mobile, previously at Uber Eats and Head of Consumer Design at Cornershop.",
+    "photo_url": "/advisors/laura-sandoval.jpg",
+    "website_url": "https://lausandoval.com",
+    "linkedin_url": "https://www.linkedin.com/in/laurasideral",
+    "x_url": "https://x.com/laurasideral",
+    "sort_order": 13
+  },
+  {
+    "slug": "julia-ysabela-fernandez",
+    "first_name": "Julia Ysabela",
+    "last_name": "Fernandez",
+    "title": "Senior Product Designer",
+    "company": "Adobe",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Community"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Julia Ysabela Fernandez is a senior product designer on Adobe's Content Authenticity Initiative, previously at Meta Reality Labs, and shares design career content as @adesignwoman.",
+    "photo_url": "/advisors/julia-ysabela-fernandez.jpg",
+    "website_url": "https://juliafernandez.design",
+    "linkedin_url": "https://www.linkedin.com/in/adesignwoman",
+    "x_url": "https://x.com/adesignwoman",
+    "sort_order": 14
+  },
+  {
+    "slug": "joseph-zhang",
+    "first_name": "Joseph",
+    "last_name": "Zhang",
+    "title": "Head of Design",
+    "company": "Cognition",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI",
+      "Leadership"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Joseph Zhang is a New York-based interaction designer leading design at Cognition; previously a product designer at Notion and founding designer at Skiff and Azuki.",
+    "photo_url": "/advisors/joseph-zhang.jpg",
+    "website_url": "https://joseph.cv",
+    "linkedin_url": "https://www.linkedin.com/in/josephhhz",
+    "x_url": "https://x.com/josephhhhz",
+    "sort_order": 15
+  },
+  {
+    "slug": "john-bai",
+    "first_name": "John",
+    "last_name": "Bai",
+    "title": "Product Designer",
+    "company": "SpaceXAI",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "John Bai is a New York-based product designer working on AI-native products at SpaceXAI/Cursor, with prior roles at Plaid, Brex, Lyft and Dropbox.",
+    "photo_url": "/advisors/john-bai.jpg",
+    "website_url": "https://bai.framer.website",
+    "linkedin_url": "https://www.linkedin.com/in/john-bai",
+    "x_url": "https://x.com/johnbai",
+    "sort_order": 16
+  },
+  {
+    "slug": "janice-lee",
+    "first_name": "Janice",
+    "last_name": "Lee",
+    "title": "3D Artist & Content Creator",
+    "company": "Independent",
+    "relationship": "advisor",
+    "fields": [
+      "Motion",
+      "Creative Direction",
+      "Community"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Janice K. Lee is a New York-based 3D artist and content creator (@janice.journal) who makes Blender art and tutorials and partners with brands like NVIDIA, Dell and Adobe.",
+    "photo_url": "/advisors/janice-lee.jpg",
+    "website_url": "https://www.janicejournal.co",
+    "linkedin_url": "https://www.linkedin.com/in/janicejournal",
+    "x_url": null,
+    "sort_order": 17
+  },
+  {
+    "slug": "mareike-keller",
+    "first_name": "Mareike",
+    "last_name": "Keller",
+    "title": "Product Designer",
+    "company": "Spotify",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI"
+    ],
+    "locations": [
+      "NYC",
+      "LA"
+    ],
+    "bio": "Mareike Keller is a product designer at Spotify in New York, working on Browse, Search, Home, Audiobooks and Playlists; previously at YouTube and Blizzard.",
+    "photo_url": "/advisors/mareike-keller.jpg",
+    "website_url": null,
+    "linkedin_url": "https://www.linkedin.com/in/mareike-keller",
+    "x_url": null,
+    "sort_order": 18
+  },
+  {
+    "slug": "stephanie-zhou",
+    "first_name": "Stephanie",
+    "last_name": "Zhou",
+    "title": "Product Design Educator",
+    "company": "Figma",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Community"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Stephanie Zhou is a product design educator at Figma who runs workshops on prototyping, design systems and Figma Make, and founded Museum Diary.",
+    "photo_url": "/advisors/stephanie-zhou.jpg",
+    "website_url": "http://stephaniezhou.design",
+    "linkedin_url": "https://www.linkedin.com/in/stephanielanzhou",
+    "x_url": null,
+    "sort_order": 19
+  },
+  {
+    "slug": "joanna-chen",
+    "first_name": "Joanna",
+    "last_name": "Chen",
+    "title": "Higher Education Marketing Specialist",
+    "company": "Figma",
+    "relationship": "advisor",
+    "fields": [
+      "Community",
+      "Product Design"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Joanna Chen is on Figma's Education team, where she runs the Figma Campus Leader Program and FigBuild, Figma's cross-campus student design-a-thon.",
+    "photo_url": "/advisors/joanna-chen.jpg",
+    "website_url": "https://jchenwan.com",
+    "linkedin_url": "https://www.linkedin.com/in/jchenwan",
+    "x_url": null,
+    "sort_order": 20
+  },
+  {
+    "slug": "jennifer-jing",
+    "first_name": "Jennifer",
+    "last_name": "Jing",
+    "title": "Senior Product Designer, GenAI",
+    "company": "YouTube",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Jennifer Jing leads design for GenAI creation experiences at YouTube; previously she designed Microsoft Designer and worked on AR at TikTok.",
+    "photo_url": "/advisors/jennifer-jing.jpg",
+    "website_url": "https://jenniferjing.com",
+    "linkedin_url": "https://www.linkedin.com/in/jennifer-jing",
+    "x_url": "https://x.com/jenniferjyh",
+    "sort_order": 21
+  },
+  {
+    "slug": "adam-syed",
+    "first_name": "Adam",
+    "last_name": "Syed",
+    "title": "Senior Product Designer",
+    "company": "Netflix",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Founders",
+      "AI"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Adam Syed is a senior product designer on Gen AI experiences at Netflix and founder of the Skywalker design studio; previously at Twitch, MrBeast, Meta and Tesla.",
+    "photo_url": "/advisors/adam-syed.jpg",
+    "website_url": "https://syedadam.com",
+    "linkedin_url": "https://www.linkedin.com/in/syedadamemirputra",
+    "x_url": "https://x.com/heyimskywalkerr",
+    "sort_order": 22
+  },
+  {
+    "slug": "carl-sziebert",
+    "first_name": "Carl",
+    "last_name": "Sziebert",
+    "title": "Head of UX Engineering, Google Cloud Platform",
+    "company": "Google",
+    "relationship": "advisor",
+    "fields": [
+      "Design Engineering",
+      "Leadership",
+      "Design Systems"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Carl Sziebert leads UX Engineering for Google Cloud Platform, with prior design leadership across Cloud AI, Firebase, Flutter and Google Search.",
+    "photo_url": "/advisors/carl-sziebert.jpg",
+    "website_url": "https://carlsz.dev",
+    "linkedin_url": "https://www.linkedin.com/in/carlsz",
+    "x_url": null,
+    "sort_order": 23
+  },
+  {
+    "slug": "flora-guo",
+    "first_name": "Flora",
+    "last_name": "Guo",
+    "title": "Designer",
+    "company": "Ramp",
+    "relationship": "advisor",
+    "fields": [
+      "Design Engineering",
+      "AI",
+      "Product Design"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Flora Guo is a designer and design engineer, previously founding design engineer at Paradigm and on Vercel's v0 design engineering team.",
+    "photo_url": "/advisors/flora-guo.jpg",
+    "website_url": "https://www.floguo.com",
+    "linkedin_url": "https://www.linkedin.com/in/floguo",
+    "x_url": "https://x.com/floguo",
+    "sort_order": 24
+  },
+  {
+    "slug": "rissa-kei-chua",
+    "first_name": "Rissa Kei",
+    "last_name": "Chua",
+    "title": "Product Designer",
+    "company": "OpenAI",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Rissa Kei Chua is a product designer at OpenAI; previously she designed at Instagram and on The New York Times home page.",
+    "photo_url": "/advisors/rissa-kei-chua.jpg",
+    "website_url": "https://rissakei.com",
+    "linkedin_url": "https://www.linkedin.com/in/rissakei",
+    "x_url": null,
+    "sort_order": 25
+  },
+  {
+    "slug": "mathurah-ravigulan",
+    "first_name": "Mathurah",
+    "last_name": "Ravigulan",
+    "title": "Design Engineer, Gen AI",
+    "company": "Netflix",
+    "relationship": "advisor",
+    "fields": [
+      "Design Engineering",
+      "AI",
+      "Community"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Mathurah Ravigulan is a design engineer at Netflix building prototypes and AI-evaluation tools for Gen AI experiences, and founded Design Eng Club.",
+    "photo_url": "/advisors/mathurah-ravigulan.jpg",
+    "website_url": "https://www.mathurah.com",
+    "linkedin_url": "https://www.linkedin.com/in/mathurah-ravigulan",
+    "x_url": "https://x.com/mathurahravi",
+    "sort_order": 26
+  },
+  {
+    "slug": "chi-quach",
+    "first_name": "Chi",
+    "last_name": "Quach",
+    "title": "Product Designer",
+    "company": "Meta Reality Labs",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Community"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Chi Quach is a product designer at Meta Reality Labs working at the intersection of software and hardware for wearables; SCAD UX graduate.",
+    "photo_url": null,
+    "website_url": "https://chiquach.com",
+    "linkedin_url": "https://www.linkedin.com/in/chiquach21",
+    "x_url": "https://x.com/chiquwch",
+    "sort_order": 27
+  },
+  {
+    "slug": "cole-lee",
+    "first_name": "Cole",
+    "last_name": "Lee",
+    "title": "Creative Technologist",
+    "company": "OpenAI",
+    "relationship": "advisor",
+    "fields": [
+      "AI",
+      "Design Engineering",
+      "Creative Direction"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Cole Lee is a Stanford CS grad and creator known as Covacut, making videos about creative technology and AI for 300k+ followers; she recently joined OpenAI.",
+    "photo_url": "/advisors/cole-lee.jpg",
+    "website_url": "https://hyphen.art",
+    "linkedin_url": "https://www.linkedin.com/in/covacut",
+    "x_url": "https://x.com/covacut",
+    "sort_order": 28
+  },
+  {
+    "slug": "brian-cho",
+    "first_name": "Brian",
+    "last_name": "Cho",
+    "title": "Designer, Creative Studio",
+    "company": "OpenAI",
+    "relationship": "advisor",
+    "fields": [
+      "Brand",
+      "Type & Lettering",
+      "Creative Direction"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Brian Cho is a designer in OpenAI's Creative Studio, previously a senior visual designer at YouTube and a senior designer at Apple working on product art direction.",
+    "photo_url": "/advisors/brian-cho.jpg",
+    "website_url": "https://bcho.design",
+    "linkedin_url": "https://www.linkedin.com/in/bchodesign",
+    "x_url": null,
+    "sort_order": 29
+  },
+  {
+    "slug": "brian-thompson",
+    "first_name": "Brian",
+    "last_name": "Thompson",
+    "title": "Senior Product Designer, AI Experiences",
+    "company": "Salesforce",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI",
+      "Creative Direction"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Brian Thompson is a senior product designer at Salesforce designing agentic AI experiences for Financial Services Cloud, previously a design director at Crunchyroll.",
+    "photo_url": "/advisors/brian-thompson.jpg",
+    "website_url": "https://uxbrianthompson.myportfolio.com",
+    "linkedin_url": "https://www.linkedin.com/in/uxbrianthompson",
+    "x_url": null,
+    "sort_order": 30
+  },
+  {
+    "slug": "angela-guzman",
+    "first_name": "Angela",
+    "last_name": "Guzman",
+    "title": "Head of Design",
+    "company": "Zoom",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Leadership"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Angela Guzman is Head of Design at Zoom, best known for co-designing Apple's original emoji set; she previously led design at Apple, Google, Airbnb and Pinterest.",
+    "photo_url": "/advisors/angela-guzman.jpg",
+    "website_url": "https://angelaguzman.co",
+    "linkedin_url": "https://www.linkedin.com/in/agzmn",
+    "x_url": "https://x.com/agzmn",
+    "sort_order": 31
+  },
+  {
+    "slug": "mrinali-kamath",
+    "first_name": "Mrinali",
+    "last_name": "Kamath",
+    "title": "Co-Founder",
+    "company": "Riffle",
+    "relationship": "advisor",
+    "fields": [
+      "Founders",
+      "Community",
+      "Leadership"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Mrinali Kamath is co-founder of Riffle, a recruiting platform helping startups hire AI-native designers; previously Design Director at Ford Model e.",
+    "photo_url": "/advisors/mrinali-kamath.jpg",
+    "website_url": null,
+    "linkedin_url": "https://www.linkedin.com/in/mrinalikamath",
+    "x_url": "https://x.com/mrinalikamath",
+    "sort_order": 32
+  },
+  {
+    "slug": "aibek-yegemberdin",
+    "first_name": "Aibek",
+    "last_name": "Yegemberdin",
+    "title": "Co-Founder & CEO",
+    "company": "Wonder",
+    "relationship": "advisor",
+    "fields": [
+      "Founders",
+      "AI",
+      "Design Engineering"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Aibek Yegemberdin is co-founder and CEO of Wonder, an AI-native design tool on an infinite canvas; he previously co-founded Superflex, a Figma-to-code tool.",
+    "photo_url": "/advisors/aibek-yegemberdin.jpg",
+    "website_url": null,
+    "linkedin_url": "https://www.linkedin.com/in/yegemberdin",
+    "x_url": "https://x.com/aibek_design",
+    "sort_order": 33
+  },
+  {
+    "slug": "sam-gorman",
+    "first_name": "Sam",
+    "last_name": "Gorman",
+    "title": "Founder & CEO",
+    "company": "Rivet",
+    "relationship": "advisor",
+    "fields": [
+      "Founders",
+      "Design Engineering",
+      "AI"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Sam Gorman is founder of Rivet (YC F25), a design tool for exploring interface directions in code; previously an early product engineer at Snorkel AI.",
+    "photo_url": "/advisors/sam-gorman.jpg",
+    "website_url": null,
+    "linkedin_url": "https://www.linkedin.com/in/gormansam",
+    "x_url": "https://x.com/gormankind",
+    "sort_order": 34
+  },
+  {
+    "slug": "shaahana-naufal",
+    "first_name": "Shaahana",
+    "last_name": "Naufal",
+    "title": "Product Designer",
+    "company": "Plot",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Content Design"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Shaahana Naufal is a product designer at Plot, previously designing at Instagram and Coinbase; a University of Waterloo Systems Design Engineering alum.",
+    "photo_url": "/advisors/shaahana-naufal.jpg",
+    "website_url": "https://www.shaahana.tech",
+    "linkedin_url": "https://www.linkedin.com/in/shaahana-naufal",
+    "x_url": "https://x.com/shaahana_naufal",
+    "sort_order": 35
+  },
+  {
+    "slug": "burton-rast",
+    "first_name": "Burton",
+    "last_name": "Rast",
+    "title": "Principal Designer",
+    "company": "Adobe",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI",
+      "Leadership"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "San Francisco-based designer, artist, and speaker; Principal Designer at Adobe, previously design leadership at Google and IDEO and Design Partner at Strange Ventures.",
+    "photo_url": "/advisors/burton-rast.jpg",
+    "website_url": "https://misterburton.com",
+    "linkedin_url": "https://www.linkedin.com/in/misterburton",
+    "x_url": "https://x.com/misterburton",
+    "sort_order": 36
+  },
+  {
+    "slug": "carlos-melegrito",
+    "first_name": "Carlos",
+    "last_name": "Melegrito",
+    "title": "Human Interface Designer",
+    "company": "Apple",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Design Engineering"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Human interface designer at Apple making software for people who make software; previously a designer-developer at Itty Bitty Apps working on Reveal.",
+    "photo_url": "/advisors/carlos-melegrito.jpg",
+    "website_url": "https://carlos-m.com",
+    "linkedin_url": null,
+    "x_url": "https://x.com/cjmlgrto",
+    "sort_order": 37
+  },
+  {
+    "slug": "kenneth-kuh",
+    "first_name": "Kenneth",
+    "last_name": "Kuh",
+    "title": "Brand Design Lead",
+    "company": "SpaceXAI",
+    "relationship": "advisor",
+    "fields": [
+      "Brand",
+      "Creative Direction"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Brand designer who co-led Cursor's Compile 26 event identity and previously led brand for OpenAI DevDay 2025 after design work at Apple and Nike.",
+    "photo_url": "/advisors/kenneth-kuh.jpg",
+    "website_url": "https://kennethkuh.info",
+    "linkedin_url": "https://www.linkedin.com/in/kennethkuh",
+    "x_url": "https://x.com/kenneth_kuh",
+    "sort_order": 38
+  },
+  {
+    "slug": "chris-allick",
+    "first_name": "Chris",
+    "last_name": "Allick",
+    "title": "Creative Director",
+    "company": "DoorDash",
+    "relationship": "advisor",
+    "fields": [
+      "Creative Direction",
+      "Design Engineering",
+      "AI"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Creative director and technologist leading DoorDash Ads and Co-Marketing creative, including ADC-recognized experiential work like The Picky Claw.",
+    "photo_url": "/advisors/chris-allick.jpg",
+    "website_url": "https://chrisallick.com",
+    "linkedin_url": "https://www.linkedin.com/in/chrisallick",
+    "x_url": null,
+    "sort_order": 39
+  },
+  {
+    "slug": "alekhya-maram",
+    "first_name": "Alekhya",
+    "last_name": "Maram",
+    "title": "Product Designer",
+    "company": "Meta",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Research"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Product designer and HCI researcher from Barnard College who worked on Meta Ray-Ban Display and CNN's ad experience at Warner Bros. Discovery.",
+    "photo_url": "/advisors/alekhya-maram.jpg",
+    "website_url": "https://alekhyamaram.framer.website",
+    "linkedin_url": "https://www.linkedin.com/in/alekhyamaram",
+    "x_url": null,
+    "sort_order": 40
+  },
+  {
+    "slug": "vamsi-batchu",
+    "first_name": "Vamsi",
+    "last_name": "Batchu",
+    "title": "Member of Technical Staff (Design)",
+    "company": "Google DeepMind",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI",
+      "Leadership"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "NYC-based designer at Google DeepMind building Google AI Studio; previously led AI product design for banking at Rocket Companies and writes the Frames & Function newsletter.",
+    "photo_url": "/advisors/vamsi-batchu.jpg",
+    "website_url": "https://vibenbuild.vercel.app",
+    "linkedin_url": "https://www.linkedin.com/in/vamsikbatchu",
+    "x_url": "https://x.com/vamsibatchuk",
+    "sort_order": 41
+  },
+  {
+    "slug": "bennett-huffman",
+    "first_name": "Bennett",
+    "last_name": "Huffman",
+    "title": "Senior Design Engineer",
+    "company": "Cognition",
+    "relationship": "advisor",
+    "fields": [
+      "Design Engineering",
+      "AI"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "New York-based senior design engineer at Cognition building software engineering tools; previously built mission operations and AI interfaces at NASA JPL.",
+    "photo_url": "/advisors/bennett-huffman.jpg",
+    "website_url": "https://www.bennetthuffman.com",
+    "linkedin_url": "https://www.linkedin.com/in/bennetthuffman",
+    "x_url": null,
+    "sort_order": 42
+  }
+]

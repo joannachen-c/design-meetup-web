@@ -2,63 +2,79 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import type { Advisor } from "@/lib/advisor-directory";
+import type { AdvisorsSource } from "@/lib/advisors";
+
+import { AdvisorsDirectory } from "./AdvisorsDirectory";
+import { AdvisorsProvider } from "./AdvisorsProvider";
+import { ADVISOR_VIEWS, type AdvisorView } from "./AdvisorViewToggle";
 import { PrototypePicker } from "./PrototypePicker";
-import { SectionContext } from "./SectionContext";
-import { CardGridVariant } from "./variants/CardGridVariant";
-import { CompactGridVariant } from "./variants/CompactGridVariant";
-import { GalleryStripVariant } from "./variants/GalleryStripVariant";
-import { InlineLedgerVariant } from "./variants/InlineLedgerVariant";
-import { RosterVariant } from "./variants/RosterVariant";
 
-const variants = [
-  { name: "Roster", Component: RosterVariant },
-  { name: "Cards", Component: CardGridVariant },
-  { name: "Compact", Component: CompactGridVariant },
-  { name: "Ledger", Component: InlineLedgerVariant },
-  { name: "Gallery", Component: GalleryStripVariant },
-] as const;
+const pickerViews = ADVISOR_VIEWS.map((view) => ({ name: view.label }));
 
-function readInitialIndex() {
-  if (typeof window === "undefined") return 0;
-  const param = parseInt(new URLSearchParams(window.location.search).get("v") ?? "1", 10);
-  if (Number.isNaN(param) || param < 1 || param > variants.length) return 0;
-  return param - 1;
+function readInitialView(): AdvisorView {
+  const param = new URLSearchParams(window.location.search).get("view");
+  return ADVISOR_VIEWS.some((view) => view.value === param) ? (param as AdvisorView) : "table";
 }
 
-export function BoardOfAdvisorsPrototype() {
-  const [current, setCurrent] = useState(0);
+function useAdvisorView() {
+  const [view, setView] = useState<AdvisorView>("table");
+
+  useEffect(() => {
+    setView(readInitialView());
+  }, []);
+
+  const changeView = useCallback((next: AdvisorView) => {
+    setView(next);
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", next);
+    window.history.replaceState(null, "", url);
+  }, []);
+
+  return [view, changeView] as const;
+}
+
+type AdvisorsSectionProps = {
+  advisors: Advisor[];
+  source: AdvisorsSource;
+};
+
+export function BoardOfAdvisorsSection({ advisors, source }: AdvisorsSectionProps) {
+  const [view, setView] = useAdvisorView();
+  return (
+    <AdvisorsProvider advisors={advisors} source={source}>
+      <AdvisorsDirectory view={view} onViewChange={setView} />
+    </AdvisorsProvider>
+  );
+}
+
+export function BoardOfAdvisorsPrototype({ advisors, source }: AdvisorsSectionProps) {
+  const [view, setView] = useAdvisorView();
   const [mountKey, setMountKey] = useState(0);
 
   useEffect(() => {
-    setCurrent(readInitialIndex());
-  }, []);
-
-  const handleChange = useCallback((index: number) => {
-    setCurrent(index);
-    const url = new URL(window.location.href);
-    url.searchParams.set("v", String(index + 1));
-    window.history.replaceState(null, "", url);
-    setMountKey((key) => key + 1);
+    document.getElementById("advisors")?.scrollIntoView({ block: "start" });
   }, []);
 
   const handleReplay = useCallback(() => {
     setMountKey((key) => key + 1);
   }, []);
 
-  const { Component } = variants[current];
-
   return (
-    <>
-      <SectionContext key={mountKey}>
-        <Component />
-      </SectionContext>
+    <AdvisorsProvider advisors={advisors} source={source}>
+      <AdvisorsDirectory key={mountKey} view={view} onViewChange={setView} />
       <PrototypePicker
-        variants={variants}
-        current={current}
-        onChange={handleChange}
+        variants={pickerViews}
+        current={ADVISOR_VIEWS.findIndex((option) => option.value === view)}
+        onChange={(index) => setView(ADVISOR_VIEWS[index].value)}
         onReplay={handleReplay}
         showReplay
+        status={
+          source === "supabase"
+            ? { label: `Supabase · ${advisors.length}`, tone: "live" }
+            : { label: "Bundled data", tone: "fallback" }
+        }
       />
-    </>
+    </AdvisorsProvider>
   );
 }

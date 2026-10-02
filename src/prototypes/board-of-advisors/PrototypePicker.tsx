@@ -17,6 +17,7 @@ type PrototypePickerProps = {
   onChange: (index: number) => void;
   onReplay: () => void;
   showReplay?: boolean;
+  status?: { label: string; tone: "live" | "fallback" };
 };
 
 export function PrototypePicker({
@@ -25,6 +26,7 @@ export function PrototypePicker({
   onChange,
   onReplay,
   showReplay = true,
+  status,
 }: PrototypePickerProps) {
   const pickerRef = useRef<HTMLElement>(null);
   const highlightRef = useRef<HTMLSpanElement>(null);
@@ -126,6 +128,15 @@ export function PrototypePicker({
           >
             ↻
           </button>
+        </>
+      ) : null}
+      {status ? (
+        <>
+          <span className="proto-picker-divider" aria-hidden="true" />
+          <span className="proto-picker-status" data-tone={status.tone}>
+            <span className="proto-picker-status-dot" aria-hidden="true" />
+            {status.label}
+          </span>
         </>
       ) : null}
     </nav>

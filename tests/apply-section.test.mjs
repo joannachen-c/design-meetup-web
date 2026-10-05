@@ -44,14 +44,23 @@ test("apply section embeds the membership Google Form and keeps social links", (
   );
   assert.doesNotMatch(app, /<ApplyNotifyForm/);
   assert.doesNotMatch(app, /opening soon/);
-  assert.match(app, new RegExp(APPLY_FORM_EMBED.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  const formUrl = APPLY_FORM_EMBED.replace("?embedded=true", "");
   assert.match(
     app,
-    /<ScrollReveal[\s\S]*className="[^"]*\bapply-form\b[^"]*\boverflow-hidden\b[^"]*"[\s\S]*delay=\{80\}/,
+    new RegExp(`const APPLY_FORM_URL =\\s*"${formUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`),
+  );
+  assert.match(app, /const APPLY_FORM_EMBED_SRC = `\$\{APPLY_FORM_URL\}\?embedded=true`;/);
+  assert.match(
+    app,
+    /<ScrollReveal className="apply-form" delay=\{80\}>[\s\S]*<div className="[^"]*\bbg-surface-muted\b[^"]*\bp-3\b[^"]*">\s*<div className="overflow-hidden rounded-\[12px\]">\s*<iframe/,
   );
   assert.match(
     app,
     /<iframe[\s\S]*className="[^"]*\bapply-form-frame\b[^"]*"[\s\S]*src=\{APPLY_FORM_EMBED_SRC\}[\s\S]*title="Design Meetup membership application"/,
+  );
+  assert.match(
+    app,
+    /<a[\s\S]*href=\{APPLY_FORM_URL\}\s*target="_blank"\s*rel="noopener noreferrer"\s*>\s*Open in new tab\s*<ArrowUpRightIcon \/>\s*<\/a>[\s\S]*<iframe/,
   );
   assert.match(
     app,

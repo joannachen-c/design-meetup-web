@@ -2427,7 +2427,7 @@ export default function HomePage({
         <ScrollReveal className="apply-form" delay={80}>
           <div className="mb-3 flex justify-end">
             <a
-              className="inline-flex items-center gap-1.5 text-sm font-bold text-muted transition-colors duration-150 ease-out hover:text-black focus-visible:text-black motion-reduce:transition-none"
+              className="inline-flex items-center gap-1.5 text-base font-bold text-muted transition-colors duration-150 ease-out hover:text-black focus-visible:text-black motion-reduce:transition-none"
               href={APPLY_FORM_URL}
               target="_blank"
               rel="noopener noreferrer"

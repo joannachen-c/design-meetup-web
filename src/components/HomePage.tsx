@@ -2425,7 +2425,7 @@ export default function HomePage({
           </div>
         </ScrollReveal>
         <ScrollReveal className="apply-form" delay={80}>
-          <div className="mb-3 flex justify-end">
+          <div className="mb-3 flex justify-end max-[820px]:justify-start">
             <a
               className="inline-flex items-center gap-1.5 text-base font-bold text-muted transition-colors duration-150 ease-out hover:text-black focus-visible:text-black motion-reduce:transition-none"
               href={APPLY_FORM_URL}

@@ -23,34 +23,36 @@ const migration = await readFile(
   "utf8",
 );
 
+const APPLY_FORM_EMBED =
+  "https://docs.google.com/forms/d/e/1FAIpQLSf_OD5cBb6BBg2xVd5rdW8f6iI5LWfXOFe9xQd5MeHnJPting/viewform?embedded=true";
+
 test("apply section sits between the founders note and the footer", () => {
   assert.match(
     app,
-    /<FoundersNote \/>\s*<section[\s\S]*className="[^"]*\bapply-cta\b[^"]*"[\s\S]*id="apply"[\s\S]*>\s*[\s\S]*>\s*Applications\s*<br \/>\s*opening soon\s*<\/h2>[\s\S]*<\/section>\s*<PhotoMarquee events=\{events\} \/>\s*<SiteFooter \/>/,
+    /<FoundersNote \/>\s*<section[\s\S]*className="[^"]*\bapply-cta\b[^"]*"[\s\S]*id="apply"[\s\S]*>\s*[\s\S]*>\s*Applications are open\s*<\/h2>[\s\S]*<\/section>\s*<PhotoMarquee events=\{events\} \/>\s*<SiteFooter \/>/,
   );
 });
 
-test("apply heading breaks before opening soon", () => {
+test("apply section embeds the membership Google Form and keeps social links", () => {
   assert.match(
     app,
-    /id="apply-cta-title"[\s\S]*>\s*Applications\s*<br \/>\s*opening soon\s*<\/h2>/,
-  );
-});
-
-test("apply section points to Instagram and Substack for updates", () => {
-  assert.match(
-    app,
-    /We'll be opening up applications for the next Design Meetup member cohort soon\. If you're a student or early career designer, we'd love to meet you\./,
+    /Applications are now open for the next Design Meetup member cohort! If you&apos;re a student or early career designer, we&apos;d love to meet you\./,
   );
   assert.match(
     app,
-    /<p className="m-0 mt-5 text-pretty">\s*Follow us on Instagram and Substack to stay updated!\s*<\/p>/,
+    /<p className="m-0 text-pretty">\s*Follow us on Instagram and Substack to stay updated!\s*<\/p>/,
   );
-  assert.match(app, /import \{ ApplyNotifyForm \} from "\.\/ApplyNotifyForm"/);
-  assert.match(app, /<ApplyNotifyForm \/>/);
-  assert.doesNotMatch(app, /APPLY_FORM_EMBED_SRC/);
-  assert.doesNotMatch(app, /docs\.google\.com\/forms/);
-  assert.doesNotMatch(app, /apply-form-frame/);
+  assert.doesNotMatch(app, /<ApplyNotifyForm/);
+  assert.doesNotMatch(app, /opening soon/);
+  assert.match(app, new RegExp(APPLY_FORM_EMBED.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(
+    app,
+    /<ScrollReveal[\s\S]*className="[^"]*\bapply-form\b[^"]*\boverflow-hidden\b[^"]*"[\s\S]*delay=\{80\}/,
+  );
+  assert.match(
+    app,
+    /<iframe[\s\S]*className="[^"]*\bapply-form-frame\b[^"]*"[\s\S]*src=\{APPLY_FORM_EMBED_SRC\}[\s\S]*title="Design Meetup membership application"/,
+  );
   assert.match(
     app,
     /<Primary[\s\S]*variant="secondary"[\s\S]*href="https:\/\/www\.instagram\.com\/designmeetup\/"[\s\S]*Instagram[\s\S]*<\/Primary>/,
@@ -69,22 +71,30 @@ test("apply section points to Instagram and Substack for updates", () => {
   );
 });
 
-test("apply section uses the shared responsive twelve-column layout", () => {
+test("apply section uses the shared responsive twelve-column layout with form embed", () => {
   assert.match(
     css,
     /\.apply-cta\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\);/s,
   );
-  assert.match(css, /\.apply-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 8;/s);
-  assert.match(css, /\.apply-follow\s*\{[^}]*grid-column:\s*9\s*\/\s*span 4;/s);
-  assert.doesNotMatch(css, /\.apply-form\s*\{/);
-  assert.doesNotMatch(css, /\.apply-form-frame\s*\{/);
+  assert.match(css, /\.apply-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 4;/s);
+  assert.match(css, /\.apply-form\s*\{[^}]*grid-column:\s*6\s*\/\s*span 7;/s);
+  assert.doesNotMatch(css, /\.apply-follow\b/);
+  assert.match(css, /\.apply-form\s*\{[^}]*--apply-form-footer-clip:\s*56px;/s);
+  assert.match(
+    css,
+    /\.apply-form-frame\s*\{[^}]*min-height:\s*calc\(720px \+ var\(--apply-form-footer-clip\)\);/s,
+  );
+  assert.match(
+    css,
+    /\.apply-form-frame\s*\{[^}]*margin-bottom:\s*calc\(-1 \* var\(--apply-form-footer-clip\)\);/s,
+  );
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*\.apply-cta\s*\{[^}]*grid-template-columns:\s*1fr;/s,
   );
   assert.match(
     css,
-    /@media \(max-width: 820px\)[\s\S]*\.apply-copy,\s*\.apply-follow\s*\{[^}]*grid-column:\s*1;/s,
+    /@media \(max-width: 820px\)[\s\S]*\.apply-copy,\s*\.apply-form\s*\{[^}]*grid-column:\s*1;/s,
   );
 });
 

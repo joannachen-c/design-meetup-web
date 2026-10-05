@@ -52,7 +52,11 @@ test("apply section embeds the membership Google Form and keeps social links", (
   assert.match(app, /const APPLY_FORM_EMBED_SRC = `\$\{APPLY_FORM_URL\}\?embedded=true`;/);
   assert.match(
     app,
-    /<ScrollReveal className="apply-form" delay=\{80\}>[\s\S]*<div className="[^"]*\bbg-surface-muted\b[^"]*\bp-3\b[^"]*">\s*<div className="overflow-hidden rounded-\[12px\]">\s*<iframe/,
+    /<ScrollReveal className="apply-form" delay=\{80\}>[\s\S]*<div className="[^"]*\bbg-surface-muted\b[^"]*\bpx-3 pt-3\b[^"]*">\s*<div className="overflow-hidden rounded-t-\[12px\]">\s*<iframe/,
+  );
+  assert.doesNotMatch(
+    app,
+    /<div className="[^"]*\bbg-surface-muted\b[^"]*\b(?:p|pb|py)-\d[^"]*">\s*<div className="overflow-hidden rounded-t-\[12px\]">/,
   );
   assert.match(
     app,

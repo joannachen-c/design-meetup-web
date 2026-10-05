@@ -2436,8 +2436,8 @@ export default function HomePage({
               <ArrowUpRightIcon />
             </a>
           </div>
-          <div className="rounded-[20px] bg-surface-muted p-3 max-[520px]:p-2">
-            <div className="overflow-hidden rounded-[12px]">
+          <div className="overflow-hidden rounded-[20px] bg-surface-muted px-3 pt-3 max-[520px]:px-2 max-[520px]:pt-2">
+            <div className="overflow-hidden rounded-t-[12px]">
               <iframe
                 className="apply-form-frame block w-full border-0 bg-transparent"
                 src={APPLY_FORM_EMBED_SRC}

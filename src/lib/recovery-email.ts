@@ -1,10 +1,10 @@
 export const RECOVERY_EMAIL_SUBJECT = "Choose a new Design Meetup password";
 
 export const RECOVERY_RESET_URL =
-  "https://www.designmeetup.info/reset-password?token_hash={{ .TokenHash }}&type=recovery";
+  "https://designmeetup.info/reset-password?token_hash={{ .TokenHash }}&type=recovery";
 
 const INK = "#191919";
-const HOME = "https://www.designmeetup.info";
+const HOME = "https://designmeetup.info";
 const LOGO = `${HOME}/design-meetup-logo.png`;
 
 const SOCIALS = [

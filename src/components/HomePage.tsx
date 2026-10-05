@@ -70,8 +70,9 @@ const partnerLogos = [
   { slug: "rainbow", name: "Clay", href: "https://www.clay.com/", src: "/partners/partner-9.png" },
 ];
 
-const APPLY_FORM_EMBED_SRC =
-  "https://docs.google.com/forms/d/e/1FAIpQLSf_OD5cBb6BBg2xVd5rdW8f6iI5LWfXOFe9xQd5MeHnJPting/viewform?embedded=true";
+const APPLY_FORM_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSf_OD5cBb6BBg2xVd5rdW8f6iI5LWfXOFe9xQd5MeHnJPting/viewform";
+const APPLY_FORM_EMBED_SRC = `${APPLY_FORM_URL}?embedded=true`;
 
 // Every unfocused cover turns the same way, so the rail reads as one shelf of
 // records instead of a mirrored fan. The turn is a flat squeeze rather than a
@@ -2423,18 +2424,30 @@ export default function HomePage({
             </Primary>
           </div>
         </ScrollReveal>
-        <ScrollReveal
-          className="apply-form overflow-hidden rounded-[20px]"
-          delay={80}
-        >
-          <iframe
-            className="apply-form-frame block w-full border-0 bg-transparent"
-            src={APPLY_FORM_EMBED_SRC}
-            title="Design Meetup membership application"
-            loading="lazy"
-          >
-            Loading…
-          </iframe>
+        <ScrollReveal className="apply-form" delay={80}>
+          <div className="mb-3 flex justify-end max-[820px]:justify-start">
+            <a
+              className="inline-flex items-center gap-1.5 text-base font-bold text-muted transition-colors duration-150 ease-out hover:text-black focus-visible:text-black motion-reduce:transition-none"
+              href={APPLY_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open in new tab
+              <ArrowUpRightIcon />
+            </a>
+          </div>
+          <div className="overflow-hidden rounded-[20px] bg-surface-muted px-3 pt-3 max-[520px]:px-2 max-[520px]:pt-2">
+            <div className="overflow-hidden rounded-t-[12px]">
+              <iframe
+                className="apply-form-frame block w-full border-0 bg-transparent"
+                src={APPLY_FORM_EMBED_SRC}
+                title="Design Meetup membership application"
+                loading="lazy"
+              >
+                Loading…
+              </iframe>
+            </div>
+          </div>
         </ScrollReveal>
       </section>
 

@@ -6,7 +6,7 @@ import {
 import { siteEmail, siteName, siteUrl } from "./site";
 
 const INK = "#191919";
-const PUBLIC_HOME_URL = "https://www.designmeetup.info";
+const PUBLIC_HOME_URL = "https://designmeetup.info";
 export const CALENDAR_URL = `${PUBLIC_HOME_URL}/#calendar`;
 
 export const welcomeSocialLinks = [

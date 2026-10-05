@@ -80,7 +80,7 @@ test("recovery email template brands Design Meetup and skips Vercel SSO hosts", 
     assert.match(source, /design-meetup-logo\.png/);
     assert.match(
       source,
-      /https:\/\/www\.designmeetup\.info\/reset-password\?token_hash=\{\{ \.TokenHash \}\}&type=recovery/,
+      /https:\/\/designmeetup\.info\/reset-password\?token_hash=\{\{ \.TokenHash \}\}&type=recovery/,
     );
     assert.doesNotMatch(source, /ConfirmationURL/);
     assert.doesNotMatch(source, /vercel\.app/);

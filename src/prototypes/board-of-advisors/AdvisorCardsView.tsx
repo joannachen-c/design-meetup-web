@@ -54,13 +54,17 @@ function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
             <ArrowUpRightIcon className="mt-0.5 size-3 shrink-0 text-subtle opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 motion-reduce:transition-none" />
           </a>
         )}
-        <p className="m-0 text-[13px] leading-snug text-muted">{advisor.title}</p>
-        <p className={`${monoCellClassName} m-0 pt-1 text-ink`}>{advisor.company}</p>
-        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-          <span className={`${monoLabelClassName} text-[10px] text-subtle`}>
-            {advisorLocationLabel(advisor)}
-          </span>
-          <SocialLinks advisor={advisor} className="-mr-1.5 shrink-0" />
+        <div className="truncate text-[13px] leading-snug text-muted" title={advisor.title}>
+          {advisor.title}
+        </div>
+        <div className="flex flex-col items-start min-[520px]:flex-row min-[520px]:items-center min-[520px]:justify-between min-[520px]:gap-2">
+          <div className={`${monoCellClassName} w-full min-w-0 truncate text-ink min-[520px]:w-auto`}>
+            {advisor.company}
+            {advisor.locations.length > 0 ? (
+              <span className="text-subtle"> · {advisorLocationLabel(advisor)}</span>
+            ) : null}
+          </div>
+          <SocialLinks advisor={advisor} className="-ml-1.5 shrink-0 min-[520px]:-mr-1.5 min-[520px]:ml-0" />
         </div>
       </div>
     </motion.li>
@@ -79,16 +83,20 @@ export function AdvisorCardsView({
   return (
     <div className="grid min-w-0 gap-6">
       <div
-        className="flex flex-wrap items-center gap-x-5 gap-y-1"
+        className="flex flex-wrap items-center gap-x-8 gap-y-1"
         role="group"
         aria-label="Sort and filter cards"
       >
-        <span className={`${monoLabelClassName} text-subtle`}>Sort</span>
-        <SortHeader label="Name" sortKey="name" sort={sort} onSort={onSort} />
-        <SortHeader label="Company" sortKey="company" sort={sort} onSort={onSort} />
-        <span className={`${monoLabelClassName} text-subtle`}>Filter</span>
-        <LocationFilter />
-        <FieldFilter />
+        <span className="flex items-center gap-x-4">
+          <span className={`${monoLabelClassName} text-subtle`}>Sort</span>
+          <SortHeader label="Name" sortKey="name" sort={sort} onSort={onSort} />
+          <SortHeader label="Company" sortKey="company" sort={sort} onSort={onSort} />
+        </span>
+        <span className="flex items-center gap-x-4">
+          <span className={`${monoLabelClassName} text-subtle`}>Filter</span>
+          <LocationFilter />
+          <FieldFilter />
+        </span>
       </div>
 
       {rows.length === 0 ? (

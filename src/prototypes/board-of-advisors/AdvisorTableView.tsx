@@ -104,16 +104,22 @@ function TableRow({
           <ArrowUpRightIcon className="size-3.5 shrink-0 text-muted transition-transform duration-150 ease-out group-hover:-translate-y-px group-hover:translate-x-px motion-reduce:transition-none" />
         </a>
       )}
-      <span className={`${monoCellClassName} col-start-2 min-[1024px]:col-start-auto`}>
+      <span
+        className={`${monoCellClassName} col-start-2 min-[1024px]:col-start-auto min-[1024px]:truncate`}
+        title={advisor.title}
+      >
         {advisor.title}
       </span>
-      <span className={`${monoCellClassName} col-start-2 text-ink min-[1024px]:col-start-auto`}>
+      <span
+        className={`${monoCellClassName} col-start-2 text-ink min-[1024px]:col-start-auto min-[1024px]:truncate`}
+        title={advisor.company}
+      >
         {advisor.company}
       </span>
       <span className={`${monoCellClassName} col-start-2 text-ink min-[1024px]:col-start-auto`}>
         {advisorLocationLabel(advisor)}
       </span>
-      <FieldTags advisor={advisor} className="col-start-2 min-[1024px]:col-start-auto" />
+      <FieldTags advisor={advisor} limit={1} className="col-start-2 min-[1024px]:col-start-auto" />
       <SocialLinks
         advisor={advisor}
         className="col-start-2 -ml-1.5 min-[1024px]:col-start-auto min-[1024px]:ml-0 min-[1024px]:justify-end"
@@ -152,7 +158,7 @@ export function AdvisorTableView({
           <span aria-hidden="true" />
           <SortHeader label="Name" sortKey="name" sort={sort} onSort={onSort} />
           <span className="hidden min-[1024px]:block">
-            <span className={`${monoLabelClassName} text-muted`}>Title</span>
+            <span className={`${monoLabelClassName} inline-flex py-1 text-muted`}>Title</span>
           </span>
           <span className="hidden min-[1024px]:block">
             <SortHeader label="Company" sortKey="company" sort={sort} onSort={onSort} />
@@ -165,7 +171,7 @@ export function AdvisorTableView({
               <FieldFilter />
             </span>
           </span>
-          <span className={`${monoLabelClassName} hidden text-right text-muted min-[1024px]:block`}>
+          <span className={`${monoLabelClassName} hidden py-1 text-right text-muted min-[1024px]:block`}>
             Links
           </span>
         </div>

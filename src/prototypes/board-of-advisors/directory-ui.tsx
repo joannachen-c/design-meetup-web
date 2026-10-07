@@ -49,7 +49,7 @@ function HeaderSelect({
   return (
     <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
       <SelectPrimitive.Trigger
-        className={`${monoLabelClassName} group -ml-1.5 inline-flex max-w-full cursor-pointer items-center gap-1 rounded-[6px] border-0 bg-transparent px-1.5 py-1 hover:bg-gray-200/70 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink data-[state=open]:bg-gray-200/70 ${active ? "text-ink" : "text-muted"}`}
+        className={`${monoLabelClassName} group -ml-1.5 inline-flex max-w-[calc(100%+0.375rem)] cursor-pointer items-center gap-1 rounded-[6px] border-0 bg-transparent px-1.5 py-1 hover:bg-gray-200/70 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink data-[state=open]:bg-gray-200/70 ${active ? "text-ink" : "text-muted"}`}
         aria-label={`Filter by ${label.toLowerCase()}`}
       >
         <span className="truncate">{active ? selectedLabel : label}</span>
@@ -136,11 +136,21 @@ export function SortHeader({
   );
 }
 
-export function FieldTags({ advisor, className = "" }: { advisor: Advisor; className?: string }) {
+export function FieldTags({
+  advisor,
+  limit,
+  className = "",
+}: {
+  advisor: Advisor;
+  limit?: number;
+  className?: string;
+}) {
   const { setFilters } = useAdvisors();
+  const shown = limit ? advisor.fields.slice(0, limit) : advisor.fields;
+  const hidden = advisor.fields.slice(shown.length);
   return (
-    <span className={`flex flex-wrap gap-x-1 gap-y-0.5 ${className}`}>
-      {advisor.fields.map((field, index) => (
+    <span className={`flex flex-wrap items-baseline gap-x-1 gap-y-0.5 ${className}`}>
+      {shown.map((field, index) => (
         <button
           key={field}
           type="button"
@@ -152,9 +162,14 @@ export function FieldTags({ advisor, className = "" }: { advisor: Advisor; class
           aria-label={`Filter by ${field}`}
         >
           {field}
-          {index < advisor.fields.length - 1 ? "," : ""}
+          {index < shown.length - 1 ? "," : ""}
         </button>
       ))}
+      {hidden.length > 0 ? (
+        <span className={`${monoCellClassName} text-subtle`} title={hidden.join(", ")}>
+          +{hidden.length}
+        </span>
+      ) : null}
     </span>
   );
 }

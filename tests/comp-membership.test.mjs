@@ -25,6 +25,8 @@ test("directory sheet emails get the coupon; other approved signups still pay", 
   assert.equal(isCompMembershipEmail("studio@liumichelle.com"), true);
   assert.equal(isCompMembershipEmail("BL628@cornell.edu"), true);
   assert.equal(isCompMembershipEmail("yunakeem3@gmail.com"), true);
+  assert.equal(isCompMembershipEmail("Nnaklee23@gmail.com"), true);
+  assert.equal(isCompMembershipEmail("si2227@nyu.edu"), true);
   assert.equal(isCompMembershipEmail("demo@designmeetup.info"), false);
   assert.equal(isCompMembershipEmail("angelinawwu@ucla.edu"), false);
 });

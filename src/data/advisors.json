@@ -530,7 +530,7 @@
     "locations": [
       "SF"
     ],
-    "bio": "Flora Guo is a designer and design engineer, previously founding design engineer at Paradigm and on Vercel's v0 design engineering team.",
+    "bio": "Flora Guo is an SF-based designer and design engineer at Ramp, previously founding design engineer at Paradigm and on Vercel's v0 design engineering team.",
     "photo_url": "/advisors/flora-guo.jpg",
     "website_url": "https://www.floguo.com",
     "linkedin_url": "https://www.linkedin.com/in/floguo",
@@ -924,27 +924,5 @@
     "linkedin_url": "https://www.linkedin.com/in/bennetthuffman",
     "x_url": null,
     "sort_order": 42
-  },
-  {
-    "slug": "joshua-to",
-    "first_name": "Joshua",
-    "last_name": "To",
-    "title": "VP, Product Design, AR & Wearables",
-    "company": "Meta",
-    "relationship": "advisor",
-    "fields": [
-      "Product Design",
-      "Leadership",
-      "AI"
-    ],
-    "locations": [
-      "SF"
-    ],
-    "bio": "San Francisco-based VP of Product Design at Meta leading AR, AI, and wearables design including Meta Ray-Ban AI glasses; previously led Google AR, Lens, and Wearables design and founded the nonprofits WellDone International and Soup.",
-    "photo_url": "/advisors/joshua-to.jpg",
-    "website_url": null,
-    "linkedin_url": "https://www.linkedin.com/in/joshto",
-    "x_url": null,
-    "sort_order": 43
   }
 ]

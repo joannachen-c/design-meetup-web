@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { ArrowUpRightIcon } from "@/components/icons/ArrowUpRightIcon";
 import { sortAdvisors, type AdvisorSort } from "@/lib/advisor-directory";
 
 import { AdvisorCardsView } from "./AdvisorCardsView";
@@ -32,26 +31,11 @@ export function AdvisorsDirectory({
           Board of Advisors
         </h2>
         <p className="m-0 mt-5 max-w-[54ch] text-pretty text-base leading-[1.6] text-ink">
-          The people who shape Design Meetup — search the network or narrow it
-          down by how they work with us and what they know.
+          The mentors, speakers, and collaborators who shape Design Meetup.
         </p>
       </ScrollReveal>
       <ScrollReveal delay={60}>
-        <div className="mt-[clamp(40px,6vw,72px)] flex flex-wrap items-center justify-between gap-3 pb-4">
-          <div className="flex items-center gap-2">
-            <span
-              className={`${monoLabelClassName} py-2 text-ink`}
-            >
-              Our network
-            </span>
-            <a
-              className={`${monoLabelClassName} inline-flex items-center gap-1 rounded-full px-3 py-2 text-muted no-underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
-              href="/#partner"
-            >
-              Apply to join
-              <ArrowUpRightIcon className="size-3.5 shrink-0" />
-            </a>
-          </div>
+        <div className="mt-[clamp(40px,6vw,72px)] flex items-center justify-end pb-4">
           <div className="flex w-full min-w-0 items-center justify-end gap-2 min-[640px]:w-auto">
             <label className="relative flex min-w-0 flex-1 items-center min-[640px]:w-[260px] min-[640px]:flex-none">
               <span className="sr-only">Search advisors</span>

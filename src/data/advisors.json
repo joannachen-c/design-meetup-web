@@ -38,7 +38,7 @@
     ],
     "bio": "Jin Su Park is a Brooklyn-based product designer and developer on the design staff at Cognition, previously at Notion and founding designer at Castle.",
     "photo_url": "/advisors/jin-park.jpg",
-    "website_url": null,
+    "website_url": "https://jinsupark.com",
     "linkedin_url": "https://www.linkedin.com/in/jinsupark-in",
     "x_url": "https://x.com/jinsu",
     "sort_order": 1
@@ -924,5 +924,27 @@
     "linkedin_url": "https://www.linkedin.com/in/bennetthuffman",
     "x_url": null,
     "sort_order": 42
+  },
+  {
+    "slug": "joshua-to",
+    "first_name": "Joshua",
+    "last_name": "To",
+    "title": "VP, Product Design, AR & Wearables",
+    "company": "Meta",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "Leadership",
+      "AI"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "San Francisco-based VP of Product Design at Meta leading AR, AI, and wearables design including Meta Ray-Ban AI glasses; previously led Google AR, Lens, and Wearables design and founded the nonprofits WellDone International and Soup.",
+    "photo_url": "/advisors/joshua-to.jpg",
+    "website_url": null,
+    "linkedin_url": "https://www.linkedin.com/in/joshto",
+    "x_url": null,
+    "sort_order": 43
   }
 ]

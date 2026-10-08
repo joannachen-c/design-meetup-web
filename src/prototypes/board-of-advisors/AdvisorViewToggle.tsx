@@ -2,8 +2,6 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 
-import { monoLabelClassName } from "./directory-ui";
-
 export type AdvisorView = "table" | "cards";
 
 export const ADVISOR_VIEWS: { value: AdvisorView; label: string }[] = [
@@ -77,10 +75,11 @@ export function AdvisorViewToggle({
           type="button"
           className="view-toggle-option cursor-pointer rounded-full bg-transparent px-3 text-muted hover:text-ink aria-pressed:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           aria-pressed={view === option.value}
+          aria-label={`${option.label} view`}
+          title={`${option.label} view`}
           onClick={() => onChange(option.value)}
         >
           {option.value === "table" ? <TableIcon /> : <CardsIcon />}
-          <span className={`${monoLabelClassName} max-[519px]:sr-only`}>{option.label}</span>
         </button>
       ))}
     </div>

@@ -38,7 +38,7 @@
     ],
     "bio": "Jin Su Park is a Brooklyn-based product designer and developer on the design staff at Cognition, previously at Notion and founding designer at Castle.",
     "photo_url": "/advisors/jin-park.jpg",
-    "website_url": "https://jinsupark.com",
+    "website_url": "https://jinsupark.vercel.app",
     "linkedin_url": "https://www.linkedin.com/in/jinsupark-in",
     "x_url": "https://x.com/jinsu",
     "sort_order": 1
@@ -127,7 +127,7 @@
     "photo_url": "/advisors/adam-ho.jpg",
     "website_url": "https://www.adamho.com",
     "linkedin_url": "https://www.linkedin.com/in/adam-ho-6786a419",
-    "x_url": "https://x.com/omgadamho",
+    "x_url": "https://x.com/adamho",
     "sort_order": 5
   },
   {
@@ -357,7 +357,7 @@
     "locations": [
       "NYC"
     ],
-    "bio": "John Bai is a New York-based product designer working on AI-native products at SpaceXAI/Cursor, with prior roles at Plaid, Brex, Lyft and Dropbox.",
+    "bio": "John Bai is a New York-based product designer working on AI-native products at SpaceXAI, with prior roles at Plaid, Brex, Lyft and Dropbox.",
     "photo_url": "/advisors/john-bai.jpg",
     "website_url": "https://bai.framer.website",
     "linkedin_url": "https://www.linkedin.com/in/john-bai",
@@ -551,11 +551,11 @@
     "locations": [
       "SF"
     ],
-    "bio": "Rissa Kei Chua is a product designer at OpenAI; previously she designed at Instagram and on The New York Times home page.",
+    "bio": "Rissa Kei Chua is a product designer at OpenAI working on Codex; previously she designed at Instagram and on The New York Times home page.",
     "photo_url": "/advisors/rissa-kei-chua.jpg",
     "website_url": "https://rissakei.com",
-    "linkedin_url": "https://www.linkedin.com/in/rissakei",
-    "x_url": null,
+    "linkedin_url": null,
+    "x_url": "https://x.com/rissakeichua",
     "sort_order": 25
   },
   {
@@ -616,7 +616,7 @@
     "locations": [
       "SF"
     ],
-    "bio": "Cole Lee is a Stanford CS grad and creator known as Covacut, making videos about creative technology and AI for 300k+ followers; she recently joined OpenAI.",
+    "bio": "Cole Lee is a Stanford CS grad and creator known as Covacut, making videos about creative technology and AI for 500k+ followers, and recently joined OpenAI.",
     "photo_url": "/advisors/cole-lee.jpg",
     "website_url": "https://hyphen.art",
     "linkedin_url": "https://www.linkedin.com/in/covacut",
@@ -790,7 +790,7 @@
     "locations": [
       "SF"
     ],
-    "bio": "San Francisco-based designer, artist, and speaker; Principal Designer at Adobe, previously design leadership at Google and IDEO and Design Partner at Strange Ventures.",
+    "bio": "Burton Rast is a San Francisco-based designer, artist and speaker; Principal Designer at Adobe, previously design leadership at Google and IDEO and Design Partner at Strange Ventures.",
     "photo_url": "/advisors/burton-rast.jpg",
     "website_url": "https://misterburton.com",
     "linkedin_url": "https://www.linkedin.com/in/misterburton",
@@ -811,10 +811,10 @@
     "locations": [
       "SF"
     ],
-    "bio": "Human interface designer at Apple making software for people who make software; previously a designer-developer at Itty Bitty Apps working on Reveal.",
+    "bio": "Carlos Melegrito is a human interface designer at Apple making software for people who make software; previously a designer-developer at Itty Bitty Apps working on Reveal.",
     "photo_url": "/advisors/carlos-melegrito.jpg",
     "website_url": "https://carlos-m.com",
-    "linkedin_url": null,
+    "linkedin_url": "https://www.linkedin.com/in/cjmlgrto",
     "x_url": "https://x.com/cjmlgrto",
     "sort_order": 37
   },
@@ -832,7 +832,7 @@
     "locations": [
       "SF"
     ],
-    "bio": "Brand designer who co-led Cursor's Compile 26 event identity and previously led brand for OpenAI DevDay 2025 after design work at Apple and Nike.",
+    "bio": "Kenneth Kuh is brand design lead at SpaceXAI; previously he co-led Cursor's Compile 26 event identity and OpenAI DevDay 2025 brand, after design work at Apple and Nike.",
     "photo_url": "/advisors/kenneth-kuh.jpg",
     "website_url": "https://kennethkuh.info",
     "linkedin_url": "https://www.linkedin.com/in/kennethkuh",
@@ -854,7 +854,7 @@
     "locations": [
       "SF"
     ],
-    "bio": "Creative director and technologist leading DoorDash Ads and Co-Marketing creative, including ADC-recognized experiential work like The Picky Claw.",
+    "bio": "Chris Allick is a creative director and technologist leading DoorDash Ads and Co-Marketing creative, including ADC-recognized experiential work like The Picky Claw.",
     "photo_url": "/advisors/chris-allick.jpg",
     "website_url": "https://chrisallick.com",
     "linkedin_url": "https://www.linkedin.com/in/chrisallick",
@@ -875,7 +875,7 @@
     "locations": [
       "SF"
     ],
-    "bio": "Product designer and HCI researcher from Barnard College who worked on Meta Ray-Ban Display and CNN's ad experience at Warner Bros. Discovery.",
+    "bio": "Alekhya Maram is a product designer and HCI researcher from Barnard College who worked on Meta Ray-Ban Display and CNN's ad experience at Warner Bros. Discovery.",
     "photo_url": "/advisors/alekhya-maram.jpg",
     "website_url": "https://alekhyamaram.framer.website",
     "linkedin_url": "https://www.linkedin.com/in/alekhyamaram",
@@ -897,7 +897,7 @@
     "locations": [
       "NYC"
     ],
-    "bio": "NYC-based designer at Google DeepMind building Google AI Studio; previously led AI product design for banking at Rocket Companies and writes the Frames & Function newsletter.",
+    "bio": "Vamsi Batchu is an NYC-based designer at Google DeepMind building Google AI Studio; previously he led AI product design for banking at Rocket Companies and writes the Frames & Function newsletter.",
     "photo_url": "/advisors/vamsi-batchu.jpg",
     "website_url": "https://vibenbuild.vercel.app",
     "linkedin_url": "https://www.linkedin.com/in/vamsikbatchu",
@@ -918,7 +918,7 @@
     "locations": [
       "NYC"
     ],
-    "bio": "New York-based senior design engineer at Cognition building software engineering tools; previously built mission operations and AI interfaces at NASA JPL.",
+    "bio": "Bennett Huffman is a New York-based senior design engineer at Cognition building software engineering tools; previously he built mission operations and AI interfaces at NASA JPL.",
     "photo_url": "/advisors/bennett-huffman.jpg",
     "website_url": "https://www.bennetthuffman.com",
     "linkedin_url": "https://www.linkedin.com/in/bennetthuffman",

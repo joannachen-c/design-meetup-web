@@ -2,63 +2,59 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { PrototypePicker } from "./PrototypePicker";
-import { SectionContext } from "./SectionContext";
-import { CardGridVariant } from "./variants/CardGridVariant";
-import { CompactGridVariant } from "./variants/CompactGridVariant";
-import { GalleryStripVariant } from "./variants/GalleryStripVariant";
-import { InlineLedgerVariant } from "./variants/InlineLedgerVariant";
-import { RosterVariant } from "./variants/RosterVariant";
+import type { Advisor } from "@/lib/advisor-directory";
+import type { AdvisorsSource } from "@/lib/advisors";
 
-const variants = [
-  { name: "Roster", Component: RosterVariant },
-  { name: "Cards", Component: CardGridVariant },
-  { name: "Compact", Component: CompactGridVariant },
-  { name: "Ledger", Component: InlineLedgerVariant },
-  { name: "Gallery", Component: GalleryStripVariant },
-] as const;
+import { AdvisorsDirectory } from "./AdvisorsDirectory";
+import { AdvisorsProvider } from "./AdvisorsProvider";
+import { ADVISOR_VIEWS, type AdvisorView } from "./AdvisorViewToggle";
 
-function readInitialIndex() {
-  if (typeof window === "undefined") return 0;
-  const param = parseInt(new URLSearchParams(window.location.search).get("v") ?? "1", 10);
-  if (Number.isNaN(param) || param < 1 || param > variants.length) return 0;
-  return param - 1;
+function readInitialView(): AdvisorView {
+  const param = new URLSearchParams(window.location.search).get("view");
+  return ADVISOR_VIEWS.some((view) => view.value === param) ? (param as AdvisorView) : "table";
 }
 
-export function BoardOfAdvisorsPrototype() {
-  const [current, setCurrent] = useState(0);
-  const [mountKey, setMountKey] = useState(0);
+function useAdvisorView() {
+  const [view, setView] = useState<AdvisorView>("table");
 
   useEffect(() => {
-    setCurrent(readInitialIndex());
+    setView(readInitialView());
   }, []);
 
-  const handleChange = useCallback((index: number) => {
-    setCurrent(index);
+  const changeView = useCallback((next: AdvisorView) => {
+    setView(next);
     const url = new URL(window.location.href);
-    url.searchParams.set("v", String(index + 1));
+    url.searchParams.set("view", next);
     window.history.replaceState(null, "", url);
-    setMountKey((key) => key + 1);
   }, []);
 
-  const handleReplay = useCallback(() => {
-    setMountKey((key) => key + 1);
-  }, []);
+  return [view, changeView] as const;
+}
 
-  const { Component } = variants[current];
+type AdvisorsSectionProps = {
+  advisors: Advisor[];
+  source: AdvisorsSource;
+};
+
+export function BoardOfAdvisorsSection({ advisors, source }: AdvisorsSectionProps) {
+  const [view, setView] = useAdvisorView();
+  return (
+    <AdvisorsProvider advisors={advisors} source={source}>
+      <AdvisorsDirectory view={view} onViewChange={setView} />
+    </AdvisorsProvider>
+  );
+}
+
+export function BoardOfAdvisorsPrototype({ advisors, source }: AdvisorsSectionProps) {
+  const [view, setView] = useAdvisorView();
+
+  useEffect(() => {
+    document.getElementById("advisors")?.scrollIntoView({ block: "start" });
+  }, []);
 
   return (
-    <>
-      <SectionContext key={mountKey}>
-        <Component />
-      </SectionContext>
-      <PrototypePicker
-        variants={variants}
-        current={current}
-        onChange={handleChange}
-        onReplay={handleReplay}
-        showReplay
-      />
-    </>
+    <AdvisorsProvider advisors={advisors} source={source}>
+      <AdvisorsDirectory view={view} onViewChange={setView} />
+    </AdvisorsProvider>
   );
 }

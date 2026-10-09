@@ -24,9 +24,11 @@ test("App Router pages exist for home and design-system", async () => {
 
 test("home server page fetches events and passes hybrid props", async () => {
   const page = await read("app/page.tsx");
-  assert.match(page, /fetchPastEvents/);
-  assert.match(page, /initialEvents/);
-  assert.match(page, /initialError/);
+  const data = await read("src/lib/home-page-data.ts");
+  assert.match(page, /loadHomePageData\(\)/);
+  assert.match(data, /fetchPastEvents/);
+  assert.match(data, /initialEvents/);
+  assert.match(data, /initialError/);
   assert.match(page, /HomePage/);
   assert.doesNotMatch(page, /["']use client["']/);
 });

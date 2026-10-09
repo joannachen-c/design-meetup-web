@@ -8,7 +8,7 @@ const header = await readFile(
   "utf8",
 );
 const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
-const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+const page = await readFile(new URL("../src/lib/home-page-data.ts", import.meta.url), "utf8");
 const luma = await readFile(new URL("../src/lib/luma.ts", import.meta.url), "utf8");
 const panel = await readFile(
   new URL("../src/components/RecentEventsPanel.tsx", import.meta.url),

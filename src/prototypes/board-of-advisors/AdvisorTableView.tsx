@@ -4,14 +4,12 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import { ArrowUpRightIcon } from "@/components/icons/ArrowUpRightIcon";
-import type { AdvisorSort } from "@/lib/advisor-directory";
 
 import { advisorFullName, type Advisor } from "./advisors";
 import {
   AdvisorEmptyState,
   Portrait,
   SocialLinks,
-  SortHeader,
   advisorLocationLabel,
   monoCellClassName,
   monoLabelClassName,
@@ -129,15 +127,7 @@ function TableRow({
   );
 }
 
-export function AdvisorTableView({
-  rows,
-  sort,
-  onSort,
-}: {
-  rows: Advisor[];
-  sort: AdvisorSort;
-  onSort: (sort: AdvisorSort) => void;
-}) {
+export function AdvisorTableView({ rows }: { rows: Advisor[] }) {
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const activeAdvisor = rows.find((advisor) => advisor.slug === activeSlug) ?? rows[0];
 
@@ -155,15 +145,15 @@ export function AdvisorTableView({
         <div
           className={`${rowGridClassName} items-center px-2 pb-2`}
           role="group"
-          aria-label="Sort and filter columns"
+          aria-label="Columns"
         >
           <span aria-hidden="true" />
-          <SortHeader label="Name" sortKey="name" sort={sort} onSort={onSort} />
+          <span className={`${monoLabelClassName} py-1 text-muted`}>Name</span>
           <span className="hidden min-[1024px]:block">
             <span className={`${monoLabelClassName} inline-flex py-1 text-muted`}>Title</span>
           </span>
-          <span className="hidden min-[1024px]:block">
-            <SortHeader label="Company" sortKey="company" sort={sort} onSort={onSort} />
+          <span className={`${monoLabelClassName} hidden py-1 text-muted min-[1024px]:block`}>
+            Company
           </span>
           <span className={`${monoLabelClassName} hidden py-1 text-right text-muted min-[1024px]:block`}>
             Links

@@ -1,9 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { sortAdvisors, type AdvisorSort } from "@/lib/advisor-directory";
 
 import { AdvisorCardsView } from "./AdvisorCardsView";
 import { AdvisorFilterMenu } from "./AdvisorFilterMenu";
@@ -22,8 +20,6 @@ export function AdvisorsDirectory({
 }) {
   const { advisors, allAdvisors, filters, isFiltered, setFilters, clearFilters } =
     useAdvisors();
-  const [sort, setSort] = useState<AdvisorSort>("default");
-  const rows = useMemo(() => sortAdvisors(advisors, sort), [advisors, sort]);
 
   return (
     <section className={sectionShellClassName} id="advisors" aria-labelledby="advisors-title">
@@ -63,14 +59,14 @@ export function AdvisorsDirectory({
         </div>
 
         {view === "table" ? (
-          <AdvisorTableView rows={rows} sort={sort} onSort={setSort} />
+          <AdvisorTableView rows={advisors} />
         ) : (
-          <AdvisorCardsView rows={rows} sort={sort} onSort={setSort} />
+          <AdvisorCardsView rows={advisors} />
         )}
 
         <div className="flex min-h-10 items-center justify-between gap-3 pt-3">
           <p className={`${monoLabelClassName} m-0 tabular-nums text-muted`} aria-live="polite">
-            {rows.length} of {allAdvisors.length} people
+            {advisors.length} of {allAdvisors.length} people
           </p>
           {isFiltered ? (
             <button

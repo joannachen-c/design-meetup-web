@@ -4,17 +4,14 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { CSSProperties } from "react";
 
 import { ArrowUpRightIcon } from "@/components/icons/ArrowUpRightIcon";
-import type { AdvisorSort } from "@/lib/advisor-directory";
 
 import { advisorFullName, type Advisor } from "./advisors";
 import {
   AdvisorEmptyState,
   Portrait,
   SocialLinks,
-  SortHeader,
   advisorLocationLabel,
   monoCellClassName,
-  monoLabelClassName,
   polaroidFrameClassName,
   polaroidPaddingClassName,
 } from "./directory-ui";
@@ -91,28 +88,9 @@ function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
   );
 }
 
-export function AdvisorCardsView({
-  rows,
-  sort,
-  onSort,
-}: {
-  rows: Advisor[];
-  sort: AdvisorSort;
-  onSort: (sort: AdvisorSort) => void;
-}) {
+export function AdvisorCardsView({ rows }: { rows: Advisor[] }) {
   return (
     <div className="grid min-w-0 gap-6">
-      <div
-        className="flex flex-wrap items-center gap-x-8 gap-y-1"
-        role="group"
-        aria-label="Sort and filter cards"
-      >
-        <span className="flex items-center gap-x-4">
-          <span className={`${monoLabelClassName} text-subtle`}>Sort</span>
-          <SortHeader label="Name" sortKey="name" sort={sort} onSort={onSort} />
-          <SortHeader label="Company" sortKey="company" sort={sort} onSort={onSort} />
-        </span>
-      </div>
 
       {rows.length === 0 ? (
         <AdvisorEmptyState />

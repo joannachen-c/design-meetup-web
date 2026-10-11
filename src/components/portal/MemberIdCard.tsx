@@ -283,7 +283,17 @@ export function MemberIdCard({
               aria-hidden
             />
             <div className={styles.masthead}>
-              <p className={styles.docType}>Member ID</p>
+              <p className={styles.docType}>
+                Member ID
+                {cohort != null ? (
+                  <>
+                    <span className={styles.docTypeBullet} aria-hidden>
+                      •
+                    </span>
+                    Cohort {cohort}
+                  </>
+                ) : null}
+              </p>
               <SocialLinks
                 className={styles.socials}
                 flipped={flipped}
@@ -405,17 +415,12 @@ export function MemberIdCard({
                   </Link>
                 ) : null}
 
-                {memberSince || cohort != null ? (
+                {memberSince ? (
                   <div className={styles.footer}>
-                    {memberSince ? (
-                      <div className={styles.since}>
-                        <p className={styles.sinceLabel}>Member since</p>
-                        <p className={styles.sinceValue}>{memberSince}</p>
-                      </div>
-                    ) : null}
-                    {cohort != null ? (
-                      <p className={styles.cohort}>COHORT {cohort}</p>
-                    ) : null}
+                    <div className={styles.since}>
+                      <p className={styles.sinceLabel}>Member since</p>
+                      <p className={styles.sinceValue}>{memberSince}</p>
+                    </div>
                   </div>
                 ) : null}
               </div>

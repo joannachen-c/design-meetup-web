@@ -88,9 +88,13 @@
   color: var(--color-subtle);
 }
 
+.docTypeBullet {
+  margin: 0 0.5em;
+}
+
 .masthead {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding-bottom: clamp(12px, 2.4vw, 16px);
@@ -319,15 +323,6 @@
 
 .since {
   min-width: 0;
-}
-
-.cohort {
-  margin: 0;
-  flex-shrink: 0;
-  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  color: var(--color-subtle);
 }
 
 .sinceLabel {

@@ -62,16 +62,17 @@ test("the card height follows its content so the signature lines up with member 
   assert.match(css, /\.sinceLabel\s*\{[^}]*white-space:\s*nowrap/s);
 });
 
-test("the cohort sits bottom right of member since in tracked caps", async () => {
+test("the cohort follows Member ID in the masthead after a bullet", async () => {
   const tsx = await read("src/components/portal/MemberIdCard.tsx");
   const css = await read("src/components/portal/MemberIdCard.module.css");
   const page = await read("app/portal/page.tsx");
-  assert.match(tsx, /className=\{styles\.cohort\}>COHORT \{cohort\}</);
-  assert.ok(tsx.indexOf("styles.since}") < tsx.indexOf("styles.cohort}"));
-  assert.match(css, /\.footer\s*\{[^}]*justify-content:\s*space-between/s);
-  assert.match(css, /\.footer\s*\{[^}]*align-items:\s*last baseline/s);
+  assert.match(
+    tsx,
+    /className=\{styles\.docType\}>\s*Member ID[\s\S]*?styles\.docTypeBullet[\s\S]*?•[\s\S]*?Cohort \{cohort\}[\s\S]*?<\/p>/,
+  );
+  assert.doesNotMatch(tsx, /styles\.cohort\b/);
+  assert.match(css, /\.masthead\s*\{[^}]*align-items:\s*center/s);
   assert.match(css, /\.footer\s*\{[^}]*margin-top:\s*auto/s);
-  assert.match(css, /\.cohort\s*\{[^}]*letter-spacing:\s*0\.16em/s);
   assert.match(page, /const cohort = cohortForEmail\(memberEmail\)/);
   assert.match(page, /cohort=\{cohort\}/);
 });

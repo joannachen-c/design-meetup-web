@@ -120,6 +120,11 @@ export function isDirectorySheetEmail(email: string) {
   return COMP_MEMBERSHIP_EMAILS.has(email.trim().toLowerCase());
 }
 
+/** Everyone on the comp whitelist: the directory sheet plus STRIPE_COMP_EMAILS. */
+export function compMembershipEmails(rawList = process.env.STRIPE_COMP_EMAILS) {
+  return [...new Set([...COMP_MEMBERSHIP_EMAILS, ...parseCompEmails(rawList)])];
+}
+
 export function isCompMembershipEmail(
   email: string,
   rawList = process.env.STRIPE_COMP_EMAILS,

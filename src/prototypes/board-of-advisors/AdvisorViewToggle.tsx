@@ -5,8 +5,8 @@ import { useLayoutEffect, useRef, useState } from "react";
 export type AdvisorView = "table" | "cards";
 
 export const ADVISOR_VIEWS: { value: AdvisorView; label: string }[] = [
-  { value: "table", label: "Table" },
   { value: "cards", label: "Cards" },
+  { value: "table", label: "Table" },
 ];
 
 function TableIcon() {
@@ -55,12 +55,12 @@ export function AdvisorViewToggle({
 
   return (
     <div
-      className="view-toggle shrink-0 rounded-full bg-surface-muted p-[3px]"
+      className="view-toggle shrink-0 rounded-full bg-transparent p-[3px]"
       role="group"
       aria-label="Advisor layout"
     >
       <span
-        className="view-toggle-thumb rounded-full bg-white"
+        className="view-toggle-thumb rounded-full bg-surface-muted"
         data-measured={thumb ? "" : undefined}
         aria-hidden="true"
         style={thumb ? { transform: `translateX(${thumb.x}px)`, width: thumb.width } : undefined}
@@ -73,7 +73,7 @@ export function AdvisorViewToggle({
             else optionRefs.current.delete(option.value);
           }}
           type="button"
-          className="view-toggle-option cursor-pointer rounded-full bg-transparent px-3 text-muted hover:text-ink aria-pressed:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="view-toggle-option cursor-pointer rounded-full bg-transparent px-3 text-subtle hover:text-ink aria-pressed:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           aria-pressed={view === option.value}
           aria-label={`${option.label} view`}
           title={`${option.label} view`}

@@ -31,7 +31,7 @@ function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
       aria-live="polite"
       aria-label="Selected advisor"
     >
-      <div className="mx-auto w-[min(100%,calc(clamp(184px,18vw,272px)*1.03))]">
+      <div>
         <AnimatePresence mode="wait" initial={false}>
           {advisor ? (
             <motion.div
@@ -41,22 +41,24 @@ function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
               exit={reduceMotion ? undefined : { opacity: 0 }}
               transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className={`${polaroidFrameClassName} ${polaroidPaddingClassName}`}>
+              <div
+                className={`${polaroidFrameClassName} ${polaroidPaddingClassName} mx-auto w-[min(100%,calc(clamp(184px,18vw,272px)*1.03))]`}
+              >
                 <Portrait
                   advisor={advisor}
                   className="aspect-[4/5] w-full rounded-[2px] text-6xl tracking-[-0.06em]"
                 />
               </div>
-              <div className="grid gap-1.5 pt-5">
+              <div className="grid gap-2 pt-[clamp(28px,2.8vw,44px)]">
                 <p className="m-0 text-balance text-[clamp(1.75rem,2.6vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.06em] text-ink">
                   {advisorFullName(advisor)}
                 </p>
-                <p className="m-0 text-sm leading-snug text-ink">{advisor.title}</p>
+                <p className="m-0 text-base leading-[1.7] text-ink">{advisor.title}</p>
                 <p className={`${monoCellClassName} m-0`}>
                   {[advisor.company, advisorLocationLabel(advisor)].filter(Boolean).join(" — ")}
                 </p>
                 {advisor.bio ? (
-                  <p className="m-0 pt-2 text-sm leading-[1.6] text-muted">{advisor.bio}</p>
+                  <p className="m-0 max-w-[62ch] pt-2 text-base leading-[1.7] text-ink">{advisor.bio}</p>
                 ) : null}
                 <SocialLinks advisor={advisor} className="-ml-1.5 pt-1" />
               </div>

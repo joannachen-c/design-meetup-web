@@ -11,11 +11,11 @@ import { ADVISOR_VIEWS, type AdvisorView } from "./AdvisorViewToggle";
 
 function readInitialView(): AdvisorView {
   const param = new URLSearchParams(window.location.search).get("view");
-  return ADVISOR_VIEWS.some((view) => view.value === param) ? (param as AdvisorView) : "table";
+  return ADVISOR_VIEWS.some((view) => view.value === param) ? (param as AdvisorView) : "cards";
 }
 
 function useAdvisorView() {
-  const [view, setView] = useState<AdvisorView>("table");
+  const [view, setView] = useState<AdvisorView>("cards");
 
   useEffect(() => {
     setView(readInitialView());

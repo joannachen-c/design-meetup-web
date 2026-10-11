@@ -17,6 +17,7 @@ import {
   ensureLocalProfile,
   getLocalMembership,
   getLocalProfile,
+  listLocalMemberships,
   listLocalStudentUserIds,
   readAvatarFile,
   saveAvatarFile,
@@ -534,6 +535,31 @@ export async function listStudentMemberIds() {
     return (data ?? []).map((row) => row.user_id as string);
   }
   return listLocalStudentUserIds();
+}
+
+/** Emails of everyone whose membership currently grants portal access. */
+export async function listMemberEmails() {
+  let rows: Array<{ status: string | null; email: string | null }>;
+  if (await supabaseMembershipTablesAvailable()) {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("memberships")
+      .select("status,profiles(email)");
+    // An empty list here would quietly stop approving everyone, so fail loudly.
+    if (error) throw new Error(`Could not load members: ${error.message}`);
+    rows = (data ?? []).map((row) => {
+      const profile = row.profiles as { email?: string | null } | { email?: string | null }[] | null;
+      return {
+        status: row.status as string | null,
+        email: (Array.isArray(profile) ? profile[0]?.email : profile?.email) ?? null,
+      };
+    });
+  } else {
+    rows = await listLocalMemberships();
+  }
+  return rows
+    .filter((row) => hasPortalAccess(normalizeMembershipStatus(row.status)))
+    .flatMap((row) => (row.email?.trim() ? [row.email.trim().toLowerCase()] : []));
 }
 
 /** Activate membership from a completed Checkout Session (works without webhooks). */

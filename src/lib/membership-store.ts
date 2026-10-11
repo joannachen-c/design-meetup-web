@@ -381,6 +381,15 @@ export async function listLocalStudentUserIds() {
     .map((membership) => membership.userId);
 }
 
+export async function listLocalMemberships() {
+  const store = await readStore();
+  return store.memberships.map((membership) => ({
+    status: membership.status,
+    email:
+      store.profiles.find((profile) => profile.id === membership.userId)?.email ?? null,
+  }));
+}
+
 export function upsertLocalMembership(input: {
   userId: string;
   tier: Tier;

@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import {
   compCouponId,
+  compMembershipEmails,
   isCompMembershipEmail,
   parseCompEmails,
   shouldApplyCompCoupon,
@@ -68,4 +69,13 @@ test("checkout looks up the coupon in the current Stripe mode and still collects
     comp,
     /docs.google.com\/spreadsheets\/d\/1fT3s72MVCAxb8gXrE6YXfBrMEHxTbL6jG8LQI8l5hlM/,
   );
+});
+
+test("the comp whitelist includes the directory sheet and STRIPE_COMP_EMAILS", () => {
+  const emails = compMembershipEmails(" Extra@Example.com, studio@liumichelle.com ");
+  assert.ok(emails.includes("extra@example.com"));
+  assert.ok(emails.includes("studio@liumichelle.com"));
+  assert.equal(new Set(emails).size, emails.length);
+  for (const email of emails) assert.equal(isCompMembershipEmail(email, "extra@example.com"), true);
+  assert.ok(!compMembershipEmails("").includes("extra@example.com"));
 });

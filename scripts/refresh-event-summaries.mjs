@@ -132,6 +132,13 @@ async function refreshLocalSummaries() {
   const refreshed = [];
 
   for (const event of events) {
+    // Partiful-only events have no Luma description to scrape; their summary
+    // in past-events.json is written by hand.
+    if (!/^https?:\/\/(?:www\.)?(?:luma\.com|lu\.ma)\//i.test(event.luma_url ?? "")) {
+      console.log(`Keeping ${event.title} (not on Luma)`);
+      refreshed.push(event);
+      continue;
+    }
     process.stdout.write(`Scraping ${event.title}... `);
     const { summary, summary_html } = await scrapeDescription(
       event.luma_url,

@@ -32,7 +32,7 @@ export function AdvisorsDirectory({
           Board of Advisors
         </h2>
         <p className="m-0 mt-5 max-w-[54ch] text-pretty text-base leading-[1.6] text-ink">
-          The mentors, speakers, and collaborators who shape Design Meetup.
+          The mentors, speakers, and collaborators who shape our Design Meetup community.
         </p>
       </ScrollReveal>
       <ScrollReveal delay={60}>

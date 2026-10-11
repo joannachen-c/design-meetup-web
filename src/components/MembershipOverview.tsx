@@ -37,14 +37,17 @@ export function MembershipOverview() {
           </div>
         ))}
       </dl>
-      <ul className="m-0 grid list-none gap-2 rounded-[20px] bg-surface-muted p-5">
+      <ul className="m-0 grid list-none gap-3 rounded-[20px] bg-surface-muted p-5">
         {(Object.keys(TIER_CATALOG) as Tier[]).map((tier) => (
-          <li key={tier} className="flex flex-wrap items-baseline justify-between gap-x-4">
-            <span>
-              <span className="font-bold">{TIER_CATALOG[tier].name}</span>
-              <span className="text-muted"> · {PLAN_AUDIENCE[tier]}</span>
+          <li
+            key={tier}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4"
+          >
+            <span className="font-bold">{TIER_CATALOG[tier].name}</span>
+            <span className="whitespace-nowrap font-bold">
+              {TIER_CATALOG[tier].priceLabel}
             </span>
-            <span className="text-muted">{TIER_CATALOG[tier].priceLabel}</span>
+            <span className="col-span-2 text-muted">{PLAN_AUDIENCE[tier]}</span>
           </li>
         ))}
       </ul>

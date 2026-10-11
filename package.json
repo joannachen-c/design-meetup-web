@@ -13,6 +13,7 @@
     "upload:gallery": "node scripts/upload-event-gallery.mjs",
     "refresh:summaries": "node scripts/refresh-event-summaries.mjs",
     "sync:luma": "node scripts/sync-luma-events.mjs",
+    "luma:webhook": "node --experimental-strip-types scripts/register-luma-webhook.mjs",
     "seed:sponsors": "node scripts/seed-sponsors.mjs",
     "trim:sponsor-logos": "node scripts/trim-sponsor-logos.mjs",
     "upload:sponsor-logos": "node scripts/upload-sponsor-logos.mjs",

@@ -1,5 +1,7 @@
 import { createAdminClient } from "./auth";
 import { supabaseAuthConfigured } from "./auth-session";
+import { boardOfAdvisorsEmails } from "./board-of-advisors";
+import { cohortEmails } from "./cohort";
 import { hasGraduated, persistGraduation } from "./graduation";
 import {
   displayNameFromEmail,
@@ -537,8 +539,22 @@ export async function listStudentMemberIds() {
   return listLocalStudentUserIds();
 }
 
-/** Emails of everyone whose membership currently grants portal access. */
+/**
+ * Everyone who counts as a Design Meetup member: paying members with portal
+ * access, both founding cohorts, and the Board of Advisors. The last two are
+ * members whether or not they have made a portal account.
+ */
 export async function listMemberEmails() {
+  const emails = new Set([
+    ...(await listPortalMemberEmails()),
+    ...cohortEmails(),
+    ...boardOfAdvisorsEmails(),
+  ]);
+  emails.delete(DEMO_EMAIL);
+  return [...emails];
+}
+
+async function listPortalMemberEmails() {
   let rows: Array<{ status: string | null; email: string | null }>;
   if (await supabaseMembershipTablesAvailable()) {
     const admin = createAdminClient();

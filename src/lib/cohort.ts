@@ -1,7 +1,7 @@
 /** Server-only. Which founding cohort a member's email belongs to. */
 
-import { isDirectorySheetEmail } from "./comp-membership.ts";
-import { isApprovedSignupEmail } from "./signup-allowlist.ts";
+import { directorySheetEmails, isDirectorySheetEmail } from "./comp-membership.ts";
+import { approvedSignupEmails, isApprovedSignupEmail } from "./signup-allowlist.ts";
 
 export type Cohort = 0 | 1;
 
@@ -22,4 +22,9 @@ export function cohortForEmail(email: string | null | undefined): Cohort | null 
   if (isDirectorySheetEmail(normalized)) return 0;
   if (isApprovedSignupEmail(normalized)) return 1;
   return null;
+}
+
+/** Everyone in cohort 0 or 1, whether or not they have made a portal account yet. */
+export function cohortEmails() {
+  return [...new Set([...directorySheetEmails(), ...approvedSignupEmails()])];
 }

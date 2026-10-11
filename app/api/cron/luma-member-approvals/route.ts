@@ -4,6 +4,7 @@ import {
   createLumaClient,
   lumaApiKey,
   memberEmailSet,
+  tagMembers,
 } from "@/lib/luma-member-approvals";
 import { listMemberEmails } from "@/lib/membership-service";
 import {
@@ -38,15 +39,14 @@ async function handle(request: Request) {
         { status: 503 },
       );
     }
-    const summary = await approvePendingMembers({
-      client: createLumaClient({ apiKey }),
-      memberEmails,
-      dryRun,
-    });
+    const client = createLumaClient({ apiKey });
+    const summary = await approvePendingMembers({ client, memberEmails, dryRun });
+    const tagged = dryRun ? null : await tagMembers({ client, memberEmails });
     return NextResponse.json({
       ok: summary.failed === 0,
       dryRun,
       members: memberEmails.size,
+      tagged,
       pending: summary.pending,
       approved: summary.approved,
       failed: summary.failed,

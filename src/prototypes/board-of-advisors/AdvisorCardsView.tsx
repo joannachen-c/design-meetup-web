@@ -15,6 +15,8 @@ import {
   advisorLocationLabel,
   monoCellClassName,
   monoLabelClassName,
+  polaroidFrameClassName,
+  polaroidPaddingClassName,
 } from "./directory-ui";
 
 const POLAROID_TILTS = [-1.2, 0.8, -0.5, 1.1, -0.9, 0.4];
@@ -42,7 +44,7 @@ function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
       }}
     >
       <div
-        className="rounded-[4px] bg-white p-[clamp(6px,0.7vw,10px)] pb-[clamp(10px,1.2vw,16px)] shadow-[0_1px_2px_rgba(15,23,42,0.06),0_8px_24px_rgba(15,23,42,0.08)] transition-[transform,box-shadow] duration-200 ease-out [transform:rotate(var(--tilt))] group-hover:shadow-[0_2px_4px_rgba(15,23,42,0.06),0_14px_32px_rgba(15,23,42,0.12)] group-hover:[transform:rotate(0deg)] motion-reduce:transition-none motion-reduce:[transform:none]"
+        className={`${polaroidFrameClassName} ${polaroidPaddingClassName} transition-[transform,box-shadow] duration-200 ease-out [transform:rotate(var(--tilt))] group-hover:shadow-[0_2px_4px_rgba(15,23,42,0.06),0_14px_32px_rgba(15,23,42,0.12)] group-hover:[transform:rotate(0deg)] motion-reduce:transition-none motion-reduce:[transform:none]`}
         style={{ "--tilt": `${polaroidTilt(advisor.slug)}deg` } as CSSProperties}
       >
         <Portrait
@@ -57,20 +59,23 @@ function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
           </span>
         ) : (
           <a
-            className="inline-flex items-start gap-1 text-[15px] font-bold leading-tight tracking-[-0.01em] text-ink no-underline after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-ink"
+            className="inline-flex items-center gap-1 text-[15px] font-bold leading-tight tracking-[-0.01em] text-ink no-underline after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-ink"
             href={advisor.href}
             target="_blank"
             rel="noreferrer"
           >
             <span className="min-w-0">{advisorFullName(advisor)}</span>
-            <ArrowUpRightIcon className="mt-0.5 size-3 shrink-0 text-subtle opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 motion-reduce:transition-none" />
+            <ArrowUpRightIcon className="size-3 shrink-0 text-subtle opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 motion-reduce:transition-none" />
           </a>
         )}
         <div className="truncate text-[13px] leading-snug text-muted" title={advisor.title}>
           {advisor.title}
         </div>
         <div className="flex flex-col items-start min-[520px]:flex-row min-[520px]:items-center min-[520px]:justify-between min-[520px]:gap-2">
-          <div className={`${monoCellClassName} w-full min-w-0 truncate text-ink min-[520px]:w-auto`}>
+          <div
+            className={`${monoCellClassName} w-full min-w-0 truncate text-ink min-[520px]:w-auto`}
+            title={[advisor.company, advisorLocationLabel(advisor)].filter(Boolean).join(" · ")}
+          >
             {advisor.company}
             {advisor.locations.length > 0 ? (
               <span className="text-subtle">

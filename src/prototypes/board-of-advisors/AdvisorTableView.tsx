@@ -15,6 +15,8 @@ import {
   advisorLocationLabel,
   monoCellClassName,
   monoLabelClassName,
+  polaroidFrameClassName,
+  polaroidPaddingClassName,
 } from "./directory-ui";
 
 const rowGridClassName =
@@ -29,7 +31,7 @@ function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
       aria-live="polite"
       aria-label="Selected advisor"
     >
-      <div>
+      <div className="mx-auto w-[min(100%,calc(clamp(184px,18vw,272px)*1.03))]">
         <AnimatePresence mode="wait" initial={false}>
           {advisor ? (
             <motion.div
@@ -39,12 +41,14 @@ function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
               exit={reduceMotion ? undefined : { opacity: 0 }}
               transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Portrait
-                advisor={advisor}
-                className="aspect-[4/5] w-full rounded-[3px] text-6xl tracking-[-0.06em]"
-              />
-              <div className="grid gap-1.5 pt-4">
-                <p className="m-0 text-lg font-bold leading-tight tracking-[-0.02em] text-ink">
+              <div className={`${polaroidFrameClassName} ${polaroidPaddingClassName}`}>
+                <Portrait
+                  advisor={advisor}
+                  className="aspect-[4/5] w-full rounded-[2px] text-6xl tracking-[-0.06em]"
+                />
+              </div>
+              <div className="grid gap-1.5 pt-5">
+                <p className="m-0 text-balance text-[clamp(1.75rem,2.6vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.06em] text-ink">
                   {advisorFullName(advisor)}
                 </p>
                 <p className="m-0 text-sm leading-snug text-ink">{advisor.title}</p>
@@ -85,7 +89,9 @@ function TableRow({
       onClick={onActivate}
       data-active={active ? "" : undefined}
     >
-      <Portrait advisor={advisor} className="size-10 rounded-[3px] text-xs" />
+      <span className="flex w-10 rounded-[3px] bg-white p-[2px] pb-[3px] shadow-[0_1px_2px_rgba(15,23,42,0.08),0_3px_8px_rgba(15,23,42,0.08)]">
+        <Portrait advisor={advisor} className="aspect-[4/5] w-full rounded-[1px] text-[10px]" />
+      </span>
       {advisor.href === "#" ? (
         <span className="min-w-0 truncate text-base font-bold leading-tight text-ink">
           {advisorFullName(advisor)}

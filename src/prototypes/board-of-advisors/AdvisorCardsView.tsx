@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { CSSProperties } from "react";
 
 import { ArrowUpRightIcon } from "@/components/icons/ArrowUpRightIcon";
 import type { AdvisorSort } from "@/lib/advisor-directory";
@@ -15,6 +16,14 @@ import {
   monoCellClassName,
   monoLabelClassName,
 } from "./directory-ui";
+
+const POLAROID_TILTS = [-1.2, 0.8, -0.5, 1.1, -0.9, 0.4];
+
+function polaroidTilt(slug: string) {
+  let hash = 0;
+  for (const char of slug) hash = (hash * 31 + char.charCodeAt(0)) | 0;
+  return POLAROID_TILTS[Math.abs(hash) % POLAROID_TILTS.length];
+}
 
 function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
   const reduceMotion = useReducedMotion();
@@ -32,11 +41,16 @@ function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
         ease: [0.22, 1, 0.36, 1],
       }}
     >
-      <Portrait
-        advisor={advisor}
-        className="aspect-[4/5] w-full rounded-[3px] text-4xl tracking-[-0.06em] transition-[filter] duration-200 ease-out group-hover:grayscale-0 motion-reduce:transition-none"
-      />
-      <div className="flex flex-1 flex-col gap-0.5 pt-3">
+      <div
+        className="rounded-[4px] bg-white p-[clamp(6px,0.7vw,10px)] pb-[clamp(10px,1.2vw,16px)] shadow-[0_1px_2px_rgba(15,23,42,0.06),0_8px_24px_rgba(15,23,42,0.08)] transition-[transform,box-shadow] duration-200 ease-out [transform:rotate(var(--tilt))] group-hover:shadow-[0_2px_4px_rgba(15,23,42,0.06),0_14px_32px_rgba(15,23,42,0.12)] group-hover:[transform:rotate(0deg)] motion-reduce:transition-none motion-reduce:[transform:none]"
+        style={{ "--tilt": `${polaroidTilt(advisor.slug)}deg` } as CSSProperties}
+      >
+        <Portrait
+          advisor={advisor}
+          className="aspect-[4/5] w-full rounded-[2px] text-4xl tracking-[-0.06em] transition-[filter] duration-200 ease-out group-hover:grayscale-0 motion-reduce:transition-none"
+        />
+      </div>
+      <div className="flex flex-1 flex-col gap-0.5 px-1 pt-4">
         {advisor.href === "#" ? (
           <span className="text-[15px] font-bold leading-tight tracking-[-0.01em] text-ink">
             {advisorFullName(advisor)}
@@ -99,7 +113,7 @@ export function AdvisorCardsView({
         <AdvisorEmptyState />
       ) : (
         <ul
-          className="m-0 grid list-none grid-cols-2 gap-x-4 gap-y-10 p-0 min-[520px]:grid-cols-3 min-[820px]:grid-cols-4 min-[1024px]:grid-cols-5 min-[1024px]:gap-x-5 min-[1280px]:grid-cols-6"
+          className="m-0 grid list-none grid-cols-2 gap-x-5 gap-y-12 p-0 min-[640px]:grid-cols-3 min-[1024px]:grid-cols-4 min-[1024px]:gap-x-8 min-[1024px]:gap-y-14 min-[1440px]:grid-cols-5"
           aria-label="Board of Advisors cards"
         >
           <AnimatePresence mode="popLayout">

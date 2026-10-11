@@ -1036,13 +1036,9 @@ test("sponsors render as chips beside the other event metadata", () => {
     app,
     /<ul[^>]*className="[^"]*\bdetail-chips\b[^"]*"[\s\S]*sponsors\.map\(\(sponsor\)[\s\S]*sponsor\.name[\s\S]*<Chip>\{chipContent\}<\/Chip>[\s\S]*<\/ul>/,
   );
-  assert.match(app, /Sponsor slot open/);
+  assert.doesNotMatch(app, /Sponsor slot open/);
   assert.doesNotMatch(app, /className="detail-sponsors"/);
   assert.doesNotMatch(app, /event-sponsors-title/);
-  assert.match(
-    app,
-    /<Chip className="sponsor-placeholder" variant="outline">/,
-  );
   assert.doesNotMatch(app, hasClass("sponsor-list"));
   assert.doesNotMatch(css, /\.sponsor-list\b/);
 });

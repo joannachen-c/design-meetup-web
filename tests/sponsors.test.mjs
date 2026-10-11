@@ -97,7 +97,7 @@ test("event fetch joins ordered sponsors and frontend renders logos or names", (
   assert.match(app, /selectedEvent\?\.event_sponsors/);
   assert.match(app, /sponsor\.logo_url/);
   assert.match(app, /className=\{`[^`]*\bsponsor-logo\b/);
-  assert.match(app, /className="[^"]*\bsponsor-placeholder\b[^"]*"/);
+  assert.doesNotMatch(app, /Sponsor slot open/);
 });
 
 test("the Phia event remains stored but is hidden from the site", () => {

@@ -111,6 +111,10 @@ export function parseCompEmails(raw: string | undefined | null) {
   );
 }
 
+export function directorySheetEmails() {
+  return [...COMP_MEMBERSHIP_EMAILS];
+}
+
 export function isDirectorySheetEmail(email: string) {
   return COMP_MEMBERSHIP_EMAILS.has(email.trim().toLowerCase());
 }

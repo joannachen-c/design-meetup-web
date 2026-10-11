@@ -226,7 +226,59 @@ export function createLumaClient({
         body: { event_id: eventId, guest_id: guestId, status: "approved" },
       });
     },
+
+    async ensureContactTag(name: string) {
+      const tags = await paginate<{ id?: string; api_id?: string; name?: string }>(
+        "/v1/calendars/contact-tags/list",
+        {},
+      );
+      const existing = tags.find((tag) => tag.name === name);
+      const existingId = existing?.id ?? existing?.api_id;
+      if (existingId) return existingId;
+      const created = await request<{ id: string }>("/v1/calendars/contact-tags/create", {
+        method: "POST",
+        body: { name, color: "green" },
+      });
+      return created.id;
+    },
+
+    async applyContactTag(tagId: string, emails: string[]) {
+      return request<{ applied_count?: number; skipped_count?: number }>(
+        "/v1/calendars/contact-tags/apply",
+        { method: "POST", body: { tag: tagId, emails } },
+      );
+    },
   };
+}
+
+export const LUMA_MEMBER_TAG = "Member";
+
+/**
+ * Tag every member who is already a contact on the calendar so hosts can
+ * filter guest lists by membership in Luma. Luma skips emails it has never
+ * seen; they pick up the tag on a later run once they RSVP or subscribe.
+ */
+export async function tagMembers({
+  client,
+  memberEmails,
+  tagName = LUMA_MEMBER_TAG,
+  batchSize = 50,
+}: {
+  client: LumaClient;
+  memberEmails: Set<string>;
+  tagName?: string;
+  batchSize?: number;
+}) {
+  const tagId = await client.ensureContactTag(tagName);
+  const emails = [...memberEmails];
+  let applied = 0;
+  let skipped = 0;
+  for (let start = 0; start < emails.length; start += batchSize) {
+    const result = await client.applyContactTag(tagId, emails.slice(start, start + batchSize));
+    applied += result.applied_count ?? 0;
+    skipped += result.skipped_count ?? 0;
+  }
+  return { tagId, applied, skipped };
 }
 
 type LumaEventSummary = {

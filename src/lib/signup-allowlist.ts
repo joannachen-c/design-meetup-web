@@ -161,6 +161,10 @@ const APPROVED_SIGNUP_EMAILS = new Set<string>([
 ]);
 
 /** Comped members are always approved, so the comp list never needs a duplicate entry here. */
+export function approvedSignupEmails() {
+  return [...APPROVED_SIGNUP_EMAILS];
+}
+
 export function isApprovedSignupEmail(email: string) {
   return (
     APPROVED_SIGNUP_EMAILS.has(email.trim().toLowerCase()) ||

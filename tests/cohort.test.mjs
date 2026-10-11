@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { COHORT_1_JOINED_AT, cohortForEmail, cohortJoinedAt } from "../src/lib/cohort.ts";
+import {
+  COHORT_1_JOINED_AT,
+  cohortEmails,
+  cohortForEmail,
+  cohortJoinedAt,
+} from "../src/lib/cohort.ts";
 import { memberSinceLabel } from "../src/lib/slack-join-dates.ts";
 
 test("the member directory sheet is cohort 0", () => {
@@ -34,4 +39,12 @@ test("cohort 0 members are members since Mar 2026", () => {
 
 test("members outside both cohorts have no hardcoded join date", () => {
   assert.equal(cohortJoinedAt(null), null);
+});
+
+test("cohortEmails lists both cohorts once, each with a cohort", () => {
+  const emails = cohortEmails();
+  assert.equal(new Set(emails).size, emails.length);
+  assert.ok(emails.includes("studio@liumichelle.com"));
+  assert.ok(emails.includes("angelinawwu@ucla.edu"));
+  for (const email of emails) assert.notEqual(cohortForEmail(email), null, email);
 });

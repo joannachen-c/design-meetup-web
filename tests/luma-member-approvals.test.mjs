@@ -11,6 +11,7 @@ import {
   lumaWebhookUrl,
   memberEmailSet,
   membersToApprove,
+  tagMembers,
 } from "../src/lib/luma-member-approvals.ts";
 
 const NOW = new Date("2026-10-11T12:00:00.000Z");
@@ -230,4 +231,46 @@ test("luma:webhook script is wired up and the API key stays out of the repo", as
   assert.match(pkg.scripts["luma:webhook"], /scripts\/register-luma-webhook\.mjs/);
   const envExample = await readFile(new URL("../.env.example", import.meta.url), "utf8");
   assert.match(envExample, /^LUMA_API_KEY=$/m);
+});
+
+test("members are tagged in batches, reusing the Member tag when it exists", async () => {
+  for (const existing of [true, false]) {
+    const calls = [];
+    const fetchImpl = async (input, init = {}) => {
+      const url = new URL(String(input));
+      const body = init.body ? JSON.parse(init.body) : null;
+      calls.push({ path: url.pathname, body });
+      if (url.pathname === "/v1/calendars/contact-tags/list") {
+        return json({
+          entries: [
+            { id: "tag-other", name: "Event Submitter" },
+            ...(existing ? [{ id: "tag-member", name: "Member" }] : []),
+          ],
+          has_more: false,
+        });
+      }
+      if (url.pathname === "/v1/calendars/contact-tags/create") return json({ id: "tag-new" });
+      if (url.pathname === "/v1/calendars/contact-tags/apply") {
+        return json({ applied_count: body.emails.length - 1, skipped_count: 1 });
+      }
+      return json({ message: "Not found." }, 404);
+    };
+    const result = await tagMembers({
+      client: createLumaClient({ apiKey: "secret-test", fetchImpl }),
+      memberEmails: memberEmailSet(["a@x.com", "b@x.com", "c@x.com", "d@x.com", "e@x.com"]),
+      batchSize: 2,
+    });
+    const tagId = existing ? "tag-member" : "tag-new";
+    assert.deepEqual(result, { tagId, applied: 2, skipped: 3 });
+    assert.equal(calls.some((call) => call.path.endsWith("/create")), !existing);
+    const applies = calls.filter((call) => call.path.endsWith("/apply"));
+    assert.deepEqual(
+      applies.map((call) => call.body),
+      [
+        { tag: tagId, emails: ["a@x.com", "b@x.com"] },
+        { tag: tagId, emails: ["c@x.com", "d@x.com"] },
+        { tag: tagId, emails: ["e@x.com"] },
+      ],
+    );
+  }
 });

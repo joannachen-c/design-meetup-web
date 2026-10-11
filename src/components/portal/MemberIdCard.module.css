@@ -189,7 +189,7 @@
   background: rgb(255 255 255 / 0.78);
   backdrop-filter: blur(2px);
   color: var(--color-ink);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   line-height: 1;
   text-align: center;
@@ -220,7 +220,7 @@
   max-width: 100%;
   overflow: hidden;
   font-family: "Handflair", cursive;
-  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-size: clamp(1.5rem, 4.3vw, 2.15rem);
   line-height: 1.1;
   white-space: nowrap;
   color: var(--color-ink);
@@ -228,7 +228,7 @@
 
 .uploadError {
   margin: 2px 0 0;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   line-height: 1.3;
   text-align: center;
   color: var(--color-red-700, #b91c1c);
@@ -244,7 +244,7 @@
 
 .name {
   margin: 0;
-  font-size: clamp(1.15rem, 3vw, 1.45rem);
+  font-size: clamp(1.25rem, 3.2vw, 1.6rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -253,7 +253,7 @@
 
 .role {
   margin: 0;
-  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+  font-size: clamp(0.92rem, 2.4vw, 1.05rem);
   overflow-wrap: break-word;
 }
 
@@ -263,7 +263,7 @@
   gap: 6px;
   width: fit-content;
   max-width: 100%;
-  font-size: clamp(0.82rem, 2.1vw, 0.92rem);
+  font-size: clamp(0.88rem, 2.3vw, 1rem);
   font-weight: 700;
   color: var(--color-subtle);
   text-decoration: none;
@@ -298,7 +298,7 @@
   gap: 8px;
   min-width: 0;
   overflow-wrap: break-word;
-  font-size: clamp(0.82rem, 2.1vw, 0.92rem);
+  font-size: clamp(0.88rem, 2.3vw, 1rem);
   font-weight: 400;
   color: var(--color-muted);
 }
@@ -324,7 +324,7 @@
 .cohort {
   margin: 0;
   flex-shrink: 0;
-  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+  font-size: clamp(0.92rem, 2.4vw, 1.05rem);
   font-weight: 700;
   letter-spacing: 0.16em;
   color: var(--color-subtle);
@@ -332,7 +332,7 @@
 
 .sinceLabel {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: 0.76rem;
   font-weight: 400;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -342,7 +342,7 @@
 
 .sinceValue {
   margin: 2px 0 0;
-  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+  font-size: clamp(0.92rem, 2.4vw, 1.05rem);
   font-weight: 400;
   color: var(--color-muted);
 }
@@ -350,7 +350,7 @@
 .hint {
   width: fit-content;
   margin-top: 6px;
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   font-weight: 700;
   color: var(--color-subtle);
   text-decoration: underline;

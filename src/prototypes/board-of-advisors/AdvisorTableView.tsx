@@ -20,7 +20,7 @@ import {
 } from "./directory-ui";
 
 const rowGridClassName =
-  "grid grid-cols-[40px_minmax(0,1fr)] gap-x-3 min-[1024px]:grid-cols-[40px_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_96px_88px] min-[1024px]:gap-x-5";
+  "grid grid-cols-[40px_minmax(0,1fr)] gap-x-3 min-[1024px]:grid-cols-[40px_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_88px] min-[1024px]:gap-x-5";
 
 function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
   const reduceMotion = useReducedMotion();
@@ -119,9 +119,6 @@ function TableRow({
       >
         {advisor.company}
       </span>
-      <span className={`${monoCellClassName} col-start-2 text-ink min-[1024px]:col-start-auto`}>
-        {advisorLocationLabel(advisor)}
-      </span>
       <SocialLinks
         advisor={advisor}
         className="col-start-2 -ml-1.5 min-[1024px]:col-start-auto min-[1024px]:ml-0 min-[1024px]:justify-end"
@@ -165,9 +162,6 @@ export function AdvisorTableView({
           </span>
           <span className="hidden min-[1024px]:block">
             <SortHeader label="Company" sortKey="company" sort={sort} onSort={onSort} />
-          </span>
-          <span className={`${monoLabelClassName} hidden py-1 text-muted min-[1024px]:block`}>
-            Location
           </span>
           <span className={`${monoLabelClassName} hidden py-1 text-right text-muted min-[1024px]:block`}>
             Links

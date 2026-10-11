@@ -54,6 +54,7 @@ import {
 import {
   LUMA_CALENDAR_EMBED_SRC,
   LUMA_PROFILE_URL,
+  eventPlatformName,
   type LumaEvent,
 } from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
@@ -788,6 +789,7 @@ export default function HomePage({
     selectedEvent?.summary?.split(/\n{2,}/).filter(Boolean) ?? [];
   const summaryHtml = selectedEvent?.summary_html?.trim() ?? "";
   const detailLumaUrl = selectedEvent?.luma_url ?? null;
+  const detailPlatform = detailLumaUrl ? eventPlatformName(detailLumaUrl) : "Luma";
   // The frame paints the same whether or not it is the button that opens the
   // event, so both spellings of the cover share one set of classes.
   const detailCoverImage = selectedEvent ? (
@@ -1682,7 +1684,7 @@ export default function HomePage({
                             className={`event-card cursor-pointer rounded-lg border-0 bg-white p-0 text-left text-[oklch(98%_0.008_240)] shadow-[0_3px_10px_rgba(0,0,0,0.12)] outline-none focus:shadow-[0_12px_28px_rgba(0,0,0,0.18)] focus-visible:brightness-[0.88] focus-visible:shadow-[0_12px_28px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_30px_rgba(0,0,0,0.14)] aria-pressed:shadow-[0_12px_28px_rgba(0,0,0,0.18)]${centerHovered ? " is-center-hovered" : ""}`}
                             aria-label={
                               selected && item.luma_url
-                                ? `Open ${item.title} on Luma`
+                                ? `Open ${item.title} on ${eventPlatformName(item.luma_url)}`
                                 : `View details for ${item.title}`
                             }
                             aria-pressed={selected}
@@ -1769,7 +1771,7 @@ export default function HomePage({
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              View on Luma
+                              View on {eventPlatformName(item.luma_url)}
                               <ArrowUpRightIcon />
                             </Link>
                           ) : null}
@@ -1841,7 +1843,7 @@ export default function HomePage({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      View on Luma
+                      View on {detailPlatform}
                       <ArrowUpRightIcon />
                     </Link>
                   ) : null}
@@ -1945,7 +1947,7 @@ export default function HomePage({
                     <button
                       className={`${DETAIL_COVER_FRAME} cursor-pointer appearance-none border-0 p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
                       type="button"
-                      aria-label={`Open ${selectedEvent.title} on Luma`}
+                      aria-label={`Open ${selectedEvent.title} on ${detailPlatform}`}
                       onClick={() => openLuma(detailLumaUrl)}
                     >
                       {detailCoverImage}
@@ -1965,7 +1967,7 @@ export default function HomePage({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      View on Luma
+                      View on {detailPlatform}
                       <ArrowUpRightIcon />
                     </Link>
                   ) : null}

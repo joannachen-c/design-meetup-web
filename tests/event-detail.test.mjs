@@ -1442,23 +1442,23 @@ test("View on Luma sits under the cover rather than in the facts", () => {
   // destination, so they cannot be a dead caption.
   assert.match(
     app,
-    /aria-label=\{`Open \$\{selectedEvent\.title\} on Luma`\}/,
+    /aria-label=\{`Open \$\{selectedEvent\.title\} on \$\{detailPlatform\}`\}/,
   );
   assert.match(app, /onClick=\{\(\) => openLuma\(detailLumaUrl\)\}/);
   assert.match(
     app,
-    /<Link\s+className="cover-luma-hint[^"]*"\s+href=\{detailLumaUrl\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>/,
+    /<Link\s+className="cover-luma-hint[^"]*"\s+href=\{detailLumaUrl\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*View on \{(?:detailPlatform|eventPlatformName\(item\.luma_url\))\}\s*<ArrowUpRightIcon \/>/,
   );
   assert.doesNotMatch(
     app,
-    /<Link[^>]*href=\{selectedEvent\.luma_url\}[^>]*>[\s\S]*View on Luma/,
+    /<Link[^>]*href=\{selectedEvent\.luma_url\}[^>]*>[\s\S]*View on \{(?:detailPlatform|eventPlatformName\(item\.luma_url\))\}/,
   );
   assert.doesNotMatch(app, /<Chip[^>]*href=\{selectedEvent\.luma_url\}/);
   assert.doesNotMatch(
     app,
-    /<Primary[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*>[\s\S]*View on Luma/,
+    /<Primary[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*>[\s\S]*View on \{(?:detailPlatform|eventPlatformName\(item\.luma_url\))\}/,
   );
-  assert.doesNotMatch(app, /detail-facts[\s\S]*View on Luma/);
+  assert.doesNotMatch(app, /detail-facts[\s\S]*View on \{(?:detailPlatform|eventPlatformName\(item\.luma_url\))\}/);
 });
 
 test("grid view stacks detail as date, title, then city", () => {
@@ -1512,32 +1512,32 @@ test("carousel view also stacks date above the event name", () => {
 test("View on Luma is a link rather than a pill", () => {
   assert.match(
     app,
-    /aria-label=\{`Open \$\{selectedEvent\.title\} on Luma`\}/,
+    /aria-label=\{`Open \$\{selectedEvent\.title\} on \$\{detailPlatform\}`\}/,
   );
   assert.match(app, /onClick=\{\(\) => openLuma\(detailLumaUrl\)\}/);
   assert.match(
     app,
-    /<Link\s+className="cover-luma-hint[^"]*"\s+href=\{detailLumaUrl\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>/,
+    /<Link\s+className="cover-luma-hint[^"]*"\s+href=\{detailLumaUrl\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*View on \{(?:detailPlatform|eventPlatformName\(item\.luma_url\))\}\s*<ArrowUpRightIcon \/>/,
   );
   // The rail's focused cover carries the same pair.
   assert.match(
     app,
-    /<Link\s+className="cover-luma-hint[^"]*"\s+href=\{item\.luma_url\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*View on Luma\s*<ArrowUpRightIcon \/>/,
+    /<Link\s+className="cover-luma-hint[^"]*"\s+href=\{item\.luma_url\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*View on \{(?:detailPlatform|eventPlatformName\(item\.luma_url\))\}\s*<ArrowUpRightIcon \/>/,
   );
   // Nothing that says "View on Luma" is decorative any more.
   assert.doesNotMatch(app, /className="cover-luma-hint[^"]*"\s*aria-hidden/);
   assert.doesNotMatch(
     app,
-    /<Link[^>]*href=\{selectedEvent\.luma_url\}[^>]*>[\s\S]*View on Luma/,
+    /<Link[^>]*href=\{selectedEvent\.luma_url\}[^>]*>[\s\S]*View on \{(?:detailPlatform|eventPlatformName\(item\.luma_url\))\}/,
   );
   assert.doesNotMatch(app, /<Chip[^>]*href=\{selectedEvent\.luma_url\}/);
   assert.doesNotMatch(
     app,
-    /<Primary[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*>[\s\S]*View on Luma/,
+    /<Primary[\s\S]*href=\{selectedEvent\.luma_url\}[\s\S]*>[\s\S]*View on \{(?:detailPlatform|eventPlatformName\(item\.luma_url\))\}/,
   );
   assert.doesNotMatch(
     app,
-    /detail-facts[\s\S]*View on Luma/,
+    /detail-facts[\s\S]*View on \{(?:detailPlatform|eventPlatformName\(item\.luma_url\))\}/,
   );
   assert.match(
     app,
@@ -1546,7 +1546,7 @@ test("View on Luma is a link rather than a pill", () => {
   assert.match(app, /import \{ Chip \} from "\.\/Chip"/);
   assert.doesNotMatch(app, /<span aria-hidden="true">↗<\/span>/);
   // Once in the rail, once under the ticker, once under the grid detail cover.
-  assert.equal((app.match(/View on Luma/g) ?? []).length, 3);
+  assert.equal((app.match(/View on \{/g) ?? []).length, 3);
 });
 
 test("the phone View on Luma caption opens the event", () => {

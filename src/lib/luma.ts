@@ -21,6 +21,19 @@ export function withLumaInvite(url: string): string {
   return parsed.toString();
 }
 
+// Most events live on Luma, but a few co-hosted ones were only ever on Partiful.
+export function eventPlatformName(url: string): "Luma" | "Partiful" {
+  let host: string;
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return "Luma";
+  }
+  return host === "partiful.com" || host.endsWith(".partiful.com")
+    ? "Partiful"
+    : "Luma";
+}
+
 export function withLumaInviteInHtml(html: string): string {
   return html.replace(
     /href="(https?:\/\/(?:www\.)?(?:luma\.com|lu\.ma)\/[^"]*)"/gi,

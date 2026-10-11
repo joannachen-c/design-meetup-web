@@ -1,9 +1,7 @@
 "use client";
 
-import * as SelectPrimitive from "@radix-ui/react-select";
 import type { ReactNode } from "react";
 
-import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
 import { LinkedInIcon, XIcon } from "@/components/icons/SocialIcons";
 import type { AdvisorSort } from "@/lib/advisor-directory";
 
@@ -29,83 +27,6 @@ export function Portrait({ advisor, className }: { advisor: Advisor; className: 
     >
       {advisorInitials(advisor)}
     </span>
-  );
-}
-
-function HeaderSelect({
-  label,
-  value,
-  options,
-  onValueChange,
-}: {
-  label: string;
-  value: string;
-  options: { label: string; value: string }[];
-  onValueChange: (value: string) => void;
-}) {
-  const active = value !== "all";
-  const selectedLabel = options.find((option) => option.value === value)?.label;
-
-  return (
-    <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
-      <SelectPrimitive.Trigger
-        className={`${monoLabelClassName} group -ml-1.5 inline-flex max-w-[calc(100%+0.375rem)] cursor-pointer items-center gap-1 rounded-[6px] border-0 bg-transparent px-1.5 py-1 hover:bg-gray-200/70 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink data-[state=open]:bg-gray-200/70 ${active ? "text-ink" : "text-muted"}`}
-        aria-label={`Filter by ${label.toLowerCase()}`}
-      >
-        <span className="truncate">{active ? selectedLabel : label}</span>
-        <ChevronDownIcon className="size-3.5 shrink-0 transition-transform duration-150 ease-out group-data-[state=open]:-rotate-180 motion-reduce:transition-none" />
-      </SelectPrimitive.Trigger>
-      <SelectPrimitive.Portal>
-        <SelectPrimitive.Content
-          align="start"
-          className="select-menu z-50 max-h-[min(360px,var(--radix-select-content-available-height))] min-w-[200px] overflow-hidden rounded-[10px] bg-white p-1 font-['Alte_Haas_Grotesk',sans-serif] text-sm shadow-lg ring-1 ring-black/5"
-          position="popper"
-          sideOffset={6}
-        >
-          <SelectPrimitive.Viewport>
-            {options.map((option) => (
-              <SelectPrimitive.Item
-                className="flex min-h-9 cursor-pointer items-center justify-between gap-4 rounded-[7px] px-3 py-1.5 text-ink outline-none select-none data-[highlighted]:bg-surface-muted data-[state=checked]:font-bold"
-                key={option.value}
-                value={option.value}
-              >
-                <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
-              </SelectPrimitive.Item>
-            ))}
-          </SelectPrimitive.Viewport>
-        </SelectPrimitive.Content>
-      </SelectPrimitive.Portal>
-    </SelectPrimitive.Root>
-  );
-}
-
-export function LocationFilter() {
-  const { locationOptions, filters, setFilters } = useAdvisors();
-  return (
-    <HeaderSelect
-      label="Location"
-      value={filters.location}
-      options={[
-        { label: "All locations", value: "all" },
-        ...locationOptions.map((location) => ({ label: location, value: location })),
-      ]}
-      onValueChange={(value) => setFilters({ location: value })}
-    />
-  );
-}
-
-export function FieldFilter() {
-  const { fieldOptions, filters, setFilters } = useAdvisors();
-  return (
-    <HeaderSelect
-      label="Field"
-      value={filters.field}
-      options={[
-        { label: "All fields", value: "all" },
-        ...fieldOptions.map((field) => ({ label: field, value: field })),
-      ]}
-      onValueChange={(value) => setFilters({ field: value })}
-    />
   );
 }
 

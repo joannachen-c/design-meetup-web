@@ -8,8 +8,6 @@ import type { AdvisorSort } from "@/lib/advisor-directory";
 import { advisorFullName, type Advisor } from "./advisors";
 import {
   AdvisorEmptyState,
-  FieldFilter,
-  LocationFilter,
   Portrait,
   SocialLinks,
   SortHeader,
@@ -91,11 +89,6 @@ export function AdvisorCardsView({
           <span className={`${monoLabelClassName} text-subtle`}>Sort</span>
           <SortHeader label="Name" sortKey="name" sort={sort} onSort={onSort} />
           <SortHeader label="Company" sortKey="company" sort={sort} onSort={onSort} />
-        </span>
-        <span className="flex items-center gap-x-4">
-          <span className={`${monoLabelClassName} text-subtle`}>Filter</span>
-          <LocationFilter />
-          <FieldFilter />
         </span>
       </div>
 

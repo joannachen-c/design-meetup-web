@@ -6,6 +6,7 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { sortAdvisors, type AdvisorSort } from "@/lib/advisor-directory";
 
 import { AdvisorCardsView } from "./AdvisorCardsView";
+import { AdvisorFilterMenu } from "./AdvisorFilterMenu";
 import { AdvisorTableView } from "./AdvisorTableView";
 import { AdvisorViewToggle, type AdvisorView } from "./AdvisorViewToggle";
 import { useAdvisors } from "./AdvisorsProvider";
@@ -56,6 +57,7 @@ export function AdvisorsDirectory({
                 onChange={(event) => setFilters({ query: event.target.value })}
               />
             </label>
+            <AdvisorFilterMenu />
             <AdvisorViewToggle view={view} onChange={onViewChange} />
           </div>
         </div>

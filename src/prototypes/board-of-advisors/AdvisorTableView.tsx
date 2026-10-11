@@ -9,9 +9,7 @@ import type { AdvisorSort } from "@/lib/advisor-directory";
 import { advisorFullName, type Advisor } from "./advisors";
 import {
   AdvisorEmptyState,
-  FieldFilter,
   FieldTags,
-  LocationFilter,
   Portrait,
   SocialLinks,
   SortHeader,
@@ -163,13 +161,11 @@ export function AdvisorTableView({
           <span className="hidden min-[1024px]:block">
             <SortHeader label="Company" sortKey="company" sort={sort} onSort={onSort} />
           </span>
-          <span className="col-start-2 flex flex-wrap gap-x-3 min-[1024px]:contents">
-            <span className="min-w-0">
-              <LocationFilter />
-            </span>
-            <span className="min-w-0">
-              <FieldFilter />
-            </span>
+          <span className={`${monoLabelClassName} hidden py-1 text-muted min-[1024px]:block`}>
+            Location
+          </span>
+          <span className={`${monoLabelClassName} hidden py-1 text-muted min-[1024px]:block`}>
+            Field
           </span>
           <span className={`${monoLabelClassName} hidden py-1 text-right text-muted min-[1024px]:block`}>
             Links

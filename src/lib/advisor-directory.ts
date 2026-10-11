@@ -53,6 +53,7 @@ export type AdvisorFilters = {
   relationship: AdvisorRelationship | "all";
   field: string | "all";
   location: string | "all";
+  company: string | "all";
 };
 
 export type AdvisorSort = "default" | "name" | "company";
@@ -62,6 +63,7 @@ export const EMPTY_ADVISOR_FILTERS: AdvisorFilters = {
   relationship: "all",
   field: "all",
   location: "all",
+  company: "all",
 };
 
 export function isAdvisorRelationship(value: unknown): value is AdvisorRelationship {
@@ -125,6 +127,9 @@ export function filterAdvisors(advisors: Advisor[], filters: AdvisorFilters): Ad
     if (filters.location !== "all" && !advisor.locations.includes(filters.location)) {
       return false;
     }
+    if (filters.company !== "all" && advisor.company !== filters.company) {
+      return false;
+    }
     if (terms.length === 0) return true;
     const haystack = searchableText(advisor);
     return terms.every((term) => haystack.includes(term));
@@ -154,12 +159,22 @@ export function advisorLocationOptions(advisors: Advisor[]): string[] {
   return uniqueSorted(advisors.flatMap((advisor) => advisor.locations));
 }
 
+export function advisorCompanyOptions(advisors: Advisor[]): string[] {
+  return uniqueSorted(advisors.map((advisor) => advisor.company).filter(Boolean));
+}
+
+export function countAdvisorFacetFilters(filters: AdvisorFilters) {
+  const facets = [filters.location, filters.field, filters.company];
+  return facets.filter((value) => value !== "all").length;
+}
+
 export function hasActiveAdvisorFilters(filters: AdvisorFilters) {
   return (
     filters.query.trim() !== "" ||
     filters.relationship !== "all" ||
     filters.field !== "all" ||
-    filters.location !== "all"
+    filters.location !== "all" ||
+    filters.company !== "all"
   );
 }
 
@@ -170,6 +185,7 @@ export function advisorFiltersFromSearchParams(params: URLSearchParams): Advisor
     relationship: isAdvisorRelationship(relationship) ? relationship : "all",
     field: params.get("field") || "all",
     location: params.get("loc") || "all",
+    company: params.get("co") || "all",
   };
 }
 
@@ -182,6 +198,7 @@ export function writeAdvisorFiltersToSearchParams(
     ["rel", filters.relationship === "all" ? "" : filters.relationship],
     ["field", filters.field === "all" ? "" : filters.field],
     ["loc", filters.location === "all" ? "" : filters.location],
+    ["co", filters.company === "all" ? "" : filters.company],
   ];
   for (const [key, value] of entries) {
     if (value) params.set(key, value);

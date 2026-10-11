@@ -5,10 +5,12 @@ import test from "node:test";
 const {
   ADVISOR_RELATIONSHIPS,
   EMPTY_ADVISOR_FILTERS,
+  advisorCompanyOptions,
   advisorFieldOptions,
   advisorLocationOptions,
   advisorFiltersFromSearchParams,
   advisorFromRow,
+  countAdvisorFacetFilters,
   filterAdvisors,
   hasActiveAdvisorFilters,
   sortAdvisors,
@@ -118,10 +120,17 @@ test("relationship and field filters combine with search", () => {
   assert.deepEqual(filter({ location: "NYC" }), ["zoe-ardèche", "bo-chen"]);
   assert.deepEqual(filter({ location: "LA" }), ["zoe-ardèche"]);
   assert.deepEqual(filter({ location: "SF", field: "Brand" }), []);
+  assert.deepEqual(filter({ company: "Acme" }), ["bo-chen"]);
+  assert.deepEqual(filter({ company: "Brandworks", location: "LA" }), ["zoe-ardèche"]);
+  assert.deepEqual(filter({ company: "Acme", field: "Design Systems" }), []);
 });
 
 test("advisorLocationOptions returns unique sorted locations", () => {
   assert.deepEqual(advisorLocationOptions(advisors), ["LA", "NYC", "SF"]);
+});
+
+test("advisorCompanyOptions returns unique sorted companies", () => {
+  assert.deepEqual(advisorCompanyOptions(advisors), ["Acme", "Analytical", "Brandworks"]);
 });
 
 test("sortAdvisors sorts by last name or company without mutating input", () => {
@@ -142,14 +151,17 @@ test("filters round-trip through URL search params", () => {
     relationship: "mentor",
     field: "Design Systems",
     location: "SF",
+    company: "Analytical",
   });
   assert.equal(params.get("v"), "2");
   assert.equal(params.get("loc"), "SF");
+  assert.equal(params.get("co"), "Analytical");
   assert.deepEqual(advisorFiltersFromSearchParams(params), {
     query: "ada",
     relationship: "mentor",
     field: "Design Systems",
     location: "SF",
+    company: "Analytical",
   });
   writeAdvisorFiltersToSearchParams(params, EMPTY_ADVISOR_FILTERS);
   assert.equal(params.toString(), "v=2");
@@ -158,6 +170,23 @@ test("filters round-trip through URL search params", () => {
   assert.equal(hasActiveAdvisorFilters({ ...EMPTY_ADVISOR_FILTERS, query: "  " }), false);
   assert.equal(hasActiveAdvisorFilters({ ...EMPTY_ADVISOR_FILTERS, field: "AI" }), true);
   assert.equal(hasActiveAdvisorFilters({ ...EMPTY_ADVISOR_FILTERS, location: "LA" }), true);
+  assert.equal(hasActiveAdvisorFilters({ ...EMPTY_ADVISOR_FILTERS, company: "Acme" }), true);
+});
+
+test("countAdvisorFacetFilters counts location, field and company only", () => {
+  assert.equal(countAdvisorFacetFilters(EMPTY_ADVISOR_FILTERS), 0);
+  assert.equal(
+    countAdvisorFacetFilters({ ...EMPTY_ADVISOR_FILTERS, query: "ada", relationship: "mentor" }),
+    0,
+  );
+  assert.equal(
+    countAdvisorFacetFilters({ ...EMPTY_ADVISOR_FILTERS, location: "SF", company: "Acme" }),
+    2,
+  );
+  assert.equal(
+    countAdvisorFacetFilters({ ...EMPTY_ADVISOR_FILTERS, location: "SF", field: "AI", company: "Acme" }),
+    3,
+  );
 });
 
 test("migration check constraint matches the app's relationship list", () => {

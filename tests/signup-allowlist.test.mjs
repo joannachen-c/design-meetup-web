@@ -20,6 +20,13 @@ test("sheet and demo emails can sign up, unknown emails cannot", () => {
   assert.equal(isApprovedSignupEmail(""), false);
 });
 
+test("comped emails can sign up even when missing from the allowlist", () => {
+  assert.equal(isApprovedSignupEmail("mshuxy@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail(" MShuxy@gmail.com "), true);
+  assert.equal(isApprovedSignupEmail("hi.byclairedesign@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail("si2227@nyu.edu"), true);
+});
+
 test("unapproved signup error is shown under the email input", async () => {
   const form = await read("src/components/portal/LoginForm.tsx");
   const auth = await read("src/lib/auth.ts");

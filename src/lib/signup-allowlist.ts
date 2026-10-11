@@ -1,5 +1,6 @@
 /** Approved emails that may create a portal account. Server-only — do not import from client components. */
 
+import { isCompMembershipEmail } from "./comp-membership.ts";
 import { UNAPPROVED_SIGNUP_ERROR } from "./signup-messages.ts";
 
 export { UNAPPROVED_SIGNUP_ERROR };
@@ -159,6 +160,10 @@ const APPROVED_SIGNUP_EMAILS = new Set<string>([
   "yunakeem3@gmail.com",
 ]);
 
+/** Comped members are always approved, so the comp list never needs a duplicate entry here. */
 export function isApprovedSignupEmail(email: string) {
-  return APPROVED_SIGNUP_EMAILS.has(email.trim().toLowerCase());
+  return (
+    APPROVED_SIGNUP_EMAILS.has(email.trim().toLowerCase()) ||
+    isCompMembershipEmail(email)
+  );
 }

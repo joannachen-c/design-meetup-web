@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  eventPlatformName,
   LUMA_PAST_EVENTS_URL,
   LUMA_PROFILE_URL,
   withLumaInvite,
@@ -29,6 +30,20 @@ test("withLumaInvite is idempotent and leaves other links alone", () => {
     "https://substack.com/?utm_source=luma",
   );
   assert.equal(withLumaInvite("not a url"), "not a url");
+});
+
+test("Partiful events are labelled as Partiful, not Luma", () => {
+  assert.equal(
+    eventPlatformName("https://partiful.com/e/B8wY6jWjggnDI1y9AjDH"),
+    "Partiful",
+  );
+  assert.equal(eventPlatformName("https://go.partiful.com/TC3uhP1f"), "Partiful");
+  assert.equal(eventPlatformName("https://luma.com/a3c052xo?invite=ilyssayan"), "Luma");
+  assert.equal(eventPlatformName("not a url"), "Luma");
+  assert.equal(
+    withLumaInvite("https://partiful.com/e/B8wY6jWjggnDI1y9AjDH"),
+    "https://partiful.com/e/B8wY6jWjggnDI1y9AjDH",
+  );
 });
 
 test("Luma links inside summary HTML get the invite code", () => {

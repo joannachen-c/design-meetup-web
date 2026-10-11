@@ -57,44 +57,6 @@ export function SortHeader({
   );
 }
 
-export function FieldTags({
-  advisor,
-  limit,
-  className = "",
-}: {
-  advisor: Advisor;
-  limit?: number;
-  className?: string;
-}) {
-  const { setFilters } = useAdvisors();
-  const shown = limit ? advisor.fields.slice(0, limit) : advisor.fields;
-  const hidden = advisor.fields.slice(shown.length);
-  return (
-    <span className={`flex flex-wrap items-baseline gap-x-1 gap-y-0.5 ${className}`}>
-      {shown.map((field, index) => (
-        <button
-          key={field}
-          type="button"
-          className={`${monoCellClassName} relative z-[2] cursor-pointer rounded-[4px] border-0 bg-transparent p-0 text-left hover:text-ink hover:underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink`}
-          onClick={(event) => {
-            event.stopPropagation();
-            setFilters({ field });
-          }}
-          aria-label={`Filter by ${field}`}
-        >
-          {field}
-          {index < shown.length - 1 ? "," : ""}
-        </button>
-      ))}
-      {hidden.length > 0 ? (
-        <span className={`${monoCellClassName} text-subtle`} title={hidden.join(", ")}>
-          +{hidden.length}
-        </span>
-      ) : null}
-    </span>
-  );
-}
-
 export function AdvisorEmptyState() {
   const { clearFilters } = useAdvisors();
   return (

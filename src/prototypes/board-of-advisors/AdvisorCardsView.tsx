@@ -59,7 +59,10 @@ function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
           <div className={`${monoCellClassName} w-full min-w-0 truncate text-ink min-[520px]:w-auto`}>
             {advisor.company}
             {advisor.locations.length > 0 ? (
-              <span className="text-subtle"> · {advisorLocationLabel(advisor)}</span>
+              <span className="text-subtle">
+                <span className="mx-[0.3em]">·</span>
+                {advisorLocationLabel(advisor)}
+              </span>
             ) : null}
           </div>
           <SocialLinks advisor={advisor} className="-ml-1.5 shrink-0 min-[520px]:-mr-1.5 min-[520px]:ml-0" />

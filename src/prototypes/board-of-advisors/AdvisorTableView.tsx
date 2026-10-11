@@ -9,7 +9,6 @@ import type { AdvisorSort } from "@/lib/advisor-directory";
 import { advisorFullName, type Advisor } from "./advisors";
 import {
   AdvisorEmptyState,
-  FieldTags,
   Portrait,
   SocialLinks,
   SortHeader,
@@ -19,7 +18,7 @@ import {
 } from "./directory-ui";
 
 const rowGridClassName =
-  "grid grid-cols-[40px_minmax(0,1fr)] gap-x-3 min-[1024px]:grid-cols-[40px_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_96px_minmax(0,1fr)_88px] min-[1024px]:gap-x-5";
+  "grid grid-cols-[40px_minmax(0,1fr)] gap-x-3 min-[1024px]:grid-cols-[40px_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_96px_88px] min-[1024px]:gap-x-5";
 
 function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
   const reduceMotion = useReducedMotion();
@@ -117,7 +116,6 @@ function TableRow({
       <span className={`${monoCellClassName} col-start-2 text-ink min-[1024px]:col-start-auto`}>
         {advisorLocationLabel(advisor)}
       </span>
-      <FieldTags advisor={advisor} limit={1} className="col-start-2 min-[1024px]:col-start-auto" />
       <SocialLinks
         advisor={advisor}
         className="col-start-2 -ml-1.5 min-[1024px]:col-start-auto min-[1024px]:ml-0 min-[1024px]:justify-end"
@@ -145,7 +143,8 @@ export function AdvisorTableView({
   }, [rows, activeSlug]);
 
   return (
-    <div className="grid min-w-0 gap-[clamp(24px,3vw,40px)] min-[821px]:grid-cols-[200px_minmax(0,1fr)] min-[1280px]:grid-cols-[220px_minmax(0,1fr)]">
+    // Left track mirrors the events grid view's detail column: 5/12 of the full-bleed width minus its page padding on both sides.
+    <div className="grid min-w-0 gap-[clamp(24px,3vw,40px)] min-[821px]:grid-cols-[calc((100%+2*clamp(20px,6vw,96px))*5/12-2*clamp(20px,6vw,96px))_minmax(0,1fr)]">
       <SpotlightPanel advisor={activeAdvisor} />
       <div className="min-w-0">
         <div
@@ -163,9 +162,6 @@ export function AdvisorTableView({
           </span>
           <span className={`${monoLabelClassName} hidden py-1 text-muted min-[1024px]:block`}>
             Location
-          </span>
-          <span className={`${monoLabelClassName} hidden py-1 text-muted min-[1024px]:block`}>
-            Field
           </span>
           <span className={`${monoLabelClassName} hidden py-1 text-right text-muted min-[1024px]:block`}>
             Links

@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -49,19 +50,25 @@ export function AdvisorsProvider({
   children: ReactNode;
 }) {
   const [filters, setFilterState] = useState<AdvisorFilters>(EMPTY_ADVISOR_FILTERS);
+  const hasReadUrl = useRef(false);
 
   useEffect(() => {
     setFilterState(advisorFiltersFromSearchParams(new URLSearchParams(window.location.search)));
   }, []);
 
+  useEffect(() => {
+    // The first pass holds EMPTY filters; writing them would wipe the incoming query string.
+    if (!hasReadUrl.current) {
+      hasReadUrl.current = true;
+      return;
+    }
+    const url = new URL(window.location.href);
+    writeAdvisorFiltersToSearchParams(url.searchParams, filters);
+    window.history.replaceState(null, "", url);
+  }, [filters]);
+
   const setFilters = useCallback((update: Partial<AdvisorFilters>) => {
-    setFilterState((current) => {
-      const next = { ...current, ...update };
-      const url = new URL(window.location.href);
-      writeAdvisorFiltersToSearchParams(url.searchParams, next);
-      window.history.replaceState(null, "", url);
-      return next;
-    });
+    setFilterState((current) => ({ ...current, ...update }));
   }, []);
 
   const clearFilters = useCallback(() => setFilters(EMPTY_ADVISOR_FILTERS), [setFilters]);

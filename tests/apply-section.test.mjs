@@ -7,6 +7,10 @@ const app = await readFile(
   "utf8",
 );
 const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+const overview = await readFile(
+  new URL("../src/components/MembershipOverview.tsx", import.meta.url),
+  "utf8",
+);
 const form = await readFile(
   new URL("../src/components/ApplyNotifyForm.tsx", import.meta.url),
   "utf8",
@@ -29,8 +33,20 @@ const APPLY_FORM_EMBED =
 test("apply section sits between the founders note and the footer", () => {
   assert.match(
     app,
-    /<FoundersNote \/>\s*<section[\s\S]*className="[^"]*\bapply-cta\b[^"]*"[\s\S]*id="apply"[\s\S]*>\s*[\s\S]*>\s*Applications are open\s*<\/h2>[\s\S]*<\/section>\s*<PhotoMarquee events=\{events\} \/>\s*<SiteFooter \/>/,
+    /<FoundersNote \/>\s*<section[\s\S]*className="[^"]*\bapply-cta\b[^"]*"[\s\S]*id="apply"[\s\S]*>\s*[\s\S]*>\s*Apply\s*<\/h2>[\s\S]*<\/section>\s*<PhotoMarquee events=\{events\} \/>\s*<SiteFooter \/>/,
   );
+  assert.doesNotMatch(app, /Applications are open\s*<\/h2>/);
+});
+
+test("apply section describes membership between the intro and social links", () => {
+  assert.match(
+    app,
+    /we&apos;d love to meet you\.\s*<\/p>\s*<MembershipOverview \/>\s*<p className="m-0 text-pretty">\s*Follow us on Instagram/,
+  );
+  for (const title of ["Events", "Community", "Career"]) {
+    assert.match(overview, new RegExp(`title: "${title}"`));
+  }
+  assert.match(overview, /TIER_CATALOG\[tier\]\.priceLabel/);
 });
 
 test("apply section embeds the membership Google Form and keeps social links", () => {

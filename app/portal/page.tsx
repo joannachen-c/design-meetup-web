@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { Toast } from "@/components/Toast";
 import { ManageBillingButton } from "@/components/portal/ManageBillingButton";
 import { MemberIdCard } from "@/components/portal/MemberIdCard";
-import { MembershipOverview } from "@/components/portal/MembershipOverview";
 import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
 import { requireUser } from "@/lib/auth";
 import { cohortForEmail, cohortJoinedAt } from "@/lib/cohort";
@@ -145,7 +144,6 @@ export default async function PortalHomePage({
       <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">
         Membership
       </h2>
-      <MembershipOverview />
       <SubscribeButtons
         currentTier={membership?.tier ?? null}
         comped={shouldApplyCompCoupon(user.email ?? "")}

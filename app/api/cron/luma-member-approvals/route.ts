@@ -4,7 +4,7 @@ import {
   createLumaClient,
   lumaApiKey,
   memberEmailSet,
-  tagMembers,
+  syncMembershipTier,
 } from "@/lib/luma-member-approvals";
 import { listMemberEmails } from "@/lib/membership-service";
 import {
@@ -41,12 +41,21 @@ async function handle(request: Request) {
     }
     const client = createLumaClient({ apiKey });
     const summary = await approvePendingMembers({ client, memberEmails, dryRun });
-    const tagged = dryRun ? null : await tagMembers({ client, memberEmails });
+    let tier: Awaited<ReturnType<typeof syncMembershipTier>> | { error: string } | null = null;
+    if (!dryRun) {
+      // Tier sync is secondary: a renamed tier must not hide the approval results.
+      try {
+        tier = await syncMembershipTier({ client, memberEmails });
+      } catch (error) {
+        console.error("[luma-member-approvals] tier sync failed", error);
+        tier = { error: error instanceof Error ? error.message : "unknown error" };
+      }
+    }
     return NextResponse.json({
       ok: summary.failed === 0,
       dryRun,
       members: memberEmails.size,
-      tagged,
+      tier,
       pending: summary.pending,
       approved: summary.approved,
       failed: summary.failed,

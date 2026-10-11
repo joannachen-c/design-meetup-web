@@ -227,58 +227,83 @@ export function createLumaClient({
       });
     },
 
-    async ensureContactTag(name: string) {
-      const tags = await paginate<{ id?: string; api_id?: string; name?: string }>(
-        "/v1/calendars/contact-tags/list",
+    async findMembershipTierId(name: string) {
+      const tiers = await paginate<{ id?: string; api_id?: string; name?: string }>(
+        "/v1/memberships/tiers/list",
         {},
       );
-      const existing = tags.find((tag) => tag.name === name);
-      const existingId = existing?.id ?? existing?.api_id;
-      if (existingId) return existingId;
-      const created = await request<{ id: string }>("/v1/calendars/contact-tags/create", {
-        method: "POST",
-        body: { name, color: "green" },
-      });
-      return created.id;
+      const tier = tiers.find((entry) => entry.name === name);
+      return tier?.id ?? tier?.api_id ?? null;
     },
 
-    async applyContactTag(tagId: string, emails: string[]) {
-      return request<{ applied_count?: number; skipped_count?: number }>(
-        "/v1/calendars/contact-tags/apply",
-        { method: "POST", body: { tag: tagId, emails } },
+    /** Emails of everyone who already holds a membership on the calendar, in any tier. */
+    async listCalendarMemberEmails() {
+      const people = await paginate<{
+        email?: string | null;
+        user?: { email?: string | null } | null;
+        membership?: { status?: string } | null;
+      }>("/v1/calendar/list-people", {});
+      return memberEmailSet(
+        people
+          .filter((person) => person.membership)
+          .map((person) => person.email ?? person.user?.email),
       );
+    },
+
+    /** Returns false when the person already has a membership on this calendar. */
+    async addMemberToTier(email: string, tierId: string) {
+      try {
+        const result = await request<{ status?: string }>("/v1/memberships/members/add", {
+          method: "POST",
+          body: { email, membership_tier_id: tierId },
+        });
+        if (result.status === "pending") {
+          await request("/v1/memberships/members/update-status", {
+            method: "POST",
+            body: { user_id: email, status: "approved" },
+          });
+        }
+        return true;
+      } catch (error) {
+        if (error instanceof LumaApiError && /already has an active membership/i.test(error.message)) {
+          return false;
+        }
+        throw error;
+      }
     },
   };
 }
 
-export const LUMA_MEMBER_TAG = "Member";
+export const LUMA_MEMBER_TIER = "Member";
 
 /**
- * Tag every member who is already a contact on the calendar so hosts can
- * filter guest lists by membership in Luma. Luma skips emails it has never
- * seen; they pick up the tag on a later run once they RSVP or subscribe.
+ * Put every member into the calendar's "Member" membership tier so Luma shows
+ * them as members. People already holding a calendar membership are skipped,
+ * so steady-state runs only add whoever joined since the last one.
  */
-export async function tagMembers({
+export async function syncMembershipTier({
   client,
   memberEmails,
-  tagName = LUMA_MEMBER_TAG,
-  batchSize = 50,
+  tierName = LUMA_MEMBER_TIER,
 }: {
   client: LumaClient;
   memberEmails: Set<string>;
-  tagName?: string;
-  batchSize?: number;
+  tierName?: string;
 }) {
-  const tagId = await client.ensureContactTag(tagName);
-  const emails = [...memberEmails];
-  let applied = 0;
-  let skipped = 0;
-  for (let start = 0; start < emails.length; start += batchSize) {
-    const result = await client.applyContactTag(tagId, emails.slice(start, start + batchSize));
-    applied += result.applied_count ?? 0;
-    skipped += result.skipped_count ?? 0;
+  const tierId = await client.findMembershipTierId(tierName);
+  if (!tierId) throw new Error(`Luma has no "${tierName}" membership tier`);
+  const existing = await client.listCalendarMemberEmails();
+  let added = 0;
+  const failed: Array<{ email: string; error: string }> = [];
+  for (const email of memberEmails) {
+    if (existing.has(email)) continue;
+    try {
+      if (await client.addMemberToTier(email, tierId)) added += 1;
+    } catch (error) {
+      failed.push({ email, error: error instanceof Error ? error.message : String(error) });
+    }
   }
-  return { tagId, applied, skipped };
+  return { tierId, added, alreadyMembers: existing.size, failed };
 }
 
 type LumaEventSummary = {

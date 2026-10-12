@@ -2217,7 +2217,7 @@ export default function HomePage({
           <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-ink">
             {showRecentEvents
               ? "We keep our Luma updated with all of our latest events. Stay tuned to be the first to hear about the next one!"
-              : "RSVP on Luma to join us at the next Design Meetup."}
+              : "RSVP on Luma to join us at the next Design Meetup!"}
           </p>
           <Primary
             className="gap-2"

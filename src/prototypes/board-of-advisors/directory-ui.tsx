@@ -35,7 +35,7 @@ export function Portrait({ advisor, className }: { advisor: Advisor; className: 
   );
 }
 
-export const clearFiltersButtonClassName = `${monoLabelClassName} cursor-pointer rounded-[6px] border-0 bg-transparent px-1.5 py-1 text-ink no-underline hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink`;
+export const clearFiltersButtonClassName = `${monoLabelClassName} cursor-pointer rounded-[6px] border-0 bg-transparent px-1.5 py-1 text-muted no-underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink`;
 
 export function AdvisorEmptyState() {
   const { clearFilters } = useAdvisors();

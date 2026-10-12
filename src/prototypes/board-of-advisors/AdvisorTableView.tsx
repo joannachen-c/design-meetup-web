@@ -39,14 +39,18 @@ function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
               exit={reduceMotion ? undefined : { opacity: 0 }}
               transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div
-                className={`${polaroidFrameClassName} ${polaroidPaddingClassName} mx-auto w-[min(100%,calc(clamp(184px,18vw,272px)*1.03))]`}
+              <a
+                className={`${polaroidFrameClassName} ${polaroidPaddingClassName} group mx-auto block w-[min(100%,calc(clamp(184px,18vw,272px)*1.03))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
+                href={advisor.href}
+                target={advisor.href === "#" ? undefined : "_blank"}
+                rel={advisor.href === "#" ? undefined : "noreferrer"}
+                aria-label={advisorFullName(advisor)}
               >
                 <Portrait
                   advisor={advisor}
-                  className="aspect-[4/5] w-full rounded-[2px] text-6xl tracking-[-0.06em]"
+                  className="aspect-[4/5] w-full rounded-[2px] text-6xl tracking-[-0.06em] transition-[filter] duration-200 ease-out group-hover:grayscale-0 motion-reduce:transition-none"
                 />
-              </div>
+              </a>
               <div className="grid gap-2 pt-[clamp(28px,2.8vw,44px)]">
                 <p className="m-0 text-balance text-[clamp(1.75rem,2.6vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.06em] text-ink">
                   {advisorFullName(advisor)}

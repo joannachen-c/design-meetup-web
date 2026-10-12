@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 
 import { LinkedInIcon, XIcon } from "@/components/icons/SocialIcons";
-import type { AdvisorSort } from "@/lib/advisor-directory";
 
 import { useAdvisors } from "./AdvisorsProvider";
 import { advisorAvatarClass, advisorFullName, advisorInitials, type Advisor } from "./advisors";
@@ -36,43 +35,14 @@ export function Portrait({ advisor, className }: { advisor: Advisor; className: 
   );
 }
 
-export function SortHeader({
-  label,
-  sortKey,
-  sort,
-  onSort,
-}: {
-  label: string;
-  sortKey: AdvisorSort;
-  sort: AdvisorSort;
-  onSort: (sort: AdvisorSort) => void;
-}) {
-  const active = sort === sortKey;
-  return (
-    <button
-      type="button"
-      className={`${monoLabelClassName} -ml-1.5 inline-flex cursor-pointer items-center gap-1 rounded-[6px] border-0 bg-transparent px-1.5 py-1 hover:bg-gray-200/70 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink ${active ? "text-ink" : "text-muted"}`}
-      aria-pressed={active}
-      onClick={() => onSort(active ? "default" : sortKey)}
-    >
-      {label}
-      <span aria-hidden="true" className={active ? "opacity-100" : "opacity-0"}>
-        A–Z
-      </span>
-    </button>
-  );
-}
+export const clearFiltersButtonClassName = `${monoLabelClassName} cursor-pointer rounded-[6px] border-0 bg-transparent px-1.5 py-1 text-ink underline underline-offset-4 hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink`;
 
 export function AdvisorEmptyState() {
   const { clearFilters } = useAdvisors();
   return (
     <div className="grid justify-items-start gap-3 py-10">
       <p className="m-0 text-base font-bold text-ink">No advisors match those filters.</p>
-      <button
-        type="button"
-        className="cursor-pointer border-0 bg-transparent p-0 text-sm text-ink underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-        onClick={clearFilters}
-      >
+      <button type="button" className={`${clearFiltersButtonClassName} -ml-1.5`} onClick={clearFilters}>
         Clear filters
       </button>
     </div>

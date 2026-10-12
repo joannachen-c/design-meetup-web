@@ -142,22 +142,14 @@ export function AdvisorTableView({ rows }: { rows: Advisor[] }) {
     <div className="grid min-w-0 gap-[clamp(24px,3vw,40px)] min-[821px]:grid-cols-[calc((100%+2*clamp(20px,6vw,96px))*5/12-2*clamp(20px,6vw,96px))_minmax(0,1fr)]">
       <SpotlightPanel advisor={activeAdvisor} />
       <div className="min-w-0">
-        <div
-          className={`${rowGridClassName} items-center px-2 pb-2`}
-          role="group"
-          aria-label="Columns"
-        >
-          <span aria-hidden="true" />
-          <span className={`${monoLabelClassName} py-1 text-muted`}>Name</span>
-          <span className="hidden min-[1024px]:block">
-            <span className={`${monoLabelClassName} inline-flex py-1 text-muted`}>Title</span>
-          </span>
-          <span className={`${monoLabelClassName} hidden py-1 text-muted min-[1024px]:block`}>
-            Company
-          </span>
-          <span className={`${monoLabelClassName} hidden py-1 text-right text-muted min-[1024px]:block`}>
-            Links
-          </span>
+        <div className="hidden min-[1024px]:block" aria-hidden="true">
+          <div className={`${rowGridClassName} items-center px-2 pb-2`}>
+            <span />
+            <span className={`${monoLabelClassName} py-1 text-muted`}>Name</span>
+            <span className={`${monoLabelClassName} py-1 text-muted`}>Title</span>
+            <span className={`${monoLabelClassName} py-1 text-muted`}>Company</span>
+            <span className={`${monoLabelClassName} py-1 text-right text-muted`}>Links</span>
+          </div>
         </div>
 
         {rows.length === 0 ? (

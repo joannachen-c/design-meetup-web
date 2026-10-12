@@ -7,7 +7,7 @@ import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
 import { countAdvisorFacetFilters, type AdvisorFilters } from "@/lib/advisor-directory";
 
 import { useAdvisors } from "./AdvisorsProvider";
-import { monoLabelClassName } from "./directory-ui";
+import { clearFiltersButtonClassName, monoLabelClassName } from "./directory-ui";
 
 type FacetKey = "location" | "field" | "company";
 
@@ -123,12 +123,8 @@ export function AdvisorFilterMenu() {
           <div className="flex items-center justify-between">
             <span className={`${monoLabelClassName} text-ink`}>Filter</span>
             {activeCount > 0 ? (
-              <button
-                type="button"
-                className={`${monoLabelClassName} cursor-pointer rounded-[6px] border-0 bg-transparent px-1.5 py-1 text-muted underline underline-offset-4 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink`}
-                onClick={clearFacets}
-              >
-                Clear
+              <button type="button" className={clearFiltersButtonClassName} onClick={clearFacets}>
+                Clear filters
               </button>
             ) : null}
           </div>

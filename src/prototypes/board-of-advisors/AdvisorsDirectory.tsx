@@ -1,6 +1,5 @@
 "use client";
 
-
 import { ScrollReveal } from "@/components/ScrollReveal";
 
 import { AdvisorCardsView } from "./AdvisorCardsView";
@@ -18,8 +17,7 @@ export function AdvisorsDirectory({
   view: AdvisorView;
   onViewChange: (view: AdvisorView) => void;
 }) {
-  const { advisors, allAdvisors, filters, isFiltered, setFilters, clearFilters } =
-    useAdvisors();
+  const { advisors, allAdvisors, filters, setFilters } = useAdvisors();
 
   return (
     <section className={sectionShellClassName} id="advisors" aria-labelledby="advisors-title">
@@ -64,19 +62,10 @@ export function AdvisorsDirectory({
           <AdvisorCardsView rows={advisors} />
         )}
 
-        <div className="flex min-h-10 items-center justify-between gap-3 pt-3">
+        <div className="flex min-h-10 items-center gap-3 pt-3">
           <p className={`${monoLabelClassName} m-0 tabular-nums text-muted`} aria-live="polite">
             {advisors.length} of {allAdvisors.length} people
           </p>
-          {isFiltered ? (
-            <button
-              type="button"
-              className={`${monoLabelClassName} cursor-pointer rounded-full border-0 bg-transparent px-3 py-2 text-ink underline underline-offset-4 hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
-              onClick={clearFilters}
-            >
-              Clear filters
-            </button>
-          ) : null}
         </div>
       </ScrollReveal>
     </section>

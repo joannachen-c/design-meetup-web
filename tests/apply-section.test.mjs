@@ -23,24 +23,49 @@ const migration = await readFile(
   "utf8",
 );
 
+const APPLY_FORM_EMBED =
+  "https://docs.google.com/forms/d/e/1FAIpQLSf_OD5cBb6BBg2xVd5rdW8f6iI5LWfXOFe9xQd5MeHnJPting/viewform?embedded=true";
+
 test("apply section sits between the founders note and the footer", () => {
   assert.match(
     app,
-    /<FoundersNote \/>\s*<section[\s\S]*className="[^"]*\bapply-cta\b[^"]*"[\s\S]*id="apply"[\s\S]*>\s*[\s\S]*>\s*Applications opening soon\s*<\/h2>[\s\S]*<\/section>\s*<PhotoMarquee events=\{events\} \/>\s*<SiteFooter \/>/,
+    /<FoundersNote \/>\s*<section[\s\S]*className="[^"]*\bapply-cta\b[^"]*"[\s\S]*id="apply"[\s\S]*>\s*[\s\S]*>\s*Applications are open\s*<\/h2>[\s\S]*<\/section>\s*<PhotoMarquee events=\{events\} \/>\s*<SiteFooter \/>/,
   );
 });
 
-test("apply section points to Instagram and Substack for updates", () => {
+test("apply section embeds the membership Google Form and keeps social links", () => {
   assert.match(
     app,
-    /We'll be opening up applications for the next Design Meetup member cohort soon\. If you're a student or early career designer, we'd love to meet you\./,
+    /Applications are now open for the next Design Meetup member cohort! If you&apos;re a student or early career designer, we&apos;d love to meet you\./,
   );
   assert.match(
     app,
-    /<p className="m-0 mt-5 text-pretty">\s*Follow us on Instagram and Substack to stay updated!\s*<\/p>/,
+    /<p className="m-0 text-pretty">\s*Follow us on Instagram and Substack to stay updated!\s*<\/p>/,
   );
-  assert.match(app, /import \{ ApplyNotifyForm \} from "\.\/ApplyNotifyForm"/);
-  assert.match(app, /<ApplyNotifyForm \/>/);
+  assert.doesNotMatch(app, /<ApplyNotifyForm/);
+  assert.doesNotMatch(app, /opening soon/);
+  const formUrl = APPLY_FORM_EMBED.replace("?embedded=true", "");
+  assert.match(
+    app,
+    new RegExp(`const APPLY_FORM_URL =\\s*"${formUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`),
+  );
+  assert.match(app, /const APPLY_FORM_EMBED_SRC = `\$\{APPLY_FORM_URL\}\?embedded=true`;/);
+  assert.match(
+    app,
+    /<ScrollReveal className="apply-form" delay=\{80\}>[\s\S]*<div className="[^"]*\bbg-surface-muted\b[^"]*\bpx-3 pt-3\b[^"]*">\s*<div className="overflow-hidden rounded-t-\[12px\]">\s*<iframe/,
+  );
+  assert.doesNotMatch(
+    app,
+    /<div className="[^"]*\bbg-surface-muted\b[^"]*\b(?:p|pb|py)-\d[^"]*">\s*<div className="overflow-hidden rounded-t-\[12px\]">/,
+  );
+  assert.match(
+    app,
+    /<iframe[\s\S]*className="[^"]*\bapply-form-frame\b[^"]*"[\s\S]*src=\{APPLY_FORM_EMBED_SRC\}[\s\S]*title="Design Meetup membership application"/,
+  );
+  assert.match(
+    app,
+    /<a[\s\S]*href=\{APPLY_FORM_URL\}\s*target="_blank"\s*rel="noopener noreferrer"\s*>\s*Open in new tab\s*<ArrowUpRightIcon \/>\s*<\/a>[\s\S]*<iframe/,
+  );
   assert.match(
     app,
     /<Primary[\s\S]*variant="secondary"[\s\S]*href="https:\/\/www\.instagram\.com\/designmeetup\/"[\s\S]*Instagram[\s\S]*<\/Primary>/,
@@ -59,20 +84,30 @@ test("apply section points to Instagram and Substack for updates", () => {
   );
 });
 
-test("apply section uses the shared responsive twelve-column layout", () => {
+test("apply section uses the shared responsive twelve-column layout with form embed", () => {
   assert.match(
     css,
     /\.apply-cta\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\);/s,
   );
-  assert.match(css, /\.apply-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 8;/s);
-  assert.match(css, /\.apply-follow\s*\{[^}]*grid-column:\s*9\s*\/\s*span 4;/s);
+  assert.match(css, /\.apply-copy\s*\{[^}]*grid-column:\s*1\s*\/\s*span 4;/s);
+  assert.match(css, /\.apply-form\s*\{[^}]*grid-column:\s*6\s*\/\s*span 7;/s);
+  assert.doesNotMatch(css, /\.apply-follow\b/);
+  assert.match(css, /\.apply-form\s*\{[^}]*--apply-form-footer-clip:\s*56px;/s);
+  assert.match(
+    css,
+    /\.apply-form-frame\s*\{[^}]*min-height:\s*calc\(720px \+ var\(--apply-form-footer-clip\)\);/s,
+  );
+  assert.match(
+    css,
+    /\.apply-form-frame\s*\{[^}]*margin-bottom:\s*calc\(-1 \* var\(--apply-form-footer-clip\)\);/s,
+  );
   assert.match(
     css,
     /@media \(max-width: 820px\)[\s\S]*\.apply-cta\s*\{[^}]*grid-template-columns:\s*1fr;/s,
   );
   assert.match(
     css,
-    /@media \(max-width: 820px\)[\s\S]*\.apply-copy,\s*\.apply-follow\s*\{[^}]*grid-column:\s*1;/s,
+    /@media \(max-width: 820px\)[\s\S]*\.apply-copy,\s*\.apply-form\s*\{[^}]*grid-column:\s*1;/s,
   );
 });
 

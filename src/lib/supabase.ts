@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import galleryPathsByEventId from "../data/event-galleries.json";
 import summaryHtmlByEventId from "../data/event-summaries.json";
+import { withLumaInvite, withLumaInviteInHtml } from "./luma";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -155,12 +156,16 @@ export async function fetchPastEvents(): Promise<MeetupEvent[]> {
 
   return ((data as unknown as MeetupEventRow[] | null) ?? [])
     .filter((event) => !HIDDEN_EVENT_IDS.has(event.luma_event_id))
-    .map((event) => ({
-      ...event,
-      summary_html: event.summary_html ?? fallbackSummaryHtml(event),
-      gallery_images: galleryImages(event),
-      event_sponsors: [...(event.event_sponsors ?? [])].sort(
-        (a, b) => a.sort_order - b.sort_order,
-      ),
-    }));
+    .map((event) => {
+      const summaryHtml = event.summary_html ?? fallbackSummaryHtml(event);
+      return {
+        ...event,
+        luma_url: event.luma_url ? withLumaInvite(event.luma_url) : null,
+        summary_html: summaryHtml ? withLumaInviteInHtml(summaryHtml) : null,
+        gallery_images: galleryImages(event),
+        event_sponsors: [...(event.event_sponsors ?? [])].sort(
+          (a, b) => a.sort_order - b.sort_order,
+        ),
+      };
+    });
 }

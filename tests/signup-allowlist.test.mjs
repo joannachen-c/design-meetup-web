@@ -1,0 +1,63 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import {
+  isApprovedSignupEmail,
+  UNAPPROVED_SIGNUP_ERROR,
+} from "../src/lib/signup-allowlist.ts";
+
+const root = new URL("../", import.meta.url);
+const read = (path) => readFile(new URL(path, root), "utf8");
+
+test("sheet and demo emails can sign up, unknown emails cannot", () => {
+  assert.equal(isApprovedSignupEmail("demo@designmeetup.info"), true);
+  assert.equal(isApprovedSignupEmail("  AngelinaWWU@ucla.edu  "), true);
+  assert.equal(isApprovedSignupEmail("sebastianmm.design@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail("studio@liumichelle.com"), true);
+  assert.equal(isApprovedSignupEmail("JC2887@cornell.edu"), true);
+  assert.equal(isApprovedSignupEmail("mikaelalabadan@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail("stranger@example.com"), false);
+  assert.equal(isApprovedSignupEmail(""), false);
+});
+
+test("comped emails can sign up even when missing from the allowlist", () => {
+  assert.equal(isApprovedSignupEmail("mshuxy@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail(" MShuxy@gmail.com "), true);
+  assert.equal(isApprovedSignupEmail("hi.byclairedesign@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail("si2227@nyu.edu"), true);
+  assert.equal(isApprovedSignupEmail("Sabria.Islam@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail(" Inquiries@AdamHo.com "), true);
+});
+
+test("unapproved signup error is shown under the email input", async () => {
+  const form = await read("src/components/portal/LoginForm.tsx");
+  const auth = await read("src/lib/auth.ts");
+  const messages = await read("src/lib/signup-messages.ts");
+  assert.match(messages, /isn't approved to create an account yet/);
+  assert.match(auth, /isApprovedSignupEmail/);
+  assert.match(auth, /UNAPPROVED_SIGNUP_ERROR/);
+  assert.match(form, /from "@\/lib\/signup-messages"/);
+  assert.doesNotMatch(form, /signup-allowlist/);
+  assert.match(form, /setEmailError/);
+  assert.match(form, />\s*Apply here\s*<\/a>/);
+  assert.match(form, /href=\{SIGNUP_APPLY_URL\}/);
+  assert.match(form, /text-red-700 underline/);
+  assert.match(
+    messages,
+    /SIGNUP_APPLY_URL =\s*"https:\/\/docs\.google\.com\/forms\/d\/e\/1FAIpQLSf_OD5cBb6BBg2xVd5rdW8f6iI5LWfXOFe9xQd5MeHnJPting\/viewform/,
+  );
+  const emailInputAt = form.indexOf('name="email"');
+  const emailErrorAt = form.indexOf('id="signup-email-error"');
+  const applyAt = form.indexOf("Apply here");
+  const passwordAt = form.indexOf('name="password"');
+  assert.ok(
+    emailInputAt > 0 &&
+      emailErrorAt > emailInputAt &&
+      applyAt > emailErrorAt &&
+      passwordAt > applyAt,
+  );
+  assert.equal(
+    UNAPPROVED_SIGNUP_ERROR,
+    "This email isn't approved to create an account yet.",
+  );
+});

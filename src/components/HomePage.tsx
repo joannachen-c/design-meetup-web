@@ -26,7 +26,6 @@ import {
 } from "react";
 import { ArrowUpRightIcon } from "./icons/ArrowUpRightIcon";
 import { InstagramIcon, SubstackIcon } from "./icons/SocialIcons";
-import { ApplyNotifyForm } from "./ApplyNotifyForm";
 import { Chip } from "./Chip";
 import { FilmTickerLines, type FilmTickerFocus } from "./FilmTickerLines";
 import { FoundersNote } from "./FoundersNote";
@@ -53,7 +52,11 @@ import {
   sizedImageUrl,
   VISIBLE_COVER_RADIUS,
 } from "@/lib/image";
-import type { LumaEvent } from "@/lib/luma";
+import {
+  LUMA_CALENDAR_EMBED_SRC,
+  LUMA_PROFILE_URL,
+  type LumaEvent,
+} from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
 
 const partnerLogos = [
@@ -68,8 +71,9 @@ const partnerLogos = [
   { slug: "rainbow", name: "Clay", href: "https://www.clay.com/", src: "/partners/partner-9.png" },
 ];
 
-const LUMA_CALENDAR_EMBED_SRC =
-  "https://luma.com/embed/calendar/cal-HH5XBdHyWPt0yhB/events?lt=light";
+const APPLY_FORM_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSf_OD5cBb6BBg2xVd5rdW8f6iI5LWfXOFe9xQd5MeHnJPting/viewform";
+const APPLY_FORM_EMBED_SRC = `${APPLY_FORM_URL}?embedded=true`;
 
 // Every unfocused cover turns the same way, so the rail reads as one shelf of
 // records instead of a mirrored fan. The turn is a flat squeeze rather than a
@@ -1994,11 +1998,11 @@ export default function HomePage({
                     </span>
                   </p>
                   {sponsors.length > 0 ? (
-                  <ul
-                    className="detail-chips m-0 gap-2.5 p-0 max-[820px]:mt-0.5"
-                    aria-label="Sponsors"
-                  >
-                    {sponsors.map((sponsor) => {
+                    <ul
+                      className="detail-chips m-0 gap-2.5 p-0 max-[820px]:mt-0.5"
+                      aria-label="Sponsors"
+                    >
+                      {sponsors.map((sponsor) => {
                         const chipContent = (
                           <>
                             <span className="sr-only">Sponsor: </span>
@@ -2034,7 +2038,7 @@ export default function HomePage({
                           </li>
                         );
                       })}
-                  </ul>
+                    </ul>
                   ) : null}
                 </div>
               </div>
@@ -2221,7 +2225,7 @@ export default function HomePage({
           </p>
           <Primary
             className="gap-2"
-            href="https://luma.com/designmeetup"
+            href={LUMA_PROFILE_URL}
             target="_blank"
             rel="noreferrer"
             variant="ink"
@@ -2386,16 +2390,13 @@ export default function HomePage({
             className="m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="apply-cta-title"
           >
-            Applications opening soon
+            Applications are open
           </h2>
-        </ScrollReveal>
-        <ScrollReveal className="apply-follow" delay={80}>
           <div className="grid w-full max-w-[54ch] gap-5 text-base leading-[1.6] text-ink">
             <p className="m-0 text-pretty">
-              We'll be opening up applications for the next Design Meetup member cohort soon. If you're a student or early career designer, we'd love to meet you.
+              Applications are now open for the next Design Meetup member cohort! If you&apos;re a student or early career designer, we&apos;d love to meet you.
             </p>
-            <ApplyNotifyForm />
-            <p className="m-0 mt-5 text-pretty">
+            <p className="m-0 text-pretty">
               Follow us on Instagram and Substack to stay updated!
             </p>
           </div>
@@ -2426,6 +2427,31 @@ export default function HomePage({
               <SubstackIcon className="size-5 transition-colors duration-150 ease-out group-hover:text-[#FF6719] group-focus-visible:text-[#FF6719] motion-reduce:transition-none" />
               Substack
             </Primary>
+          </div>
+        </ScrollReveal>
+        <ScrollReveal className="apply-form" delay={80}>
+          <div className="mb-3 flex justify-end max-[820px]:justify-start">
+            <a
+              className="inline-flex items-center gap-1.5 text-base font-bold text-muted transition-colors duration-150 ease-out hover:text-black focus-visible:text-black motion-reduce:transition-none"
+              href={APPLY_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open in new tab
+              <ArrowUpRightIcon />
+            </a>
+          </div>
+          <div className="overflow-hidden rounded-[20px] bg-surface-muted px-3 pt-3 max-[520px]:px-2 max-[520px]:pt-2">
+            <div className="overflow-hidden rounded-t-[12px]">
+              <iframe
+                className="apply-form-frame block w-full border-0 bg-transparent"
+                src={APPLY_FORM_EMBED_SRC}
+                title="Design Meetup membership application"
+                loading="lazy"
+              >
+                Loading…
+              </iframe>
+            </div>
           </div>
         </ScrollReveal>
       </section>

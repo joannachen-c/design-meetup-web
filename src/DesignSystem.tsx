@@ -17,6 +17,8 @@ import { ScrollReveal } from "./components/ScrollReveal";
 import { Select } from "./components/Select";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
+import { showSuccessToast } from "./components/AppToaster";
+import { Toast, ToastCheckIcon } from "./components/Toast";
 import { Tooltip, TooltipProvider } from "./components/Tooltip";
 
 const sectionClassName =
@@ -25,9 +27,8 @@ const sectionTitleClassName =
   "m-0 text-balance text-xl font-bold leading-tight tracking-[-0.04em]";
 const specimenClassName =
   "flex min-h-32 flex-wrap items-center rounded-[11px]";
-const whiteSpecimenClassName = `${specimenClassName} gap-3 bg-white py-5 sm:py-8`;
-const linksSpecimenClassName =
-  "flex flex-wrap items-center gap-6 rounded-[11px] bg-white";
+const specimenRowClassName = "flex flex-wrap items-center gap-3";
+const linksSpecimenClassName = "flex flex-wrap items-center gap-6";
 const colorItemClassName = "grid gap-3";
 const specimenDescriptionClassName =
   "m-0 mt-1 text-pretty text-sm leading-[1.5] text-muted";
@@ -103,6 +104,34 @@ const neutralColors = [
   { label: "gray-500", className: "bg-gray-500", hex: "#6a7282" },
 ] as const;
 
+// Tailwind defaults behind the success and danger toasts.
+const statusColors = [
+  {
+    label: "green-50",
+    description: "success background",
+    className: "bg-green-50",
+    hex: "#f0fdf4",
+  },
+  {
+    label: "green-700",
+    description: "success text · icon",
+    className: "bg-green-700",
+    hex: "#008236",
+  },
+  {
+    label: "red-50",
+    description: "danger background",
+    className: "bg-red-50",
+    hex: "#fef2f2",
+  },
+  {
+    label: "red-700",
+    description: "danger text",
+    className: "bg-red-700",
+    hex: "#c10007",
+  },
+] as const;
+
 const sections = [
   { id: "colors", label: "colors" },
   { id: "typography", label: "typography" },
@@ -114,6 +143,7 @@ const sections = [
   { id: "links", label: "links" },
   { id: "inputs", label: "inputs" },
   { id: "tooltips", label: "tooltips" },
+  { id: "toasts", label: "toasts" },
 ] as const;
 
 const spacingScale = [
@@ -430,6 +460,27 @@ export default function DesignSystem() {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div>
+                <SpecimenLabel>status</SpecimenLabel>
+                <ul className="m-0 mt-5 grid list-none grid-cols-2 gap-x-6 gap-y-4 p-0 sm:grid-cols-3 lg:grid-cols-5">
+                  {statusColors.map((color) => (
+                    <li className="flex items-center gap-3" key={color.label}>
+                      <ColorSwatch
+                        className={color.className}
+                        hex={color.hex}
+                        label={color.label}
+                        size="chip"
+                      />
+                      <div>
+                        <code className="text-sm text-muted">{color.label}</code>
+                        <p className="m-0 text-sm text-subtle">
+                          {color.description}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
               <div>
                 <SpecimenLabel>tailwind neutrals</SpecimenLabel>
@@ -767,7 +818,7 @@ export default function DesignSystem() {
             <div className="grid gap-8">
               <div>
                 <SpecimenLabel>variants</SpecimenLabel>
-                <div className={`${whiteSpecimenClassName} mt-4`}>
+                <div className={`${specimenRowClassName} mt-4`}>
                   <Primary>Primary</Primary>
                   <Primary variant="secondary">
                     Secondary
@@ -785,7 +836,7 @@ export default function DesignSystem() {
               </div>
               <div>
                 <SpecimenLabel>states</SpecimenLabel>
-                <div className={`${whiteSpecimenClassName} mt-4`}>
+                <div className={`${specimenRowClassName} mt-4`}>
                   <Primary loading>Loading</Primary>
                   <Primary disabled>Disabled</Primary>
                   <Primary variant="secondary" disabled>
@@ -942,6 +993,48 @@ export default function DesignSystem() {
                 <p className="m-0 max-w-[36ch] text-pretty text-base text-muted">
                   Adjacent icon buttons each own a tooltip
                 </p>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="toasts"
+            className={sectionClassName}
+            aria-labelledby="toasts-title"
+          >
+            <h2 className={sectionTitleClassName} id="toasts-title">
+              toasts
+            </h2>
+            <div className="grid gap-8">
+              <div>
+                <SpecimenLabel>neutral</SpecimenLabel>
+                <div className={`${specimenRowClassName} mt-4`}>
+                  <Toast>
+                    checkout canceled — pick a plan when you&apos;re ready.
+                  </Toast>
+                </div>
+              </div>
+              <div>
+                <SpecimenLabel>success</SpecimenLabel>
+                <div className={`${specimenRowClassName} mt-4`}>
+                  <Toast variant="success" icon={<ToastCheckIcon />}>
+                    Profile updated.
+                  </Toast>
+                  <Primary
+                    variant="secondary"
+                    onClick={() => showSuccessToast("Profile updated.")}
+                  >
+                    Play animation
+                  </Primary>
+                </div>
+              </div>
+              <div>
+                <SpecimenLabel>danger</SpecimenLabel>
+                <div className={`${specimenRowClassName} mt-4`}>
+                  <Toast variant="danger">
+                    couldn&apos;t start checkout. please try again.
+                  </Toast>
+                </div>
               </div>
             </div>
           </section>

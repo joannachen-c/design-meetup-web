@@ -8,6 +8,10 @@
     {
       "path": "/api/contact/import",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/graduation-upgrades",
+      "schedule": "0 12 * * *"
     }
   ]
 }

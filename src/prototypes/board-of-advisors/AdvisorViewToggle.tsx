@@ -9,26 +9,27 @@ export const ADVISOR_VIEWS: { value: AdvisorView; label: string }[] = [
   { value: "table", label: "Table" },
 ];
 
-function TableIcon() {
+function TableIcon({ filled }: { filled: boolean }) {
   return (
     <svg className="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path
         d="M2.5 4h11M2.5 8h11M2.5 12h11"
         stroke="currentColor"
         strokeLinecap="round"
-        strokeWidth="1.5"
+        strokeWidth={filled ? 2.25 : 1.5}
       />
     </svg>
   );
 }
 
-function CardsIcon() {
+function CardsIcon({ filled }: { filled: boolean }) {
+  const fill = filled ? "currentColor" : "none";
   return (
     <svg className="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.5" />
-      <rect x="9" y="2.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.5" />
-      <rect x="2.5" y="9" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.5" />
-      <rect x="9" y="9" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1" fill={fill} stroke="currentColor" strokeWidth="1.5" />
+      <rect x="9" y="2.5" width="4.5" height="4.5" rx="1" fill={fill} stroke="currentColor" strokeWidth="1.5" />
+      <rect x="2.5" y="9" width="4.5" height="4.5" rx="1" fill={fill} stroke="currentColor" strokeWidth="1.5" />
+      <rect x="9" y="9" width="4.5" height="4.5" rx="1" fill={fill} stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -73,13 +74,17 @@ export function AdvisorViewToggle({
             else optionRefs.current.delete(option.value);
           }}
           type="button"
-          className="view-toggle-option cursor-pointer rounded-full bg-transparent px-3 text-muted hover:text-ink aria-pressed:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="view-toggle-option size-[34px] cursor-pointer rounded-full bg-transparent p-0 text-muted hover:text-ink aria-pressed:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           aria-pressed={view === option.value}
           aria-label={`${option.label} view`}
           title={`${option.label} view`}
           onClick={() => onChange(option.value)}
         >
-          {option.value === "table" ? <TableIcon /> : <CardsIcon />}
+          {option.value === "table" ? (
+            <TableIcon filled={view === option.value} />
+          ) : (
+            <CardsIcon filled={view === option.value} />
+          )}
         </button>
       ))}
     </div>

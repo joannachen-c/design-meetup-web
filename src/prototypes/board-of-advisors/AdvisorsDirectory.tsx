@@ -62,11 +62,6 @@ export function AdvisorsDirectory({
           <AdvisorCardsView rows={advisors} />
         )}
 
-        <div className="flex min-h-10 items-center gap-3 pt-3">
-          <p className={`${monoLabelClassName} m-0 tabular-nums text-muted`} aria-live="polite">
-            {advisors.length} of {allAdvisors.length} people
-          </p>
-        </div>
       </ScrollReveal>
     </section>
   );

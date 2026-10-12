@@ -49,7 +49,7 @@ function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
           className="aspect-[4/5] w-full rounded-[2px] text-4xl tracking-[-0.06em] transition-[filter] duration-200 ease-out group-hover:grayscale-0 motion-reduce:transition-none"
         />
       </div>
-      <div className="flex flex-1 flex-col gap-0.5 px-1 pt-4">
+      <div className="flex flex-1 flex-col gap-1 px-1 pt-4">
         {advisor.href === "#" ? (
           <span className="text-[15px] font-bold leading-tight tracking-[-0.01em] text-ink">
             {advisorFullName(advisor)}
@@ -81,7 +81,7 @@ function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
               </span>
             ) : null}
           </div>
-          <SocialLinks advisor={advisor} className="-ml-1.5 shrink-0 min-[520px]:-mr-1.5 min-[520px]:ml-0" />
+          <SocialLinks advisor={advisor} className="-ml-1.5 shrink-0 min-[520px]:-my-1.5 min-[520px]:-mr-1.5 min-[520px]:ml-0" />
         </div>
       </div>
     </motion.li>

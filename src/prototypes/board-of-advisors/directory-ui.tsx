@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { LinkedInIcon, XIcon } from "@/components/icons/SocialIcons";
+import { Tooltip, TooltipProvider } from "@/components/Tooltip";
 
 import { useAdvisors } from "./AdvisorsProvider";
 import { advisorAvatarClass, advisorFullName, advisorInitials, type Advisor } from "./advisors";
@@ -13,8 +14,7 @@ export const monoCellClassName = "font-mono text-xs leading-[1.5] text-muted";
 export const polaroidFrameClassName =
   "rounded-[4px] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06),0_8px_24px_rgba(15,23,42,0.08)]";
 
-export const polaroidPaddingClassName =
-  "p-[clamp(6px,0.7vw,10px)] pb-[clamp(8px,0.9vw,12px)]";
+export const polaroidPaddingClassName = "p-[clamp(6px,0.7vw,10px)]";
 
 export function Portrait({ advisor, className }: { advisor: Advisor; className: string }) {
   if (advisor.photoUrl) {
@@ -35,7 +35,7 @@ export function Portrait({ advisor, className }: { advisor: Advisor; className: 
   );
 }
 
-export const clearFiltersButtonClassName = `${monoLabelClassName} cursor-pointer rounded-[6px] border-0 bg-transparent px-1.5 py-1 text-ink underline underline-offset-4 hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink`;
+export const clearFiltersButtonClassName = `${monoLabelClassName} cursor-pointer rounded-[6px] border-0 bg-transparent px-1.5 py-1 text-ink no-underline hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink`;
 
 export function AdvisorEmptyState() {
   const { clearFilters } = useAdvisors();
@@ -43,7 +43,7 @@ export function AdvisorEmptyState() {
     <div className="grid justify-items-start gap-3 py-10">
       <p className="m-0 text-base font-bold text-ink">No advisors match those filters.</p>
       <button type="button" className={`${clearFiltersButtonClassName} -ml-1.5`} onClick={clearFilters}>
-        Clear filters
+        Clear
       </button>
     </div>
   );
@@ -69,21 +69,28 @@ function GlobeIcon({ className }: { className: string }) {
 
 export function SocialLinks({ advisor, className = "" }: { advisor: Advisor; className?: string }) {
   const name = advisorFullName(advisor);
-  const links: { href: string; label: string; icon: ReactNode }[] = [];
+  const links: { href: string; label: string; tooltip: string; icon: ReactNode }[] = [];
   if (advisor.linkedinUrl) {
     links.push({
       href: advisor.linkedinUrl,
       label: `${name} on LinkedIn`,
+      tooltip: "LinkedIn",
       icon: <LinkedInIcon className="size-3.5" />,
     });
   }
   if (advisor.xUrl) {
-    links.push({ href: advisor.xUrl, label: `${name} on X`, icon: <XIcon className="size-3.5" /> });
+    links.push({
+      href: advisor.xUrl,
+      label: `${name} on X`,
+      tooltip: "X",
+      icon: <XIcon className="size-3.5" />,
+    });
   }
   if (advisor.websiteUrl) {
     links.push({
       href: advisor.websiteUrl,
       label: `${name}'s website`,
+      tooltip: "Website",
       icon: <GlobeIcon className="size-4" />,
     });
   }
@@ -91,20 +98,23 @@ export function SocialLinks({ advisor, className = "" }: { advisor: Advisor; cla
   if (links.length === 0) return null;
 
   return (
-    <span className={`relative z-[2] flex items-center gap-1 ${className}`}>
-      {links.map((link) => (
-        <a
-          key={link.href}
-          className="grid size-7 place-items-center rounded-full text-muted no-underline transition-colors duration-150 ease-out hover:bg-gray-200/70 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink"
-          href={link.href}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={link.label}
-          onClick={(event) => event.stopPropagation()}
-        >
-          {link.icon}
-        </a>
-      ))}
-    </span>
+    <TooltipProvider>
+      <span className={`relative z-[2] flex items-center gap-1 ${className}`}>
+        {links.map((link) => (
+          <Tooltip key={link.href} content={link.tooltip}>
+            <a
+              className="grid size-7 place-items-center rounded-full text-muted no-underline transition-colors duration-150 ease-out hover:bg-gray-200/70 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink"
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={link.label}
+              onClick={(event) => event.stopPropagation()}
+            >
+              {link.icon}
+            </a>
+          </Tooltip>
+        ))}
+      </span>
+    </TooltipProvider>
   );
 }

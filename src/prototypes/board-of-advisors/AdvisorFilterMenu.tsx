@@ -24,6 +24,20 @@ function FilterIcon() {
   );
 }
 
+function CheckIcon() {
+  return (
+    <svg className="size-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="m3.5 8.5 3 3 6-7"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
 function FacetSelect({
   label,
   allLabel,
@@ -47,7 +61,7 @@ function FacetSelect({
       <span className={`${monoLabelClassName} text-subtle`}>{label}</span>
       <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
         <SelectPrimitive.Trigger
-          className={`group flex min-h-9 w-full cursor-pointer items-center justify-between gap-2 rounded-[8px] border-0 bg-surface-muted px-3 text-left text-sm hover:bg-gray-200/70 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink data-[state=open]:bg-gray-200/70 ${active ? "font-bold text-ink" : "text-muted"}`}
+          className={`group flex min-h-9 w-full cursor-pointer items-center justify-between gap-2 rounded-[8px] border-0 bg-surface-muted px-3 text-left text-sm hover:bg-gray-200/70 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink data-[state=open]:bg-gray-200/70 ${active ? "text-ink" : "text-muted"}`}
           aria-label={`Filter by ${label.toLowerCase()}`}
         >
           <span className="truncate">
@@ -64,11 +78,14 @@ function FacetSelect({
             <SelectPrimitive.Viewport>
               {items.map((item) => (
                 <SelectPrimitive.Item
-                  className="flex min-h-9 cursor-pointer items-center rounded-[7px] px-3 py-1.5 text-ink outline-none select-none data-[highlighted]:bg-surface-muted data-[state=checked]:font-bold"
+                  className="flex min-h-9 cursor-pointer items-center justify-between gap-3 rounded-[7px] py-1.5 pr-2.5 pl-3 text-ink outline-none select-none data-[highlighted]:bg-surface-muted"
                   key={item.value}
                   value={item.value}
                 >
                   <SelectPrimitive.ItemText>{item.label}</SelectPrimitive.ItemText>
+                  <SelectPrimitive.ItemIndicator asChild>
+                    <CheckIcon />
+                  </SelectPrimitive.ItemIndicator>
                 </SelectPrimitive.Item>
               ))}
             </SelectPrimitive.Viewport>
@@ -106,7 +123,7 @@ export function AdvisorFilterMenu() {
         <FilterIcon />
         {activeCount > 0 ? (
           <span
-            className="absolute -top-0.5 -right-0.5 grid size-4 place-items-center rounded-full bg-ink font-mono text-[10px] leading-none text-white tabular-nums"
+            className="absolute -top-0.5 -right-0.5 grid size-4 place-items-center rounded-full bg-subtle font-mono text-[10px] leading-none text-white tabular-nums"
             aria-hidden="true"
           >
             {activeCount}
@@ -124,7 +141,7 @@ export function AdvisorFilterMenu() {
             <span className={`${monoLabelClassName} text-ink`}>Filter</span>
             {activeCount > 0 ? (
               <button type="button" className={clearFiltersButtonClassName} onClick={clearFacets}>
-                Clear filters
+                Clear
               </button>
             ) : null}
           </div>

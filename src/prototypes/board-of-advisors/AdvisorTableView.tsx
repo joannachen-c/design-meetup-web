@@ -52,8 +52,14 @@ function SpotlightPanel({ advisor }: { advisor: Advisor | undefined }) {
                   {advisorFullName(advisor)}
                 </p>
                 <p className="m-0 text-base leading-[1.7] text-ink">{advisor.title}</p>
-                <p className={`${monoCellClassName} m-0`}>
-                  {[advisor.company, advisorLocationLabel(advisor)].filter(Boolean).join(" — ")}
+                <p className="m-0 font-mono text-base leading-[1.5] text-muted">
+                  {advisor.company}
+                  {advisor.locations.length > 0 ? (
+                    <span className="text-subtle">
+                      <span className="mx-[0.3em]">·</span>
+                      {advisorLocationLabel(advisor)}
+                    </span>
+                  ) : null}
                 </p>
                 {advisor.bio ? (
                   <p className="m-0 max-w-[62ch] pt-2 text-base leading-[1.7] text-ink">{advisor.bio}</p>
@@ -83,10 +89,14 @@ function TableRow({
 }) {
   return (
     <li
-      className={`${rowGridClassName} items-center rounded-[6px] px-2 py-2 transition-colors duration-150 ease-out motion-reduce:transition-none ${active ? "bg-surface-muted" : "bg-transparent"}`}
+      className={`${rowGridClassName} group/row items-center rounded-[6px] px-2 py-2 transition-colors duration-150 ease-out motion-reduce:transition-none ${advisor.href === "#" ? "" : "cursor-pointer"} ${active ? "bg-surface-muted" : "bg-transparent"}`}
       onMouseEnter={onActivate}
       onFocus={onActivate}
-      onClick={onActivate}
+      onClick={(event) => {
+        onActivate();
+        if (advisor.href === "#" || (event.target as HTMLElement).closest("a")) return;
+        window.open(advisor.href, "_blank", "noopener,noreferrer");
+      }}
       data-active={active ? "" : undefined}
     >
       <span className="flex w-10 rounded-[3px] bg-white p-[2px] pb-[3px] shadow-[0_1px_2px_rgba(15,23,42,0.08),0_3px_8px_rgba(15,23,42,0.08)]">
@@ -104,7 +114,7 @@ function TableRow({
           rel="noreferrer"
         >
           <span className="truncate">{advisorFullName(advisor)}</span>
-          <ArrowUpRightIcon className="size-3.5 shrink-0 text-muted transition-transform duration-150 ease-out group-hover:-translate-y-px group-hover:translate-x-px motion-reduce:transition-none" />
+          <ArrowUpRightIcon className="size-3.5 shrink-0 text-muted opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover:-translate-y-px group-hover:translate-x-px group-hover/row:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none" />
         </a>
       )}
       <span
@@ -142,16 +152,6 @@ export function AdvisorTableView({ rows }: { rows: Advisor[] }) {
     <div className="grid min-w-0 gap-[clamp(24px,3vw,40px)] min-[821px]:grid-cols-[calc((100%+2*clamp(20px,6vw,96px))*5/12-2*clamp(20px,6vw,96px))_minmax(0,1fr)]">
       <SpotlightPanel advisor={activeAdvisor} />
       <div className="min-w-0">
-        <div className="hidden min-[1024px]:block" aria-hidden="true">
-          <div className={`${rowGridClassName} items-center px-2 pb-2`}>
-            <span />
-            <span className={`${monoLabelClassName} py-1 text-muted`}>Name</span>
-            <span className={`${monoLabelClassName} py-1 text-muted`}>Title</span>
-            <span className={`${monoLabelClassName} py-1 text-muted`}>Company</span>
-            <span className={`${monoLabelClassName} py-1 text-right text-muted`}>Links</span>
-          </div>
-        </div>
-
         {rows.length === 0 ? (
           <AdvisorEmptyState />
         ) : (

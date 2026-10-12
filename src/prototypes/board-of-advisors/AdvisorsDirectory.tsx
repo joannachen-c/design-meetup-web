@@ -1,5 +1,7 @@
 "use client";
 
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+
 import { ScrollReveal } from "@/components/ScrollReveal";
 
 import { AdvisorCardsView } from "./AdvisorCardsView";
@@ -18,6 +20,7 @@ export function AdvisorsDirectory({
   onViewChange: (view: AdvisorView) => void;
 }) {
   const { advisors, allAdvisors, filters, setFilters } = useAdvisors();
+  const reduceMotion = useReducedMotion();
 
   return (
     <section className={sectionShellClassName} id="advisors" aria-labelledby="advisors-title">
@@ -56,11 +59,21 @@ export function AdvisorsDirectory({
           </div>
         </div>
 
-        {view === "table" ? (
-          <AdvisorTableView rows={advisors} />
-        ) : (
-          <AdvisorCardsView rows={advisors} />
-        )}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={view}
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduceMotion ? undefined : { opacity: 0 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {view === "table" ? (
+              <AdvisorTableView rows={advisors} />
+            ) : (
+              <AdvisorCardsView rows={advisors} />
+            )}
+          </motion.div>
+        </AnimatePresence>
 
       </ScrollReveal>
     </section>

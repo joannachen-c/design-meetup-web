@@ -99,7 +99,7 @@ export function AdvisorCardsView({ rows }: { rows: Advisor[] }) {
           className="m-0 grid list-none grid-cols-2 gap-x-5 gap-y-12 p-0 min-[640px]:grid-cols-3 min-[1024px]:grid-cols-4 min-[1024px]:gap-x-8 min-[1024px]:gap-y-14 min-[1440px]:grid-cols-5"
           aria-label="Board of Advisors cards"
         >
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="popLayout" initial={false}>
             {rows.map((advisor, index) => (
               <AdvisorCard key={advisor.slug} advisor={advisor} index={index} />
             ))}

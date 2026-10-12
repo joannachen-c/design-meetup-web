@@ -101,6 +101,7 @@ const COMP_MEMBERSHIP_EMAILS = new Set<string>([
   "si2227@nyu.edu",
   "hi.byclairedesign@gmail.com",
   "sabria.islam@gmail.com",
+  "inquiries@adamho.com",
 ]);
 
 export function parseCompEmails(raw: string | undefined | null) {

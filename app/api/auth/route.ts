@@ -13,6 +13,7 @@ import {
   ensureProfile,
   userHasPortalAccess,
 } from "@/lib/membership-service";
+import { syncSignedUpMemberToLuma } from "@/lib/luma-member-approvals";
 import { requestOrigin } from "@/lib/site";
 import { sendWelcomeEmail } from "@/lib/welcome-email";
 
@@ -146,6 +147,7 @@ async function handleAuth(request: Request) {
       firstName: firstName || displayName.split(/\s+/)[0] || "",
       origin: requestOrigin(request),
     });
+    await syncSignedUpMemberToLuma({ email, name: displayName });
     nextPath = nextPath.includes("subscribe") ? nextPath : "/portal/subscribe";
   } else {
     const result = await passwordSignIn(email, password);

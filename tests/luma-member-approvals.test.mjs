@@ -7,11 +7,14 @@ import {
   createLumaClient,
   eventIdFromWebhook,
   isValidLumaWebhookToken,
+  lumaCategoryForEmail,
   lumaWebhookToken,
   lumaWebhookUrl,
   memberEmailSet,
   membersToApprove,
+  registerSignedUpMemberOnLuma,
   syncMembershipTier,
+  syncSignedUpMemberToLuma,
 } from "../src/lib/luma-member-approvals.ts";
 
 const NOW = new Date("2026-10-11T12:00:00.000Z");
@@ -301,4 +304,189 @@ test("tier sync fails clearly when the Member tier is missing", async () => {
     }),
     /no "Member" membership tier/,
   );
+});
+
+const NEW_MEMBER_EMAILS = [
+  "katherine9wang@gmail.com",
+  "hanswfu.design@gmail.com",
+  "giangt.edu@gmail.com",
+  "alizahunbaev@gmail.com",
+  "design.ginny@gmail.com",
+  "justingainsley@gmail.com",
+];
+
+test("comp signups are cohort 0 and allowlist signups are cohort 1", () => {
+  for (const email of NEW_MEMBER_EMAILS) {
+    assert.deepEqual(lumaCategoryForEmail(email), { name: "Cohort 0", color: "blue" });
+  }
+  assert.equal(lumaCategoryForEmail("  Katherine9Wang@gmail.com ")?.name, "Cohort 0");
+  assert.equal(lumaCategoryForEmail("angelinawwu@ucla.edu")?.name, "Cohort 1");
+  assert.equal(lumaCategoryForEmail("stranger@example.com"), null);
+});
+
+function signupLuma({ existingTag = false, alreadyMember = false, pending = false, tier = true } = {}) {
+  const calls = [];
+  const fetchImpl = async (input, init = {}) => {
+    const url = new URL(String(input));
+    const body = init.body ? JSON.parse(init.body) : null;
+    calls.push({ path: url.pathname, body });
+    if (url.pathname === "/v1/calendars/contact-tags/list") {
+      return json({
+        entries: existingTag ? [{ id: "tag-cohort-0", name: "Cohort 0" }] : [],
+        has_more: false,
+      });
+    }
+    if (url.pathname === "/v1/calendars/contact-tags/create") {
+      return json({ id: "tag-created", name: body.name });
+    }
+    if (url.pathname === "/v1/calendars/contacts/import") return json({});
+    if (url.pathname === "/v1/memberships/tiers/list") {
+      return json({
+        entries: tier ? [{ id: "calmemtier-member", name: "Member" }] : [],
+        has_more: false,
+      });
+    }
+    if (url.pathname === "/v1/memberships/members/add") {
+      if (alreadyMember) {
+        return json({ message: "User already has an active membership for this calendar." }, 400);
+      }
+      return json({ status: pending ? "pending" : "approved" });
+    }
+    if (url.pathname === "/v1/memberships/members/update-status") return json({});
+    return json({ message: "Not found." }, 404);
+  };
+  return {
+    calls,
+    client: createLumaClient({ apiKey: "secret-test", fetchImpl }),
+  };
+}
+
+test("signup adds a cohort 0 member to Luma and creates their category tag", async () => {
+  const { calls, client } = signupLuma();
+  const result = await registerSignedUpMemberOnLuma({
+    client,
+    email: " Katherine9Wang@gmail.com ",
+    name: "Katherine Wang",
+  });
+  assert.deepEqual(result, {
+    email: "katherine9wang@gmail.com",
+    tierId: "calmemtier-member",
+    added: true,
+    tagId: "tag-created",
+    tag: "Cohort 0",
+  });
+  assert.deepEqual(
+    calls.find((call) => call.path.endsWith("/contact-tags/create")).body,
+    { name: "Cohort 0", color: "blue" },
+  );
+  assert.deepEqual(
+    calls.find((call) => call.path.endsWith("/contacts/import")).body,
+    {
+      contacts: [{ email: "katherine9wang@gmail.com", name: "Katherine Wang" }],
+      tags: ["tag-created"],
+    },
+  );
+  assert.deepEqual(
+    calls.find((call) => call.path.endsWith("/members/add")).body,
+    { email: "katherine9wang@gmail.com", membership_tier_id: "calmemtier-member" },
+  );
+});
+
+test("signup reuses the cohort tag and still categorizes someone already on the Member tier", async () => {
+  const { calls, client } = signupLuma({ existingTag: true, alreadyMember: true });
+  const result = await registerSignedUpMemberOnLuma({
+    client,
+    email: "hanswfu.design@gmail.com",
+    name: "Hanna Fu",
+  });
+  assert.equal(result.added, false);
+  assert.equal(result.tagId, "tag-cohort-0");
+  assert.equal(calls.some((call) => call.path.endsWith("/contact-tags/create")), false);
+  assert.deepEqual(calls.find((call) => call.path.endsWith("/contacts/import")).body.tags, [
+    "tag-cohort-0",
+  ]);
+});
+
+test("a pending Luma membership is approved during signup", async () => {
+  const { calls, client } = signupLuma({ existingTag: true, pending: true });
+  await registerSignedUpMemberOnLuma({
+    client,
+    email: "giangt.edu@gmail.com",
+  });
+  assert.deepEqual(
+    calls.find((call) => call.path.endsWith("/members/update-status")).body,
+    { user_id: "giangt.edu@gmail.com", status: "approved" },
+  );
+});
+
+test("signup skips the demo account and emails with no cohort", async () => {
+  const { calls, client } = signupLuma();
+  assert.equal(
+    await registerSignedUpMemberOnLuma({ client, email: "demo@designmeetup.info", name: "Michelle" }),
+    null,
+  );
+  assert.equal(
+    await registerSignedUpMemberOnLuma({ client, email: "stranger@example.com" }),
+    null,
+  );
+  assert.deepEqual(calls, []);
+});
+
+test("an allowlist signup is tagged Cohort 1", async () => {
+  const calls = [];
+  const fetchImpl = async (input, init = {}) => {
+    const url = new URL(String(input));
+    const body = init.body ? JSON.parse(init.body) : null;
+    calls.push({ path: url.pathname, body });
+    if (url.pathname === "/v1/calendars/contact-tags/list") return json({ entries: [], has_more: false });
+    if (url.pathname === "/v1/calendars/contact-tags/create") return json({ api_id: "tag-cohort-1" });
+    if (url.pathname === "/v1/calendars/contacts/import") return json({});
+    if (url.pathname === "/v1/memberships/tiers/list") {
+      return json({ entries: [{ id: "calmemtier-member", name: "Member" }], has_more: false });
+    }
+    if (url.pathname === "/v1/memberships/members/add") return json({ status: "approved" });
+    return json({ message: "Not found." }, 404);
+  };
+  const result = await registerSignedUpMemberOnLuma({
+    client: createLumaClient({ apiKey: "secret-test", fetchImpl }),
+    email: "angelinawwu@ucla.edu",
+    name: "Angelina",
+  });
+  assert.equal(result.tag, "Cohort 1");
+  assert.equal(result.tagId, "tag-cohort-1");
+  assert.deepEqual(calls.find((call) => call.path.endsWith("/contact-tags/create")).body, {
+    name: "Cohort 1",
+    color: "purple",
+  });
+});
+
+test("signup still succeeds when Luma rejects the member sync", async () => {
+  const fetchImpl = async () => {
+    throw new Error("luma down");
+  };
+  const original = console.error;
+  console.error = () => {};
+  try {
+    const result = await syncSignedUpMemberToLuma({
+      email: "justingainsley@gmail.com",
+      name: "Justin",
+      client: createLumaClient({ apiKey: "secret-test", fetchImpl }),
+    });
+    assert.equal(result, null);
+  } finally {
+    console.error = original;
+  }
+});
+
+test("both signup paths sync the new member to Luma without blocking the account", async () => {
+  const route = await readFile(new URL("../app/api/auth/route.ts", import.meta.url), "utf8");
+  const actions = await readFile(new URL("../src/lib/auth-actions.ts", import.meta.url), "utf8");
+  for (const source of [route, actions]) {
+    assert.match(source, /syncSignedUpMemberToLuma\(/);
+    assert.doesNotMatch(source, /if \(!\(await syncSignedUpMemberToLuma/);
+  }
+  const signupAt = route.indexOf('if (mode === "signup")');
+  const welcomeAt = route.indexOf("await sendWelcomeEmail", signupAt);
+  const lumaAt = route.indexOf("await syncSignedUpMemberToLuma", signupAt);
+  assert.ok(signupAt > 0 && welcomeAt > signupAt && lumaAt > welcomeAt);
 });

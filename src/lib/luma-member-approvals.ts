@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { cohortForEmail, type Cohort } from "./cohort.ts";
 
 /**
  * Members skip the Luma approval queue. Luma has no notion of our Stripe
@@ -250,6 +251,34 @@ export function createLumaClient({
       );
     },
 
+    async ensureContactTag(name: string, color = "blue") {
+      const tags = await paginate<{ id?: string; api_id?: string; name?: string }>(
+        "/v1/calendars/contact-tags/list",
+        {},
+      );
+      const existing = tags.find((tag) => tag.name === name);
+      const existingId = existing?.id ?? existing?.api_id;
+      if (existingId) return existingId;
+      const created = await request<{ id?: string; api_id?: string }>(
+        "/v1/calendars/contact-tags/create",
+        { method: "POST", body: { name, color } },
+      );
+      const id = created.id ?? created.api_id;
+      if (!id) throw new Error(`Luma did not return an id for tag "${name}"`);
+      return id;
+    },
+
+    /** Creates the contact when Luma has never seen the email, and applies tags. */
+    async importContacts(
+      contacts: Array<{ email: string; name?: string | null }>,
+      tags: string[],
+    ) {
+      await request("/v1/calendars/contacts/import", {
+        method: "POST",
+        body: { contacts, tags },
+      });
+    },
+
     /** Returns false when the person already has a membership on this calendar. */
     async addMemberToTier(email: string, tierId: string) {
       try {
@@ -275,6 +304,72 @@ export function createLumaClient({
 }
 
 export const LUMA_MEMBER_TIER = "Member";
+
+const DEMO_EMAIL = "demo@designmeetup.info";
+
+/** Cohort is the Luma contact category. Comp emails are cohort 0; the allowlist is cohort 1. */
+export const LUMA_COHORT_TAGS: Record<Cohort, { name: string; color: string }> = {
+  0: { name: "Cohort 0", color: "blue" },
+  1: { name: "Cohort 1", color: "purple" },
+};
+
+export function lumaCategoryForEmail(email: string | null | undefined) {
+  const cohort = cohortForEmail(email);
+  return cohort == null ? null : LUMA_COHORT_TAGS[cohort];
+}
+
+/**
+ * After a portal signup, put that person on the Luma Member tier and tag
+ * their cohort. The demo account is skipped. Unknown emails are skipped.
+ * Safe to repeat: an existing tag and an existing membership are left as they are.
+ */
+export async function registerSignedUpMemberOnLuma({
+  client,
+  email,
+  name,
+}: {
+  client: LumaClient;
+  email: string;
+  name?: string | null;
+}) {
+  const normalized = normalizeEmail(email);
+  const category = lumaCategoryForEmail(normalized);
+  if (!normalized || normalized === DEMO_EMAIL || !category) return null;
+
+  const tagId = await client.ensureContactTag(category.name, category.color);
+  await client.importContacts(
+    [{ email: normalized, name: name?.trim() || null }],
+    [tagId],
+  );
+  const tierId = await client.findMembershipTierId(LUMA_MEMBER_TIER);
+  if (!tierId) throw new Error(`Luma has no "${LUMA_MEMBER_TIER}" membership tier`);
+  const added = await client.addMemberToTier(normalized, tierId);
+  return { email: normalized, tierId, added, tagId, tag: category.name };
+}
+
+/** Signup must succeed even when Luma is down. Returns null when there is nothing to do. */
+export async function syncSignedUpMemberToLuma(input: {
+  email: string;
+  name?: string | null;
+  client?: LumaClient;
+}) {
+  let client = input.client ?? null;
+  if (!client) {
+    const apiKey = lumaApiKey();
+    if (!apiKey) return null;
+    client = createLumaClient({ apiKey, maxAttempts: 2 });
+  }
+  try {
+    return await registerSignedUpMemberOnLuma({
+      client,
+      email: input.email,
+      name: input.name,
+    });
+  } catch (error) {
+    console.error("[luma] signup member sync failed", error);
+    return null;
+  }
+}
 
 /**
  * Put every member into the calendar's "Member" membership tier so Luma shows

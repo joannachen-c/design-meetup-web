@@ -1,0 +1,249 @@
+export type Tier = "student" | "professional";
+
+export type MembershipStatus =
+  | "active"
+  | "trialing"
+  | "past_due"
+  | "canceled"
+  | "incomplete";
+
+export type MembershipRecord = {
+  userId: string;
+  tier: Tier;
+  status: MembershipStatus;
+  stripeSubscriptionId: string | null;
+  stripePriceId: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  updatedAt: string;
+};
+
+export type ProfileRecord = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  school: string | null;
+  year: string | null;
+  company: string | null;
+  position: string | null;
+  location: string | null;
+  website: string | null;
+  instagram: string | null;
+  x: string | null;
+  linkedin: string | null;
+  youtube: string | null;
+  github: string | null;
+  stripeCustomerId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProfileSocialLinks = {
+  website: string | null;
+  instagram: string | null;
+  x: string | null;
+  linkedin: string | null;
+  youtube: string | null;
+  github: string | null;
+};
+
+/** The card stops nudging to "Complete your profile" once these are filled. */
+export function profileDetailsComplete(profile: {
+  position?: string | null;
+  company?: string | null;
+  school?: string | null;
+  year?: string | null;
+  website?: string | null;
+  location?: string | null;
+}) {
+  const filled = (value: string | null | undefined) => Boolean(value?.trim());
+  const hasRole = filled(profile.position) || filled(profile.company);
+  const hasEducation = filled(profile.school) && filled(profile.year);
+  return (
+    (hasRole || hasEducation) &&
+    Boolean(socialHref("website", profile.website ?? null)) &&
+    filled(profile.location)
+  );
+}
+
+export function socialHref(
+  kind: keyof ProfileSocialLinks,
+  value: string | null | undefined,
+) {
+  const raw = (value || "").trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  switch (kind) {
+    case "website":
+      return `https://${raw.replace(/^\/+/, "")}`;
+    case "instagram":
+      return `https://instagram.com/${raw.replace(/^@/, "")}`;
+    case "x":
+      return `https://x.com/${raw.replace(/^@/, "")}`;
+    case "linkedin":
+      return `https://linkedin.com/in/${raw.replace(/^\/?in\//, "")}`;
+    case "youtube":
+      return `https://youtube.com/@${raw.replace(/^@/, "")}`;
+    case "github":
+      return `https://github.com/${raw.replace(/^@/, "")}`;
+    default:
+      return null;
+  }
+}
+
+export const TIER_CATALOG: Record<
+  Tier,
+  {
+    name: string;
+    priceLabel: string;
+    amountCents: number;
+    benefits: string[];
+  }
+> = {
+  student: {
+    name: "Student",
+    priceLabel: "$10 / month",
+    amountCents: 1000,
+    benefits: [
+      "For undergraduate designers",
+      "Guaranteed RSVP to every event (no waitlists)",
+      "Member directory",
+      "Bi-weekly coworking",
+      "Member-only events",
+      "Job opportunities and recruiting support from advisors and members",
+    ],
+  },
+  professional: {
+    name: "Professional",
+    priceLabel: "$35 / month",
+    amountCents: 3500,
+    benefits: [
+      "Everything in Student",
+      "For designers working in industry",
+      "Personal warm intros to design leads at partner companies",
+    ],
+  },
+};
+
+export const DEFAULT_STRIPE_PRICE_STUDENT =
+  "price_1UIVFiRTgiLNfq1Kv7KyAwmF";
+export const DEFAULT_STRIPE_PRICE_PROFESSIONAL =
+  "price_1UIVG2RTgiLNfq1KTLqH7jof";
+
+const TEST_MODE_PRICE_IDS = new Set([
+  DEFAULT_STRIPE_PRICE_STUDENT,
+  DEFAULT_STRIPE_PRICE_PROFESSIONAL,
+]);
+
+function envValue(name: string) {
+  return (process.env[name] ?? "").trim();
+}
+
+function usingLiveStripeKey() {
+  return envValue("STRIPE_SECRET_KEY").startsWith("sk_live_");
+}
+
+function configuredPriceId(tier: Tier) {
+  const fromEnv = envValue(
+    tier === "student"
+      ? "STRIPE_PRICE_STUDENT_MONTHLY"
+      : "STRIPE_PRICE_PROFESSIONAL_MONTHLY",
+  );
+  const id =
+    fromEnv ||
+    (tier === "student"
+      ? DEFAULT_STRIPE_PRICE_STUDENT
+      : DEFAULT_STRIPE_PRICE_PROFESSIONAL);
+  // Test-mode catalog ids cannot be charged with a live secret key.
+  if (usingLiveStripeKey() && TEST_MODE_PRICE_IDS.has(id)) {
+    return `price_local_${tier}`;
+  }
+  return id;
+}
+
+export function tierFromPriceId(priceId: string | null | undefined): Tier | null {
+  if (!priceId) return null;
+  if (
+    priceId === configuredPriceId("student") ||
+    priceId === "price_local_student"
+  ) {
+    return "student";
+  }
+  if (
+    priceId === configuredPriceId("professional") ||
+    priceId === "price_local_professional"
+  ) {
+    return "professional";
+  }
+  return null;
+}
+
+export function priceIdForTier(tier: Tier): string {
+  return configuredPriceId(tier);
+}
+
+export function isStripeProductId(id: string) {
+  return id.startsWith("prod_");
+}
+
+export function isStripePriceId(id: string) {
+  return id.startsWith("price_") && !id.startsWith("price_local_");
+}
+
+export function hasPortalAccess(status: MembershipStatus | null | undefined) {
+  return status === "active" || status === "trialing" || status === "past_due";
+}
+
+export function canUpgrade(tier: Tier | null | undefined) {
+  return tier === "student";
+}
+
+export function isTier(value: unknown): value is Tier {
+  return value === "student" || value === "professional";
+}
+
+const MEMBERSHIP_STATUS_LABELS: Record<MembershipStatus, string> = {
+  active: "Active",
+  trialing: "Trialing",
+  past_due: "Past due",
+  canceled: "Canceled",
+  incomplete: "Incomplete",
+};
+
+export function membershipStatusLabel(status: MembershipStatus) {
+  return MEMBERSHIP_STATUS_LABELS[status];
+}
+
+export function normalizeMembershipStatus(
+  value: string | null | undefined,
+): MembershipStatus {
+  switch (value) {
+    case "active":
+    case "trialing":
+    case "past_due":
+    case "canceled":
+    case "incomplete":
+      return value;
+    case "unpaid":
+    case "incomplete_expired":
+      return "incomplete";
+    default:
+      return "incomplete";
+  }
+}
+
+export function displayNameFromEmail(email: string) {
+  const normalized = email.trim().toLowerCase();
+  if (normalized === "demo@designmeetup.info") return "Michelle Liu";
+  const local = email.split("@")[0] || "member";
+  return local
+    .replace(/[._-]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
+
+export function firstNameFromDisplay(displayName: string | null | undefined, email: string) {
+  const source = (displayName || displayNameFromEmail(email)).trim();
+  return source.split(/\s+/)[0] || "there";
+}

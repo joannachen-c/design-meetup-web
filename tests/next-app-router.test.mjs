@@ -22,11 +22,21 @@ test("App Router pages exist for home and design-system", async () => {
   await access(new URL("app/design-system/page.tsx", root));
 });
 
+test("/apply redirects to the home page apply section", async () => {
+  const config = await read("next.config.ts");
+  assert.match(
+    config,
+    /source:\s*"\/apply",\s*destination:\s*"\/#apply"/,
+  );
+});
+
 test("home server page fetches events and passes hybrid props", async () => {
   const page = await read("app/page.tsx");
-  assert.match(page, /fetchPastEvents/);
-  assert.match(page, /initialEvents/);
-  assert.match(page, /initialError/);
+  const data = await read("src/lib/home-page-data.ts");
+  assert.match(page, /loadHomePageData\(\)/);
+  assert.match(data, /fetchPastEvents/);
+  assert.match(data, /initialEvents/);
+  assert.match(data, /initialError/);
   assert.match(page, /HomePage/);
   assert.doesNotMatch(page, /["']use client["']/);
 });

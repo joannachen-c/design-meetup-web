@@ -1034,15 +1034,13 @@ test("event photo gallery gets a subtle responsive content gap", () => {
 test("sponsors render as chips beside the other event metadata", () => {
   assert.match(
     app,
-    /<ul[^>]*className="[^"]*\bdetail-chips\b[^"]*"[\s\S]*sponsors\.map\(\(sponsor\)[\s\S]*sponsor\.name[\s\S]*<Chip>\{chipContent\}<\/Chip>[\s\S]*<\/ul>/,
+    /\{sponsors\.length > 0 \? \(\s*<ul[^>]*className="[^"]*\bdetail-chips\b[^"]*"[\s\S]*sponsors\.map\(\(sponsor\)[\s\S]*sponsor\.name[\s\S]*<Chip>\{chipContent\}<\/Chip>[\s\S]*<\/ul>\s*\) : null\}/,
   );
-  assert.match(app, /Sponsor slot open/);
+  // Empty events hide the row entirely — no "Sponsor slot open" tease.
+  assert.doesNotMatch(app, /Sponsor slot open/);
+  assert.doesNotMatch(app, /sponsor-placeholder/);
   assert.doesNotMatch(app, /className="detail-sponsors"/);
   assert.doesNotMatch(app, /event-sponsors-title/);
-  assert.match(
-    app,
-    /<Chip className="sponsor-placeholder" variant="outline">/,
-  );
   assert.doesNotMatch(app, hasClass("sponsor-list"));
   assert.doesNotMatch(css, /\.sponsor-list\b/);
 });
@@ -1426,10 +1424,10 @@ test("event metadata reads as two rows: facts, then sponsor pills", () => {
     /<Chip>\s*<span className="sr-only">Date: /,
   );
 
-  // Row two keeps the pills for sponsors only.
+  // Row two keeps the pills for sponsors only, and only when there are any.
   assert.match(
     facts,
-    /<ul\s+className="detail-chips[^"]*"\s*aria-label="Sponsors"\s*>[\s\S]*<span className="sr-only">Sponsor: <\/span>/,
+    /\{sponsors\.length > 0 \? \(\s*<ul\s+className="detail-chips[^"]*"\s*aria-label="Sponsors"\s*>[\s\S]*<span className="sr-only">Sponsor: <\/span>/,
   );
 
   assert.match(

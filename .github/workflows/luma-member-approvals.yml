@@ -1,0 +1,40 @@
+name: Approve member RSVPs on Luma
+
+# The Luma webhook approves members as they RSVP. This sweep catches anything
+# it missed, and guests who RSVP'd before their membership started.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+concurrency:
+  group: luma-member-approvals
+  cancel-in-progress: false
+
+jobs:
+  approve:
+    name: Approve pending members
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required secrets
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Approve pending members
+        run: |
+          code="$(curl -sS -o body.json -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            -H "Accept: application/json" \
+            "https://design-meetup-web.vercel.app/api/cron/luma-member-approvals" || true)"
+          python3 -c 'import json; d = json.load(open("body.json")); print("Pending {pending}, approved {approved}, failed {failed}.".format(**{k: d.get(k, "?") for k in ("pending", "approved", "failed")})); [print("  {eventName}: {approved} approved of {pending} pending".format(**e)) for e in d.get("events", []) if e.get("pending")]' || cat body.json
+          if [ "$code" != "200" ]; then
+            echo "::error::Sweep returned HTTP ${code:-000}"
+            exit 1
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

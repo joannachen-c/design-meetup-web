@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  async redirects() {
+    return [
+      {
+        source: "/apply",
+        destination: "/#apply",
+        permanent: false,
+      },
+    ];
+  },
   images: {
     // Gallery photos and covers live in public Storage buckets. Resizing them
     // here (Vercel CDN) instead of `/storage/v1/render/image` keeps the Free

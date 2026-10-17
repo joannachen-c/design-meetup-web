@@ -1,8 +1,6 @@
 import { ArrowUpRightIcon } from "./icons/ArrowUpRightIcon";
 import { Link } from "./Link";
-import type { LumaEvent } from "@/lib/luma";
-
-const LUMA_PAST_CALENDAR_URL = "https://luma.com/designmeetup?period=past";
+import { LUMA_PAST_EVENTS_URL, type LumaEvent } from "@/lib/luma";
 
 export function RecentEventsPanel({ events }: { events: LumaEvent[] }) {
   return (
@@ -46,7 +44,7 @@ export function RecentEventsPanel({ events }: { events: LumaEvent[] }) {
       </ul>
       <Link
         className="mt-auto inline-flex items-center gap-1.5 px-3 pt-2.5 pb-2"
-        href={LUMA_PAST_CALENDAR_URL}
+        href={LUMA_PAST_EVENTS_URL}
         target="_blank"
         rel="noreferrer"
       >

@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const readSource = (path) => readFile(new URL(path, root), "utf8");
 
-const [app, designSystem, iconButton, designSystemPage, styles, input, newsletterForm] =
+const [app, designSystem, iconButton, designSystemPage, styles, input, newsletterForm, toast] =
   await Promise.all([
     readSource("src/components/HomePage.tsx"),
     readSource("src/DesignSystem.tsx").catch(() => ""),
@@ -14,6 +14,7 @@ const [app, designSystem, iconButton, designSystemPage, styles, input, newslette
     readSource("app/globals.css"),
     readSource("src/components/Input.tsx").catch(() => ""),
     readSource("src/components/NewsletterForm.tsx").catch(() => ""),
+    readSource("src/components/Toast.tsx").catch(() => ""),
   ]);
 
 test("the design system is available at its own App Router route", () => {
@@ -33,6 +34,7 @@ test("the specimen page documents foundations and production components", () => 
     "links",
     "inputs",
     "tooltips",
+    "toasts",
   ]) {
     assert.match(designSystem, new RegExp(`>\\s*${section}\\s*<`));
   }
@@ -41,6 +43,7 @@ test("the specimen page documents foundations and production components", () => 
   assert.match(designSystem, /<Link/);
   assert.match(designSystem, /<Input/);
   assert.match(designSystem, /<Tooltip/);
+  assert.match(designSystem, /<Toast/);
   assert.match(designSystem, /loading/);
   assert.match(designSystem, /disabled/);
 });
@@ -57,6 +60,7 @@ test("design-system section and group headers are lowercase without changing spe
     ["links", "links"],
     ["inputs", "inputs"],
     ["tooltips", "tooltips"],
+    ["toasts", "toasts"],
   ]) {
     assert.match(
       designSystem,
@@ -88,6 +92,8 @@ test("design-system section and group headers are lowercase without changing spe
     "email address",
     "disabled",
     "dropdown",
+    "neutral",
+    "danger",
   ]) {
     assert.match(
       designSystem,
@@ -519,6 +525,7 @@ test("semantic color tokens back shared component styling", () => {
     "--color-ink",
     "--color-muted",
     "--color-subtle",
+    "--color-tertiary",
     "--color-surface",
     "--color-surface-muted",
     "--color-skeleton",
@@ -555,10 +562,9 @@ test("color swatches use gap-3 before tightly grouped copy", () => {
     /className="m-0 mt-1 text-sm text-subtle"[\s\S]*\{color\.description\}/,
   );
   assert.equal(designSystem.match(/const semanticColors = \[/g)?.length, 1);
-  assert.equal(
-    [...designSystem.matchAll(/description: "/g)].length,
-    9,
-  );
+  const semanticBlock =
+    designSystem.match(/const semanticColors = \[[\s\S]*?\] as const;/)?.[0] ?? "";
+  assert.equal([...semanticBlock.matchAll(/description: "/g)].length, 9);
 });
 
 test("semantic color swatches use a denser responsive grid", () => {
@@ -660,44 +666,27 @@ test("gallery arrows use an accessible shared icon button", () => {
   assert.doesNotMatch(app, /const iconButtonClassName/);
 });
 
-test("button and link specimens use white surfaces", () => {
+test("button, link, and toast specimens sit on the page without white panels", () => {
   assert.match(
     designSystem,
-    /const whiteSpecimenClassName = `\$\{specimenClassName\} gap-3 bg-white py-5 sm:py-8`/,
+    /const specimenRowClassName = "flex flex-wrap items-center gap-3";/,
   );
   assert.match(
     designSystem,
-    /aria-labelledby="buttons-title"[\s\S]*whiteSpecimenClassName/,
+    /const linksSpecimenClassName = "flex flex-wrap items-center gap-6";/,
   );
+  assert.doesNotMatch(designSystem, /whiteSpecimenClassName/);
   assert.match(
     designSystem,
-    /id="links"\s+className=\{`\$\{sectionClassName\} md:items-end`\}\s+aria-labelledby="links-title"/,
+    /aria-labelledby="buttons-title"[\s\S]*specimenRowClassName/,
   );
   assert.match(
     designSystem,
     /aria-labelledby="links-title"[\s\S]*className=\{linksSpecimenClassName\}/,
   );
-});
-
-test("button and link specimen rows omit horizontal padding", () => {
-  assert.match(
-    designSystem,
-    /const specimenClassName =\s*"flex min-h-32 flex-wrap items-center rounded-\[11px\]"/,
-  );
-  assert.match(
-    designSystem,
-    /const whiteSpecimenClassName = `\$\{specimenClassName\} gap-3 bg-white py-5 sm:py-8`/,
-  );
-  assert.match(
-    designSystem,
-    /const linksSpecimenClassName =\s*"flex flex-wrap items-center gap-6 rounded-\[11px\] bg-white"/,
-  );
-  assert.doesNotMatch(
-    designSystem.match(
-      /const linksSpecimenClassName =\s*"([^"]*)"/,
-    )?.[1] ?? "",
-    /\b(?:p|py|min-h)-/,
-  );
+  const toastsSection =
+    designSystem.match(/<section\s+id="toasts"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.doesNotMatch(toastsSection, /bg-white/);
   assert.match(
     designSystem,
     /className=\{`\$\{specimenClassName\} items-start gap-8 bg-surface-muted px-5 py-4\.5 sm:grid sm:grid-cols-2 sm:items-start sm:px-8 sm:py-7\.5`\}/,
@@ -844,6 +833,32 @@ test("the tooltips section is hidden on mobile where hover chrome does not exist
   );
 });
 
+test("toasts document the shared production Toast at the surface radius", () => {
+  const toastsSection =
+    designSystem.match(/<section\s+id="toasts"[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  assert.match(designSystem, /import \{ Toast, ToastCheckIcon \} from "\.\/components\/Toast"/);
+  assert.match(toastsSection, /<SpecimenLabel>neutral<\/SpecimenLabel>/);
+  assert.match(toastsSection, /<SpecimenLabel>success<\/SpecimenLabel>/);
+  assert.match(toastsSection, /<SpecimenLabel>danger<\/SpecimenLabel>/);
+  assert.match(toastsSection, /<Toast>/);
+  assert.match(toastsSection, /<Toast variant="success" icon=\{<ToastCheckIcon \/>\}>/);
+  assert.match(toastsSection, /<Toast variant="danger">/);
+  assert.match(toast, /rounded-\[11px\]/);
+  assert.match(toast, /success: "bg-green-50 text-green-700"/);
+  assert.match(toast, /danger: "bg-red-50 text-red-700"/);
+  assert.match(toast, /font-normal/);
+  assert.doesNotMatch(toast, /text-tertiary/);
+  assert.match(designSystem, /import \{ showSuccessToast \} from "\.\/components\/AppToaster"/);
+  assert.match(
+    toastsSection,
+    /onClick=\{\(\) => showSuccessToast\("Profile updated\."\)\}[\s\S]*Play animation/,
+  );
+  assert.doesNotMatch(toast, /text-accent-primary/);
+  assert.doesNotMatch(toast, /rounded-\[20px\]/);
+  assert.doesNotMatch(toast, /rounded-full/);
+});
+
 test("icons section is omitted from the design system page", () => {
   assert.doesNotMatch(designSystem, /<section\s+id="icons"/);
   assert.doesNotMatch(designSystem, /const designSystemIcons = \[/);
@@ -889,6 +904,7 @@ test("design system header logo links home and sections have sub-nav anchors", (
     ["links", "links"],
     ["inputs", "inputs"],
     ["tooltips", "tooltips"],
+    ["toasts", "toasts"],
   ]) {
     assert.match(
       designSystem,
@@ -912,4 +928,22 @@ test("design system page reuses the shared footer with a home logo link", () => 
     designSystem,
     /<SiteFooter\s+logoHref="\/"\s+logoAriaLabel="Design Meetup home"\s+hideDesignSystemPromo\s+\/>/,
   );
+});
+
+test("colors document the success and danger toast greens and reds", () => {
+  const colorsSection =
+    designSystem.match(/<section\s+id="colors"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.match(colorsSection, /<SpecimenLabel>status<\/SpecimenLabel>/);
+  assert.match(colorsSection, /statusColors\.map/);
+  for (const [label, hex] of [
+    ["green-50", "#f0fdf4"],
+    ["green-700", "#008236"],
+    ["red-50", "#fef2f2"],
+    ["red-700", "#c10007"],
+  ]) {
+    assert.match(
+      designSystem,
+      new RegExp(`label: "${label}",[\\s\\S]*?className: "bg-${label}",\\s*hex: "${hex}"`),
+    );
+  }
 });

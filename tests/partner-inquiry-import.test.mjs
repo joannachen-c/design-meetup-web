@@ -245,6 +245,9 @@ test("GitHub Actions call production instead of pulling Sensitive env", () => {
     productionWorkflow,
     /scripts\/trigger-partner-inquiry-import\.sh/,
   );
+  assert.match(productionWorkflow, /vercel deploy --yes --prod/);
+  assert.doesNotMatch(productionWorkflow, /vercel deploy --prebuilt/);
+  assert.doesNotMatch(productionWorkflow, /vercel build --prod/);
   assert.equal(vercelJson.crons?.[0]?.path, "/api/contact/import");
   assert.equal(vercelJson.crons?.[0]?.schedule, "0 6 * * *");
 });

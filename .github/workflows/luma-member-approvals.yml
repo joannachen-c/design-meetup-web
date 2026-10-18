@@ -31,7 +31,7 @@ jobs:
             -H "Authorization: Bearer ${VERCEL_TOKEN}" \
             -H "Accept: application/json" \
             "https://design-meetup-web.vercel.app/api/cron/luma-member-approvals" || true)"
-          python3 -c 'import json; d = json.load(open("body.json")); print("Pending {pending}, approved {approved}, failed {failed}.".format(**{k: d.get(k, "?") for k in ("pending", "approved", "failed")})); [print("  {eventName}: {approved} approved of {pending} pending".format(**e)) for e in d.get("events", []) if e.get("pending")]' || cat body.json
+          python3 -c 'import json; d = json.load(open("body.json")); print("Pending {pending}, approved {approved}, failed {failed}.".format(**{k: d.get(k, "?") for k in ("pending", "approved", "failed")})); tier = d.get("tier") or {}; print("Member tier added {added}, removed {removed}, failed {failed}.".format(added=tier.get("added", "?"), removed=tier.get("removed", "?"), failed=len(tier.get("failed") or []))); [print("  {eventName}: {approved} approved of {pending} pending".format(**e)) for e in d.get("events", []) if e.get("pending")]' || cat body.json
           if [ "$code" != "200" ]; then
             echo "::error::Sweep returned HTTP ${code:-000}"
             exit 1

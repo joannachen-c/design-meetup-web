@@ -6,7 +6,7 @@ import {
   memberEmailSet,
   syncMembershipTier,
 } from "@/lib/luma-member-approvals";
-import { listMemberEmails } from "@/lib/membership-service";
+import { listLumaTierEmails, listMemberEmails } from "@/lib/membership-service";
 import {
   bearerTokenFromHeader,
   isAuthorizedImportCaller,
@@ -33,6 +33,11 @@ async function handle(request: Request) {
   const dryRun = new URL(request.url).searchParams.get("dry_run") === "1";
   try {
     const memberEmails = memberEmailSet(await listMemberEmails());
+    const lumaTier = await listLumaTierEmails();
+    const tierEmails = memberEmailSet(lumaTier.emails);
+    // An empty paid list means Supabase did not load checkout members. Revoking
+    // then would take the Member tier off people who have already paid.
+    const revokeEmails = lumaTier.paidPortalCount > 0 ? memberEmails : undefined;
     if (memberEmails.size === 0) {
       return NextResponse.json(
         { ok: false, error: "No active members found; check the Supabase connection" },
@@ -44,8 +49,13 @@ async function handle(request: Request) {
     let tier: Awaited<ReturnType<typeof syncMembershipTier>> | { error: string } | null = null;
     if (!dryRun) {
       // Tier sync is secondary: a renamed tier must not hide the approval results.
+      // Only paid portal members and the Board of Advisors stay on the Member tier.
       try {
-        tier = await syncMembershipTier({ client, memberEmails });
+        tier = await syncMembershipTier({
+          client,
+          memberEmails: tierEmails,
+          revokeEmails,
+        });
       } catch (error) {
         console.error("[luma-member-approvals] tier sync failed", error);
         tier = { error: error instanceof Error ? error.message : "unknown error" };
@@ -55,6 +65,7 @@ async function handle(request: Request) {
       ok: summary.failed === 0,
       dryRun,
       members: memberEmails.size,
+      tierMembers: tierEmails.size,
       tier,
       pending: summary.pending,
       approved: summary.approved,

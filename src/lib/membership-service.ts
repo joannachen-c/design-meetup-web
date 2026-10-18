@@ -28,6 +28,7 @@ import {
   updateLocalProfile,
   upsertLocalMembership,
 } from "./membership-store";
+import { syncPaidMemberToLuma } from "./luma-member-approvals";
 import { sendGraduationUpgradeEmail } from "./welcome-email";
 
 const DEMO_EMAIL = "demo@designmeetup.info";
@@ -557,28 +558,82 @@ export async function listMemberEmails() {
   return [...emails];
 }
 
-async function listPortalMemberEmails() {
-  let rows: Array<{ status: string | null; email: string | null }>;
+/**
+ * Who belongs on the Luma Member tier: people who have paid on the portal,
+ * plus the Board of Advisors. Cohort and comp emails stay off the tier until
+ * checkout creates a live Stripe subscription.
+ */
+export async function listLumaTierEmails() {
+  const paid = await listPaidPortalEmails();
+  const emails = new Set([...paid, ...boardOfAdvisorsEmails()]);
+  emails.delete(DEMO_EMAIL);
+  return { emails: [...emails], paidPortalCount: paid.length };
+}
+
+type PortalMembershipRow = {
+  status: string | null;
+  email: string | null;
+  stripeSubscriptionId: string | null;
+};
+
+async function listPortalMembershipRows(): Promise<PortalMembershipRow[]> {
   if (await supabaseMembershipTablesAvailable()) {
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("memberships")
-      .select("status,profiles(email)");
+      .select("status,stripe_subscription_id,profiles(email)");
     // An empty list here would quietly stop approving everyone, so fail loudly.
     if (error) throw new Error(`Could not load members: ${error.message}`);
-    rows = (data ?? []).map((row) => {
+    return (data ?? []).map((row) => {
       const profile = row.profiles as { email?: string | null } | { email?: string | null }[] | null;
       return {
         status: row.status as string | null,
+        stripeSubscriptionId: (row.stripe_subscription_id as string | null) ?? null,
         email: (Array.isArray(profile) ? profile[0]?.email : profile?.email) ?? null,
       };
     });
-  } else {
-    rows = await listLocalMemberships();
   }
+  return listLocalMemberships();
+}
+
+function portalRowEmail(row: PortalMembershipRow) {
+  const email = row.email?.trim().toLowerCase();
+  return email || null;
+}
+
+async function listPortalMemberEmails() {
+  const rows = await listPortalMembershipRows();
   return rows
     .filter((row) => hasPortalAccess(normalizeMembershipStatus(row.status)))
-    .flatMap((row) => (row.email?.trim() ? [row.email.trim().toLowerCase()] : []));
+    .flatMap((row) => {
+      const email = portalRowEmail(row);
+      return email ? [email] : [];
+    });
+}
+
+async function listPaidPortalEmails() {
+  const rows = await listPortalMembershipRows();
+  return rows
+    .filter(
+      (row) =>
+        hasPortalAccess(normalizeMembershipStatus(row.status)) &&
+        isLiveStripeSubscriptionId(row.stripeSubscriptionId),
+    )
+    .flatMap((row) => {
+      const email = portalRowEmail(row);
+      return email && email !== DEMO_EMAIL ? [email] : [];
+    });
+}
+
+async function syncLumaAfterPortalPayment(
+  userId: string,
+  membership: { status: MembershipStatus; stripeSubscriptionId?: string | null } | null,
+) {
+  if (!membership || !hasPortalAccess(membership.status)) return;
+  if (!isLiveStripeSubscriptionId(membership.stripeSubscriptionId)) return;
+  const profile = await getProfile(userId);
+  if (!profile?.email) return;
+  await syncPaidMemberToLuma({ email: profile.email });
 }
 
 /** Activate membership from a completed Checkout Session (works without webhooks). */
@@ -629,7 +684,7 @@ export async function syncMembershipFromCheckoutSession(input: {
     await saveStripeCustomerId(input.userId, session.customer);
   }
 
-  return upsertMembership({
+  const saved = await upsertMembership({
     userId: input.userId,
     tier,
     status: "active",
@@ -643,6 +698,8 @@ export async function syncMembershipFromCheckoutSession(input: {
       : null,
     cancelAtPeriodEnd: Boolean(subscription?.cancel_at_period_end),
   });
+  await syncLumaAfterPortalPayment(input.userId, saved);
+  return saved;
 }
 
 export function stripeConfigured() {
@@ -715,7 +772,7 @@ export async function syncMembershipFromStripeSubscription(
   const customerId = customerIdFromSubscription(subscription);
   if (customerId) await saveStripeCustomerId(userId, customerId);
 
-  return upsertMembership({
+  const saved = await upsertMembership({
     userId,
     tier,
     status,
@@ -726,6 +783,8 @@ export async function syncMembershipFromStripeSubscription(
       : null,
     cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
   });
+  await syncLumaAfterPortalPayment(userId, saved);
+  return saved;
 }
 
 export async function changeMembershipTier(userId: string, tier: Tier) {

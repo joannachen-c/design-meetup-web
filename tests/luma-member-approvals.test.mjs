@@ -12,6 +12,8 @@ import {
   lumaWebhookUrl,
   memberEmailSet,
   membersToApprove,
+  emailsToRemoveFromLumaTier,
+  grantLumaMembership,
   registerSignedUpMemberOnLuma,
   syncMembershipTier,
   syncSignedUpMemberToLuma,
@@ -361,7 +363,7 @@ function signupLuma({ existingTag = false, alreadyMember = false, pending = fals
   };
 }
 
-test("signup adds a cohort 0 member to Luma and creates their category tag", async () => {
+test("signup tags cohort 0 and does not add the Luma Member tier", async () => {
   const { calls, client } = signupLuma();
   const result = await registerSignedUpMemberOnLuma({
     client,
@@ -370,8 +372,6 @@ test("signup adds a cohort 0 member to Luma and creates their category tag", asy
   });
   assert.deepEqual(result, {
     email: "katherine9wang@gmail.com",
-    tierId: "calmemtier-member",
-    added: true,
     tagId: "tag-created",
     tag: "Cohort 0",
   });
@@ -386,33 +386,35 @@ test("signup adds a cohort 0 member to Luma and creates their category tag", asy
       tags: ["tag-created"],
     },
   );
-  assert.deepEqual(
-    calls.find((call) => call.path.endsWith("/members/add")).body,
-    { email: "katherine9wang@gmail.com", membership_tier_id: "calmemtier-member" },
-  );
+  assert.equal(calls.some((call) => call.path.includes("/memberships/")), false);
 });
 
-test("signup reuses the cohort tag and still categorizes someone already on the Member tier", async () => {
+test("signup reuses the cohort tag without granting membership", async () => {
   const { calls, client } = signupLuma({ existingTag: true, alreadyMember: true });
   const result = await registerSignedUpMemberOnLuma({
     client,
     email: "hanswfu.design@gmail.com",
     name: "Hanna Fu",
   });
-  assert.equal(result.added, false);
   assert.equal(result.tagId, "tag-cohort-0");
   assert.equal(calls.some((call) => call.path.endsWith("/contact-tags/create")), false);
+  assert.equal(calls.some((call) => call.path.includes("/memberships/")), false);
   assert.deepEqual(calls.find((call) => call.path.endsWith("/contacts/import")).body.tags, [
     "tag-cohort-0",
   ]);
 });
 
-test("a pending Luma membership is approved during signup", async () => {
-  const { calls, client } = signupLuma({ existingTag: true, pending: true });
-  await registerSignedUpMemberOnLuma({
+test("a paid member is added to the Luma Member tier, and a pending add is approved", async () => {
+  const { calls, client } = signupLuma({ pending: true });
+  const result = await grantLumaMembership({
     client,
     email: "giangt.edu@gmail.com",
   });
+  assert.equal(result.added, true);
+  assert.deepEqual(
+    calls.find((call) => call.path.endsWith("/members/add")).body,
+    { email: "giangt.edu@gmail.com", membership_tier_id: "calmemtier-member" },
+  );
   assert.deepEqual(
     calls.find((call) => call.path.endsWith("/members/update-status")).body,
     { user_id: "giangt.edu@gmail.com", status: "approved" },
@@ -454,6 +456,7 @@ test("an allowlist signup is tagged Cohort 1", async () => {
   });
   assert.equal(result.tag, "Cohort 1");
   assert.equal(result.tagId, "tag-cohort-1");
+  assert.equal(calls.some((call) => call.path.includes("/memberships/")), false);
   assert.deepEqual(calls.find((call) => call.path.endsWith("/contact-tags/create")).body, {
     name: "Cohort 1",
     color: "purple",
@@ -476,6 +479,71 @@ test("signup still succeeds when Luma rejects the member sync", async () => {
   } finally {
     console.error = original;
   }
+});
+
+test("unpaid roster emails are removed from the Luma tier, and paid and board emails stay", () => {
+  const remove = emailsToRemoveFromLumaTier(
+    ["giangt.edu@gmail.com", "Paid@Example.com", "advisor@example.com", "demo@designmeetup.info"],
+    ["paid@example.com", "advisor@example.com"],
+  );
+  assert.deepEqual([...remove].sort(), ["demo@designmeetup.info", "giangt.edu@gmail.com"]);
+});
+
+test("tier sync declines roster members who have not paid and leaves the board", async () => {
+  const calls = [];
+  const fetchImpl = async (input, init = {}) => {
+    const url = new URL(String(input));
+    const body = init.body ? JSON.parse(init.body) : null;
+    calls.push({ path: url.pathname, body });
+    if (url.pathname === "/v1/memberships/tiers/list") {
+      return json({ entries: [{ id: "calmemtier-member", name: "Member" }], has_more: false });
+    }
+    if (url.pathname === "/v1/calendar/list-people") {
+      return json({
+        entries: [
+          { email: "giangt.edu@gmail.com", membership: { status: "approved" } },
+          { email: "advisor@example.com", membership: { status: "approved" } },
+          { email: "paid@example.com", membership: null },
+        ],
+        has_more: false,
+      });
+    }
+    if (url.pathname === "/v1/memberships/members/add") return json({ status: "approved" });
+    if (url.pathname === "/v1/memberships/members/update-status") return json({});
+    return json({ message: "Not found." }, 404);
+  };
+  const keep = memberEmailSet(["paid@example.com", "advisor@example.com"]);
+  const result = await syncMembershipTier({
+    client: createLumaClient({ apiKey: "secret-test", fetchImpl }),
+    memberEmails: keep,
+    revokeEmails: emailsToRemoveFromLumaTier(
+      ["giangt.edu@gmail.com", "paid@example.com", "advisor@example.com"],
+      keep,
+    ),
+  });
+  assert.equal(result.added, 1);
+  assert.equal(result.removed, 1);
+  assert.deepEqual(result.failed, []);
+  assert.deepEqual(
+    calls.find((call) => call.path.endsWith("/members/add")).body,
+    { email: "paid@example.com", membership_tier_id: "calmemtier-member" },
+  );
+  assert.deepEqual(
+    calls.find((call) => call.path.endsWith("/members/update-status")).body,
+    { user_id: "giangt.edu@gmail.com", status: "declined" },
+  );
+});
+
+test("the Luma sweep adds only paid portal members and the board, then revokes the rest of the roster", async () => {
+  const cron = await readFile(new URL("../app/api/cron/luma-member-approvals/route.ts", import.meta.url), "utf8");
+  const service = await readFile(new URL("../src/lib/membership-service.ts", import.meta.url), "utf8");
+  assert.match(cron, /listLumaTierEmails\(\)/);
+  assert.match(cron, /memberEmails: tierEmails/);
+  assert.match(cron, /revokeEmails/);
+  assert.match(cron, /paidPortalCount > 0/);
+  assert.match(service, /syncPaidMemberToLuma\(\{ email: profile\.email \}\)/);
+  assert.match(service, /isLiveStripeSubscriptionId\(row\.stripeSubscriptionId\)/);
+  assert.match(service, /isLiveStripeSubscriptionId\(membership\.stripeSubscriptionId\)/);
 });
 
 test("both signup paths sync the new member to Luma without blocking the account", async () => {

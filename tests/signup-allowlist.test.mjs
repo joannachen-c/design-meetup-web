@@ -27,6 +27,12 @@ test("comped emails can sign up even when missing from the allowlist", () => {
   assert.equal(isApprovedSignupEmail("si2227@nyu.edu"), true);
   assert.equal(isApprovedSignupEmail("Sabria.Islam@gmail.com"), true);
   assert.equal(isApprovedSignupEmail(" Inquiries@AdamHo.com "), true);
+  assert.equal(isApprovedSignupEmail("katherine9wang@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail(" Hanswfu.Design@gmail.com "), true);
+  assert.equal(isApprovedSignupEmail("giangt.edu@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail("alizahunbaev@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail("design.ginny@gmail.com"), true);
+  assert.equal(isApprovedSignupEmail("justingainsley@gmail.com"), true);
 });
 
 test("unapproved signup error is shown under the email input", async () => {

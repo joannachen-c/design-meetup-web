@@ -44,6 +44,28 @@
     "sort_order": 2
   },
   {
+    "slug": "ahmed-saleh",
+    "first_name": "Ahmed",
+    "last_name": "Saleh",
+    "title": "CEO & Co-founder",
+    "company": "Falcon",
+    "relationship": "advisor",
+    "fields": [
+      "Founders",
+      "Product Design",
+      "AI"
+    ],
+    "locations": [
+      "Toronto"
+    ],
+    "bio": "Ahmed Saleh is co-founder and CEO of Falcon, a Toronto-based design tool where designers work directly in live code, and was previously a product designer at Roblox and Guilded.",
+    "photo_url": "/advisors/ahmed-saleh.jpg",
+    "website_url": "https://falcon.so",
+    "linkedin_url": "https://www.linkedin.com/in/saleh-ahmed",
+    "x_url": "https://x.com/saleh_digital",
+    "sort_order": 3
+  },
+  {
     "slug": "aibek-yegemberdin",
     "first_name": "Aibek",
     "last_name": "Yegemberdin",
@@ -63,7 +85,7 @@
     "website_url": null,
     "linkedin_url": "https://www.linkedin.com/in/yegemberdin",
     "x_url": "https://x.com/aibek_design",
-    "sort_order": 3
+    "sort_order": 4
   },
   {
     "slug": "alekhya-maram",
@@ -84,7 +106,7 @@
     "website_url": "https://alekhyamaram.framer.website",
     "linkedin_url": "https://www.linkedin.com/in/alekhyamaram",
     "x_url": null,
-    "sort_order": 4
+    "sort_order": 5
   },
   {
     "slug": "angela-chu",
@@ -106,7 +128,7 @@
     "website_url": "https://achudesign.com",
     "linkedin_url": "https://www.linkedin.com/in/angelasychu",
     "x_url": null,
-    "sort_order": 5
+    "sort_order": 6
   },
   {
     "slug": "angela-guzman",
@@ -127,7 +149,7 @@
     "website_url": "https://angelaguzman.co",
     "linkedin_url": "https://www.linkedin.com/in/agzmn",
     "x_url": "https://x.com/agzmn",
-    "sort_order": 6
+    "sort_order": 7
   },
   {
     "slug": "bennett-huffman",
@@ -148,7 +170,7 @@
     "website_url": "https://www.bennetthuffman.com",
     "linkedin_url": "https://www.linkedin.com/in/bennetthuffman",
     "x_url": null,
-    "sort_order": 7
+    "sort_order": 8
   },
   {
     "slug": "brian-cho",
@@ -170,7 +192,7 @@
     "website_url": "https://bcho.design",
     "linkedin_url": "https://www.linkedin.com/in/bchodesign",
     "x_url": null,
-    "sort_order": 8
+    "sort_order": 9
   },
   {
     "slug": "brian-thompson",
@@ -192,7 +214,7 @@
     "website_url": "https://uxbrianthompson.myportfolio.com",
     "linkedin_url": "https://www.linkedin.com/in/uxbrianthompson",
     "x_url": null,
-    "sort_order": 9
+    "sort_order": 10
   },
   {
     "slug": "burton-rast",
@@ -214,7 +236,7 @@
     "website_url": "https://misterburton.com",
     "linkedin_url": "https://www.linkedin.com/in/misterburton",
     "x_url": "https://x.com/misterburton",
-    "sort_order": 10
+    "sort_order": 11
   },
   {
     "slug": "carl-sziebert",
@@ -236,7 +258,7 @@
     "website_url": "https://carlsz.dev",
     "linkedin_url": "https://www.linkedin.com/in/carlsz",
     "x_url": null,
-    "sort_order": 11
+    "sort_order": 12
   },
   {
     "slug": "carlos-melegrito",
@@ -257,7 +279,7 @@
     "website_url": "https://carlos-m.com",
     "linkedin_url": "https://www.linkedin.com/in/cjmlgrto",
     "x_url": "https://x.com/cjmlgrto",
-    "sort_order": 12
+    "sort_order": 13
   },
   {
     "slug": "chi-quach",
@@ -278,7 +300,7 @@
     "website_url": "https://chiquach.com",
     "linkedin_url": "https://www.linkedin.com/in/chiquach21",
     "x_url": "https://x.com/chiquwch",
-    "sort_order": 13
+    "sort_order": 14
   },
   {
     "slug": "chris-allick",
@@ -300,7 +322,7 @@
     "website_url": "https://chrisallick.com",
     "linkedin_url": "https://www.linkedin.com/in/chrisallick",
     "x_url": null,
-    "sort_order": 14
+    "sort_order": 15
   },
   {
     "slug": "cole-lee",
@@ -322,7 +344,7 @@
     "website_url": "https://hyphen.art",
     "linkedin_url": "https://www.linkedin.com/in/covacut",
     "x_url": "https://x.com/covacut",
-    "sort_order": 15
+    "sort_order": 16
   },
   {
     "slug": "dennis-jin",
@@ -344,7 +366,7 @@
     "website_url": "https://dennisjin.com",
     "linkedin_url": "https://www.linkedin.com/in/dennis-jin-13788110b",
     "x_url": "https://x.com/seldom",
-    "sort_order": 16
+    "sort_order": 17
   },
   {
     "slug": "doug-demarco",
@@ -366,7 +388,7 @@
     "website_url": "https://www.dougdemarco.com",
     "linkedin_url": "https://www.linkedin.com/in/douglasrdemarco",
     "x_url": null,
-    "sort_order": 17
+    "sort_order": 18
   },
   {
     "slug": "elizabeth-lin",
@@ -388,7 +410,7 @@
     "website_url": "https://lalizlabeth.com",
     "linkedin_url": "https://www.linkedin.com/in/elizabethylin",
     "x_url": "https://x.com/lalizlabeth",
-    "sort_order": 18
+    "sort_order": 19
   },
   {
     "slug": "flora-guo",
@@ -410,7 +432,7 @@
     "website_url": "https://www.floguo.com",
     "linkedin_url": "https://www.linkedin.com/in/floguo",
     "x_url": "https://x.com/floguo",
-    "sort_order": 19
+    "sort_order": 20
   },
   {
     "slug": "grace-chen",
@@ -430,7 +452,7 @@
     "website_url": "https://www.gracechen.io",
     "linkedin_url": "https://www.linkedin.com/in/gracechendesign",
     "x_url": null,
-    "sort_order": 20
+    "sort_order": 21
   },
   {
     "slug": "jamey-gannon",
@@ -452,7 +474,7 @@
     "website_url": "https://www.jameygannon.com",
     "linkedin_url": "https://www.linkedin.com/in/jameygannon",
     "x_url": "https://x.com/jameygannon",
-    "sort_order": 21
+    "sort_order": 22
   },
   {
     "slug": "janice-lee",
@@ -474,7 +496,7 @@
     "website_url": "https://www.janicejournal.co",
     "linkedin_url": "https://www.linkedin.com/in/janicejournal",
     "x_url": null,
-    "sort_order": 22
+    "sort_order": 23
   },
   {
     "slug": "jennifer-jing",
@@ -495,7 +517,7 @@
     "website_url": "https://jenniferjing.com",
     "linkedin_url": "https://www.linkedin.com/in/jennifer-jing",
     "x_url": null,
-    "sort_order": 23
+    "sort_order": 24
   },
   {
     "slug": "jin-park",
@@ -517,7 +539,7 @@
     "website_url": "https://jinsupark.vercel.app",
     "linkedin_url": "https://www.linkedin.com/in/jinsupark-in",
     "x_url": "https://x.com/jinsu",
-    "sort_order": 24
+    "sort_order": 25
   },
   {
     "slug": "joanna-chen",
@@ -538,7 +560,7 @@
     "website_url": "https://jchenwan.com",
     "linkedin_url": "https://www.linkedin.com/in/jchenwan",
     "x_url": null,
-    "sort_order": 25
+    "sort_order": 26
   },
   {
     "slug": "jocelyn-zhao",
@@ -560,7 +582,7 @@
     "website_url": "https://jocelynzhao.com",
     "linkedin_url": "https://www.linkedin.com/in/jocelyn-zhao-76838216b",
     "x_url": null,
-    "sort_order": 26
+    "sort_order": 27
   },
   {
     "slug": "john-bai",
@@ -581,7 +603,7 @@
     "website_url": "https://bai.framer.website",
     "linkedin_url": "https://www.linkedin.com/in/john-bai",
     "x_url": "https://x.com/johnbai",
-    "sort_order": 27
+    "sort_order": 28
   },
   {
     "slug": "jordyn-harrison",
@@ -602,7 +624,7 @@
     "website_url": "https://www.jrdnhrrsn.com",
     "linkedin_url": "https://www.linkedin.com/in/jrdnhrrsn",
     "x_url": null,
-    "sort_order": 28
+    "sort_order": 29
   },
   {
     "slug": "joseph-zhang",
@@ -624,7 +646,7 @@
     "website_url": "https://joseph.cv",
     "linkedin_url": "https://www.linkedin.com/in/josephhhz",
     "x_url": "https://x.com/josephhhhz",
-    "sort_order": 29
+    "sort_order": 30
   },
   {
     "slug": "joshua-to",
@@ -646,7 +668,7 @@
     "website_url": null,
     "linkedin_url": "https://www.linkedin.com/in/joshto",
     "x_url": null,
-    "sort_order": 30
+    "sort_order": 31
   },
   {
     "slug": "julia-ysabela-fernandez",
@@ -667,7 +689,7 @@
     "website_url": "https://juliafernandez.design",
     "linkedin_url": "https://www.linkedin.com/in/adesignwoman",
     "x_url": "https://x.com/adesignwoman",
-    "sort_order": 31
+    "sort_order": 32
   },
   {
     "slug": "kenneth-kuh",
@@ -688,7 +710,7 @@
     "website_url": "https://kennethkuh.info",
     "linkedin_url": "https://www.linkedin.com/in/kennethkuh",
     "x_url": "https://x.com/kenneth_kuh",
-    "sort_order": 32
+    "sort_order": 33
   },
   {
     "slug": "laura-sandoval",
@@ -709,7 +731,7 @@
     "website_url": "https://lausandoval.com",
     "linkedin_url": "https://www.linkedin.com/in/laurasideral",
     "x_url": "https://x.com/laurasideral",
-    "sort_order": 33
+    "sort_order": 34
   },
   {
     "slug": "mareike-keller",
@@ -731,7 +753,7 @@
     "website_url": null,
     "linkedin_url": "https://www.linkedin.com/in/mareike-keller",
     "x_url": null,
-    "sort_order": 34
+    "sort_order": 35
   },
   {
     "slug": "mathurah-ravigulan",
@@ -753,7 +775,7 @@
     "website_url": "https://www.mathurah.com",
     "linkedin_url": "https://www.linkedin.com/in/mathurah-ravigulan",
     "x_url": "https://x.com/mathurahravi",
-    "sort_order": 35
+    "sort_order": 36
   },
   {
     "slug": "matthew-vernon",
@@ -775,7 +797,7 @@
     "website_url": "https://matthewvernon.co",
     "linkedin_url": "https://www.linkedin.com/in/matthew-vernon-7394b597",
     "x_url": "https://x.com/dApp_boi",
-    "sort_order": 36
+    "sort_order": 37
   },
   {
     "slug": "mrinali-kamath",
@@ -797,7 +819,51 @@
     "website_url": null,
     "linkedin_url": "https://www.linkedin.com/in/mrinalikamath",
     "x_url": "https://x.com/mrinalikamath",
-    "sort_order": 37
+    "sort_order": 38
+  },
+  {
+    "slug": "muharrem-senyil",
+    "first_name": "Muharrem",
+    "last_name": "Şenyıl",
+    "title": "Design Lead",
+    "company": "Aaru",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI",
+      "Brand"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Muharrem Şenyıl is design lead at Aaru in New York, with more than fifteen years designing for Scale AI, Coinbase, Character.ai, Microsoft and Meta Reality Labs; he also runs deck.gallery.",
+    "photo_url": null,
+    "website_url": "https://senyil.com",
+    "linkedin_url": "https://www.linkedin.com/in/senyil",
+    "x_url": "https://x.com/senyil",
+    "sort_order": 39
+  },
+  {
+    "slug": "resham-khanna",
+    "first_name": "Resham",
+    "last_name": "Khanna",
+    "title": "Product Designer",
+    "company": "Independent",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI",
+      "Community"
+    ],
+    "locations": [
+      "SF"
+    ],
+    "bio": "Resham Khanna is a San Francisco product designer who spent four years at Meta designing responsible ad experiences and AI transparency across Facebook, Instagram and WhatsApp, and co-chaired AIGA SF's Women in Leadership & Design.",
+    "photo_url": "/advisors/resham-khanna.jpg",
+    "website_url": "https://reshamkhanna.com",
+    "linkedin_url": "https://www.linkedin.com/in/reshamkhanna",
+    "x_url": "https://x.com/reshusaur",
+    "sort_order": 40
   },
   {
     "slug": "rissa-kei-chua",
@@ -818,7 +884,7 @@
     "website_url": "https://rissakei.com",
     "linkedin_url": null,
     "x_url": "https://x.com/rissakeichua",
-    "sort_order": 38
+    "sort_order": 41
   },
   {
     "slug": "sam-gorman",
@@ -840,7 +906,7 @@
     "website_url": null,
     "linkedin_url": "https://www.linkedin.com/in/gormansam",
     "x_url": "https://x.com/gormankind",
-    "sort_order": 39
+    "sort_order": 42
   },
   {
     "slug": "shaahana-naufal",
@@ -861,7 +927,7 @@
     "website_url": "https://www.shaahana.tech",
     "linkedin_url": "https://www.linkedin.com/in/shaahana-naufal",
     "x_url": "https://x.com/shaahana_naufal",
-    "sort_order": 40
+    "sort_order": 43
   },
   {
     "slug": "sophia-cassidy",
@@ -882,7 +948,7 @@
     "website_url": null,
     "linkedin_url": "https://www.linkedin.com/in/sophiacassidy",
     "x_url": "https://x.com/sophiaacassidy",
-    "sort_order": 41
+    "sort_order": 44
   },
   {
     "slug": "stephanie-zhou",
@@ -903,7 +969,7 @@
     "website_url": "http://stephaniezhou.design",
     "linkedin_url": "https://www.linkedin.com/in/stephanielanzhou",
     "x_url": null,
-    "sort_order": 42
+    "sort_order": 45
   },
   {
     "slug": "tise-alatise",
@@ -923,7 +989,7 @@
     "website_url": "https://www.tisebuilds.com",
     "linkedin_url": "https://www.linkedin.com/in/tise-faith-alatise",
     "x_url": "https://x.com/tisebuilds",
-    "sort_order": 43
+    "sort_order": 46
   },
   {
     "slug": "vamsi-batchu",
@@ -945,6 +1011,6 @@
     "website_url": "https://vibenbuild.vercel.app",
     "linkedin_url": "https://www.linkedin.com/in/vamsikbatchu",
     "x_url": "https://x.com/vamsibatchuk",
-    "sort_order": 44
+    "sort_order": 47
   }
 ]

@@ -55,7 +55,8 @@ const chevron = await readFile(
 );
 
 test("partner CTA replaces the plain button with the sentence form", () => {
-  assert.match(app, /import \{ PartnerContactForm \} from "\.\/PartnerContactForm"/);
+  assert.match(app, /import \{ PartnerContactForm, PartnerCopy \} from "\.\/PartnerContactForm"/);
+  assert.match(app, /<PartnerCopy>/);
   assert.match(app, /<PartnerContactForm \/>/);
   assert.doesNotMatch(app, /Reach out/);
   assert.match(form, /^"use client";/);
@@ -308,7 +309,8 @@ test("an optional note appears under the form once someone starts filling it in"
   assert.match(form, /if \(value\.trim\(\)\) revealNote\(\)/);
   assert.match(form, /setInterest\(nextInterest\);\s*revealNote\(\)/);
   assert.match(form, /setCity\(nextCity\);\s*revealNote\(\)/);
-  assert.match(form, /\{showNote \? \(/);
+  assert.match(form, /partner-note\$\{showNote \? " is-open" : ""\}/);
+  assert.match(form, /inert=\{!showNote\}/);
   assert.match(
     form,
     /<label className="sr-only" htmlFor=\{\`\$\{fieldId\}-note\`\}>\s*Note\s*<\/label>/,
@@ -316,7 +318,17 @@ test("an optional note appears under the form once someone starts filling it in"
   assert.match(form, /name="note"/);
   assert.match(form, /placeholder="Add a note \(optional\)"/);
   assert.match(form, /maxLength=\{1000\}/);
-  assert.match(form, /flex w-0 min-w-full flex-col gap-2/);
+  assert.match(form, /void root\.offsetHeight/);
+  assert.match(form, /root\.style\.height = `\$\{target\}px`/);
+  assert.match(
+    css,
+    /\.partner-note\s*\{[^}]*height:\s*0;[^}]*opacity:\s*0;[^}]*transition:/s,
+  );
+  assert.match(css, /\.partner-note\.is-open\s*\{[^}]*opacity:\s*1;/s);
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.partner-note\s*\{\s*transition:\s*none;/,
+  );
   const noteField = form.slice(
     form.indexOf("<textarea"),
     form.indexOf("</textarea>"),

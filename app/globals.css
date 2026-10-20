@@ -1754,6 +1754,36 @@ button.lightbox-arrow-next {
   gap: 28px;
 }
 
+/* Cancels the form's gap-3 while closed, so the resting sentence does not
+   grow a blank row. The same offset stays while open; the panel's margin
+   is what reads as the gap. Height is set from the panel's scroll height
+   so the open eases instead of snapping the block. */
+.partner-note {
+  width: 0;
+  min-width: 100%;
+  height: 0;
+  margin-top: -0.75rem;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    height 520ms ease-in-out,
+    opacity 400ms ease;
+}
+
+.partner-note.is-open {
+  opacity: 1;
+}
+
+.partner-note-panel textarea {
+  margin-top: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-note {
+    transition: none;
+  }
+}
+
 .partner-logos {
   grid-column: 9 / span 4;
 }

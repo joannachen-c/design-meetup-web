@@ -1,8 +1,16 @@
 "use client";
 
-import { type FormEvent, useId, useState } from "react";
+import {
+  type FormEvent,
+  type ReactNode,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Input } from "./Input";
 import { Primary } from "./Primary";
+import { ScrollReveal } from "./ScrollReveal";
 import { Select, type SelectOption } from "./Select";
 
 function createSubmissionId() {
@@ -44,6 +52,85 @@ const cityOptions: SelectOption[] = [
   { value: "any", label: "any city" },
 ];
 
+const DESKTOP_PARTNER_QUERY = "(min-width: 821px)";
+
+/**
+ * Keeps the heading and sentence where vertical centering placed them, then
+ * lets the note grow downward. Recentering the whole block on open lifts the
+ * field the person is typing in.
+ */
+export function PartnerCopy({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pin, setPin] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    const copy = ref.current;
+    if (!copy) return;
+
+    let cancelled = false;
+    const measure = () => {
+      if (cancelled) return;
+      const wide = window.matchMedia(DESKTOP_PARTNER_QUERY).matches;
+      const logos = copy.parentElement?.querySelector(".partner-grid");
+      const heading = copy.querySelector("h2");
+      const form = copy.querySelector("form");
+      if (
+        !wide ||
+        !(logos instanceof HTMLElement) ||
+        !(heading instanceof HTMLElement) ||
+        !(form instanceof HTMLElement)
+      ) {
+        setPin(null);
+        return;
+      }
+
+      const note = form.querySelector(".partner-note");
+      const noteHeight = note instanceof HTMLElement ? note.offsetHeight : 0;
+      const noteMargin =
+        note instanceof HTMLElement
+          ? Number.parseFloat(getComputedStyle(note).marginTop) || 0
+          : 0;
+      const gap = Number.parseFloat(getComputedStyle(copy).rowGap) || 0;
+      // offsetHeight already folds in the note's negative margin, which only
+      // cancels the form gap and is not part of the resting sentence.
+      const resting =
+        heading.offsetHeight +
+        gap +
+        form.offsetHeight -
+        noteHeight -
+        Math.min(0, noteMargin);
+      setPin(Math.max(0, Math.round((logos.offsetHeight - resting) / 2)));
+    };
+
+    measure();
+    const logos = copy.parentElement?.querySelector(".partner-grid");
+    const observer = new ResizeObserver(measure);
+    if (logos instanceof HTMLElement) observer.observe(logos);
+    window.addEventListener("resize", measure);
+    void document.fonts?.ready.then(measure);
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
+  return (
+    <ScrollReveal
+      elementRef={ref}
+      className="partner-copy"
+      style={
+        pin === null
+          ? undefined
+          : { paddingTop: pin, justifyContent: "flex-start" }
+      }
+    >
+      {children}
+    </ScrollReveal>
+  );
+}
+
 export function PartnerContactForm() {
   const fieldId = useId();
   const [firstName, setFirstName] = useState("");
@@ -53,6 +140,8 @@ export function PartnerContactForm() {
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
+  const noteRef = useRef<HTMLDivElement>(null);
+  const notePanelRef = useRef<HTMLDivElement>(null);
   const [company, setCompany] = useState("");
   const [submissionId, setSubmissionId] = useState(createSubmissionId);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
@@ -62,6 +151,24 @@ export function PartnerContactForm() {
   const revealNote = () => {
     setShowNote(true);
   };
+
+  useLayoutEffect(() => {
+    const root = noteRef.current;
+    const panel = notePanelRef.current;
+    if (!root || !panel) return;
+    const target = showNote ? panel.scrollHeight : 0;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!showNote || reduce) {
+      root.style.height = `${target}px`;
+      return;
+    }
+    // The open class and the target height land in one frame. Pin the current
+    // height, flush layout, then set the target so the height transition runs.
+    const current = root.getBoundingClientRect().height;
+    root.style.height = `${current}px`;
+    void root.offsetHeight;
+    root.style.height = `${target}px`;
+  }, [showNote]);
 
   const resetStatus = () => {
     setStatus("idle");
@@ -219,8 +326,12 @@ export function PartnerContactForm() {
           {status === "sending" ? "Sending..." : "Send"}
         </Primary>
       </div>
-      {showNote ? (
-        <div className="flex w-0 min-w-full flex-col gap-2">
+      <div
+        ref={noteRef}
+        className={`partner-note${showNote ? " is-open" : ""}`}
+        inert={!showNote}
+      >
+        <div className="partner-note-panel" ref={notePanelRef}>
           <label className="sr-only" htmlFor={`${fieldId}-note`}>
             Note
           </label>
@@ -238,7 +349,7 @@ export function PartnerContactForm() {
             }}
           />
         </div>
-      ) : null}
+      </div>
       {/* w-0 keeps the confirmation out of the form's fit-content width so the
           rows above keep a shared right edge. */}
       <p

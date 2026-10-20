@@ -51,11 +51,17 @@ export function PartnerContactForm() {
   const [interest, setInterest] = useState(interestOptions[0].value);
   const [city, setCity] = useState(cityOptions[0].value);
   const [email, setEmail] = useState("");
+  const [note, setNote] = useState("");
+  const [showNote, setShowNote] = useState(false);
   const [company, setCompany] = useState("");
   const [submissionId, setSubmissionId] = useState(createSubmissionId);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle",
   );
+
+  const revealNote = () => {
+    setShowNote(true);
+  };
 
   const resetStatus = () => {
     setStatus("idle");
@@ -79,6 +85,7 @@ export function PartnerContactForm() {
           interest,
           city,
           email,
+          note,
           company,
           submissionId,
         }),
@@ -109,7 +116,9 @@ export function PartnerContactForm() {
           required
           value={firstName}
           onChange={(event) => {
-            setFirstName(event.target.value);
+            const value = event.target.value;
+            setFirstName(value);
+            if (value.trim()) revealNote();
             resetStatus();
           }}
         />
@@ -125,7 +134,9 @@ export function PartnerContactForm() {
           required
           value={lastName}
           onChange={(event) => {
-            setLastName(event.target.value);
+            const value = event.target.value;
+            setLastName(value);
+            if (value.trim()) revealNote();
             resetStatus();
           }}
         />
@@ -142,6 +153,7 @@ export function PartnerContactForm() {
           value={interest}
           onValueChange={(nextInterest) => {
             setInterest(nextInterest);
+            revealNote();
             resetStatus();
           }}
         />
@@ -157,6 +169,7 @@ export function PartnerContactForm() {
           value={city}
           onValueChange={(nextCity) => {
             setCity(nextCity);
+            revealNote();
             resetStatus();
           }}
         />
@@ -176,7 +189,9 @@ export function PartnerContactForm() {
           required
           value={email}
           onChange={(event) => {
-            setEmail(event.target.value);
+            const value = event.target.value;
+            setEmail(value);
+            if (value.trim()) revealNote();
             resetStatus();
           }}
         />
@@ -204,6 +219,26 @@ export function PartnerContactForm() {
           {status === "sending" ? "Sending..." : "Send"}
         </Primary>
       </div>
+      {showNote ? (
+        <div className="flex w-0 min-w-full flex-col gap-2">
+          <label className="sr-only" htmlFor={`${fieldId}-note`}>
+            Note
+          </label>
+          <textarea
+            className="min-h-24 w-full min-w-0 resize-none rounded-[10px] border-0 bg-surface-muted px-4 py-2.5 text-left text-base font-normal leading-[1.4] text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
+            id={`${fieldId}-note`}
+            name="note"
+            rows={3}
+            maxLength={1000}
+            placeholder="Add a note (optional)"
+            value={note}
+            onChange={(event) => {
+              setNote(event.target.value);
+              resetStatus();
+            }}
+          />
+        </div>
+      ) : null}
       {/* w-0 keeps the confirmation out of the form's fit-content width so the
           rows above keep a shared right edge. */}
       <p

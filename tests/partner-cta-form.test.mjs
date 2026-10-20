@@ -249,7 +249,7 @@ test("submitting posts the form without leaving the page", () => {
   assert.match(form, /await fetch\("\/api\/contact"/);
   assert.match(form, /method: "POST"/);
   assert.match(form, /"Content-Type": "application\/json"/);
-  assert.match(form, /firstName,\s*lastName,\s*interest,\s*city,\s*email,\s*company,\s*submissionId,/);
+  assert.match(form, /firstName,\s*lastName,\s*interest,\s*city,\s*email,\s*note,\s*company,\s*submissionId,/);
   assert.doesNotMatch(form, /mailto:|window\.location/);
   assert.match(form, /aria-live="polite"/);
   assert.match(form, /role="status"/);
@@ -267,6 +267,66 @@ test("the form shows sending, success, and failure states in place", () => {
   assert.match(form, /setStatus\("error"\)/);
   assert.match(form, /const resetStatus = \(\) => \{/);
   assert.match(form, /setSubmissionId\(createSubmissionId\(\)\)/);
+});
+
+test("optional notes are validated and copied into both emails", async () => {
+  const { emailNoteLine, normalizeNote } = await import(
+    "../src/lib/contact-note.ts"
+  );
+  assert.equal(normalizeNote(undefined), "");
+  assert.equal(normalizeNote(null), "");
+  assert.equal(normalizeNote("  We can host\na dinner.  "), "We can host\na dinner.");
+  assert.deepEqual(emailNoteLine(""), []);
+  assert.deepEqual(emailNoteLine("We can host\na dinner."), [
+    "Note: We can host a dinner.",
+  ]);
+  assert.equal(normalizeNote("x".repeat(1001)), null);
+  assert.equal(normalizeNote(12), null);
+
+  assert.match(contactEmail, /import \{ emailNoteLine, normalizeNote \} from "\.\/contact-note\.ts"/);
+  assert.match(contactEmail, /const note = normalizeNote\(record\.note\)/);
+  assert.match(contactEmail, /note === null/);
+  assert.match(contactEmail, /note,/);
+  assert.match(contactEmail, /const noteLine = emailNoteLine\(submission\.note\)/);
+  assert.match(contactEmail, /\.\.\.noteLine,\s*`Submitted:/);
+  assert.match(contactEmail, /`Email: \$\{submission\.email\}`,\s*\.\.\.noteLine,/);
+
+  const noteMigration = await readFile(
+    new URL(
+      "../supabase/migrations/20261020120000_add_partner_inquiry_note.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  assert.match(noteMigration, /add column if not exists note text/);
+  assert.match(noteMigration, /char_length\(note\) <= 1000/);
+});
+
+test("an optional note appears under the form once someone starts filling it in", async () => {
+  assert.match(form, /const \[showNote, setShowNote\] = useState\(false\)/);
+  assert.match(form, /const revealNote = \(\) => \{\s*setShowNote\(true\);\s*\};/);
+  assert.match(form, /if \(value\.trim\(\)\) revealNote\(\)/);
+  assert.match(form, /setInterest\(nextInterest\);\s*revealNote\(\)/);
+  assert.match(form, /setCity\(nextCity\);\s*revealNote\(\)/);
+  assert.match(form, /\{showNote \? \(/);
+  assert.match(
+    form,
+    /<label className="sr-only" htmlFor=\{\`\$\{fieldId\}-note\`\}>\s*Note\s*<\/label>/,
+  );
+  assert.match(form, /name="note"/);
+  assert.match(form, /placeholder="Add a note \(optional\)"/);
+  assert.match(form, /maxLength=\{1000\}/);
+  assert.match(form, /flex w-0 min-w-full flex-col gap-2/);
+  const noteField = form.slice(
+    form.indexOf("<textarea"),
+    form.indexOf("</textarea>"),
+  );
+  assert.doesNotMatch(noteField, /\brequired\b/);
+  assert.match(contactRoute, /note: submission\.note \|\| null/);
+  assert.match(
+    await readFile(new URL("../src/lib/contact-note.ts", import.meta.url), "utf8"),
+    /Note: \$\{single\}/,
+  );
 });
 
 test("sponsor us submissions land in a private supabase table", () => {

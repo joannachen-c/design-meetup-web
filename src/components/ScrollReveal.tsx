@@ -27,10 +27,6 @@ export function ScrollReveal({
 
   function assignRef(node: HTMLDivElement | null) {
     ref.current = node;
-    if (typeof elementRef === "function") {
-      elementRef(node);
-      return;
-    }
     if (elementRef) elementRef.current = node;
   }
 

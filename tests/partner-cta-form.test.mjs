@@ -320,11 +320,17 @@ test("an optional note appears under the form once someone starts filling it in"
   assert.match(form, /maxLength=\{1000\}/);
   assert.match(form, /void root\.offsetHeight/);
   assert.match(form, /root\.style\.height = `\$\{target\}px`/);
+  assert.match(form, /partnerCenterShift\(copy\)/);
+  assert.match(form, /copy\.style\.translate = next/);
   assert.match(
     css,
     /\.partner-note\s*\{[^}]*height:\s*0;[^}]*opacity:\s*0;[^}]*transition:/s,
   );
   assert.match(css, /\.partner-note\.is-open\s*\{[^}]*opacity:\s*1;/s);
+  assert.match(
+    css,
+    /\.partner-copy\s*\{[^}]*translate 520ms ease-in-out;/s,
+  );
   assert.match(
     css,
     /@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.partner-note\s*\{\s*transition:\s*none;/,

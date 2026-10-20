@@ -55,13 +55,68 @@ const cityOptions: SelectOption[] = [
 const DESKTOP_PARTNER_QUERY = "(min-width: 821px)";
 
 /**
- * Keeps the heading and sentence where vertical centering placed them, then
- * lets the note grow downward. Recentering the whole block on open lifts the
- * field the person is typing in.
+ * Vertical offset that puts the heading, sentence, and note on the logo grid's
+ * center. Reads the note's open height even while it is still collapsed, so the
+ * caller can start the slide in the same frame as the height transition.
+ */
+function partnerCenterShift(copy: HTMLElement) {
+  const wide = window.matchMedia(DESKTOP_PARTNER_QUERY).matches;
+  const logos = copy.parentElement?.querySelector(".partner-grid");
+  const heading = copy.querySelector("h2");
+  const form = copy.querySelector("form");
+  if (
+    !wide ||
+    !(logos instanceof HTMLElement) ||
+    !(heading instanceof HTMLElement) ||
+    !(form instanceof HTMLElement)
+  ) {
+    return null;
+  }
+
+  const note = form.querySelector(".partner-note");
+  const panel = form.querySelector(".partner-note-panel");
+  const open = note instanceof HTMLElement && note.classList.contains("is-open");
+  const targetNote =
+    open && panel instanceof HTMLElement ? panel.scrollHeight : 0;
+  const currentNote = note instanceof HTMLElement ? note.offsetHeight : 0;
+  const gap = Number.parseFloat(getComputedStyle(copy).rowGap) || 0;
+  const content =
+    heading.offsetHeight + gap + form.offsetHeight - currentNote + targetNote;
+  return Math.round((logos.offsetHeight - content) / 2);
+}
+
+function applyPartnerShift(
+  copy: HTMLElement,
+  shift: number | null,
+  animate: boolean,
+) {
+  if (shift === null) {
+    copy.style.removeProperty("justify-content");
+    copy.style.removeProperty("translate");
+    return;
+  }
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // The cell stays top-aligned; translate is what centers it, including once the
+  // note is taller than the logos and the offset goes negative.
+  copy.style.justifyContent = "flex-start";
+  const next = `0 ${shift}px`;
+  if (!animate || reduce || copy.style.translate === next) {
+    const held = copy.style.transition;
+    copy.style.transition = "none";
+    copy.style.translate = next;
+    void copy.offsetHeight;
+    copy.style.transition = held;
+    return;
+  }
+  copy.style.translate = next;
+}
+
+/**
+ * Centers the copy on the logo grid and eases that center as the note opens.
  */
 export function PartnerCopy({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [pin, setPin] = useState<number | null>(null);
 
   useLayoutEffect(() => {
     const copy = ref.current;
@@ -70,36 +125,7 @@ export function PartnerCopy({ children }: { children: ReactNode }) {
     let cancelled = false;
     const measure = () => {
       if (cancelled) return;
-      const wide = window.matchMedia(DESKTOP_PARTNER_QUERY).matches;
-      const logos = copy.parentElement?.querySelector(".partner-grid");
-      const heading = copy.querySelector("h2");
-      const form = copy.querySelector("form");
-      if (
-        !wide ||
-        !(logos instanceof HTMLElement) ||
-        !(heading instanceof HTMLElement) ||
-        !(form instanceof HTMLElement)
-      ) {
-        setPin(null);
-        return;
-      }
-
-      const note = form.querySelector(".partner-note");
-      const noteHeight = note instanceof HTMLElement ? note.offsetHeight : 0;
-      const noteMargin =
-        note instanceof HTMLElement
-          ? Number.parseFloat(getComputedStyle(note).marginTop) || 0
-          : 0;
-      const gap = Number.parseFloat(getComputedStyle(copy).rowGap) || 0;
-      // offsetHeight already folds in the note's negative margin, which only
-      // cancels the form gap and is not part of the resting sentence.
-      const resting =
-        heading.offsetHeight +
-        gap +
-        form.offsetHeight -
-        noteHeight -
-        Math.min(0, noteMargin);
-      setPin(Math.max(0, Math.round((logos.offsetHeight - resting) / 2)));
+      applyPartnerShift(copy, partnerCenterShift(copy), false);
     };
 
     measure();
@@ -117,15 +143,7 @@ export function PartnerCopy({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <ScrollReveal
-      elementRef={ref}
-      className="partner-copy"
-      style={
-        pin === null
-          ? undefined
-          : { paddingTop: pin, justifyContent: "flex-start" }
-      }
-    >
+    <ScrollReveal elementRef={ref} className="partner-copy">
       {children}
     </ScrollReveal>
   );
@@ -156,10 +174,19 @@ export function PartnerContactForm() {
     const root = noteRef.current;
     const panel = notePanelRef.current;
     if (!root || !panel) return;
+    const copy = root.closest(".partner-copy");
+    // Measure the resting note before the height write, then slide to where the
+    // open block will sit. Same easing as the height transition, so the center
+    // stays on the logos for the whole fade.
+    const shift = copy instanceof HTMLElement ? partnerCenterShift(copy) : null;
     const target = showNote ? panel.scrollHeight : 0;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const place = (animate: boolean) => {
+      if (copy instanceof HTMLElement) applyPartnerShift(copy, shift, animate);
+    };
     if (!showNote || reduce) {
       root.style.height = `${target}px`;
+      place(false);
       return;
     }
     // The open class and the target height land in one frame. Pin the current
@@ -168,6 +195,7 @@ export function PartnerContactForm() {
     root.style.height = `${current}px`;
     void root.offsetHeight;
     root.style.height = `${target}px`;
+    place(true);
   }, [showNote]);
 
   const resetStatus = () => {

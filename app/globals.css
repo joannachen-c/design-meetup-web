@@ -1752,6 +1752,12 @@ button.lightbox-arrow-next {
   align-items: flex-start;
   justify-content: center;
   gap: 28px;
+  /* Opacity and transform stay in step with .scroll-reveal; translate recenters
+     the block on the same curve as the note's height. */
+  transition:
+    opacity 420ms ease-out,
+    transform 420ms ease-out,
+    translate 520ms ease-in-out;
 }
 
 /* Cancels the form's gap-3 while closed, so the resting sentence does not
@@ -1767,7 +1773,7 @@ button.lightbox-arrow-next {
   opacity: 0;
   transition:
     height 520ms ease-in-out,
-    opacity 400ms ease;
+    opacity 520ms ease-in-out;
 }
 
 .partner-note.is-open {

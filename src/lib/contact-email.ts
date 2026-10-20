@@ -1,5 +1,10 @@
-import { gmailConfigured, sendGmailEmails } from "@/lib/gmail-smtp";
+import {
+  gmailConfigured,
+  sendGmailEmails,
+  type GmailMailbox,
+} from "@/lib/gmail-smtp";
 import { emailNoteLine, normalizeNote } from "./contact-note.ts";
+import { partnerInquiryCc } from "@/lib/partner-inquiry-cc";
 import { siteEmail, siteName } from "@/lib/site";
 
 export const contactInterestOptions = {
@@ -47,6 +52,7 @@ export type ContactSubmission = {
 
 type ContactEmail = {
   to: string;
+  cc?: readonly GmailMailbox[];
   replyTo: string;
   subject: string;
   text: string;
@@ -128,6 +134,7 @@ export function buildContactEmailBatch(
   return [
     {
       to: siteEmail,
+      cc: partnerInquiryCc,
       replyTo: submission.email,
       subject,
       text: internalText,

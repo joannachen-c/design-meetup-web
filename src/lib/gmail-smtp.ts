@@ -3,15 +3,23 @@ import dns from "node:dns";
 import { resolve4 } from "node:dns/promises";
 import net from "node:net";
 import tls from "node:tls";
-import { siteEmail, siteName } from "./site";
+import { siteEmail, siteName } from "./site.ts";
+
+export type GmailMailbox = {
+  name?: string;
+  email: string;
+};
 
 export type GmailEmail = {
   to: string;
+  cc?: readonly GmailMailbox[];
   replyTo?: string;
   subject: string;
   text: string;
   html?: string;
 };
+
+const SAFE_MAILBOX = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
 
 const SMTP_HOST = "smtp.gmail.com";
 const SMTP_PORT = 465;
@@ -60,7 +68,9 @@ export async function sendGmailEmails(emails: GmailEmail[]) {
 
     for (const email of emails) {
       await client.command(`MAIL FROM:<${user}>`);
-      await client.command(`RCPT TO:<${email.to}>`);
+      for (const recipient of envelopeRecipients(email)) {
+        await client.command(`RCPT TO:<${recipient}>`);
+      }
       await client.command("DATA", 354);
       await client.writeData(buildRawEmail(email, user));
     }
@@ -295,11 +305,30 @@ class SmtpClient {
   }
 }
 
+export function envelopeRecipients(email: GmailEmail) {
+  const recipients = [mailboxAddress(email.to)];
+  for (const mailbox of email.cc ?? []) {
+    recipients.push(mailboxAddress(mailbox.email));
+  }
+
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const recipient of recipients) {
+    const key = recipient.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(recipient);
+  }
+  return unique;
+}
+
 export function buildRawEmail(email: GmailEmail, fromAddress = siteEmail) {
+  const cc = email.cc ?? [];
   const headers = [
     `From: ${siteName} <${fromAddress}>`,
-    `To: ${email.to}`,
-    email.replyTo ? `Reply-To: ${email.replyTo}` : null,
+    `To: ${mailboxAddress(email.to)}`,
+    cc.length > 0 ? `Cc: ${cc.map(formatMailbox).join(", ")}` : null,
+    email.replyTo ? `Reply-To: ${mailboxAddress(email.replyTo)}` : null,
     `Subject: ${encodeHeader(email.subject)}`,
     `Date: ${new Date().toUTCString()}`,
     "MIME-Version: 1.0",
@@ -338,6 +367,24 @@ export function buildRawEmail(email: GmailEmail, fromAddress = siteEmail) {
     htmlPart,
     `--${boundary}--`,
   ].join("\r\n");
+}
+
+function mailboxAddress(value: string) {
+  const email = value.trim();
+  if (!SAFE_MAILBOX.test(email)) {
+    throw new Error("Invalid email recipient.");
+  }
+  return email;
+}
+
+function formatMailbox(mailbox: GmailMailbox) {
+  const email = mailboxAddress(mailbox.email);
+  const name = mailbox.name?.trim();
+  if (!name) return email;
+  if (/[\r\n<>"]/.test(name)) {
+    throw new Error("Invalid mailbox name.");
+  }
+  return `${name} <${email}>`;
 }
 
 function encodeHeader(value: string) {

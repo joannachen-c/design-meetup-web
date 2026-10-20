@@ -331,9 +331,19 @@ test("server email sends from Gmail to Design Meetup and the user", () => {
   assert.match(contactEmail, /gmailConfigured\(\)/);
   assert.match(contactEmail, /sendGmailEmails\(buildContactEmailBatch\(submission\)\)/);
   assert.match(contactEmail, /to: siteEmail/);
+  assert.match(contactEmail, /cc: partnerInquiryCc/);
   assert.match(contactEmail, /replyTo: submission\.email/);
   assert.match(contactEmail, /to: submission\.email/);
   assert.match(contactEmail, /replyTo: siteEmail/);
+  assert.match(smtp, /for \(const recipient of envelopeRecipients\(email\)\)/);
+  assert.match(smtp, /RCPT TO:<\$\{recipient\}>/);
+  const internalMail = contactEmail.slice(
+    contactEmail.indexOf("to: siteEmail"),
+    contactEmail.indexOf("to: submission.email"),
+  );
+  const receiptMail = contactEmail.slice(contactEmail.indexOf("to: submission.email"));
+  assert.match(internalMail, /cc: partnerInquiryCc/);
+  assert.doesNotMatch(receiptMail, /\bcc:/);
   assert.match(smtp, /AUTH PLAIN/);
   assert.doesNotMatch(contactEmail, /resend|RESEND_API_KEY|CONTACT_FROM_EMAIL/i);
   assert.doesNotMatch(smtp, /resend|RESEND_API_KEY|CONTACT_FROM_EMAIL/i);

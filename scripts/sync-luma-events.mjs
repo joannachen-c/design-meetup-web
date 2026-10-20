@@ -76,10 +76,8 @@ async function main() {
   const dryRun = process.argv.includes("--dry-run");
   const existing = JSON.parse(await readFile(eventsPath, "utf8"));
 
-  const [past, future] = await Promise.all([
-    fetchCalendarEvents("past"),
-    fetchCalendarEvents("future"),
-  ]);
+  const past = await fetchCalendarEvents("past");
+  const future = await fetchCalendarEvents("future");
   const calendar = [...past, ...future];
   console.log(
     `Luma calendar: ${calendar.length} events. past-events.json: ${existing.length}.`,

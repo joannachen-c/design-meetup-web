@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import {
   coverImageUrl,
   diffCalendar,
+  fetchCalendarEvents,
   formatHosts,
   normalizeCalendarEntry,
   sortEvents,
@@ -140,6 +141,33 @@ test("every event on the Luma calendar is in past-events.json", () => {
   const ids = new Set(events.map((event) => event.luma_event_id));
   assert.ok(ids.has("evt-kqU17RuLWahwfVk"));
   assert.equal(ids.size, events.length);
+});
+
+test("the latest past Luma events are on the shelf", () => {
+  const ids = new Set(events.map((event) => event.luma_event_id));
+  for (const id of [
+    "evt-qVOHT8nAem0NGig", // NYC Invisible Interfaces, Oct 16
+    "evt-DEAp0gFkvAmeg6n", // Sunday Studio, Oct 11
+    "evt-4Lqsm9VZ2jA1loP", // Cafe with Rivet, Oct 10
+  ]) {
+    assert.ok(ids.has(id), id);
+  }
+});
+
+test("calendar fetch retries a rate limit before succeeding", async () => {
+  let calls = 0;
+  const fetchImpl = async () => {
+    calls += 1;
+    if (calls === 1) return new Response("slow", { status: 429 });
+    return new Response(JSON.stringify({ entries: [] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  const result = await fetchCalendarEvents("past", { fetchImpl, retryDelayMs: 0 });
+  assert.deepEqual(result, []);
+  assert.equal(calls, 2);
 });
 
 test("seeded events stay newest first with contiguous sort_order", () => {

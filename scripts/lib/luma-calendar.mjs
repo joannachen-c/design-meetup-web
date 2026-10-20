@@ -81,16 +81,25 @@ export function normalizeCalendarEntry(entry) {
   };
 }
 
-export async function fetchCalendarEvents(period, { fetchImpl = fetch } = {}) {
+export async function fetchCalendarEvents(
+  period,
+  { fetchImpl = fetch, retryDelayMs = 1500 } = {},
+) {
   const params = new URLSearchParams({
     calendar_api_id: CALENDAR_API_ID,
     period,
     pagination_limit: "200",
   });
 
-  const response = await fetchImpl(`${ITEMS_ENDPOINT}?${params}`, {
-    headers: { accept: "application/json" },
-  });
+  const url = `${ITEMS_ENDPOINT}?${params}`;
+  let response;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    response = await fetchImpl(url, {
+      headers: { accept: "application/json" },
+    });
+    if (response.status !== 429) break;
+    await new Promise((resolve) => setTimeout(resolve, retryDelayMs * (attempt + 1)));
+  }
   if (!response.ok) {
     throw new Error(`Luma calendar returned ${response.status} for ${period}`);
   }

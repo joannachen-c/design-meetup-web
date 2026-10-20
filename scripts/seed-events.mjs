@@ -101,7 +101,9 @@ async function uploadCover(event) {
     ? "jpg"
     : contentType.includes("webp")
       ? "webp"
-      : "png";
+      : contentType.includes("gif")
+        ? "gif"
+        : "png";
   const objectPath = `${event.luma_event_id}.${extension}`;
 
   const { error: uploadError } = await supabase.storage

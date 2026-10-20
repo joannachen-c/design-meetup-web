@@ -15,9 +15,9 @@ test("partner inquiries copy the founders and directors", () => {
   assert.deepEqual(
     partnerInquiryCc.map((mailbox) => [mailbox.name, mailbox.email]),
     [
-      ["Brandon Lee", "bl628@cornell.edu"],
+      ["Brandon Lee", "brandon.lee1357@gmail.com"],
       ["Ilyssa Yan", "iy53@cornell.edu"],
-      ["Joanna Chen", "jc2887@cornell.edu"],
+      ["Joanna Chen", "joannachen876@gmail.com"],
       ["Michelle Liu", "studio@liumichelle.com"],
     ],
   );
@@ -26,9 +26,9 @@ test("partner inquiries copy the founders and directors", () => {
 test("the inquiry envelope delivers to the inbox and each Cc", () => {
   assert.deepEqual(envelopeRecipients(inquiry), [
     "contactdesignmeetup@gmail.com",
-    "bl628@cornell.edu",
+    "brandon.lee1357@gmail.com",
     "iy53@cornell.edu",
-    "jc2887@cornell.edu",
+    "joannachen876@gmail.com",
     "studio@liumichelle.com",
   ]);
 });
@@ -49,7 +49,7 @@ test("the raw inquiry message lists the team on Cc and keeps Reply-To", () => {
   const raw = buildRawEmail(inquiry);
   assert.match(
     raw,
-    /^Cc: Brandon Lee <bl628@cornell\.edu>, Ilyssa Yan <iy53@cornell\.edu>, Joanna Chen <jc2887@cornell\.edu>, Michelle Liu <studio@liumichelle\.com>\r\n/m,
+    /^Cc: Brandon Lee <brandon\.lee1357@gmail\.com>, Ilyssa Yan <iy53@cornell\.edu>, Joanna Chen <joannachen876@gmail\.com>, Michelle Liu <studio@liumichelle\.com>\r\n/m,
   );
   assert.match(raw, /^To: contactdesignmeetup@gmail\.com\r\n/m);
   assert.match(raw, /^Reply-To: guest@example\.com\r\n/m);

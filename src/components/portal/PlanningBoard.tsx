@@ -389,7 +389,11 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
       </div>
 
       <div className="mt-10">
-        <PlanningCalendar items={items} onOpen={(id) => setPeek({ id, autoEdit: false })} />
+        <PlanningCalendar
+          items={items}
+          onOpen={(id) => setPeek({ id, autoEdit: false })}
+          onMove={(id, day) => save(id, { deadline: day })}
+        />
       </div>
 
       <div className={`mt-12 flex flex-wrap items-center gap-1 border-b ${LINE} pb-2`}>

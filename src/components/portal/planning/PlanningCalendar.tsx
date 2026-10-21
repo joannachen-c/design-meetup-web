@@ -28,18 +28,50 @@ function shortDate(iso: string) {
   });
 }
 
-function Entry({ item, onOpen }: { item: PlanningItem; onOpen: (id: string) => void }) {
+const DRAG_TYPE = "application/x-planning-item";
+
+// A div rather than a <button>: Firefox won't start a drag from a button.
+function Entry({
+  item,
+  onOpen,
+  draggable = false,
+  dragging = false,
+  onDragStart,
+  onDragEnd,
+}: {
+  item: PlanningItem;
+  onOpen: (id: string) => void;
+  draggable?: boolean;
+  dragging?: boolean;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+}) {
   return (
-    <button
-      type="button"
-      title={`${item.company}${item.location ? ` · ${item.location}` : ""}`}
+    <div
+      role="button"
+      tabIndex={0}
+      draggable={draggable}
+      title={`${item.company}${item.location ? ` · ${item.location}` : ""}${draggable ? " — drag to another day to move" : ""}`}
       aria-label={`${item.company}, ${shortDate(item.deadline)}${item.location ? `, ${item.location}` : ""}`}
       onClick={() => onOpen(item.id)}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        onOpen(item.id);
+      }}
+      onDragStart={(event) => {
+        event.dataTransfer.setData(DRAG_TYPE, item.id);
+        event.dataTransfer.effectAllowed = "move";
+        onDragStart?.();
+      }}
+      onDragEnd={onDragEnd}
       style={locationColor(item.location)}
-      className="block h-5 w-full min-w-0 cursor-pointer truncate rounded-[4px] border-0 px-1.5 text-left font-[inherit] text-xs leading-5 hover:brightness-95 focus-visible:outline-2 focus-visible:outline-ink"
+      className={`block h-5 w-full min-w-0 truncate rounded-[4px] px-1.5 text-left text-xs leading-5 select-none hover:brightness-95 focus-visible:outline-2 focus-visible:outline-ink ${
+        draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+      } ${dragging ? "opacity-40" : ""}`}
     >
       {item.company}
-    </button>
+    </div>
   );
 }
 
@@ -47,14 +79,22 @@ function Entry({ item, onOpen }: { item: PlanningItem; onOpen: (id: string) => v
 export function PlanningCalendar({
   items,
   onOpen,
+  onMove,
 }: {
   items: PlanningItem[];
   onOpen: (id: string) => void;
+  onMove: (id: string, day: string) => void;
 }) {
   // "Today" depends on the viewer's timezone, so the grid renders only on the client.
   const [today, setToday] = useState<string | null>(null);
   const [month, setMonth] = useState<Date | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropDay, setDropDay] = useState<string | null>(null);
+  const endDrag = () => {
+    setDraggingId(null);
+    setDropDay(null);
+  };
 
   useEffect(() => {
     setToday(isoDay(new Date()));
@@ -159,7 +199,30 @@ export function PlanningCalendar({
           return (
             <div
               key={day}
-              className={`grid min-h-24 content-start gap-1 p-1.5 ${inMonth ? "bg-surface" : "bg-[oklch(98.4%_0.003_264.542)]"}`}
+              onDragOver={(event) => {
+                if (!event.dataTransfer.types.includes(DRAG_TYPE)) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+                if (dropDay !== day) setDropDay(day);
+              }}
+              onDragLeave={(event) => {
+                if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                setDropDay((current) => (current === day ? null : current));
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                const id = event.dataTransfer.getData(DRAG_TYPE);
+                endDrag();
+                const moved = items.find((item) => item.id === id);
+                if (moved && moved.deadline !== day) onMove(id, day);
+              }}
+              className={`grid min-h-24 content-start gap-1 p-1.5 transition-colors ${
+                dropDay === day
+                  ? "bg-[#fdfde8] shadow-[inset_0_0_0_1.5px_var(--color-ink)]"
+                  : inMonth
+                    ? "bg-surface"
+                    : "bg-[oklch(98.4%_0.003_264.542)]"
+              }`}
             >
               <span
                 aria-hidden
@@ -170,7 +233,15 @@ export function PlanningCalendar({
                 {date.getDate()}
               </span>
               {shown.map((item) => (
-                <Entry key={item.id} item={item} onOpen={onOpen} />
+                <Entry
+                  key={item.id}
+                  item={item}
+                  onOpen={onOpen}
+                  draggable
+                  dragging={draggingId === item.id}
+                  onDragStart={() => setDraggingId(item.id)}
+                  onDragEnd={endDrag}
+                />
               ))}
               {entries.length > shown.length ? (
                 <button

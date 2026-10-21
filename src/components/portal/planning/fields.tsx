@@ -11,6 +11,7 @@ import {
   formatDeadline,
   isActive,
   isStale,
+  locationColor,
   type ColumnKey,
 } from "./model";
 import {
@@ -281,7 +282,7 @@ export function LocationField({ item, save, variant, options, onDelete }: Option
   return (
     <>
       <Trigger variant={variant} label={`Location for ${item.company}: ${item.location || "none"}`} onClick={toggle}>
-        {item.location ? <TagChip tag={item.location} /> : <Empty variant={variant} />}
+        {item.location ? <TagChip tag={item.location} color={locationColor(item.location)} /> : <Empty variant={variant} />}
       </Trigger>
       {anchor ? (
         <Popover anchor={anchor} label="Location" width={240} onClose={close}>
@@ -292,7 +293,7 @@ export function LocationField({ item, save, variant, options, onDelete }: Option
             placeholder="Search or create a location"
             noun="location"
             onDeleteOption={onDelete}
-            render={(value) => <TagChip tag={value} />}
+            render={(value) => <TagChip tag={value} color={locationColor(value)} />}
             onChange={(next) => save({ location: next[0] ?? "" })}
             onDone={close}
           />

@@ -252,10 +252,10 @@ export function People({ names, max = 3 }: { names: string[]; max?: number }) {
   );
 }
 
-export function TagChip({ tag }: { tag: string }) {
+export function TagChip({ tag, color = tagColor(tag) }: { tag: string; color?: { background: string; color: string } }) {
   return (
     <span
-      style={tagColor(tag)}
+      style={color}
       className="inline-flex h-5 max-w-full shrink-0 items-center truncate rounded-[4px] px-1.5 text-xs leading-5"
     >
       {tag}

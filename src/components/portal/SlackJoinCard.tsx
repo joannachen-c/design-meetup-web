@@ -10,7 +10,7 @@ export function SlackJoinCard({ joined = false }: { joined?: boolean }) {
     <section className="flex flex-col items-start gap-6 rounded-[20px] bg-gray-100 p-6 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-4">
         <span
-          className="grid size-12 shrink-0 place-items-center rounded-[12px] bg-white shadow-lg"
+          className="grid size-12 shrink-0 place-items-center rounded-[12px] bg-white shadow-sm"
           aria-hidden
         >
           <SlackIcon className="size-7" />

@@ -48,9 +48,6 @@ function SpotlightContent({ advisor }: { advisor: Advisor }) {
             </span>
           ) : null}
         </p>
-        {advisor.bio ? (
-          <p className="m-0 max-w-[62ch] pt-2 text-base leading-[1.7] text-ink">{advisor.bio}</p>
-        ) : null}
         <SocialLinks advisor={advisor} className="-ml-1.5 pt-1" />
       </div>
     </>

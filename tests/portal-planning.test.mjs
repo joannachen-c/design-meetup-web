@@ -1,23 +1,27 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { isOrganizerEmail } from "../src/lib/organizers.ts";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("only the four organizers' portal emails count as organizers", () => {
-  for (const email of [
-    "studio@liumichelle.com",
-    " Studio@LiuMichelle.com ",
-    "iy53@cornell.edu",
-    "bl628@cornell.edu",
-    "jc2887@cornell.edu",
-  ]) {
-    assert.equal(isOrganizerEmail(email), true, email);
-  }
-  for (const email of ["demo@designmeetup.info", "emilyshenucla@gmail.com", "", null, undefined]) {
-    assert.equal(isOrganizerEmail(email), false, String(email));
-  }
+test("organizers live in a service-role-only Supabase table, not in code", async () => {
+  const migration = await read("supabase/migrations/20261020120000_create_organizers.sql");
+  assert.match(migration, /create table if not exists public\.organizers/);
+  assert.match(migration, /references public\.profiles \(id\) on delete cascade/);
+  assert.match(migration, /alter table public\.organizers enable row level security;/);
+  assert.doesNotMatch(migration, /create policy/i);
+
+  const service = await read("src/lib/membership-service.ts");
+  assert.match(service, /\.from\("organizers"\)\s*\.select\("user_id"\)\s*\.eq\("user_id", userId\)/);
+
+  const organizers = await read("src/lib/organizers.ts");
+  assert.doesNotMatch(organizers, /@/);
+});
+
+test("forged local sessions never count as organizers", async () => {
+  const access = await read("src/lib/portal-access.ts");
+  assert.match(access, /isLocalSessionToken\(jar\.get\(ACCESS_COOKIE\)\?\.value\)/);
+  assert.match(access, /return isOrganizer\(user\.id\);/);
 });
 
 test("the Planning tab is the third tab and only for organizers", async () => {

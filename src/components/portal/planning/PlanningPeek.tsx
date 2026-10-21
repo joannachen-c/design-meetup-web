@@ -1,94 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { PlanningItem, PlanningLink, PlanningPatch } from "@/lib/planning";
+import { useEffect, useRef } from "react";
+import type { PlanningItem, PlanningPatch } from "@/lib/planning";
 import { Field, TextField, type Suggestions } from "./fields";
+import { LinksEditor } from "./links";
 import { COLUMN_LABEL, type ColumnKey } from "./model";
-import { PlusIcon } from "./ui";
 
 const PROPERTIES: ColumnKey[] = ["status", "urgency", "deadline", "poc", "location", "owners", "roles", "updated"];
-
-function hostOf(url: string) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
-}
-
-function Links({ links, onChange }: { links: PlanningLink[]; onChange: (links: PlanningLink[]) => void }) {
-  const [adding, setAdding] = useState(false);
-  const inputClass =
-    "h-8 min-w-0 rounded-[7px] border-0 bg-surface-muted px-2.5 font-[inherit] text-sm text-ink outline-none focus:shadow-[inset_0_0_0_1.5px_var(--color-ink)]";
-
-  return (
-    <div className="grid gap-0.5">
-      {links.map((link, index) => (
-        <div
-          key={`${link.url}-${index}`}
-          className="group flex min-h-8 items-center gap-2 rounded-[6px] px-2 hover:bg-surface-muted"
-        >
-          <a
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="min-w-0 flex-1 truncate text-sm text-ink underline decoration-black/20 underline-offset-2 hover:decoration-ink"
-          >
-            {link.label}
-            <span className="ml-2 text-muted no-underline">{hostOf(link.url)}</span>
-          </a>
-          <button
-            type="button"
-            aria-label={`Remove ${link.label}`}
-            onClick={() => onChange(links.filter((_, other) => other !== index))}
-            className="grid size-6 cursor-pointer place-items-center rounded-[6px] border-0 bg-transparent text-subtle opacity-0 group-hover:opacity-100 hover:text-red-700 focus-visible:opacity-100"
-          >
-            ×
-          </button>
-        </div>
-      ))}
-      {adding ? (
-        <form
-          className="flex flex-wrap gap-1.5 px-2 py-1"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const form = new FormData(event.currentTarget);
-            const url = String(form.get("url") || "").trim();
-            if (!url) return;
-            onChange([...links, { label: String(form.get("label") || "").trim(), url }]);
-            setAdding(false);
-          }}
-        >
-          <input name="label" aria-label="Link label" placeholder="Label" className={`${inputClass} w-36`} />
-          <input
-            name="url"
-            type="url"
-            required
-            autoFocus
-            aria-label="Link URL"
-            placeholder="Paste a Google Doc, Figma… link"
-            className={`${inputClass} flex-1`}
-          />
-          <button
-            type="submit"
-            className="h-8 cursor-pointer rounded-[7px] border-0 bg-ink px-3 font-[inherit] text-sm font-bold text-white"
-          >
-            Add
-          </button>
-        </form>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setAdding(true)}
-          className="flex h-8 w-fit cursor-pointer items-center gap-1.5 rounded-[6px] border-0 bg-transparent px-2 font-[inherit] text-sm text-muted hover:bg-surface-muted hover:text-ink"
-        >
-          <PlusIcon className="size-3.5" />
-          Add a link
-        </button>
-      )}
-    </div>
-  );
-}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -205,7 +123,9 @@ export function PlanningPeek({
               />
             </Section>
             <Section title="Docs & links">
-              <Links links={item.links} onChange={(links) => save({ links })} />
+              <div className="px-2">
+                <LinksEditor links={item.links} onChange={(links) => save({ links })} />
+              </div>
             </Section>
           </div>
 

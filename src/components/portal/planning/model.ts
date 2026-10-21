@@ -10,6 +10,7 @@ import {
 
 export const STATUS_LABEL: Record<Status, string> = {
   attention: "Needs attention",
+  todo: "To do",
   motion: "In motion",
   backlog: "Backlog",
   done: "Done",
@@ -25,6 +26,7 @@ export const COLUMN_LABEL = {
   urgency: "Urgency",
   deadline: "Deadline",
   description: "Description",
+  links: "Docs & links",
   poc: "POC",
   location: "Location",
   owners: "Owners",
@@ -39,6 +41,7 @@ export const COLUMN_WIDTH: Record<ColumnKey, number> = {
   urgency: 112,
   deadline: 124,
   description: 320,
+  links: 260,
   poc: 200,
   location: 128,
   owners: 168,
@@ -167,7 +170,7 @@ export function formatAgo(days: number) {
 }
 
 export const STALE_DAYS = 14;
-export const isActive = (item: PlanningItem) => item.status === "attention" || item.status === "motion";
+export const isActive = (item: PlanningItem) => item.status !== "backlog" && item.status !== "done";
 export const isStale = (item: PlanningItem) => isActive(item) && daysSince(item.updatedAt) >= STALE_DAYS;
 
 const teamByName = new Map<string, string>();

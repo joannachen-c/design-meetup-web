@@ -53,6 +53,7 @@ test("bad values are rejected with a reason", () => {
 
 test("held items are either backlog or done", () => {
   assert.equal(parsePlanningPatch({ status: "backlog" }).ok, true);
+  assert.equal(parsePlanningPatch({ status: "todo" }).ok, true);
   assert.equal(parsePlanningPatch({ status: "done" }).ok, true);
   assert.equal(parsePlanningPatch({ status: "held" }).ok, false);
   assert.equal(planningItemFromRow({ status: "backlog" }).status, "backlog");

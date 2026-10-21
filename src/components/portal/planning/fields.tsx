@@ -14,6 +14,7 @@ import {
   locationColor,
   type ColumnKey,
 } from "./model";
+import { LinksCell, LinksEditor } from "./links";
 import {
   MenuList,
   OptionPicker,
@@ -444,6 +445,12 @@ export function Field({
       );
     case "updated":
       return <UpdatedField item={item} variant={variant} />;
+    case "links":
+      return variant === "cell" ? (
+        <LinksCell item={item} save={save} />
+      ) : (
+        <LinksEditor links={item.links} onChange={(links) => save({ links })} />
+      );
     case "description":
       return (
         <TextField

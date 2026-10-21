@@ -10,7 +10,7 @@ export const TEAM = [
 ] as const;
 
 export const URGENCIES = ["urgent", "soon", "normal"] as const;
-export const STATUSES = ["attention", "motion", "backlog", "done"] as const;
+export const STATUSES = ["attention", "todo", "motion", "backlog", "done"] as const;
 
 export type Urgency = (typeof URGENCIES)[number];
 export type Status = (typeof STATUSES)[number];

@@ -5,6 +5,7 @@ import type { PlanningItem, PlanningPatch } from "@/lib/planning";
 import { Field, TextField, type Suggestions } from "./fields";
 import { LinksEditor } from "./links";
 import { COLUMN_LABEL, type ColumnKey } from "./model";
+import { CloseIcon } from "./ui";
 
 const PROPERTIES: ColumnKey[] = ["status", "urgency", "deadline", "poc", "location", "owners", "roles", "updated"];
 
@@ -65,9 +66,9 @@ export function PlanningPeek({
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="grid size-8 cursor-pointer place-items-center rounded-[7px] border-0 bg-transparent text-lg text-muted hover:bg-surface-muted hover:text-ink"
+            className="grid size-8 cursor-pointer place-items-center rounded-[7px] border-0 bg-transparent p-0 text-muted hover:bg-surface-muted hover:text-ink"
           >
-            ×
+            <CloseIcon className="size-3" />
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-[clamp(12px,4vw,36px)] pt-7 pb-12">

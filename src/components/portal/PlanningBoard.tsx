@@ -39,6 +39,7 @@ import { PlanningPeek } from "./planning/PlanningPeek";
 import {
   Avatar,
   CheckIcon,
+  CloseIcon,
   ChevronIcon,
   MenuList,
   Popover,
@@ -510,7 +511,7 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
               >
                 <span className="text-muted">{section?.label}:</span>
                 <span className="truncate">{labels.join(", ")}</span>
-                <span aria-hidden className="text-muted">×</span>
+                <CloseIcon className="size-2 text-muted" />
               </button>
             );
           })}

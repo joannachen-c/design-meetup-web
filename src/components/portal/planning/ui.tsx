@@ -114,6 +114,14 @@ export function ChevronIcon({ open, className = "size-3.5" }: { open: boolean; c
   );
 }
 
+export function CloseIcon({ className = "size-3" }: { className?: string }) {
+  return (
+    <svg aria-hidden viewBox="0 0 10 10" className={`block ${className}`}>
+      <path d="M2 2l6 6M8 2 2 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function TrashIcon({ className = "size-3.5" }: { className?: string }) {
   return (
     <svg aria-hidden viewBox="0 0 16 16" className={className}>

@@ -163,11 +163,11 @@ export default async function PortalHomePage({
                 {item.value}
               </p>
               {item.note ? (
-                <p className="mt-1 mb-0 text-sm text-subtle normal-case">
+                <p className="mt-1 mb-0 text-base text-subtle normal-case">
                   {item.note}
                 </p>
               ) : (
-                <p className="mt-1 mb-0 text-sm invisible" aria-hidden>
+                <p className="mt-1 mb-0 text-base invisible" aria-hidden>
                   &nbsp;
                 </p>
               )}

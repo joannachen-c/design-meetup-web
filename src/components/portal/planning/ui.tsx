@@ -114,6 +114,21 @@ export function ChevronIcon({ open, className = "size-3.5" }: { open: boolean; c
   );
 }
 
+export function TrashIcon({ className = "size-3.5" }: { className?: string }) {
+  return (
+    <svg aria-hidden viewBox="0 0 16 16" className={className}>
+      <path
+        d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.1a1 1 0 0 0 1 .9h3.8a1 1 0 0 0 1-.9l.6-8.1"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function PlusIcon({ className = "size-4" }: { className?: string }) {
   return (
     <svg aria-hidden viewBox="0 0 16 16" className={className}>
@@ -287,6 +302,9 @@ export function OptionPicker({
   render,
   onChange,
   onDone,
+  noun,
+  onDeleteOption,
+  canDeleteOption = () => true,
 }: {
   options: string[];
   selected: string[];
@@ -295,6 +313,9 @@ export function OptionPicker({
   render: (value: string) => ReactNode;
   onChange: (next: string[]) => void;
   onDone: () => void;
+  noun: string;
+  onDeleteOption?: (value: string) => void;
+  canDeleteOption?: (value: string) => boolean;
 }) {
   const [query, setQuery] = useState("");
   const text = query.trim();
@@ -330,16 +351,31 @@ export function OptionPicker({
       />
       <div className="grid">
         {shown.map((option) => (
-          <button
+          <div
             key={option}
-            type="button"
-            aria-pressed={selected.includes(option)}
-            onClick={() => pick(option)}
-            className="flex h-8 min-w-0 cursor-pointer items-center gap-2 rounded-[7px] border-0 bg-transparent px-2 text-left font-[inherit] text-sm text-ink hover:bg-surface-muted focus-visible:bg-surface-muted focus-visible:outline-none"
+            className="group/option flex h-8 min-w-0 items-center rounded-[7px] hover:bg-surface-muted focus-within:bg-surface-muted"
           >
-            <span className="flex min-w-0 flex-1 items-center gap-2">{render(option)}</span>
-            {selected.includes(option) ? <CheckIcon className="size-4 shrink-0 text-muted" /> : null}
-          </button>
+            <button
+              type="button"
+              aria-pressed={selected.includes(option)}
+              onClick={() => pick(option)}
+              className="flex h-8 min-w-0 flex-1 cursor-pointer items-center gap-2 border-0 bg-transparent px-2 text-left font-[inherit] text-sm text-ink focus-visible:outline-none"
+            >
+              <span className="flex min-w-0 flex-1 items-center gap-2">{render(option)}</span>
+              {selected.includes(option) ? <CheckIcon className="size-4 shrink-0 text-muted" /> : null}
+            </button>
+            {onDeleteOption && canDeleteOption(option) ? (
+              <button
+                type="button"
+                aria-label={`Delete ${noun} ${option}`}
+                title={`Delete ${noun}`}
+                onClick={() => onDeleteOption(option)}
+                className="mr-1 grid size-6 shrink-0 cursor-pointer place-items-center rounded-[6px] border-0 bg-transparent text-subtle opacity-0 group-hover/option:opacity-100 hover:bg-red-50 hover:text-red-700 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+              >
+                <TrashIcon />
+              </button>
+            ) : null}
+          </div>
         ))}
         {text && !existing ? (
           <button

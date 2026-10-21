@@ -36,6 +36,7 @@ function Entry({
   onOpen,
   draggable = false,
   dragging = false,
+  landed = false,
   onDragStart,
   onDragEnd,
 }: {
@@ -43,6 +44,7 @@ function Entry({
   onOpen: (id: string) => void;
   draggable?: boolean;
   dragging?: boolean;
+  landed?: boolean;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }) {
@@ -66,9 +68,9 @@ function Entry({
       }}
       onDragEnd={onDragEnd}
       style={locationColor(item.location)}
-      className={`block h-5 w-full min-w-0 truncate rounded-[4px] px-1.5 text-left text-xs leading-5 select-none hover:brightness-95 focus-visible:outline-2 focus-visible:outline-ink ${
+      className={`block h-5 w-full min-w-0 truncate rounded-[4px] px-1.5 text-left text-xs leading-5 transition-opacity duration-150 select-none hover:brightness-95 focus-visible:outline-2 focus-visible:outline-ink motion-reduce:transition-none ${
         draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
-      } ${dragging ? "opacity-40" : ""}`}
+      } ${dragging ? "opacity-35" : ""} ${landed ? "animate-[planning-land_650ms_cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none" : ""}`}
     >
       {item.company}
     </div>
@@ -91,10 +93,18 @@ export function PlanningCalendar({
   const [expanded, setExpanded] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropDay, setDropDay] = useState<string | null>(null);
+  const [landedId, setLandedId] = useState<string | null>(null);
   const endDrag = () => {
     setDraggingId(null);
     setDropDay(null);
   };
+  const dragged = draggingId ? items.find((item) => item.id === draggingId) : undefined;
+
+  useEffect(() => {
+    if (!landedId) return;
+    const timer = window.setTimeout(() => setLandedId(null), 700);
+    return () => window.clearTimeout(timer);
+  }, [landedId]);
 
   useEffect(() => {
     setToday(isoDay(new Date()));
@@ -196,6 +206,7 @@ export function PlanningCalendar({
           const inMonth = date.getMonth() === month.getMonth();
           const isToday = day === today;
           const shown = expanded === day ? entries : entries.slice(0, MAX_PER_DAY);
+          const previewing = dropDay === day && dragged && dragged.deadline !== day;
           return (
             <div
               key={day}
@@ -214,14 +225,13 @@ export function PlanningCalendar({
                 const id = event.dataTransfer.getData(DRAG_TYPE);
                 endDrag();
                 const moved = items.find((item) => item.id === id);
-                if (moved && moved.deadline !== day) onMove(id, day);
+                if (moved && moved.deadline !== day) {
+                  onMove(id, day);
+                  setLandedId(id);
+                }
               }}
-              className={`grid min-h-24 content-start gap-1 p-1.5 transition-colors ${
-                dropDay === day
-                  ? "bg-[#fdfde8] shadow-[inset_0_0_0_1.5px_var(--color-ink)]"
-                  : inMonth
-                    ? "bg-surface"
-                    : "bg-[oklch(98.4%_0.003_264.542)]"
+              className={`grid min-h-24 content-start gap-1 p-1.5 transition-colors duration-150 motion-reduce:transition-none ${
+                previewing ? "bg-[#fbfbea]" : inMonth ? "bg-surface" : "bg-[oklch(98.4%_0.003_264.542)]"
               }`}
             >
               <span
@@ -239,10 +249,20 @@ export function PlanningCalendar({
                   onOpen={onOpen}
                   draggable
                   dragging={draggingId === item.id}
+                  landed={landedId === item.id}
                   onDragStart={() => setDraggingId(item.id)}
                   onDragEnd={endDrag}
                 />
               ))}
+              {previewing ? (
+                <div
+                  aria-hidden
+                  style={locationColor(dragged.location)}
+                  className="pointer-events-none h-5 truncate rounded-[4px] px-1.5 text-xs leading-5 opacity-70 outline-1 -outline-offset-1 outline-current outline-dashed"
+                >
+                  {dragged.company}
+                </div>
+              ) : null}
               {entries.length > shown.length ? (
                 <button
                   type="button"

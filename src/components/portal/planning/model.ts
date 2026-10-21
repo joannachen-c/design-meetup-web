@@ -41,7 +41,7 @@ export const COLUMN_WIDTH: Record<ColumnKey, number> = {
   urgency: 112,
   deadline: 124,
   description: 320,
-  links: 260,
+  links: 300,
   poc: 200,
   location: 128,
   owners: 168,

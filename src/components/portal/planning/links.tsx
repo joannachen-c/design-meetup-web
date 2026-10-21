@@ -15,6 +15,8 @@ const SERVICES: Array<{ test: (host: string, path: string) => boolean } & Servic
   { test: (h) => h === "drive.google.com", name: "Google Drive", color: "#1a73e8", mark: "drive" },
   { test: (h) => h === "mail.google.com", name: "Gmail", color: "#ea4335", mark: { letter: "M" } },
   { test: (h) => h === "calendar.google.com", name: "Google Calendar", color: "#1a73e8", mark: { letter: "31" } },
+  { test: (h, p) => h.endsWith("figma.com") && p.startsWith("/slides"), name: "Figma Slides", color: "transparent", mark: "figma" },
+  { test: (h, p) => h.endsWith("figma.com") && p.startsWith("/board"), name: "FigJam", color: "transparent", mark: "figma" },
   { test: (h) => h.endsWith("figma.com"), name: "Figma", color: "transparent", mark: "figma" },
   { test: (h) => h.endsWith("notion.so") || h.endsWith("notion.site"), name: "Notion", color: "#191919", mark: { letter: "N" } },
   { test: (h) => h.endsWith("canva.com"), name: "Canva", color: "#00c4cc", mark: { letter: "C" } },
@@ -79,12 +81,12 @@ export function ServiceIcon({ url }: { url: string }) {
   const { mark, color } = serviceFor(url);
   if (mark === "figma") {
     return (
-      <svg aria-hidden viewBox="0 0 16 16" className="size-4 shrink-0">
-        <circle cx="6.2" cy="3.6" r="2.3" fill="#f24e1e" />
-        <circle cx="9.8" cy="3.6" r="2.3" fill="#ff7262" />
-        <circle cx="6.2" cy="8" r="2.3" fill="#a259ff" />
-        <circle cx="9.8" cy="8" r="2.3" fill="#1abcfe" />
-        <circle cx="6.2" cy="12.4" r="2.3" fill="#0acf83" />
+      <svg aria-hidden viewBox="312 340 400 600" className="size-4 shrink-0">
+        <path d="M312 840C312 784.772 356.772 740 412 740H512V840C512 895.228 467.228 940 412 940C356.772 940 312 895.228 312 840Z" fill="#24CB71" />
+        <path d="M512 340V540H612C667.228 540 712 495.228 712 440C712 384.772 667.228 340 612 340H512Z" fill="#FF7237" />
+        <circle cx="611.167" cy="640" r="100" fill="#00B6FF" />
+        <path d="M312 440C312 495.228 356.772 540 412 540H512V340H412C356.772 340 312 384.772 312 440Z" fill="#FF3737" />
+        <path d="M312 640C312 695.228 356.772 740 412 740H512V540H412C356.772 540 312 584.772 312 640Z" fill="#874FFF" />
       </svg>
     );
   }
@@ -115,31 +117,15 @@ export function ServiceIcon({ url }: { url: string }) {
 const CHIP_FRAME =
   "rounded-full bg-white shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)] transition-shadow hover:shadow-[inset_0_0_0_1px_rgb(0_0_0/0.22)]";
 
-/** Icon-only chip for squeezing extra links into a table cell. */
-export function LinkIconChip({ link }: { link: PlanningLink }) {
-  const label = displayLabel(link);
-  return (
-    <a
-      href={link.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      title={label}
-      aria-label={label}
-      className={`grid size-6 shrink-0 place-items-center ${CHIP_FRAME}`}
-    >
-      <ServiceIcon url={link.url} />
-    </a>
-  );
-}
 
-export function LinkChip({ link }: { link: PlanningLink }) {
+export function LinkChip({ link, className = "max-w-full" }: { link: PlanningLink; className?: string }) {
   return (
     <a
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
       title={link.url}
-      className={`inline-flex h-6 max-w-full min-w-0 items-center gap-1.5 pr-2 pl-1 text-xs text-ink no-underline ${CHIP_FRAME}`}
+      className={`inline-flex h-6 min-w-16 items-center gap-1.5 pr-2 pl-1 text-xs text-ink no-underline ${CHIP_FRAME} ${className}`}
     >
       <ServiceIcon url={link.url} />
       <span className="min-w-0 max-w-44 truncate">{displayLabel(link)}</span>
@@ -304,20 +290,23 @@ export function LinksEditor({
   );
 }
 
-// After the first full chip, a few more links fit as icons before collapsing to "+N".
-const MAX_ICON_CHIPS = 3;
+// Two named chips share the cell, each truncating its name to fit; any more collapse to "+N".
+const MAX_CHIPS_IN_CELL = 2;
 
 export function LinksCell({ item, save }: { item: PlanningItem; save: (patch: PlanningPatch) => void }) {
   const { anchor, toggle, close } = usePopoverAnchor();
-  const [first, ...rest] = item.links;
-  const icons = rest.slice(0, MAX_ICON_CHIPS);
-  const hidden = rest.length - icons.length;
+  const shown = item.links.slice(0, MAX_CHIPS_IN_CELL);
+  const hidden = item.links.length - shown.length;
   return (
     <div className="flex h-9 min-w-0 items-center gap-1 px-2">
       <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
-        {first ? <LinkChip link={first} /> : null}
-        {icons.map((link, index) => (
-          <LinkIconChip key={`${link.url}-${index}`} link={link} />
+        {shown.map((link, index) => (
+          <LinkChip
+            key={`${link.url}-${index}`}
+            link={link}
+            // A short first name stays whole; a long one is capped so the second chip keeps room.
+            className={index === 0 && shown.length > 1 ? "max-w-[55%] shrink-0" : "max-w-full"}
+          />
         ))}
         {hidden > 0 ? <span className="shrink-0 text-xs text-muted">+{hidden}</span> : null}
       </div>

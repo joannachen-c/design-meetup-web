@@ -300,6 +300,13 @@ export function createLumaClient({
         throw error;
       }
     },
+
+    async declineMember(email: string) {
+      await request("/v1/memberships/members/update-status", {
+        method: "POST",
+        body: { user_id: email, status: "declined" },
+      });
+    },
   };
 }
 
@@ -319,9 +326,9 @@ export function lumaCategoryForEmail(email: string | null | undefined) {
 }
 
 /**
- * After a portal signup, put that person on the Luma Member tier and tag
- * their cohort. The demo account is skipped. Unknown emails are skipped.
- * Safe to repeat: an existing tag and an existing membership are left as they are.
+ * After a portal signup, tag the person's cohort on Luma. Membership in the
+ * Member tier waits until they have paid. The demo account is skipped.
+ * Unknown emails are skipped. Safe to repeat.
  */
 export async function registerSignedUpMemberOnLuma({
   client,
@@ -341,10 +348,58 @@ export async function registerSignedUpMemberOnLuma({
     [{ email: normalized, name: name?.trim() || null }],
     [tagId],
   );
+  return { email: normalized, tagId, tag: category.name };
+}
+
+/**
+ * Put someone on the Member tier after they have paid on the portal, or when
+ * they are on the Board of Advisors. The demo account is skipped.
+ */
+export async function grantLumaMembership({
+  client,
+  email,
+}: {
+  client: LumaClient;
+  email: string;
+}) {
+  const normalized = normalizeEmail(email);
+  if (!normalized || normalized === DEMO_EMAIL) return null;
   const tierId = await client.findMembershipTierId(LUMA_MEMBER_TIER);
   if (!tierId) throw new Error(`Luma has no "${LUMA_MEMBER_TIER}" membership tier`);
   const added = await client.addMemberToTier(normalized, tierId);
-  return { email: normalized, tierId, added, tagId, tag: category.name };
+  return { email: normalized, tierId, added };
+}
+
+/** Payment must succeed even when Luma is down. */
+export async function syncPaidMemberToLuma(input: {
+  email: string;
+  client?: LumaClient;
+}) {
+  let client = input.client ?? null;
+  if (!client) {
+    const apiKey = lumaApiKey();
+    if (!apiKey) return null;
+    client = createLumaClient({ apiKey, maxAttempts: 2 });
+  }
+  try {
+    return await grantLumaMembership({ client, email: input.email });
+  } catch (error) {
+    console.error("[luma] paid member sync failed", error);
+    return null;
+  }
+}
+
+/**
+ * Emails on the Design Meetup roster who should not hold the Luma Member tier.
+ * Keep everyone who has paid on the portal and the Board of Advisors.
+ */
+export function emailsToRemoveFromLumaTier(
+  rosterEmails: Iterable<string | null | undefined>,
+  keepEmails: Iterable<string | null | undefined>,
+) {
+  const remove = memberEmailSet(rosterEmails);
+  for (const email of memberEmailSet(keepEmails)) remove.delete(email);
+  return remove;
 }
 
 /** Signup must succeed even when Luma is down. Returns null when there is nothing to do. */
@@ -366,29 +421,32 @@ export async function syncSignedUpMemberToLuma(input: {
       name: input.name,
     });
   } catch (error) {
-    console.error("[luma] signup member sync failed", error);
+    console.error("[luma] signup cohort tag failed", error);
     return null;
   }
 }
 
 /**
- * Put every member into the calendar's "Member" membership tier so Luma shows
- * them as members. People already holding a calendar membership are skipped,
- * so steady-state runs only add whoever joined since the last one.
+ * Put paid portal members and the Board of Advisors on the Member tier, and
+ * take the tier back from roster emails that have not paid. People already
+ * on the tier are not added again.
  */
 export async function syncMembershipTier({
   client,
   memberEmails,
+  revokeEmails,
   tierName = LUMA_MEMBER_TIER,
 }: {
   client: LumaClient;
   memberEmails: Set<string>;
+  revokeEmails?: Set<string>;
   tierName?: string;
 }) {
   const tierId = await client.findMembershipTierId(tierName);
   if (!tierId) throw new Error(`Luma has no "${tierName}" membership tier`);
   const existing = await client.listCalendarMemberEmails();
   let added = 0;
+  let removed = 0;
   const failed: Array<{ email: string; error: string }> = [];
   for (const email of memberEmails) {
     if (existing.has(email)) continue;
@@ -398,7 +456,16 @@ export async function syncMembershipTier({
       failed.push({ email, error: error instanceof Error ? error.message : String(error) });
     }
   }
-  return { tierId, added, alreadyMembers: existing.size, failed };
+  for (const email of revokeEmails ?? []) {
+    if (!existing.has(email) || memberEmails.has(email)) continue;
+    try {
+      await client.declineMember(email);
+      removed += 1;
+    } catch (error) {
+      failed.push({ email, error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  return { tierId, added, removed, alreadyMembers: existing.size, failed };
 }
 
 type LumaEventSummary = {

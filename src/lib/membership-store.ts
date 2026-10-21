@@ -385,6 +385,7 @@ export async function listLocalMemberships() {
   const store = await readStore();
   return store.memberships.map((membership) => ({
     status: membership.status,
+    stripeSubscriptionId: membership.stripeSubscriptionId ?? null,
     email:
       store.profiles.find((profile) => profile.id === membership.userId)?.email ?? null,
   }));

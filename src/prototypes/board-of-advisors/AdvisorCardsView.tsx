@@ -11,7 +11,7 @@ import {
   Portrait,
   SocialLinks,
   advisorLocationLabel,
-  monoCellClassName,
+  cardCellClassName,
   polaroidFrameClassName,
   polaroidPaddingClassName,
 } from "./directory-ui";
@@ -70,7 +70,7 @@ function AdvisorCard({ advisor, index }: { advisor: Advisor; index: number }) {
         </div>
         <div className="flex flex-col items-start min-[520px]:flex-row min-[520px]:items-center min-[520px]:justify-between min-[520px]:gap-2">
           <div
-            className={`${monoCellClassName} w-full min-w-0 truncate text-ink min-[520px]:w-auto`}
+            className={`${cardCellClassName} w-full min-w-0 truncate text-ink min-[520px]:w-auto`}
             title={[advisor.company, advisorLocationLabel(advisor)].filter(Boolean).join(" · ")}
           >
             {advisor.company}
@@ -96,7 +96,7 @@ export function AdvisorCardsView({ rows }: { rows: Advisor[] }) {
         <AdvisorEmptyState />
       ) : (
         <ul
-          className="m-0 grid list-none grid-cols-2 gap-x-5 gap-y-12 p-0 min-[640px]:grid-cols-3 min-[1024px]:grid-cols-4 min-[1024px]:gap-x-8 min-[1024px]:gap-y-14 min-[1440px]:grid-cols-5"
+          className="m-0 grid list-none grid-cols-2 gap-x-5 gap-y-12 p-0 min-[640px]:grid-cols-3 min-[1024px]:grid-cols-4 min-[1024px]:gap-x-9 min-[1024px]:gap-y-16 min-[1440px]:grid-cols-5 min-[1800px]:grid-cols-6"
           aria-label="Board of Advisors cards"
         >
           <AnimatePresence mode="popLayout" initial={false}>

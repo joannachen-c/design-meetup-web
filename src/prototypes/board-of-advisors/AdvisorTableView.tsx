@@ -23,7 +23,7 @@ function SpotlightContent({ advisor }: { advisor: Advisor }) {
   return (
     <>
       <a
-        className={`${polaroidFrameClassName} ${polaroidPaddingClassName} group mx-auto block w-[min(100%,calc(clamp(184px,18vw,272px)*1.03))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
+        className={`${polaroidFrameClassName} ${polaroidPaddingClassName} group mx-auto block w-[min(100%,calc(clamp(200px,20vw,300px)*1.03))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
         href={advisor.href}
         target={advisor.href === "#" ? undefined : "_blank"}
         rel={advisor.href === "#" ? undefined : "noreferrer"}
@@ -153,7 +153,7 @@ export function AdvisorTableView({ rows }: { rows: Advisor[] }) {
           <AdvisorEmptyState />
         ) : (
           <ol
-            className="m-0 list-none p-0 min-[821px]:absolute min-[821px]:inset-0 min-[821px]:overflow-y-auto min-[821px]:overscroll-contain min-[821px]:pb-16 min-[821px]:[mask-image:linear-gradient(to_bottom,black_calc(100%-56px),transparent)] min-[821px]:[scrollbar-width:thin]"
+            className="m-0 list-none p-0 min-[821px]:absolute min-[821px]:inset-0 min-[821px]:overflow-y-auto min-[821px]:overscroll-contain min-[821px]:pb-16 min-[821px]:[mask-image:linear-gradient(to_bottom,transparent,black_56px,black_calc(100%-56px),transparent)] min-[821px]:[scrollbar-width:thin]"
             aria-label="Board of Advisors table"
           >
             {rows.map((advisor) => (

@@ -33,7 +33,7 @@ export function AdvisorsDirectory({
         </p>
       </ScrollReveal>
       <ScrollReveal delay={60}>
-        <div className="mt-[clamp(40px,6vw,72px)] flex items-center justify-end pb-4">
+        <div className="mt-[clamp(40px,6vw,72px)] flex items-center justify-end pb-7">
           <div className="flex w-full min-w-0 items-center justify-end gap-2 min-[640px]:w-auto">
             <label className="relative flex min-w-0 flex-1 items-center min-[640px]:w-[260px] min-[640px]:flex-none">
               <span className="sr-only">Search advisors</span>

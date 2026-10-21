@@ -1,6 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
 
 import { ScrollReveal } from "@/components/ScrollReveal";
 
@@ -21,6 +22,17 @@ export function AdvisorsDirectory({
 }) {
   const { advisors, allAdvisors, filters, setFilters } = useAdvisors();
   const reduceMotion = useReducedMotion();
+  // Off for the first render so restoring ?view= from the URL on load fades instead of morphing.
+  const [morphReady, setMorphReady] = useState(false);
+  const [userSwitchedView, setUserSwitchedView] = useState(false);
+  const morph = morphReady && !reduceMotion;
+
+  useEffect(() => setMorphReady(true), []);
+
+  const changeView = (next: AdvisorView) => {
+    setUserSwitchedView(true);
+    onViewChange(next);
+  };
 
   return (
     <section className={sectionShellClassName} id="advisors" aria-labelledby="advisors-title">
@@ -55,25 +67,30 @@ export function AdvisorsDirectory({
               />
             </label>
             <AdvisorFilterMenu />
-            <AdvisorViewToggle view={view} onChange={onViewChange} />
+            <AdvisorViewToggle view={view} onChange={changeView} />
           </div>
         </div>
 
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={view}
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={reduceMotion ? undefined : { opacity: 0 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {view === "table" ? (
-              <AdvisorTableView rows={advisors} />
-            ) : (
-              <AdvisorCardsView rows={advisors} />
-            )}
-          </motion.div>
-        </AnimatePresence>
+        {/* popLayout keeps both views mounted for one frame so each photo's layoutId can morph between them. */}
+        <div className="relative">
+          <LayoutGroup>
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.div
+                key={view}
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={reduceMotion ? undefined : { opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {view === "table" ? (
+                  <AdvisorTableView rows={advisors} morph={morph} />
+                ) : (
+                  <AdvisorCardsView rows={advisors} morph={morph} revealOnScroll={!userSwitchedView} />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </LayoutGroup>
+        </div>
 
       </ScrollReveal>
     </section>

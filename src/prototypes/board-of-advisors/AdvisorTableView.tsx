@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import { ArrowUpRightIcon } from "@/components/icons/ArrowUpRightIcon";
@@ -10,8 +11,10 @@ import {
   Portrait,
   SocialLinks,
   advisorLocationLabel,
+  advisorPhotoLayoutId,
   monoCellClassName,
   monoLabelClassName,
+  photoMorphTransition,
   polaroidFrameClassName,
   polaroidPaddingClassName,
 } from "./directory-ui";
@@ -39,7 +42,7 @@ function SpotlightContent({ advisor }: { advisor: Advisor }) {
           {advisorFullName(advisor)}
         </p>
         <p className="m-0 text-base leading-[1.7] text-ink">{advisor.title}</p>
-        <p className="m-0 font-mono text-base leading-[1.5] text-muted">
+        <p className="m-0 font-mono text-sm leading-[1.5] text-muted">
           {advisor.company}
           {advisor.locations.length > 0 ? (
             <span className="text-subtle">
@@ -77,10 +80,12 @@ function SpotlightPanel({ rows, activeSlug }: { rows: Advisor[]; activeSlug: str
 function TableRow({
   advisor,
   active,
+  morph,
   onActivate,
 }: {
   advisor: Advisor;
   active: boolean;
+  morph: boolean;
   onActivate: () => void;
 }) {
   return (
@@ -96,9 +101,13 @@ function TableRow({
       }}
       data-active={active ? "" : undefined}
     >
-      <span className="flex w-10 rounded-[3px] bg-white p-[2px] pb-[3px] shadow-[0_1px_2px_rgba(15,23,42,0.08),0_3px_8px_rgba(15,23,42,0.08)]">
+      <motion.span
+        layoutId={morph ? advisorPhotoLayoutId(advisor) : undefined}
+        transition={{ layout: photoMorphTransition }}
+        className="flex w-10 rounded-[3px] bg-white p-[2px] pb-[3px] shadow-[0_1px_2px_rgba(15,23,42,0.08),0_3px_8px_rgba(15,23,42,0.08)]"
+      >
         <Portrait advisor={advisor} className="aspect-[4/5] w-full rounded-[1px] text-[10px]" />
-      </span>
+      </motion.span>
       {advisor.href === "#" ? (
         <span className="min-w-0 truncate text-base font-bold leading-tight text-ink">
           {advisorFullName(advisor)}
@@ -134,7 +143,7 @@ function TableRow({
   );
 }
 
-export function AdvisorTableView({ rows }: { rows: Advisor[] }) {
+export function AdvisorTableView({ rows, morph }: { rows: Advisor[]; morph: boolean }) {
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const activeAdvisor = rows.find((advisor) => advisor.slug === activeSlug) ?? rows[0];
 
@@ -152,7 +161,8 @@ export function AdvisorTableView({ rows }: { rows: Advisor[] }) {
         {rows.length === 0 ? (
           <AdvisorEmptyState />
         ) : (
-          <ol
+          <motion.ol
+            layoutScroll
             className="m-0 list-none p-0 min-[821px]:absolute min-[821px]:inset-0 min-[821px]:overflow-y-auto min-[821px]:overscroll-contain min-[821px]:pb-16 min-[821px]:[mask-image:linear-gradient(to_bottom,transparent,black_56px,black_calc(100%-56px),transparent)] min-[821px]:[scrollbar-width:thin]"
             aria-label="Board of Advisors table"
           >
@@ -161,10 +171,11 @@ export function AdvisorTableView({ rows }: { rows: Advisor[] }) {
                 key={advisor.slug}
                 advisor={advisor}
                 active={advisor.slug === activeAdvisor?.slug}
+                morph={morph}
                 onActivate={() => setActiveSlug(advisor.slug)}
               />
             ))}
-          </ol>
+          </motion.ol>
         )}
       </div>
     </div>

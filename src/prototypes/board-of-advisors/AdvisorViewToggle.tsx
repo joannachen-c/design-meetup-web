@@ -2,6 +2,8 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 
+import { GridViewIcon } from "@/components/GalleryViewToggle";
+
 export type AdvisorView = "table" | "cards";
 
 export const ADVISOR_VIEWS: { value: AdvisorView; label: string }[] = [
@@ -9,27 +11,19 @@ export const ADVISOR_VIEWS: { value: AdvisorView; label: string }[] = [
   { value: "table", label: "Table" },
 ];
 
-function TableIcon({ filled }: { filled: boolean }) {
+// Drawn on the gallery toggle's 24×24 / stroke-2 grid so it pairs with GridViewIcon.
+function TableIcon() {
   return (
-    <svg className="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M2.5 4h11M2.5 8h11M2.5 12h11"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth={filled ? 2.25 : 1.5}
-      />
-    </svg>
-  );
-}
-
-function CardsIcon({ filled }: { filled: boolean }) {
-  const fill = filled ? "currentColor" : "none";
-  return (
-    <svg className="size-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1" fill={fill} stroke="currentColor" strokeWidth="1.5" />
-      <rect x="9" y="2.5" width="4.5" height="4.5" rx="1" fill={fill} stroke="currentColor" strokeWidth="1.5" />
-      <rect x="2.5" y="9" width="4.5" height="4.5" rx="1" fill={fill} stroke="currentColor" strokeWidth="1.5" />
-      <rect x="9" y="9" width="4.5" height="4.5" rx="1" fill={fill} stroke="currentColor" strokeWidth="1.5" />
+    <svg
+      className="size-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <path d="M4.5 6.5h15M4.5 12h15M4.5 17.5h15" />
     </svg>
   );
 }
@@ -81,9 +75,9 @@ export function AdvisorViewToggle({
           onClick={() => onChange(option.value)}
         >
           {option.value === "table" ? (
-            <TableIcon filled={view === option.value} />
+            <TableIcon />
           ) : (
-            <CardsIcon filled={view === option.value} />
+            <GridViewIcon filled={view === option.value} />
           )}
         </button>
       ))}

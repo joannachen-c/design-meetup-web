@@ -17,6 +17,13 @@ export const polaroidFrameClassName =
 
 export const polaroidPaddingClassName = "p-[clamp(6px,0.7vw,10px)]";
 
+// Shared between the table thumbnail and the card polaroid so switching views morphs each photo into place.
+export function advisorPhotoLayoutId(advisor: Advisor) {
+  return `advisor-photo-${advisor.slug}`;
+}
+
+export const photoMorphTransition = { duration: 0.55, ease: [0.22, 1, 0.36, 1] } as const;
+
 export function Portrait({ advisor, className }: { advisor: Advisor; className: string }) {
   if (advisor.photoUrl) {
     return <img

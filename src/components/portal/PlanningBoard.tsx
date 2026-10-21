@@ -570,7 +570,7 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
                             type="button"
                             aria-expanded={!collapsed}
                             onClick={() => toggleCollapsed(group.key)}
-                            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-[6px] border-0 bg-transparent px-1.5 font-[inherit] text-sm font-bold text-ink hover:bg-surface-muted"
+                            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-[6px] border-0 bg-transparent px-1.5 font-[inherit] text-sm font-bold text-gray-800 hover:bg-surface-muted"
                           >
                             <ChevronIcon open={!collapsed} className="size-3 text-muted" />
                             {groupIcon(group)}

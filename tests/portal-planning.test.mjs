@@ -60,4 +60,7 @@ test("planning items are stored in a service-role-only table", async () => {
   const statuses = await read("supabase/migrations/20261021130000_planning_items_backlog_status.sql");
   assert.match(statuses, /drop constraint if exists planning_items_status_check/);
   assert.match(statuses, /'attention', 'motion', 'backlog', 'done'/);
+
+  const withTodo = await read("supabase/migrations/20261021150000_planning_items_todo_status.sql");
+  assert.match(withTodo, /'attention', 'todo', 'motion', 'backlog', 'done'/);
 });

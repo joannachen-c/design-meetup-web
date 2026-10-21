@@ -311,6 +311,7 @@ const DEMO_EMAIL = "demo@designmeetup.info";
 export const LUMA_COHORT_TAGS: Record<Cohort, { name: string; color: string }> = {
   0: { name: "Cohort 0", color: "blue" },
   1: { name: "Cohort 1", color: "purple" },
+  2: { name: "Cohort 2", color: "green" },
 };
 
 export function lumaCategoryForEmail(email: string | null | undefined) {

@@ -314,12 +314,12 @@ const PAID_OCT_15_EMAILS = [
   "justingainsley@gmail.com",
 ];
 
-test("comp signups are cohort 0 and allowlist signups are cohort 1", () => {
+test("comp signups are cohort 0, the October intake cohort 2, other allowlist signups cohort 1", () => {
   assert.deepEqual(lumaCategoryForEmail("mshuxy@gmail.com"), { name: "Cohort 0", color: "blue" });
   assert.equal(lumaCategoryForEmail("alizahunbaev@gmail.com")?.name, "Cohort 0");
   assert.equal(lumaCategoryForEmail("  MShuxy@gmail.com ")?.name, "Cohort 0");
   for (const email of PAID_OCT_15_EMAILS) {
-    assert.equal(lumaCategoryForEmail(email)?.name, "Cohort 1", email);
+    assert.deepEqual(lumaCategoryForEmail(email), { name: "Cohort 2", color: "green" }, email);
   }
   assert.equal(lumaCategoryForEmail("angelinawwu@ucla.edu")?.name, "Cohort 1");
   assert.equal(lumaCategoryForEmail("stranger@example.com"), null);

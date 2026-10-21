@@ -23,6 +23,7 @@ import {
   URGENCY_LABEL,
   compareBy,
   groupItems,
+  isActive,
   itemMatches,
   loadView,
   saveView,
@@ -308,7 +309,8 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
   const groups = groupItems(visible, view.groupBy);
   const columns = COLUMN_KEYS.filter((key) => view.columns.includes(key));
   const tableWidth = NAME_WIDTH + columns.reduce((sum, key) => sum + COLUMN_WIDTH[key], 0) + 48;
-  const openCount = items.filter((item) => item.status !== "done").length;
+  const activeCount = items.filter(isActive).length;
+  const backlogCount = items.filter((item) => item.status === "backlog").length;
   const activeFilters = (Object.keys(view.filters) as FilterKey[]).filter((key) => view.filters[key].length);
   const allLocations = [...suggestions.locations, ...(items.some((item) => !item.location) ? [""] : [])];
   const sections = filterSections(suggestions, allLocations);
@@ -346,7 +348,7 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
         <div>
           <h1 className="m-0 text-[28px] leading-tight font-bold tracking-[-0.04em]">Pipeline</h1>
           <p className="m-0 mt-1 text-sm text-muted">
-            {openCount} open · {items.length} total · Everyone on the team can edit. Changes save
+            {activeCount} active · {backlogCount} in backlog · Everyone on the team can edit. Changes save
             automatically.
           </p>
         </div>

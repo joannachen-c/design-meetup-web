@@ -56,4 +56,8 @@ test("planning items are stored in a service-role-only table", async () => {
   assert.match(migration, /create table if not exists public\.planning_items/);
   assert.match(migration, /alter table public\.planning_items enable row level security;/);
   assert.doesNotMatch(migration, /create policy|insert into/i);
+
+  const statuses = await read("supabase/migrations/20261021130000_planning_items_backlog_status.sql");
+  assert.match(statuses, /drop constraint if exists planning_items_status_check/);
+  assert.match(statuses, /'attention', 'motion', 'backlog', 'done'/);
 });

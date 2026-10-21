@@ -11,7 +11,8 @@ import {
 export const STATUS_LABEL: Record<Status, string> = {
   attention: "Needs attention",
   motion: "In motion",
-  done: "Held / resolved",
+  backlog: "Backlog",
+  done: "Done",
 };
 export const URGENCY_LABEL: Record<Urgency, string> = {
   urgent: "Urgent",
@@ -84,7 +85,7 @@ export const DEFAULT_VIEW: View = {
   sortBy: "urgency",
   columns: ["status", "urgency", "deadline", "description", "poc", "location", "owners", "roles"],
   filters: EMPTY_FILTERS,
-  collapsed: ["done"],
+  collapsed: ["backlog", "done"],
 };
 
 const VIEW_KEY = "dm-planning-view-v1";
@@ -171,8 +172,8 @@ export function formatAgo(days: number) {
 }
 
 export const STALE_DAYS = 14;
-export const isStale = (item: PlanningItem) =>
-  item.status !== "done" && daysSince(item.updatedAt) >= STALE_DAYS;
+export const isActive = (item: PlanningItem) => item.status === "attention" || item.status === "motion";
+export const isStale = (item: PlanningItem) => isActive(item) && daysSince(item.updatedAt) >= STALE_DAYS;
 
 const teamByName = new Map<string, string>();
 for (const member of TEAM) {
@@ -205,7 +206,6 @@ export function tagColor(tag: string) {
 }
 
 const URGENCY_RANK: Record<Urgency, number> = { urgent: 0, soon: 1, normal: 2 };
-const STATUS_RANK: Record<Status, number> = { attention: 0, motion: 1, done: 2 };
 
 function deadlineKey(item: PlanningItem) {
   return ISO_DATE.test(item.deadline) ? item.deadline : "9999";

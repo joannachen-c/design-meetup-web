@@ -81,8 +81,8 @@
 
 .docType {
   margin: 0;
-  font-size: clamp(0.8rem, 2vw, 0.95rem);
-  font-weight: 700;
+  font-size: clamp(0.7rem, 1.6vw, 0.8rem);
+  font-weight: 400;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-subtle);
@@ -90,6 +90,7 @@
 
 .docTypeBullet {
   margin: 0 0.5em;
+  font-size: 0.7em;
 }
 
 .masthead {

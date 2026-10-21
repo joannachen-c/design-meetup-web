@@ -31,7 +31,7 @@ export function SlackJoinCard({ joined = false }: { joined?: boolean }) {
         target="_blank"
         rel="noopener noreferrer"
         variant="ink"
-        className="w-full justify-center sm:w-auto"
+        className="self-end px-6 sm:self-auto"
       >
         {joined ? "Open Slack" : "Join Slack"}
       </Primary>

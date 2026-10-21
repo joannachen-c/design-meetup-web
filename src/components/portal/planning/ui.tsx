@@ -140,6 +140,13 @@ export function StatusIcon({ status, className = "size-3.5" }: { status: Status;
       </svg>
     );
   }
+  if (status === "backlog") {
+    return (
+      <svg aria-hidden viewBox="0 0 14 14" className={`${className} shrink-0 text-subtle`}>
+        <circle cx="7" cy="7" r="5.75" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2.2 2.2" />
+      </svg>
+    );
+  }
   return (
     <svg aria-hidden viewBox="0 0 14 14" className={`${className} shrink-0 text-subtle`}>
       <circle cx="7" cy="7" r="6.25" fill="currentColor" />

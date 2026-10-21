@@ -9,6 +9,7 @@ import {
   daysSince,
   formatAgo,
   formatDeadline,
+  isActive,
   isStale,
   type ColumnKey,
 } from "./model";
@@ -147,7 +148,7 @@ export function StatusField({ item, save, variant }: FieldProps) {
     <>
       <Trigger variant={variant} label={`Status for ${item.company}: ${STATUS_LABEL[item.status]}`} onClick={toggle}>
         <StatusIcon status={item.status} />
-        <span className={`truncate ${item.status === "done" ? "text-muted" : ""}`}>{STATUS_LABEL[item.status]}</span>
+        <span className={`truncate ${isActive(item) ? "" : "text-muted"}`}>{STATUS_LABEL[item.status]}</span>
       </Trigger>
       {anchor ? (
         <Popover anchor={anchor} label="Status" width={210} onClose={close}>
@@ -194,7 +195,7 @@ export function UrgencyField({ item, save, variant }: FieldProps) {
 export function DeadlineField({ item, save, variant }: FieldProps) {
   const { anchor, toggle, close } = usePopoverAnchor();
   const deadline = formatDeadline(item.deadline);
-  const overdue = deadline.days !== null && deadline.days < 0 && item.status !== "done";
+  const overdue = deadline.days !== null && deadline.days < 0 && isActive(item);
   const soon = deadline.days !== null && deadline.days >= 0 && deadline.days <= 3;
   const iso = ISO_DATE.test(item.deadline);
   const inputClass =

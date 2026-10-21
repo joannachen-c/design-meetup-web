@@ -51,6 +51,13 @@ test("bad values are rejected with a reason", () => {
   }
 });
 
+test("held items are either backlog or done", () => {
+  assert.equal(parsePlanningPatch({ status: "backlog" }).ok, true);
+  assert.equal(parsePlanningPatch({ status: "done" }).ok, true);
+  assert.equal(parsePlanningPatch({ status: "held" }).ok, false);
+  assert.equal(planningItemFromRow({ status: "backlog" }).status, "backlog");
+});
+
 test("new items need a company", () => {
   assert.equal(parsePlanningPatch({ poc: "Dan" }, { requireCompany: true }).ok, false);
   assert.equal(parsePlanningPatch({ company: "Notion" }, { requireCompany: true }).ok, true);

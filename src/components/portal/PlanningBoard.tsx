@@ -377,7 +377,7 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
         <button
           type="button"
           onClick={() => create({})}
-          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[7px] border-0 bg-ink pr-3 pl-2.5 font-[inherit] text-sm font-bold text-white hover:bg-ink/90"
+          className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[7px] border-0 bg-surface-muted pr-3 pl-2.5 font-[inherit] text-sm font-bold text-ink transition-colors hover:bg-gray-200"
         >
           <PlusIcon className="size-4" />
           New item

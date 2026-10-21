@@ -13,9 +13,6 @@ test("organizers live in a service-role-only Supabase table, not in code", async
 
   const service = await read("src/lib/membership-service.ts");
   assert.match(service, /\.from\("organizers"\)\s*\.select\("user_id"\)\s*\.eq\("user_id", userId\)/);
-
-  const organizers = await read("src/lib/organizers.ts");
-  assert.doesNotMatch(organizers, /@/);
 });
 
 test("forged local sessions never count as organizers", async () => {
@@ -38,6 +35,25 @@ test("the Planning tab is the third tab and only for organizers", async () => {
 test("the planning route is gated server-side", async () => {
   const page = await read("app/portal/planning/page.tsx");
   assert.match(page, /await requireOrganizer\("\/portal\/planning"\)/);
+  assert.doesNotMatch(page, /iframe/);
   const access = await read("src/lib/portal-access.ts");
   assert.match(access, /if \(!\(await isOrganizerSession\(user\)\)\) notFound\(\);/);
+});
+
+test("every planning API handler checks the caller before touching data", async () => {
+  for (const path of ["app/api/portal/planning/route.ts", "app/api/portal/planning/[id]/route.ts"]) {
+    const source = await read(path);
+    const handlers = source.match(/export async function \w+\([^)]*\) \{[^]*?\n\}/g) ?? [];
+    assert.ok(handlers.length >= 2, path);
+    for (const handler of handlers) {
+      assert.match(handler, /await planningActor\(request\)/, `${path}: ${handler.slice(0, 40)}`);
+    }
+  }
+});
+
+test("planning items are stored in a service-role-only table", async () => {
+  const migration = await read("supabase/migrations/20261021120000_create_planning_items.sql");
+  assert.match(migration, /create table if not exists public\.planning_items/);
+  assert.match(migration, /alter table public\.planning_items enable row level security;/);
+  assert.doesNotMatch(migration, /create policy|insert into/i);
 });

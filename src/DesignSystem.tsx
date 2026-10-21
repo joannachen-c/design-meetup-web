@@ -1049,12 +1049,6 @@ export default function DesignSystem() {
               pipeline
             </h2>
             <div className="grid gap-8">
-              <p className={specimenDescriptionClassName}>
-                Patterns from the internal pipeline board. Every item carries a
-                section status that anyone on the team can change, items that
-                need attention sit in a red section, and assignees are shown
-                with their team photo.
-              </p>
               <div>
                 <SpecimenLabel>section status pill</SpecimenLabel>
                 <div className={`${specimenRowClassName} mt-4`}>
@@ -1071,12 +1065,6 @@ export default function DesignSystem() {
                     Held / resolved
                   </span>
                 </div>
-                <p className={specimenDescriptionClassName}>
-                  32px pill, Alte Haas Grotesk bold, label and chevron centered
-                  as one unit. Only the attention state takes color (red-50 /
-                  red-700); the pill always shows the value a person picked,
-                  never the computed state.
-                </p>
               </div>
               <div>
                 <SpecimenLabel>assignee stack</SpecimenLabel>

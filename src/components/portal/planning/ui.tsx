@@ -42,6 +42,8 @@ export function Popover({
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      // Fields inside the popover that cancel their own edit on Escape keep it open.
+      if ((event.target as Element | null)?.closest?.("[data-own-escape]")) return;
       event.stopPropagation();
       close.current();
       anchor.focus();

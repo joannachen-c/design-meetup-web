@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { isUnnamed, type PlanningItem, type PlanningLink, type PlanningPatch } from "@/lib/planning";
 import { CloseIcon, PlusIcon, Popover, usePopoverAnchor } from "./ui";
 
@@ -132,32 +132,99 @@ export function LinkIconChip({ link }: { link: PlanningLink }) {
   );
 }
 
-export function LinkChip({ link, onRemove }: { link: PlanningLink; onRemove?: () => void }) {
-  const label = displayLabel(link);
+export function LinkChip({ link }: { link: PlanningLink }) {
   return (
-    <span
-      className={`inline-flex h-6 max-w-full min-w-0 items-center gap-1 pl-1 text-xs text-ink ${CHIP_FRAME} ${onRemove ? "pr-0.5" : "pr-2"}`}
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={link.url}
+      className={`inline-flex h-6 max-w-full min-w-0 items-center gap-1.5 pr-2 pl-1 text-xs text-ink no-underline ${CHIP_FRAME}`}
     >
+      <ServiceIcon url={link.url} />
+      <span className="min-w-0 max-w-44 truncate">{displayLabel(link)}</span>
+    </a>
+  );
+}
+
+/** Editor chip: the icon opens the link, the name renames it, the X removes it. */
+function EditableLinkChip({
+  link,
+  onRename,
+  onRemove,
+}: {
+  link: PlanningLink;
+  onRename: (label: string) => void;
+  onRemove: () => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  // Removing the input on cancel fires blur; this stops that blur from saving.
+  const cancelled = useRef(false);
+  const label = displayLabel(link);
+  const commit = () => {
+    if (draft === null || cancelled.current) return;
+    const next = draft.trim();
+    setDraft(null);
+    if (next !== (isUnnamed(link) ? "" : link.label.trim())) onRename(next);
+  };
+
+  return (
+    <span className={`inline-flex h-6 max-w-full min-w-0 items-center gap-1 pr-0.5 pl-1 text-xs text-ink ${CHIP_FRAME}`}>
       <a
         href={link.url}
         target="_blank"
         rel="noopener noreferrer"
-        title={link.url}
-        className="inline-flex min-w-0 items-center gap-1.5 text-ink no-underline"
+        aria-label={`Open ${label}`}
+        title={`Open ${link.url}`}
+        className="grid shrink-0 place-items-center rounded-full"
       >
         <ServiceIcon url={link.url} />
-        <span className="min-w-0 max-w-44 truncate">{label}</span>
       </a>
-      {onRemove ? (
+      {draft === null ? (
         <button
           type="button"
-          aria-label={`Remove ${label}`}
-          onClick={onRemove}
-          className="grid size-5 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-subtle hover:bg-red-50 hover:text-red-700"
+          aria-label={`Rename ${label}`}
+          title="Click to rename"
+          onClick={() => {
+            cancelled.current = false;
+            setDraft(isUnnamed(link) ? "" : link.label);
+          }}
+          className="min-w-0 max-w-44 cursor-text truncate rounded-[4px] border-0 bg-transparent px-0.5 text-left font-[inherit] text-xs text-ink hover:bg-surface-muted"
         >
-          <CloseIcon className="size-2.5" />
+          {label}
         </button>
-      ) : null}
+      ) : (
+        <input
+          autoFocus
+          data-own-escape
+          aria-label="Link name"
+          value={draft}
+          placeholder={label}
+          onFocus={(event) => event.currentTarget.select()}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={commit}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              commit();
+            }
+            if (event.key === "Escape") {
+              event.stopPropagation();
+              cancelled.current = true;
+              setDraft(null);
+            }
+          }}
+          className="h-5 w-44 min-w-0 rounded-[4px] border-0 bg-surface-muted px-1 font-[inherit] text-xs text-ink outline-none placeholder:text-subtle"
+        />
+      )}
+      <button
+        type="button"
+        aria-label={`Remove ${label}`}
+        onClick={onRemove}
+        className="grid size-5 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-subtle hover:bg-red-50 hover:text-red-700"
+      >
+        <CloseIcon className="size-2.5" />
+      </button>
     </span>
   );
 }
@@ -183,9 +250,12 @@ export function LinksEditor({
     <div className="grid gap-2">
       <div className="flex flex-wrap items-center gap-1.5">
         {links.map((link, index) => (
-          <LinkChip
+          <EditableLinkChip
             key={`${link.url}-${index}`}
             link={link}
+            onRename={(label) =>
+              onChange(links.map((other, otherIndex) => (otherIndex === index ? { ...other, label } : other)))
+            }
             onRemove={() => onChange(links.filter((_, other) => other !== index))}
           />
         ))}

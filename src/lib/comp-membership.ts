@@ -10,6 +10,7 @@ const COMP_MEMBERSHIP_EMAILS = new Set<string>([
   "studio@liumichelle.com",
   "emilyshenucla@gmail.com",
   "mh7323@nyu.edu",
+  "matthew.hope.yonatan@gmail.com",
   "yw2339@cornell.edu",
   "adaezeasonye@gmail.com",
   "evanamadeuscameron@gmail.com",

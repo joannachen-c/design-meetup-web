@@ -74,7 +74,6 @@ export type Filters = {
 export type View = {
   groupBy: GroupBy;
   sortBy: SortBy;
-  columns: ColumnKey[];
   filters: Filters;
   collapsed: string[];
 };
@@ -83,7 +82,6 @@ export const EMPTY_FILTERS: Filters = { status: [], urgency: [], location: [], o
 export const DEFAULT_VIEW: View = {
   groupBy: "status",
   sortBy: "urgency",
-  columns: ["status", "urgency", "deadline", "description", "poc", "location", "owners", "roles"],
   filters: EMPTY_FILTERS,
   collapsed: ["backlog", "done"],
 };
@@ -102,9 +100,6 @@ export function loadView(): View {
     return {
       groupBy: saved.groupBy in GROUP_LABEL ? saved.groupBy : DEFAULT_VIEW.groupBy,
       sortBy: saved.sortBy in SORT_LABEL ? saved.sortBy : DEFAULT_VIEW.sortBy,
-      columns: Array.isArray(saved.columns)
-        ? strings(saved.columns).filter((key): key is ColumnKey => key in COLUMN_LABEL)
-        : DEFAULT_VIEW.columns,
       filters: {
         status: strings(filters.status).filter((value): value is Status =>
           (STATUSES as readonly string[]).includes(value),
@@ -203,6 +198,19 @@ export function tagColor(tag: string) {
   let hash = 0;
   for (const char of tag.toLowerCase()) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
   return TAG_COLORS[hash % TAG_COLORS.length];
+}
+
+// The main cities get fixed, clearly different colors so the calendar reads at a glance.
+const CITY_COLORS: Record<string, (typeof TAG_COLORS)[number]> = {
+  nyc: TAG_COLORS[5],
+  sf: TAG_COLORS[4],
+  both: TAG_COLORS[6],
+  la: TAG_COLORS[7],
+};
+
+export function locationColor(location: string) {
+  if (!location) return TAG_COLORS[0];
+  return CITY_COLORS[location.trim().toLowerCase()] ?? tagColor(location);
 }
 
 const URGENCY_RANK: Record<Urgency, number> = { urgent: 0, soon: 1, normal: 2 };

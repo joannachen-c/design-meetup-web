@@ -26,6 +26,7 @@ import {
   isActive,
   itemMatches,
   loadView,
+  locationColor,
   saveView,
   type Filters,
   type Group,
@@ -33,6 +34,7 @@ import {
   type SortBy,
   type View,
 } from "./planning/model";
+import { PlanningCalendar } from "./planning/PlanningCalendar";
 import { PlanningPeek } from "./planning/PlanningPeek";
 import {
   Avatar,
@@ -163,7 +165,7 @@ function filterSections(suggestions: Suggestions, locations: string[]) {
       label: "Location",
       options: locations.map((location) => ({
         value: location,
-        node: location ? <TagChip tag={location} /> : <span className="text-muted">No location</span>,
+        node: location ? <TagChip tag={location} color={locationColor(location)} /> : <span className="text-muted">No location</span>,
         text: location || "No location",
       })),
     },
@@ -329,7 +331,7 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
     [items, view.filters, view.sortBy, needle],
   );
   const groups = groupItems(visible, view.groupBy);
-  const columns = COLUMN_KEYS.filter((key) => view.columns.includes(key));
+  const columns = COLUMN_KEYS;
   const tableWidth = NAME_WIDTH + columns.reduce((sum, key) => sum + COLUMN_WIDTH[key], 0) + 48;
   const activeCount = items.filter(isActive).length;
   const backlogCount = items.filter((item) => item.status === "backlog").length;
@@ -365,11 +367,13 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
     ) : null;
 
   return (
-    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(20px,3vw,40px)] pb-24">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="m-0 text-[28px] leading-tight font-bold tracking-[-0.04em]">Pipeline</h1>
-          <p className="m-0 mt-1 text-sm text-muted">
+          <h1 className="m-0 text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.02] font-bold tracking-[-0.06em]">
+            Planning
+          </h1>
+          <p className="m-0 mt-3 text-sm text-muted">
             {activeCount} active · {backlogCount} in backlog · Everyone on the team can edit. Changes save
             automatically.
           </p>
@@ -384,13 +388,17 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
         </button>
       </div>
 
-      <div className={`mt-5 flex flex-wrap items-center gap-1 border-b ${LINE} pb-2`}>
+      <div className="mt-10">
+        <PlanningCalendar items={items} onOpen={(id) => setPeek({ id, autoEdit: false })} />
+      </div>
+
+      <div className={`mt-12 flex flex-wrap items-center gap-1 border-b ${LINE} pb-2`}>
         <label className="relative mr-1 flex h-8 w-full items-center min-[640px]:w-64">
           <svg aria-hidden viewBox="0 0 16 16" className="pointer-events-none absolute left-2.5 size-3.5 text-subtle">
             <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
             <path d="m10.5 10.5 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <span className="sr-only">Search the pipeline</span>
+          <span className="sr-only">Search planning items</span>
           <input
             type="search"
             placeholder="Search"
@@ -479,35 +487,6 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
           )}
         </ToolbarMenu>
 
-        <ToolbarMenu label="Properties" width={220} trigger="Properties">
-          {() => (
-            <div className="grid">
-              <MenuHeading>Shown in table</MenuHeading>
-              {COLUMN_KEYS.map((key) => (
-                <ToggleRow
-                  key={key}
-                  on={view.columns.includes(key)}
-                  onClick={() =>
-                    updateView({
-                      columns: view.columns.includes(key)
-                        ? view.columns.filter((entry) => entry !== key)
-                        : [...view.columns, key],
-                    })
-                  }
-                >
-                  {COLUMN_LABEL[key]}
-                </ToggleRow>
-              ))}
-              <button
-                type="button"
-                onClick={() => setView(DEFAULT_VIEW)}
-                className="mt-1 h-8 cursor-pointer rounded-[7px] border-0 bg-transparent px-2 text-left font-[inherit] text-sm text-muted hover:bg-surface-muted"
-              >
-                Reset view
-              </button>
-            </div>
-          )}
-        </ToolbarMenu>
       </div>
 
       {activeFilters.length ? (

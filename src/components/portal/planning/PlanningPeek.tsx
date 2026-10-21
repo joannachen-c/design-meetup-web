@@ -141,7 +141,7 @@ export function PlanningPeek({
         className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[620px] flex-col bg-white shadow-[-16px_0_48px_rgb(18_24_38/0.12)]"
       >
         <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-black/[0.06] px-3">
-          <span className="truncate text-sm text-muted">Pipeline / {item.company}</span>
+          <span className="truncate text-sm text-muted">Planning / {item.company}</span>
           <button
             ref={closeButton}
             type="button"
@@ -213,7 +213,7 @@ export function PlanningPeek({
             <button
               type="button"
               onClick={() => {
-                if (window.confirm(`Delete “${item.company}” from the pipeline? This can't be undone.`)) remove();
+                if (window.confirm(`Delete “${item.company}” from Planning? This can't be undone.`)) remove();
               }}
               className="h-8 cursor-pointer rounded-[7px] border-0 bg-transparent px-2 font-[inherit] text-sm text-muted hover:bg-red-50 hover:text-red-700"
             >

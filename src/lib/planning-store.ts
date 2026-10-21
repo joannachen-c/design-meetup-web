@@ -1,6 +1,8 @@
 import { createAdminClient } from "@/lib/auth";
 import { nameLinks } from "@/lib/link-titles";
 import {
+  parseColumnWidths,
+  type ColumnWidths,
   PLANNING_SELECT,
   planningItemFromRow,
   planningPatchToRow,
@@ -54,4 +56,32 @@ export async function deletePlanningItem(id: string) {
     .select("id");
   if (error) throw new Error(`Could not delete planning item: ${error.message}`);
   return (data ?? []).length > 0;
+}
+
+const COLUMN_WIDTHS_KEY = "column_widths";
+
+export async function getColumnWidths(): Promise<ColumnWidths> {
+  const { data, error } = await createAdminClient()
+    .from("planning_settings")
+    .select("value")
+    .eq("key", COLUMN_WIDTHS_KEY)
+    .maybeSingle();
+  // Before the settings table exists, fall back to the default widths instead of failing the page.
+  if (error) {
+    console.error("planning column widths load failed", error.message);
+    return {};
+  }
+  return parseColumnWidths(data?.value);
+}
+
+export async function saveColumnWidths(widths: ColumnWidths, actor: string) {
+  const { error } = await createAdminClient()
+    .from("planning_settings")
+    .upsert({
+      key: COLUMN_WIDTHS_KEY,
+      value: widths,
+      updated_at: new Date().toISOString(),
+      updated_by: actor,
+    });
+  if (error) throw new Error(`Could not save column widths: ${error.message}`);
 }

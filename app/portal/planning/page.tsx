@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PlanningBoard } from "@/components/portal/PlanningBoard";
-import { listPlanningItems } from "@/lib/planning-store";
+import { getColumnWidths, listPlanningItems } from "@/lib/planning-store";
 import { requireOrganizer } from "@/lib/portal-access";
 
 export const metadata: Metadata = {
@@ -12,6 +12,6 @@ export const dynamic = "force-dynamic";
 
 export default async function PortalPlanningPage() {
   await requireOrganizer("/portal/planning");
-  const items = await listPlanningItems();
-  return <PlanningBoard initialItems={items} />;
+  const [items, columnWidths] = await Promise.all([listPlanningItems(), getColumnWidths()]);
+  return <PlanningBoard initialItems={items} initialColumnWidths={columnWidths} />;
 }

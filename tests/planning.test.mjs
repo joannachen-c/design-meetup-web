@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  parseColumnWidths,
   parsePlanningPatch,
   planningItemFromRow,
   planningPatchToRow,
@@ -93,4 +94,12 @@ test("the Muse API token fails closed", () => {
   assert.equal(isPlanningApiToken("Bearer short", "short"), false);
   assert.equal(isPlanningApiToken("Bearer ", undefined), false);
   assert.equal(isPlanningApiToken("Bearer ", ""), false);
+});
+
+test("column widths keep known columns, clamped to whole pixels", () => {
+  assert.deepEqual(
+    parseColumnWidths({ name: 340.6, links: 2000, status: 20, bogus: 300, owners: "wide", roles: Number.NaN }),
+    { name: 341, status: 80, links: 800 },
+  );
+  for (const input of [null, "300", [300], 42]) assert.deepEqual(parseColumnWidths(input), {});
 });

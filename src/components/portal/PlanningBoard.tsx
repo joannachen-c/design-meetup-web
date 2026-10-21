@@ -3,9 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { showErrorToast } from "@/components/AppToaster";
 import {
+  clampColumnWidth,
+  MAX_COLUMN_WIDTH,
+  MIN_COLUMN_WIDTH,
   STATUSES,
   TEAM,
   URGENCIES,
+  type ColumnWidths,
   type PlanningItem,
   type PlanningPatch,
 } from "@/lib/planning";
@@ -27,6 +31,7 @@ import {
   loadView,
   locationColor,
   saveView,
+  type ColumnKey,
   type Filters,
   type Group,
   type GroupBy,
@@ -191,13 +196,90 @@ function filterSections(suggestions: Suggestions, locations: string[]) {
   ];
 }
 
-export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }) {
+function ResizeHandle({
+  label,
+  width,
+  onResize,
+  onCommit,
+  onReset,
+}: {
+  label: string;
+  width: number;
+  onResize: (width: number) => void;
+  onCommit: () => void;
+  onReset: () => void;
+}) {
+  const [active, setActive] = useState(false);
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label={`Resize ${label} column`}
+      aria-valuenow={width}
+      aria-valuemin={MIN_COLUMN_WIDTH}
+      aria-valuemax={MAX_COLUMN_WIDTH}
+      tabIndex={0}
+      title="Drag to resize · double-click to reset"
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        const handle = event.currentTarget;
+        const startX = event.clientX;
+        handle.setPointerCapture(event.pointerId);
+        document.body.style.cursor = "col-resize";
+        setActive(true);
+        const move = (moveEvent: PointerEvent) => onResize(width + moveEvent.clientX - startX);
+        const end = () => {
+          handle.removeEventListener("pointermove", move);
+          handle.removeEventListener("pointerup", end);
+          handle.removeEventListener("pointercancel", end);
+          document.body.style.cursor = "";
+          setActive(false);
+          onCommit();
+        };
+        handle.addEventListener("pointermove", move);
+        handle.addEventListener("pointerup", end);
+        handle.addEventListener("pointercancel", end);
+      }}
+      onDoubleClick={onReset}
+      onKeyDown={(event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        event.preventDefault();
+        onResize(width + (event.key === "ArrowRight" ? 16 : -16));
+        onCommit();
+      }}
+      className="group/resize absolute top-0 -right-1.5 z-[3] flex h-full w-3 cursor-col-resize touch-none justify-center outline-none"
+    >
+      <span
+        aria-hidden
+        className={`my-2 w-0.5 rounded-full transition-colors duration-150 ${
+          active ? "bg-black/35" : "bg-transparent group-hover/resize:bg-black/20 group-focus-visible/resize:bg-black/35"
+        }`}
+      />
+    </div>
+  );
+}
+
+export function PlanningBoard({
+  initialItems,
+  initialColumnWidths,
+}: {
+  initialItems: PlanningItem[];
+  initialColumnWidths: ColumnWidths;
+}) {
   const [items, setItems] = useState(initialItems);
   const [view, setView] = useState<View>(DEFAULT_VIEW);
   const [viewLoaded, setViewLoaded] = useState(false);
   const [query, setQuery] = useState("");
   const [peek, setPeek] = useState<{ id: string; autoEdit: boolean } | null>(null);
+  const [columnWidths, setColumnWidths] = useState(initialColumnWidths);
   const pending = useRef(0);
+  // The latest widths and whether a resize drag is in progress, read outside render.
+  const widthsRef = useRef(initialColumnWidths);
+  const resizing = useRef(false);
+  // Bumped on every local width change, so a refresh that started earlier can't undo it.
+  const widthsEpoch = useRef(0);
+  const savingWidths = useRef(0);
 
   useEffect(() => {
     setView(loadView());
@@ -207,15 +289,53 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
     if (viewLoaded) saveView(view);
   }, [view, viewLoaded]);
 
+  const updateWidths = useCallback((next: ColumnWidths) => {
+    widthsRef.current = next;
+    setColumnWidths(next);
+  }, []);
+
   const refresh = useCallback(async () => {
     if (pending.current > 0 || document.visibilityState !== "visible") return;
+    const epoch = widthsEpoch.current;
     try {
-      const { items: latest } = await requestJson(API);
+      const { items: latest, columnWidths: latestWidths } = await requestJson(API);
       if (pending.current === 0) setItems(latest);
+      const widthsSettled = !resizing.current && savingWidths.current === 0 && epoch === widthsEpoch.current;
+      if (latestWidths && widthsSettled) updateWidths(latestWidths);
     } catch {
       // A missed poll is retried on the next tick.
     }
+  }, [updateWidths]);
+
+  const persistWidths = useCallback(async (widths: ColumnWidths) => {
+    savingWidths.current += 1;
+    try {
+      await requestJson(`${API}/columns`, { method: "PUT", body: JSON.stringify({ widths }) });
+    } catch (error) {
+      showErrorToast(error instanceof Error ? error.message : "Could not save column widths.");
+    } finally {
+      savingWidths.current -= 1;
+    }
   }, []);
+
+  const widthOf = (key: ColumnKey | "name") =>
+    columnWidths[key] ?? (key === "name" ? NAME_WIDTH : COLUMN_WIDTH[key]);
+  const resizeColumn = (key: ColumnKey | "name", width: number) => {
+    resizing.current = true;
+    widthsEpoch.current += 1;
+    updateWidths({ ...widthsRef.current, [key]: clampColumnWidth(width) });
+  };
+  const commitColumnWidths = () => {
+    resizing.current = false;
+    void persistWidths(widthsRef.current);
+  };
+  const resetColumn = (key: ColumnKey | "name") => {
+    const next = { ...widthsRef.current };
+    delete next[key];
+    widthsEpoch.current += 1;
+    updateWidths(next);
+    void persistWidths(next);
+  };
 
   useEffect(() => {
     const timer = window.setInterval(refresh, REFRESH_MS);
@@ -332,7 +452,7 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
   );
   const groups = groupItems(visible, view.groupBy);
   const columns = COLUMN_KEYS;
-  const tableWidth = NAME_WIDTH + columns.reduce((sum, key) => sum + COLUMN_WIDTH[key], 0) + 48;
+  const tableWidth = widthOf("name") + columns.reduce((sum, key) => sum + widthOf(key), 0) + 48;
   const activeFilters = (Object.keys(view.filters) as FilterKey[]).filter((key) => view.filters[key].length);
   const allLocations = [...suggestions.locations, ...(items.some((item) => !item.location) ? [""] : [])];
   const sections = filterSections(suggestions, allLocations);
@@ -535,13 +655,14 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
       {visible.length || view.groupBy === "status" || view.groupBy === "urgency" ? (
         <div className="overflow-x-auto">
           <table
-            className="w-full table-fixed border-collapse text-sm [--name-col:300px] max-[640px]:[--name-col:190px]"
-            style={{ minWidth: tableWidth }}
+            // On phones the pinned name column stays narrow whatever width the team saved.
+            className="w-full table-fixed border-collapse text-sm max-[640px]:[--name-col:190px]!"
+            style={{ minWidth: tableWidth, ["--name-col" as string]: `${widthOf("name")}px` }}
           >
             <colgroup>
               <col style={{ width: "var(--name-col)" }} />
               {columns.map((key) => (
-                <col key={key} style={{ width: COLUMN_WIDTH[key] }} />
+                <col key={key} style={{ width: widthOf(key) }} />
               ))}
               <col />
             </colgroup>
@@ -552,14 +673,28 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
                   className={`sticky left-0 z-[2] h-9 border-b ${LINE} bg-surface px-3 text-left text-[13px] font-normal text-muted ${PINNED_EDGE}`}
                 >
                   Name
+                  <ResizeHandle
+                    label="Name"
+                    width={widthOf("name")}
+                    onResize={(width) => resizeColumn("name", width)}
+                    onCommit={commitColumnWidths}
+                    onReset={() => resetColumn("name")}
+                  />
                 </th>
                 {columns.map((key) => (
                   <th
                     key={key}
                     scope="col"
-                    className={`h-9 border-b border-l ${LINE} px-2 text-left text-[13px] font-normal whitespace-nowrap text-muted`}
+                    className={`relative h-9 border-b border-l ${LINE} px-2 text-left text-[13px] font-normal whitespace-nowrap text-muted`}
                   >
                     {COLUMN_LABEL[key]}
+                    <ResizeHandle
+                      label={COLUMN_LABEL[key]}
+                      width={widthOf(key)}
+                      onResize={(width) => resizeColumn(key, width)}
+                      onCommit={commitColumnWidths}
+                      onReset={() => resetColumn(key)}
+                    />
                   </th>
                 ))}
                 <th aria-hidden className={`border-b ${LINE}`} />

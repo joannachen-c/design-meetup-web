@@ -66,7 +66,7 @@ export default async function BillingPage({
           <p className="m-0 text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
             {TIER_CATALOG[membership.tier].name}
           </p>
-          <p className="mt-1 mb-0 text-sm text-subtle normal-case">
+          <p className="mt-1 mb-0 text-base text-subtle normal-case">
             {TIER_CATALOG[membership.tier].priceLabel}
           </p>
         </div>
@@ -76,7 +76,7 @@ export default async function BillingPage({
           <p className="m-0 text-[32px] font-bold leading-[1.02] tracking-[-0.06em] normal-case">
             {membershipStatusLabel(membership.status)}
           </p>
-          <p className="mt-1 mb-0 text-sm text-subtle">
+          <p className="mt-1 mb-0 text-base text-subtle">
             {membership.cancelAtPeriodEnd
               ? "Cancels at period end"
               : "Renews automatically, every month"}

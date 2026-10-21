@@ -150,6 +150,13 @@ html.is-loading body {
     transform 420ms ease-out;
 }
 
+/* Registered so the advisors list's top fade can transition when scrolling away from the top. */
+@property --list-fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 /* Grows from whichever corner the primitive anchored the menu to, so it reads
    as coming out of the trigger rather than appearing over it. */
 .select-menu {

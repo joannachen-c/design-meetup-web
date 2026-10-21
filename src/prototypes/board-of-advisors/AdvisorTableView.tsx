@@ -19,8 +19,9 @@ import {
   polaroidPaddingClassName,
 } from "./directory-ui";
 
+// Below 1024px the photo spans the stacked name/title/company/links rows instead of sitting beside the name only.
 const rowGridClassName =
-  "grid grid-cols-[40px_minmax(0,1fr)] gap-x-3 min-[1024px]:grid-cols-[40px_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_88px] min-[1024px]:gap-x-5";
+  "grid grid-cols-[76px_minmax(0,1fr)] content-center gap-x-4 gap-y-1 min-[1024px]:grid-cols-[40px_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_88px] min-[1024px]:gap-x-5 min-[1024px]:gap-y-0";
 
 function SpotlightContent({ advisor }: { advisor: Advisor }) {
   return (
@@ -90,7 +91,7 @@ function TableRow({
 }) {
   return (
     <li
-      className={`${rowGridClassName} group/row items-center rounded-[6px] px-2 py-2 transition-colors duration-150 ease-out motion-reduce:transition-none ${advisor.href === "#" ? "" : "cursor-pointer"} ${active ? "bg-surface-muted" : "bg-transparent"}`}
+      className={`${rowGridClassName} group/row items-center rounded-[6px] px-2 py-3 transition-colors duration-150 ease-out motion-reduce:transition-none min-[1024px]:py-2 ${advisor.href === "#" ? "" : "cursor-pointer"} ${active ? "min-[821px]:bg-surface-muted" : ""}`}
       onMouseEnter={onActivate}
       onFocus={(event) => {
         if (event.target.matches(":focus-visible")) onActivate();
@@ -104,9 +105,9 @@ function TableRow({
       <motion.span
         layoutId={morph ? advisorPhotoLayoutId(advisor) : undefined}
         transition={{ layout: photoMorphTransition }}
-        className="flex w-10 rounded-[3px] bg-white p-[2px] pb-[3px] shadow-[0_1px_2px_rgba(15,23,42,0.08),0_3px_8px_rgba(15,23,42,0.08)]"
+        className="row-span-4 flex w-[76px] self-center rounded-[3px] bg-white p-1 pb-[5px] shadow-[0_1px_2px_rgba(15,23,42,0.1),0_4px_12px_rgba(15,23,42,0.1)] min-[1024px]:row-span-1 min-[1024px]:w-10 min-[1024px]:p-[2px] min-[1024px]:pb-[3px] min-[1024px]:shadow-[0_1px_2px_rgba(15,23,42,0.08),0_3px_8px_rgba(15,23,42,0.08)]"
       >
-        <Portrait advisor={advisor} className="aspect-[4/5] w-full rounded-[1px] text-[10px]" />
+        <Portrait advisor={advisor} className="aspect-[4/5] w-full rounded-[1px] text-lg min-[1024px]:text-[10px]" />
       </motion.span>
       {advisor.href === "#" ? (
         <span className="min-w-0 truncate text-base font-bold leading-tight text-ink">
@@ -145,6 +146,7 @@ function TableRow({
 
 export function AdvisorTableView({ rows, morph }: { rows: Advisor[]; morph: boolean }) {
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [scrolled, setScrolled] = useState(false);
   const activeAdvisor = rows.find((advisor) => advisor.slug === activeSlug) ?? rows[0];
 
   useEffect(() => {
@@ -163,8 +165,10 @@ export function AdvisorTableView({ rows, morph }: { rows: Advisor[]; morph: bool
         ) : (
           <motion.ol
             layoutScroll
-            className="m-0 list-none p-0 min-[821px]:absolute min-[821px]:inset-0 min-[821px]:overflow-y-auto min-[821px]:overscroll-contain min-[821px]:pb-16 min-[821px]:[mask-image:linear-gradient(to_bottom,transparent,black_56px,black_calc(100%-56px),transparent)] min-[821px]:[scrollbar-width:thin]"
+            className="m-0 list-none p-0 [--list-fade-top:0px] [transition:--list-fade-top_200ms_ease-out] data-[scrolled]:[--list-fade-top:56px] motion-reduce:[transition:none] min-[821px]:absolute min-[821px]:inset-0 min-[821px]:overflow-y-auto min-[821px]:overscroll-contain min-[821px]:pb-16 min-[821px]:[mask-image:linear-gradient(to_bottom,transparent,black_var(--list-fade-top),black_calc(100%-56px),transparent)] min-[821px]:[scrollbar-width:thin]"
             aria-label="Board of Advisors table"
+            data-scrolled={scrolled ? "" : undefined}
+            onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}
           >
             {rows.map((advisor) => (
               <TableRow

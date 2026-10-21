@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/auth";
+import { nameLinks } from "@/lib/link-titles";
 import {
   PLANNING_SELECT,
   planningItemFromRow,
@@ -15,10 +16,14 @@ export async function listPlanningItems() {
   return (data ?? []).map((row) => planningItemFromRow(row));
 }
 
+async function withNamedLinks(patch: PlanningPatch) {
+  return patch.links ? { ...patch, links: await nameLinks(patch.links) } : patch;
+}
+
 export async function createPlanningItem(patch: PlanningPatch, actor: string) {
   const { data, error } = await createAdminClient()
     .from("planning_items")
-    .insert({ ...planningPatchToRow(patch), updated_by: actor })
+    .insert({ ...planningPatchToRow(await withNamedLinks(patch)), updated_by: actor })
     .select(PLANNING_SELECT)
     .single();
   if (error) throw new Error(`Could not create planning item: ${error.message}`);
@@ -30,7 +35,7 @@ export async function updatePlanningItem(id: string, patch: PlanningPatch, actor
   const { data, error } = await createAdminClient()
     .from("planning_items")
     .update({
-      ...planningPatchToRow(patch),
+      ...planningPatchToRow(await withNamedLinks(patch)),
       updated_at: new Date().toISOString(),
       updated_by: actor,
     })

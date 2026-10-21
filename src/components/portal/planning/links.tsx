@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import type { PlanningItem, PlanningLink, PlanningPatch } from "@/lib/planning";
-import { PlusIcon, Popover, usePopoverAnchor } from "./ui";
+import { isUnnamed, type PlanningItem, type PlanningLink, type PlanningPatch } from "@/lib/planning";
+import { CloseIcon, PlusIcon, Popover, usePopoverAnchor } from "./ui";
 
 type Mark = "doc" | "sheet" | "slides" | "form" | "drive" | "play" | "figma" | "link" | { letter: string };
 type Service = { name: string | null; color: string; mark: Mark };
@@ -44,9 +44,8 @@ function serviceFor(url: string): Service & { host: string } {
 
 /** Labels default to the hostname on save; show the service name instead when we know it. */
 function displayLabel(link: PlanningLink) {
+  if (!isUnnamed(link)) return link.label.trim();
   const service = serviceFor(link.url);
-  const label = link.label.trim();
-  if (label && label.replace(/^www\./, "") !== service.host) return label;
   return service.name ?? service.host;
 }
 
@@ -91,7 +90,7 @@ export function ServiceIcon({ url }: { url: string }) {
   }
   return (
     <svg aria-hidden viewBox="0 0 16 16" className="size-4 shrink-0">
-      <rect width="16" height="16" rx="4" fill={color} />
+      <circle cx="8" cy="8" r="8" fill={color} />
       {typeof mark === "object" ? (
         <text
           x="8"
@@ -112,11 +111,32 @@ export function ServiceIcon({ url }: { url: string }) {
   );
 }
 
+// The outline is an inset shadow so overflow-clipped containers (table cells) can't cut it off.
+const CHIP_FRAME =
+  "rounded-full bg-white shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)] transition-shadow hover:shadow-[inset_0_0_0_1px_rgb(0_0_0/0.22)]";
+
+/** Icon-only chip for squeezing extra links into a table cell. */
+export function LinkIconChip({ link }: { link: PlanningLink }) {
+  const label = displayLabel(link);
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={label}
+      aria-label={label}
+      className={`grid size-6 shrink-0 place-items-center ${CHIP_FRAME}`}
+    >
+      <ServiceIcon url={link.url} />
+    </a>
+  );
+}
+
 export function LinkChip({ link, onRemove }: { link: PlanningLink; onRemove?: () => void }) {
   const label = displayLabel(link);
   return (
     <span
-      className={`inline-flex h-6 max-w-full min-w-0 shrink-0 items-center gap-1 rounded-full bg-white pl-1 text-xs text-ink shadow-[0_0_0_1px_rgb(0_0_0/0.09)] transition-shadow hover:shadow-[0_0_0_1px_rgb(0_0_0/0.2)] ${onRemove ? "pr-0.5" : "pr-2"}`}
+      className={`inline-flex h-6 max-w-full min-w-0 items-center gap-1 pl-1 text-xs text-ink ${CHIP_FRAME} ${onRemove ? "pr-0.5" : "pr-2"}`}
     >
       <a
         href={link.url}
@@ -126,16 +146,16 @@ export function LinkChip({ link, onRemove }: { link: PlanningLink; onRemove?: ()
         className="inline-flex min-w-0 items-center gap-1.5 text-ink no-underline"
       >
         <ServiceIcon url={link.url} />
-        <span className="max-w-44 truncate">{label}</span>
+        <span className="min-w-0 max-w-44 truncate">{label}</span>
       </a>
       {onRemove ? (
         <button
           type="button"
           aria-label={`Remove ${label}`}
           onClick={onRemove}
-          className="grid size-5 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-sm leading-none text-subtle hover:bg-red-50 hover:text-red-700"
+          className="grid size-5 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-subtle hover:bg-red-50 hover:text-red-700"
         >
-          ×
+          <CloseIcon className="size-2.5" />
         </button>
       ) : null}
     </span>
@@ -214,20 +234,22 @@ export function LinksEditor({
   );
 }
 
-const MAX_CHIPS_IN_CELL = 2;
+// After the first full chip, a few more links fit as icons before collapsing to "+N".
+const MAX_ICON_CHIPS = 3;
 
 export function LinksCell({ item, save }: { item: PlanningItem; save: (patch: PlanningPatch) => void }) {
   const { anchor, toggle, close } = usePopoverAnchor();
-  const shown = item.links.slice(0, MAX_CHIPS_IN_CELL);
+  const [first, ...rest] = item.links;
+  const icons = rest.slice(0, MAX_ICON_CHIPS);
+  const hidden = rest.length - icons.length;
   return (
     <div className="flex h-9 min-w-0 items-center gap-1 px-2">
       <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
-        {shown.map((link, index) => (
-          <LinkChip key={`${link.url}-${index}`} link={link} />
+        {first ? <LinkChip link={first} /> : null}
+        {icons.map((link, index) => (
+          <LinkIconChip key={`${link.url}-${index}`} link={link} />
         ))}
-        {item.links.length > shown.length ? (
-          <span className="shrink-0 text-xs text-muted">+{item.links.length - shown.length}</span>
-        ) : null}
+        {hidden > 0 ? <span className="shrink-0 text-xs text-muted">+{hidden}</span> : null}
       </div>
       <button
         type="button"

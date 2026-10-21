@@ -144,6 +144,17 @@ export function parsePlanningPatch(input: unknown, { requireCompany = false } = 
   return { ok: true, patch: patch as PlanningPatch };
 }
 
+/** A link counts as unnamed when its label is blank or just the hostname. */
+export function isUnnamed(link: PlanningLink) {
+  const label = link.label.trim().replace(/^www\./, "");
+  if (!label) return true;
+  try {
+    return label === new URL(link.url).hostname.replace(/^www\./, "");
+  } catch {
+    return false;
+  }
+}
+
 export function planningPatchToRow(patch: PlanningPatch) {
   const row: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(patch)) {

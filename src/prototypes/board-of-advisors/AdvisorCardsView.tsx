@@ -86,8 +86,10 @@ function AdvisorCard({
       }}
     >
       <motion.div
-        layoutId={morph ? advisorPhotoLayoutId(advisor) : undefined}
-        transition={{ layout: { ...photoMorphTransition, delay: Math.min(index, 24) * 0.012 } }}
+        layoutId={advisorPhotoLayoutId(advisor)}
+        transition={{
+          layout: morph ? { ...photoMorphTransition, delay: Math.min(index, 24) * 0.012 } : { duration: 0 },
+        }}
       >
         <div
           className={`${polaroidFrameClassName} ${polaroidPaddingClassName} transition-[transform,box-shadow] duration-200 ease-out [transform:rotate(var(--tilt))] group-hover:shadow-[0_2px_4px_rgba(15,23,42,0.06),0_14px_32px_rgba(15,23,42,0.12)] group-hover:[transform:rotate(0deg)] motion-reduce:transition-none motion-reduce:[transform:none]`}

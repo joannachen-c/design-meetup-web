@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { ScrollReveal } from "@/components/ScrollReveal";
 
@@ -22,12 +22,10 @@ export function AdvisorsDirectory({
 }) {
   const { advisors, allAdvisors, filters, setFilters } = useAdvisors();
   const reduceMotion = useReducedMotion();
-  // Off for the first render so restoring ?view= from the URL on load fades instead of morphing.
-  const [morphReady, setMorphReady] = useState(false);
+  // Photos always carry their layoutId (Motion only registers it on mount), but the morph
+  // only animates after a click, so restoring ?view= from the URL on load doesn't fly them.
   const [userSwitchedView, setUserSwitchedView] = useState(false);
-  const morph = morphReady && !reduceMotion;
-
-  useEffect(() => setMorphReady(true), []);
+  const morph = userSwitchedView && !reduceMotion;
 
   const changeView = (next: AdvisorView) => {
     setUserSwitchedView(true);
@@ -41,7 +39,7 @@ export function AdvisorsDirectory({
           Board of Advisors
         </h2>
         <p className="m-0 mt-5 max-w-[54ch] text-pretty text-base leading-[1.6] text-secondary">
-          The mentors, speakers, and collaborators who shape our Design Meetup community.
+          The mentors, speakers, and collaborators who shape our Design{" "}Meetup community.
         </p>
       </ScrollReveal>
       <ScrollReveal delay={60}>

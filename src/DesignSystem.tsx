@@ -1079,22 +1079,6 @@ export default function DesignSystem() {
                 </p>
               </div>
               <div>
-                <SpecimenLabel>needs-attention row</SpecimenLabel>
-                <div className="mt-4 rounded-[11px] bg-red-50 px-5 py-4 shadow-[inset_3px_0_0_#c10007]">
-                  <p className="m-0 text-base font-bold leading-tight tracking-[-0.02em]">
-                    Instagram (Meta) sponsorship
-                    <span className="ml-3 inline-flex items-center rounded-full bg-red-700 px-2.5 py-1 align-middle text-xs font-bold text-white">
-                      stale · touched 14d ago
-                    </span>
-                  </p>
-                  <p className="m-0 mt-2 text-sm leading-[1.5] text-muted">
-                    Next — send the follow-up bump. Rows in the attention
-                    section get the red-50 wash and a 3px red-700 left bar; a
-                    solid red-700 pill marks the single most urgent fact.
-                  </p>
-                </div>
-              </div>
-              <div>
                 <SpecimenLabel>assignee stack</SpecimenLabel>
                 <div className={`${specimenRowClassName} mt-4`}>
                   <span className="flex -space-x-2.5">

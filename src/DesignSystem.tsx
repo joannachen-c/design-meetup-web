@@ -144,6 +144,7 @@ const sections = [
   { id: "inputs", label: "inputs" },
   { id: "tooltips", label: "tooltips" },
   { id: "toasts", label: "toasts" },
+  { id: "pipeline", label: "pipeline" },
 ] as const;
 
 const spacingScale = [
@@ -1034,6 +1035,94 @@ export default function DesignSystem() {
                   <Toast variant="danger">
                     couldn&apos;t start checkout. please try again.
                   </Toast>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="pipeline"
+            className={sectionClassName}
+            aria-labelledby="pipeline-title"
+          >
+            <h2 className={sectionTitleClassName} id="pipeline-title">
+              pipeline
+            </h2>
+            <div className="grid gap-8">
+              <p className={specimenDescriptionClassName}>
+                Patterns from the internal pipeline board. Every item carries a
+                section status that anyone on the team can change, items that
+                need attention sit in a red section, and assignees are shown
+                with their team photo.
+              </p>
+              <div>
+                <SpecimenLabel>section status pill</SpecimenLabel>
+                <div className={`${specimenRowClassName} mt-4`}>
+                  <span className="inline-flex h-8 items-center rounded-full bg-surface-muted px-3.5 text-sm font-bold text-ink">
+                    Auto
+                  </span>
+                  <span className="inline-flex h-8 items-center rounded-full bg-red-50 px-3.5 text-sm font-bold text-red-700">
+                    Needs attention
+                  </span>
+                  <span className="inline-flex h-8 items-center rounded-full bg-surface-muted px-3.5 text-sm font-bold text-ink">
+                    In motion
+                  </span>
+                  <span className="inline-flex h-8 items-center rounded-full bg-surface-muted px-3.5 text-sm font-bold text-muted">
+                    Held / resolved
+                  </span>
+                </div>
+                <p className={specimenDescriptionClassName}>
+                  32px pill, Alte Haas Grotesk bold, label and chevron centered
+                  as one unit. Only the attention state takes color (red-50 /
+                  red-700); the pill always shows the value a person picked,
+                  never the computed state.
+                </p>
+              </div>
+              <div>
+                <SpecimenLabel>needs-attention row</SpecimenLabel>
+                <div className="mt-4 rounded-[11px] bg-red-50 px-5 py-4 shadow-[inset_3px_0_0_#c10007]">
+                  <p className="m-0 text-base font-bold leading-tight tracking-[-0.02em]">
+                    Instagram (Meta) sponsorship
+                    <span className="ml-3 inline-flex items-center rounded-full bg-red-700 px-2.5 py-1 align-middle text-xs font-bold text-white">
+                      stale · touched 14d ago
+                    </span>
+                  </p>
+                  <p className="m-0 mt-2 text-sm leading-[1.5] text-muted">
+                    Next — send the follow-up bump. Rows in the attention
+                    section get the red-50 wash and a 3px red-700 left bar; a
+                    solid red-700 pill marks the single most urgent fact.
+                  </p>
+                </div>
+              </div>
+              <div>
+                <SpecimenLabel>assignee stack</SpecimenLabel>
+                <div className={`${specimenRowClassName} mt-4`}>
+                  <span className="flex -space-x-2.5">
+                    <img
+                      className="size-8 rounded-full object-cover ring-2 ring-white"
+                      src="/team/michelle-liu.jpg"
+                      alt="Michelle Liu"
+                    />
+                    <img
+                      className="size-8 rounded-full object-cover ring-2 ring-white"
+                      src="/team/ilyssa-yan.jpg"
+                      alt="Ilyssa Yan"
+                    />
+                    <img
+                      className="size-8 rounded-full object-cover ring-2 ring-white"
+                      src="/team/brandon-lee.jpg"
+                      alt="Brandon Lee"
+                    />
+                    <img
+                      className="size-8 rounded-full object-cover ring-2 ring-white"
+                      src="/team/joanna-chen.jpg"
+                      alt="Joanna Chen"
+                    />
+                  </span>
+                  <span className="text-sm text-muted">
+                    Team photos from /team at 32px, overlapped 10px with a 2px
+                    white ring.
+                  </span>
                 </div>
               </div>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import type { PlanningItem, PlanningPatch, Status, Urgency } from "@/lib/planning";
+import { TEAM, type PlanningItem, type PlanningPatch, type Status, type Urgency } from "@/lib/planning";
 import {
   ISO_DATE,
   STATUS_LABEL,
@@ -26,7 +26,17 @@ import {
 } from "./ui";
 
 export type Variant = "cell" | "peek";
-export type Suggestions = { locations: string[]; people: string[]; roles: string[] };
+export type OptionKind = "location" | "owners" | "roles";
+export type Suggestions = {
+  locations: string[];
+  people: string[];
+  roles: string[];
+  /** Removes a value from every item that uses it, which also drops it from the pickers. */
+  deleteOption: (kind: OptionKind, value: string) => void;
+};
+type OptionFieldProps = FieldProps & { options: string[]; onDelete: (value: string) => void };
+
+const teamNames = new Set<string>(TEAM.map((member) => member.name));
 type FieldProps = { item: PlanningItem; save: (patch: PlanningPatch) => void; variant: Variant };
 
 const triggerClass: Record<Variant, string> = {
@@ -266,7 +276,7 @@ export function DeadlineField({ item, save, variant }: FieldProps) {
   );
 }
 
-export function LocationField({ item, save, variant, options }: FieldProps & { options: string[] }) {
+export function LocationField({ item, save, variant, options, onDelete }: OptionFieldProps) {
   const { anchor, toggle, close } = usePopoverAnchor();
   return (
     <>
@@ -280,6 +290,8 @@ export function LocationField({ item, save, variant, options }: FieldProps & { o
             selected={item.location ? [item.location] : []}
             multiple={false}
             placeholder="Search or create a location"
+            noun="location"
+            onDeleteOption={onDelete}
             render={(value) => <TagChip tag={value} />}
             onChange={(next) => save({ location: next[0] ?? "" })}
             onDone={close}
@@ -290,7 +302,7 @@ export function LocationField({ item, save, variant, options }: FieldProps & { o
   );
 }
 
-export function PeopleField({ item, save, variant, options }: FieldProps & { options: string[] }) {
+export function PeopleField({ item, save, variant, options, onDelete }: OptionFieldProps) {
   const { anchor, toggle, close } = usePopoverAnchor();
   return (
     <>
@@ -308,6 +320,9 @@ export function PeopleField({ item, save, variant, options }: FieldProps & { opt
             selected={item.owners}
             multiple
             placeholder="Search or add a person"
+            noun="person"
+            onDeleteOption={onDelete}
+            canDeleteOption={(name) => !teamNames.has(name)}
             render={(name) => (
               <>
                 <Avatar name={name} />
@@ -323,7 +338,7 @@ export function PeopleField({ item, save, variant, options }: FieldProps & { opt
   );
 }
 
-export function RolesField({ item, save, variant, options }: FieldProps & { options: string[] }) {
+export function RolesField({ item, save, variant, options, onDelete }: OptionFieldProps) {
   const { anchor, toggle, close } = usePopoverAnchor();
   const shown = variant === "cell" ? item.roles.slice(0, 2) : item.roles;
   return (
@@ -349,6 +364,8 @@ export function RolesField({ item, save, variant, options }: FieldProps & { opti
             selected={item.roles}
             multiple
             placeholder="Search or create a role"
+            noun="role"
+            onDeleteOption={onDelete}
             render={(role) => <TagChip tag={role} />}
             onChange={(roles) => save({ roles })}
             onDone={close}
@@ -395,11 +412,35 @@ export function Field({
     case "deadline":
       return <DeadlineField item={item} save={save} variant={variant} />;
     case "location":
-      return <LocationField item={item} save={save} variant={variant} options={suggestions.locations} />;
+      return (
+        <LocationField
+          item={item}
+          save={save}
+          variant={variant}
+          options={suggestions.locations}
+          onDelete={(value) => suggestions.deleteOption("location", value)}
+        />
+      );
     case "owners":
-      return <PeopleField item={item} save={save} variant={variant} options={suggestions.people} />;
+      return (
+        <PeopleField
+          item={item}
+          save={save}
+          variant={variant}
+          options={suggestions.people}
+          onDelete={(value) => suggestions.deleteOption("owners", value)}
+        />
+      );
     case "roles":
-      return <RolesField item={item} save={save} variant={variant} options={suggestions.roles} />;
+      return (
+        <RolesField
+          item={item}
+          save={save}
+          variant={variant}
+          options={suggestions.roles}
+          onDelete={(value) => suggestions.deleteOption("roles", value)}
+        />
+      );
     case "updated":
       return <UpdatedField item={item} variant={variant} />;
     case "description":

@@ -9,7 +9,7 @@ import {
   type PlanningItem,
   type PlanningPatch,
 } from "@/lib/planning";
-import { Field, type Suggestions } from "./planning/fields";
+import { Field, type OptionKind, type Suggestions } from "./planning/fields";
 import {
   COLUMN_KEYS,
   COLUMN_LABEL,
@@ -292,13 +292,35 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
     [mutate],
   );
 
+  const deleteOption = useCallback(
+    (kind: OptionKind, value: string) => {
+      const uses = (item: PlanningItem) =>
+        kind === "location" ? item.location === value : item[kind].includes(value);
+      const affected = items.filter(uses);
+      const count = `${affected.length} item${affected.length === 1 ? "" : "s"}`;
+      if (!window.confirm(`Delete “${value}”? It will be removed from ${count}.`)) return;
+      for (const item of affected) {
+        save(
+          item.id,
+          kind === "location" ? { location: "" } : { [kind]: item[kind].filter((entry) => entry !== value) },
+        );
+      }
+      setView((current) => ({
+        ...current,
+        filters: { ...current.filters, [kind]: current.filters[kind].filter((entry) => entry !== value) },
+      }));
+    },
+    [items, save],
+  );
+
   const suggestions = useMemo<Suggestions>(
     () => ({
       locations: uniqueSorted(items.map((item) => item.location)),
       people: [...new Set([...TEAM.map((member) => member.name), ...uniqueSorted(items.flatMap((item) => item.owners))])],
       roles: uniqueSorted(items.flatMap((item) => item.roles)),
+      deleteOption,
     }),
-    [items],
+    [items, deleteOption],
   );
 
   const needle = query.trim().toLowerCase();

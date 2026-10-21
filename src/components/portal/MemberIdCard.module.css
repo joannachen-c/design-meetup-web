@@ -82,7 +82,7 @@
 .docType {
   margin: 0;
   font-size: clamp(0.8rem, 2vw, 0.95rem);
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-subtle);

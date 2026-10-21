@@ -51,7 +51,7 @@ function CardTitle({ title }: { title: string }) {
 
   // mt-[3px] matches the title→company gap optically: the company row centers against taller icons, and the bold name above needs a hair more air.
   return (
-    <div ref={ref} className="mt-[3px] truncate text-[13px] leading-none text-muted" title={title}>
+    <div ref={ref} className="mt-[3px] truncate text-[13px] leading-[1.3] text-muted" title={title}>
       {parts.slice(0, fit.count).join(", ")}
     </div>
   );

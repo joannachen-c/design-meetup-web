@@ -159,6 +159,11 @@ const APPROVED_SIGNUP_EMAILS = new Set<string>([
   "williamle2021@gmail.com",
   "yunakeem3@gmail.com",
   "jazkurnz06@gmail.com",
+  "katherine9wang@gmail.com",
+  "hanswfu.design@gmail.com",
+  "giangt.edu@gmail.com",
+  "design.ginny@gmail.com",
+  "justingainsley@gmail.com",
 ]);
 
 /** Comped members are always approved, so the comp list never needs a duplicate entry here. */

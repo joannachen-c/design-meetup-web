@@ -21,6 +21,21 @@ test("the rest of the signup allowlist is cohort 1", () => {
   assert.equal(cohortForEmail("demo@designmeetup.info"), 1);
 });
 
+test("the October 2026 paid intake is cohort 2, members since Oct 2026", () => {
+  for (const email of [
+    "katherine9wang@gmail.com",
+    " Hanswfu.Design@gmail.com ",
+    "giangt.edu@gmail.com",
+    "design.ginny@gmail.com",
+    "justingainsley@gmail.com",
+  ]) {
+    assert.equal(cohortForEmail(email), 2, email);
+  }
+  assert.equal(memberSinceLabel(cohortJoinedAt(2), "2027-02-01T00:00:00Z"), "Oct 2026");
+  assert.equal(cohortForEmail("alizahunbaev@gmail.com"), 0);
+  assert.equal(cohortForEmail("jazkurnz06@gmail.com"), 1);
+});
+
 test("emails on neither sheet have no cohort", () => {
   assert.equal(cohortForEmail("someone@example.com"), null);
   assert.equal(cohortForEmail(""), null);

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Toast } from "@/components/Toast";
 import { ManageBillingButton } from "@/components/portal/ManageBillingButton";
 import { MemberIdCard } from "@/components/portal/MemberIdCard";
+import { SlackJoinCard } from "@/components/portal/SlackJoinCard";
 import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
 import { requireUser } from "@/lib/auth";
 import { cohortForEmail, cohortJoinedAt } from "@/lib/cohort";
@@ -67,6 +68,7 @@ export default async function PortalHomePage({
   const joinedAt =
     cohortJoinedAt(cohort) ?? (await getSlackJoinedAt(memberEmail));
   const memberSince = memberSinceLabel(joinedAt, profile?.createdAt);
+  const hasJoinedSlack = Boolean(await getSlackJoinedAt(memberEmail));
 
   const renews = membership?.currentPeriodEnd
     ? new Intl.DateTimeFormat("en-US", {
@@ -141,6 +143,10 @@ export default async function PortalHomePage({
         </div>
       </div>
 
+      <div className="mb-12 lg:mb-16">
+        <SlackJoinCard joined={hasJoinedSlack} />
+      </div>
+
       <h2 className="m-0 mb-6 text-xl font-bold tracking-[-0.04em]">
         Membership
       </h2>
@@ -163,11 +169,11 @@ export default async function PortalHomePage({
                 {item.value}
               </p>
               {item.note ? (
-                <p className="mt-1 mb-0 text-sm text-subtle normal-case">
+                <p className="mt-1 mb-0 text-base text-subtle normal-case">
                   {item.note}
                 </p>
               ) : (
-                <p className="mt-1 mb-0 text-sm invisible" aria-hidden>
+                <p className="mt-1 mb-0 text-base invisible" aria-hidden>
                   &nbsp;
                 </p>
               )}

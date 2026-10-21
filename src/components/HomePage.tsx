@@ -35,7 +35,7 @@ import { SoundOffIcon, SoundOnIcon } from "./icons/SoundIcons";
 import { IconButton } from "./IconButton";
 import { Link } from "./Link";
 import { PageLoader } from "./PageLoader";
-import { PartnerContactForm } from "./PartnerContactForm";
+import { PartnerContactForm, PartnerCopy } from "./PartnerContactForm";
 import { PhotoMarquee } from "./PhotoMarquee";
 import { Primary } from "./Primary";
 import { RecentEventsPanel } from "./RecentEventsPanel";
@@ -55,6 +55,7 @@ import {
 import {
   LUMA_CALENDAR_EMBED_SRC,
   LUMA_PROFILE_URL,
+  eventLinkPlatform,
   type LumaEvent,
 } from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
@@ -1685,7 +1686,7 @@ export default function HomePage({
                             className={`event-card cursor-pointer rounded-lg border-0 bg-white p-0 text-left text-[oklch(98%_0.008_240)] shadow-[0_3px_10px_rgba(0,0,0,0.12)] outline-none focus:shadow-[0_12px_28px_rgba(0,0,0,0.18)] focus-visible:brightness-[0.88] focus-visible:shadow-[0_12px_28px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_30px_rgba(0,0,0,0.14)] aria-pressed:shadow-[0_12px_28px_rgba(0,0,0,0.18)]${centerHovered ? " is-center-hovered" : ""}`}
                             aria-label={
                               selected && item.luma_url
-                                ? `Open ${item.title} on Luma`
+                                ? `Open ${item.title} on ${eventLinkPlatform(item.luma_url)}`
                                 : `View details for ${item.title}`
                             }
                             aria-pressed={selected}
@@ -1772,7 +1773,7 @@ export default function HomePage({
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              View on Luma
+                              View on {eventLinkPlatform(item.luma_url)}
                               <ArrowUpRightIcon />
                             </Link>
                           ) : null}
@@ -1844,7 +1845,7 @@ export default function HomePage({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      View on Luma
+                      View on {eventLinkPlatform(detailLumaUrl)}
                       <ArrowUpRightIcon />
                     </Link>
                   ) : null}
@@ -1948,7 +1949,7 @@ export default function HomePage({
                     <button
                       className={`${DETAIL_COVER_FRAME} cursor-pointer appearance-none border-0 p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
                       type="button"
-                      aria-label={`Open ${selectedEvent.title} on Luma`}
+                      aria-label={`Open ${selectedEvent.title} on ${eventLinkPlatform(detailLumaUrl)}`}
                       onClick={() => openLuma(detailLumaUrl)}
                     >
                       {detailCoverImage}
@@ -1968,7 +1969,7 @@ export default function HomePage({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      View on Luma
+                      View on {eventLinkPlatform(detailLumaUrl)}
                       <ArrowUpRightIcon />
                     </Link>
                   ) : null}
@@ -2342,7 +2343,7 @@ export default function HomePage({
         id="sponsor"
         aria-labelledby="partner-cta-title"
       >
-        <ScrollReveal className="partner-copy">
+        <PartnerCopy>
           <h2
             className="m-0 max-w-[676px] text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="partner-cta-title"
@@ -2350,7 +2351,7 @@ export default function HomePage({
             Partner with us
           </h2>
           <PartnerContactForm />
-        </ScrollReveal>
+        </PartnerCopy>
         <ScrollReveal className="partner-logos" delay={80}>
           <ul
             className="partner-grid m-0 p-0"

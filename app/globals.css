@@ -10,6 +10,7 @@
   --color-skeleton: oklch(93.2% 0.004 264.542);
   --color-accent-primary: #ecf26d;
   --color-accent-hover: #e3e95f;
+  --shadow-sm: 0 1px 5px 0 rgb(0 0 0 / 0.1), 0 1px 3px -1px rgb(0 0 0 / 0.1);
 }
 
 :root {
@@ -167,6 +168,22 @@ html.is-loading body {
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* A Planning calendar entry settling into the day it was dropped on. */
+@keyframes planning-land {
+  0% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgb(236 242 109 / 0);
+  }
+  45% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 3px rgb(236 242 109 / 0.9);
+  }
+  100% {
+    transform: none;
+    box-shadow: 0 0 0 0 rgb(236 242 109 / 0);
   }
 }
 
@@ -1752,6 +1769,42 @@ button.lightbox-arrow-next {
   align-items: flex-start;
   justify-content: center;
   gap: 28px;
+  /* Opacity and transform stay in step with .scroll-reveal; translate recenters
+     the block on the same curve as the note's height. */
+  transition:
+    opacity 420ms ease-out,
+    transform 420ms ease-out,
+    translate 520ms ease-in-out;
+}
+
+/* Cancels the form's gap-3 while closed, so the resting sentence does not
+   grow a blank row. The same offset stays while open; the panel's margin
+   is what reads as the gap. Height is set from the panel's scroll height
+   so the open eases instead of snapping the block. */
+.partner-note {
+  width: 0;
+  min-width: 100%;
+  height: 0;
+  margin-top: -0.75rem;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    height 520ms ease-in-out,
+    opacity 520ms ease-in-out;
+}
+
+.partner-note.is-open {
+  opacity: 1;
+}
+
+.partner-note-panel textarea {
+  margin-top: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-note {
+    transition: none;
+  }
 }
 
 .partner-logos {

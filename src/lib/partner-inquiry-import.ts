@@ -24,6 +24,7 @@ export function partnerInquiryRow(
     email: inquiry.email,
     interest: inquiry.interest,
     city: inquiry.city,
+    note: inquiry.note || null,
     created_at: inquiry.submittedAt ?? new Date().toISOString(),
   };
 }

@@ -49,5 +49,12 @@ test("View on Luma is no longer a Link in the metadata rows", () => {
   );
   assert.doesNotMatch(app, /<Chip[^>]*href=\{selectedEvent\.luma_url\}/);
   assert.match(app, /cover-luma-hint/);
-  assert.equal((app.match(/View on Luma/g) ?? []).length, 3);
+  assert.equal((app.match(/View on \{eventLinkPlatform\(/g) ?? []).length, 3);
+});
+
+test("event links name Partiful when the event is hosted there", async () => {
+  const { eventLinkPlatform } = await import("../src/lib/luma.ts");
+  assert.equal(eventLinkPlatform("https://partiful.com/e/abc123"), "Partiful");
+  assert.equal(eventLinkPlatform("https://luma.com/abc123"), "Luma");
+  assert.equal(eventLinkPlatform("not a url"), "Luma");
 });

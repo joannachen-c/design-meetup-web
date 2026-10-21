@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isTitleHost, titleFromHtml } from "../src/lib/link-titles.ts";
+import { figmaNameFromUrl, isTitleHost, titleFromHtml } from "../src/lib/link-titles.ts";
 import { isUnnamed } from "../src/lib/planning.ts";
 
 test("page titles lose the app suffix and decode entities", () => {
@@ -53,4 +53,13 @@ test("typed labels are kept; blank or hostname labels get named", () => {
   assert.equal(isUnnamed({ label: "docs.google.com", url: "https://docs.google.com/document/d/a" }), true);
   assert.equal(isUnnamed({ label: "www.figma.com", url: "https://www.figma.com/design/a" }), true);
   assert.equal(isUnnamed({ label: "Sponsor deck", url: "https://docs.google.com/presentation/d/a" }), false);
+});
+
+test("Figma links are named from the file name in the URL", () => {
+  assert.equal(figmaNameFromUrl("https://www.figma.com/design/AbC123/Event-Poster?node-id=0-1"), "Event Poster");
+  assert.equal(figmaNameFromUrl("https://www.figma.com/slides/AbC123/Medal-x-DM%3A-pitch"), "Medal x DM: pitch");
+  assert.equal(figmaNameFromUrl("https://figma.com/board/AbC123/Retro--Q4"), "Retro Q4");
+  assert.equal(figmaNameFromUrl("https://www.figma.com/design/AbC123"), null);
+  assert.equal(figmaNameFromUrl("https://www.figma.com/files/team/123/Design-Meetup"), null);
+  assert.equal(figmaNameFromUrl("https://docs.google.com/document/d/abc/Event-Poster"), null);
 });

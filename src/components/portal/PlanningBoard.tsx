@@ -23,7 +23,6 @@ import {
   URGENCY_LABEL,
   compareBy,
   groupItems,
-  isActive,
   itemMatches,
   loadView,
   locationColor,
@@ -334,8 +333,6 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
   const groups = groupItems(visible, view.groupBy);
   const columns = COLUMN_KEYS;
   const tableWidth = NAME_WIDTH + columns.reduce((sum, key) => sum + COLUMN_WIDTH[key], 0) + 48;
-  const activeCount = items.filter(isActive).length;
-  const backlogCount = items.filter((item) => item.status === "backlog").length;
   const activeFilters = (Object.keys(view.filters) as FilterKey[]).filter((key) => view.filters[key].length);
   const allLocations = [...suggestions.locations, ...(items.some((item) => !item.location) ? [""] : [])];
   const sections = filterSections(suggestions, allLocations);
@@ -370,16 +367,25 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
   return (
     <main className="w-full px-[clamp(20px,6vw,96px)] pt-[clamp(32px,5vw,64px)] pb-24">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="m-0 text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.02] font-bold tracking-[-0.06em]">
-            Planning
-          </h1>
-          <p className="m-0 mt-3 text-sm text-muted">
-            {activeCount} active · {backlogCount} in backlog · Everyone on the team can edit. Changes save
-            automatically.
-          </p>
-        </div>
-        <button
+        <h1 className="m-0 text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.02] font-bold tracking-[-0.06em]">
+          Planning
+        </h1>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <ul aria-label="Item counts" className="m-0 flex list-none flex-wrap items-center gap-x-3 gap-y-1 p-0 text-sm text-muted">
+            <li className="font-bold text-ink">{items.length} items</li>
+            {STATUSES.map((status) => (
+              <li
+                key={status}
+                title={STATUS_LABEL[status]}
+                className="inline-flex items-center gap-1.5 tabular-nums"
+              >
+                <StatusIcon status={status} />
+                {items.filter((item) => item.status === status).length}
+                <span className="sr-only">{STATUS_LABEL[status]}</span>
+              </li>
+            ))}
+          </ul>
+          <button
           type="button"
           onClick={() => create({})}
           className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[7px] border-0 bg-surface-muted pr-3 pl-2.5 font-[inherit] text-sm font-bold text-ink transition-colors hover:bg-gray-200"
@@ -387,6 +393,7 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
           <PlusIcon className="size-4" />
           New item
         </button>
+        </div>
       </div>
 
       <div className="mt-10">
@@ -570,7 +577,7 @@ export function PlanningBoard({ initialItems }: { initialItems: PlanningItem[] }
                             type="button"
                             aria-expanded={!collapsed}
                             onClick={() => toggleCollapsed(group.key)}
-                            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-[6px] border-0 bg-transparent px-1.5 font-[inherit] text-sm font-bold text-gray-800 hover:bg-surface-muted"
+                            className="flex h-7 cursor-pointer items-center gap-1.5 rounded-[6px] border-0 bg-transparent px-1.5 font-[inherit] text-sm font-bold text-muted hover:bg-surface-muted hover:text-ink"
                           >
                             <ChevronIcon open={!collapsed} className="size-3 text-muted" />
                             {groupIcon(group)}

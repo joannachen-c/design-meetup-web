@@ -112,12 +112,28 @@ export async function fetchLinkTitle(href: string): Promise<string | null> {
   return null;
 }
 
+const FIGMA_FILE_TYPES = new Set(["design", "file", "slides", "board", "proto", "deck"]);
+
+/** Figma pages are always titled "Figma", but file URLs end in the file's name: /design/<key>/Event-Poster. */
+export function figmaNameFromUrl(href: string) {
+  try {
+    const url = new URL(href);
+    if (!url.hostname.endsWith("figma.com")) return null;
+    const [type, , slug] = url.pathname.split("/").filter(Boolean);
+    if (!FIGMA_FILE_TYPES.has(type) || !slug) return null;
+    const name = decodeURIComponent(slug).replace(/-+/g, " ").trim();
+    return name && !GENERIC.test(name) ? name.slice(0, MAX_TITLE) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Fills in page titles for unnamed links; labels people typed are left alone. */
 export async function nameLinks(links: PlanningLink[]) {
   return Promise.all(
     links.map(async (link) => {
       if (!isUnnamed(link)) return link;
-      const title = await fetchLinkTitle(link.url);
+      const title = figmaNameFromUrl(link.url) ?? (await fetchLinkTitle(link.url));
       return title ? { ...link, label: title } : link;
     }),
   );

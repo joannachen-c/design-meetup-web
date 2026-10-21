@@ -170,6 +170,22 @@ html.is-loading body {
   }
 }
 
+/* A Planning calendar entry settling into the day it was dropped on. */
+@keyframes planning-land {
+  0% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgb(236 242 109 / 0);
+  }
+  45% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 3px rgb(236 242 109 / 0.9);
+  }
+  100% {
+    transform: none;
+    box-shadow: 0 0 0 0 rgb(236 242 109 / 0);
+  }
+}
+
 .scroll-reveal.is-visible {
   opacity: 1;
   transform: translateY(0);

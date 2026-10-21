@@ -32,7 +32,7 @@ export function SlackJoinCard({ joined = false }: { joined?: boolean }) {
         target="_blank"
         rel="noopener noreferrer"
         variant="ink"
-        className="self-end gap-2 px-5 sm:self-auto"
+        className="self-end gap-1.5 px-5 sm:self-auto"
       >
         Open Slack
         <ArrowUpRightIcon />

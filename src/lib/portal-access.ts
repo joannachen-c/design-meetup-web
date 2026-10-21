@@ -1,13 +1,14 @@
 import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth";
+import { getSessionUser, requireUser } from "@/lib/auth";
 import {
   ACCESS_COOKIE,
   REFRESH_COOKIE,
   isLocalSessionToken,
 } from "@/lib/auth-session";
 import { isOrganizer, userHasPortalAccess } from "@/lib/membership-service";
+import { isPlanningApiToken } from "@/lib/planning-token";
 
 export async function requirePaidMembership(nextPath = "/portal") {
   const user = await requireUser(nextPath);
@@ -33,4 +34,14 @@ export async function requireOrganizer(nextPath = "/portal") {
   const user = await requireUser(nextPath);
   if (!(await isOrganizerSession(user))) notFound();
   return user;
+}
+
+/** Who is calling the planning API: "muse" for the API token, the organizer's email, or null. */
+export async function planningActor(request: Request) {
+  if (isPlanningApiToken(request.headers.get("authorization"), process.env.PLANNING_API_TOKEN)) {
+    return "muse";
+  }
+  const user = await getSessionUser();
+  if (!user || !(await isOrganizerSession(user))) return null;
+  return user.email || user.id;
 }

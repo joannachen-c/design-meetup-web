@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { parsePlanningPatch } from "@/lib/planning";
-import { createPlanningItem, listPlanningItems } from "@/lib/planning-store";
+import { createPlanningItem, getColumnWidths, listPlanningItems } from "@/lib/planning-store";
 import { planningActor } from "@/lib/portal-access";
 
 export const runtime = "nodejs";
@@ -11,8 +11,8 @@ const notFound = () => NextResponse.json({ error: "Not found" }, { status: 404 }
 export async function GET(request: Request) {
   if (!(await planningActor(request))) return notFound();
   try {
-    const items = await listPlanningItems();
-    return NextResponse.json({ items }, { headers: { "Cache-Control": "no-store" } });
+    const [items, columnWidths] = await Promise.all([listPlanningItems(), getColumnWidths()]);
+    return NextResponse.json({ items, columnWidths }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("planning list failed", error);
     return NextResponse.json({ error: "Could not load the pipeline." }, { status: 500 });

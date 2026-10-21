@@ -41,10 +41,14 @@ test("the planning route is gated server-side", async () => {
 });
 
 test("every planning API handler checks the caller before touching data", async () => {
-  for (const path of ["app/api/portal/planning/route.ts", "app/api/portal/planning/[id]/route.ts"]) {
+  for (const path of [
+    "app/api/portal/planning/route.ts",
+    "app/api/portal/planning/[id]/route.ts",
+    "app/api/portal/planning/columns/route.ts",
+  ]) {
     const source = await read(path);
     const handlers = source.match(/export async function \w+\([^)]*\) \{[^]*?\n\}/g) ?? [];
-    assert.ok(handlers.length >= 2, path);
+    assert.ok(handlers.length >= 1, path);
     for (const handler of handlers) {
       assert.match(handler, /await planningActor\(request\)/, `${path}: ${handler.slice(0, 40)}`);
     }

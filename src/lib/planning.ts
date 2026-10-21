@@ -144,6 +144,39 @@ export function parsePlanningPatch(input: unknown, { requireCompany = false } = 
   return { ok: true, patch: patch as PlanningPatch };
 }
 
+export const PLANNING_COLUMNS = [
+  "name",
+  "status",
+  "urgency",
+  "deadline",
+  "description",
+  "links",
+  "poc",
+  "location",
+  "owners",
+  "roles",
+  "nextStep",
+  "updated",
+] as const;
+export const MIN_COLUMN_WIDTH = 80;
+export const MAX_COLUMN_WIDTH = 800;
+export type ColumnWidths = Partial<Record<(typeof PLANNING_COLUMNS)[number], number>>;
+
+export const clampColumnWidth = (width: number) =>
+  Math.round(Math.min(MAX_COLUMN_WIDTH, Math.max(MIN_COLUMN_WIDTH, width)));
+
+/** Keeps known columns with whole-pixel widths inside the allowed range; anything else is dropped. */
+export function parseColumnWidths(input: unknown): ColumnWidths {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return {};
+  const widths: ColumnWidths = {};
+  for (const column of PLANNING_COLUMNS) {
+    const value = (input as Record<string, unknown>)[column];
+    if (typeof value !== "number" || !Number.isFinite(value)) continue;
+    widths[column] = clampColumnWidth(value);
+  }
+  return widths;
+}
+
 /** A link counts as unnamed when its label is blank or just the hostname. */
 export function isUnnamed(link: PlanningLink) {
   const label = link.label.trim().replace(/^www\./, "");

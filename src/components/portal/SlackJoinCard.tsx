@@ -1,4 +1,5 @@
 import { Primary } from "@/components/Primary";
+import { ArrowUpRightIcon } from "@/components/icons/ArrowUpRightIcon";
 import { SlackIcon } from "@/components/portal/SocialIcons";
 
 const SLACK_INVITE_URL =
@@ -33,7 +34,8 @@ export function SlackJoinCard({ joined = false }: { joined?: boolean }) {
         variant="ink"
         className="self-end px-6 sm:self-auto"
       >
-        {joined ? "Open Slack" : "Join Slack"}
+        Open Slack
+        <ArrowUpRightIcon />
       </Primary>
     </section>
   );

@@ -32,6 +32,7 @@ async function recordPartnerInquiry(submission: ContactSubmission) {
     email: submission.email,
     interest: submission.interest,
     city: submission.city,
+    note: submission.note || null,
   });
 
   if (!error) return "inserted" as const;

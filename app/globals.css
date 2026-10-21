@@ -1752,6 +1752,42 @@ button.lightbox-arrow-next {
   align-items: flex-start;
   justify-content: center;
   gap: 28px;
+  /* Opacity and transform stay in step with .scroll-reveal; translate recenters
+     the block on the same curve as the note's height. */
+  transition:
+    opacity 420ms ease-out,
+    transform 420ms ease-out,
+    translate 520ms ease-in-out;
+}
+
+/* Cancels the form's gap-3 while closed, so the resting sentence does not
+   grow a blank row. The same offset stays while open; the panel's margin
+   is what reads as the gap. Height is set from the panel's scroll height
+   so the open eases instead of snapping the block. */
+.partner-note {
+  width: 0;
+  min-width: 100%;
+  height: 0;
+  margin-top: -0.75rem;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    height 520ms ease-in-out,
+    opacity 520ms ease-in-out;
+}
+
+.partner-note.is-open {
+  opacity: 1;
+}
+
+.partner-note-panel textarea {
+  margin-top: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-note {
+    transition: none;
+  }
 }
 
 .partner-logos {

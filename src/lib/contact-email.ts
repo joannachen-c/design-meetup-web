@@ -3,6 +3,7 @@ import {
   sendGmailEmails,
   type GmailMailbox,
 } from "@/lib/gmail-smtp";
+import { emailNoteLine, normalizeNote } from "./contact-note.ts";
 import { partnerInquiryCc } from "@/lib/partner-inquiry-cc";
 import { siteEmail, siteName } from "@/lib/site";
 
@@ -45,6 +46,7 @@ export type ContactSubmission = {
   interest: ContactInterest;
   city: ContactCity;
   email: string;
+  note: string;
   submissionId: string;
 };
 
@@ -71,9 +73,10 @@ export function validateContactSubmission(
   const email = normalizeEmail(record.email);
   const interest = record.interest;
   const city = record.city;
+  const note = normalizeNote(record.note);
   const submissionId = record.submissionId;
 
-  if (!firstName || !lastName || !email) return null;
+  if (!firstName || !lastName || !email || note === null) return null;
   if (typeof interest !== "string" || !(interest in contactInterestOptions)) {
     return null;
   }
@@ -90,6 +93,7 @@ export function validateContactSubmission(
     interest: interest as ContactInterest,
     city: city as ContactCity,
     email,
+    note,
     submissionId,
   };
 }
@@ -101,6 +105,7 @@ export function buildContactEmailBatch(
   const city = contactCityOptions[submission.city];
   const fullName = `${submission.firstName} ${submission.lastName}`;
   const subject = `${siteName} — ${interest.subject}`;
+  const noteLine = emailNoteLine(submission.note);
   const internalText = [
     "New partner inquiry",
     "",
@@ -108,6 +113,7 @@ export function buildContactEmailBatch(
     `Email: ${submission.email}`,
     `Interest: ${interest.label}`,
     `City: ${city}`,
+    ...noteLine,
     `Submitted: ${new Date().toISOString()}`,
   ].join("\n");
   const receiptText = [
@@ -119,6 +125,7 @@ export function buildContactEmailBatch(
     `Interest: ${interest.label}`,
     `City: ${city}`,
     `Email: ${submission.email}`,
+    ...noteLine,
     "",
     "Warmly,",
     "Design Meetup",

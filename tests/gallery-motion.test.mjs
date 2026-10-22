@@ -218,16 +218,13 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
     app,
     /className="gallery-edge gallery-edge-end"[\s\S]*?onPointerEnter=\{\(event\) =>\s*hoverCard\(null, event\.pointerType\)/,
   );
-  // Frost ramps 0→8px on ::before; the white wash fades on ::after. An 8px
-  // backdrop-filter faded through opacity composites two images and pops.
+  // Frost and wash snap in on hover instead of cross-fading, which read as
+  // an ugly, distracting animation.
   assert.match(
     css,
-    /\.gallery-edge::before\s*\{[^}]*backdrop-filter:\s*blur\(0px\);[^}]*transition:[^}]*backdrop-filter 240ms ease-out;/s,
+    /\.gallery-edge::before\s*\{[^}]*backdrop-filter:\s*blur\(0px\);/s,
   );
-  assert.match(
-    css,
-    /\.gallery-edge::after\s*\{[^}]*opacity:\s*0;[^}]*transition:\s*opacity 240ms ease-out;/s,
-  );
+  assert.match(css, /\.gallery-edge::after\s*\{[^}]*opacity:\s*0;/s);
   assert.match(
     css,
     /\.gallery-edge-start::after\s*\{[^}]*background-image:\s*linear-gradient\(\s*to right,\s*var\(--color-surface\)/s,

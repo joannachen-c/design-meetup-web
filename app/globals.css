@@ -435,8 +435,6 @@ h1 span {
       pointer-events: none;
     }
 
-    /* Rest at blur(0) so the filter interpolates; `none` and an 8px layer
-       faded through opacity both snap. */
     .gallery-edge::before {
       /* Safari skips backdrop-filter on a fully empty layer. */
       background-image: linear-gradient(
@@ -445,14 +443,10 @@ h1 span {
       );
       backdrop-filter: blur(0px);
       -webkit-backdrop-filter: blur(0px);
-      transition:
-        backdrop-filter 240ms ease-out,
-        -webkit-backdrop-filter 240ms ease-out;
     }
 
     .gallery-edge::after {
       opacity: 0;
-      transition: opacity 240ms ease-out;
     }
 
     .gallery-edge-start::before,
@@ -518,7 +512,6 @@ h1 span {
       opacity: 0;
       pointer-events: auto;
       transition:
-        opacity 240ms ease-out,
         transform 160ms ease-out,
         color 150ms ease;
     }

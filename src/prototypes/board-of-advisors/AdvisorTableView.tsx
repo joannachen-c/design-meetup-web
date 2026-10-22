@@ -27,7 +27,7 @@ function SpotlightContent({ advisor }: { advisor: Advisor }) {
   return (
     <>
       <a
-        className={`${polaroidFrameClassName} ${polaroidPaddingClassName} group mx-auto block w-[min(100%,calc(clamp(200px,20vw,300px)*1.03))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
+        className={`${polaroidFrameClassName} ${polaroidPaddingClassName} mx-auto block w-[min(100%,calc(clamp(200px,20vw,300px)*1.03))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
         href={advisor.href}
         target={advisor.href === "#" ? undefined : "_blank"}
         rel={advisor.href === "#" ? undefined : "noreferrer"}
@@ -35,7 +35,8 @@ function SpotlightContent({ advisor }: { advisor: Advisor }) {
       >
         <Portrait
           advisor={advisor}
-          className="aspect-[4/5] w-full rounded-[2px] text-6xl tracking-[-0.06em] transition-[filter] duration-200 ease-out group-hover:grayscale-0 motion-reduce:transition-none"
+          className="aspect-[4/5] w-full rounded-[2px] text-6xl tracking-[-0.06em]"
+          grayscale={false}
         />
       </a>
       <div className="grid gap-2 pt-[clamp(28px,2.8vw,44px)]">
@@ -107,7 +108,11 @@ function TableRow({
         transition={{ layout: morph ? photoMorphTransition : { duration: 0 } }}
         className="row-span-4 flex w-[76px] self-center rounded-[3px] bg-white p-1 pb-[5px] shadow-[0_1px_2px_rgba(15,23,42,0.1),0_4px_12px_rgba(15,23,42,0.1)] min-[1024px]:row-span-1 min-[1024px]:w-10 min-[1024px]:p-[2px] min-[1024px]:pb-[3px] min-[1024px]:shadow-[0_1px_2px_rgba(15,23,42,0.08),0_3px_8px_rgba(15,23,42,0.08)]"
       >
-        <Portrait advisor={advisor} className="aspect-[4/5] w-full rounded-[1px] text-lg min-[1024px]:text-[10px]" />
+        <Portrait
+          advisor={advisor}
+          className="aspect-[4/5] w-full rounded-[1px] text-lg transition-[filter] duration-200 ease-out motion-reduce:transition-none min-[1024px]:text-[10px]"
+          grayscale={!active}
+        />
       </motion.span>
       {advisor.href === "#" ? (
         <span className="min-w-0 truncate text-base font-bold leading-tight text-ink">

@@ -24,13 +24,21 @@ export function advisorPhotoLayoutId(advisor: Advisor) {
 
 export const photoMorphTransition = { duration: 0.55, ease: [0.22, 1, 0.36, 1] } as const;
 
-export function Portrait({ advisor, className }: { advisor: Advisor; className: string }) {
+export function Portrait({
+  advisor,
+  className,
+  grayscale = true,
+}: {
+  advisor: Advisor;
+  className: string;
+  grayscale?: boolean;
+}) {
   if (advisor.photoUrl) {
     return <img
         src={advisor.photoUrl}
         alt=""
         decoding="async"
-        className={`${className} bg-surface-muted object-cover grayscale`}
+        className={`${className} bg-surface-muted object-cover ${grayscale ? "grayscale" : ""}`}
       />;
   }
   return (

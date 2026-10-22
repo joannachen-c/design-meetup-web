@@ -1,6 +1,6 @@
-/** Canonical public site URL. Override with NEXT_PUBLIC_SITE_URL when a custom domain ships. */
+/** Canonical public site URL. Override with NEXT_PUBLIC_SITE_URL for previews/staging. */
 export const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://design-meetup-web.vercel.app"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://designmeetup.info"
 ).replace(/\/$/, "");
 
 export const siteName = "Design Meetup";

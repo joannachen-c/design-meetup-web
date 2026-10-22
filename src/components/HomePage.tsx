@@ -2268,7 +2268,7 @@ export default function HomePage({
             >
               About
             </h2>
-            <div className="about-lede grid gap-5 text-base leading-[1.6] text-ink">
+            <div className="about-lede grid gap-5 text-base leading-[1.6] text-muted">
               <p className="m-0 text-pretty">
                 We are a community of the world’s most ambitious young creatives.
               </p>

@@ -10,7 +10,7 @@ import { advisorAvatarClass, advisorFullName, advisorInitials, type Advisor } fr
 
 export const monoLabelClassName = "font-mono text-[11px] uppercase tracking-[0.08em]";
 export const monoCellClassName = "font-mono text-xs leading-[1.5] text-muted";
-export const cardCellClassName = "text-xs leading-[1.3] text-muted";
+export const cardCellClassName = "text-[13px] leading-[1.3] text-muted";
 
 export const polaroidFrameClassName =
   "rounded-[4px] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.1),0_8px_24px_rgba(15,23,42,0.14)]";

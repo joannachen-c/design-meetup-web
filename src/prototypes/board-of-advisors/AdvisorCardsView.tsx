@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 import { ArrowUpRightIcon } from "@/components/icons/ArrowUpRightIcon";
 
@@ -26,33 +26,18 @@ function polaroidTilt(slug: string) {
   return POLAROID_TILTS[Math.abs(hash) % POLAROID_TILTS.length];
 }
 
-// Drops trailing ", qualifier" segments only when the full title would otherwise be ellipsized.
+// Wraps onto a second line instead of ellipsizing immediately, since narrow
+// cards (e.g. the mobile 2-column grid) don't give a single line enough
+// room even for an unremarkable title. Only a title that still overflows
+// two lines gets the trailing ellipsis.
 function CardTitle({ title }: { title: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const parts = useMemo(() => title.split(", "), [title]);
-  const [fit, setFit] = useState({ width: -1, count: parts.length });
-
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const observer = new ResizeObserver(() => {
-      setFit({ width: element.clientWidth, count: parts.length });
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [parts]);
-
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (element && fit.count > 1 && element.scrollWidth > element.clientWidth) {
-      setFit((previous) => ({ ...previous, count: previous.count - 1 }));
-    }
-  }, [fit]);
-
   // mt-[3px] matches the title→company gap optically: the company row centers against taller icons, and the bold name above needs a hair more air.
   return (
-    <div ref={ref} className="mt-[3px] truncate text-[13px] leading-[1.3] text-muted" title={title}>
-      {parts.slice(0, fit.count).join(", ")}
+    <div
+      className="mt-[3px] line-clamp-2 text-[13px] leading-[1.3] text-muted"
+      title={title}
+    >
+      {title}
     </div>
   );
 }

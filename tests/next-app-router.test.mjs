@@ -78,7 +78,7 @@ test("root layout sets a shared Open Graph and Twitter preview image", async () 
   await access(new URL("public/og-preview.jpg", root));
   assert.match(layout, /metadataBase/);
   assert.match(layout, /from ["']@\/lib\/site["']/);
-  assert.match(site, /design-meetup-web\.vercel\.app/);
+  assert.match(site, /designmeetup\.info/);
   assert.match(layout, /openGraph/);
   assert.match(site, /og-preview\.jpg/);
   assert.match(layout, /summary_large_image/);

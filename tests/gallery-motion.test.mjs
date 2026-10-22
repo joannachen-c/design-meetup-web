@@ -184,7 +184,7 @@ test("the rail fades into the page instead of hard-cutting at the edges", () => 
   );
 });
 
-test("desktop hover washes the carousel edges and overlays muted chevrons", () => {
+test("carousel previous/next controls stay off at every breakpoint", () => {
   assert.match(app, /id="event-carousel"/);
   assert.match(
     app,
@@ -198,115 +198,11 @@ test("desktop hover washes the carousel edges and overlays muted chevrons", () =
   assert.match(app, /onClick=\{\(event\) => \{\s*selectEvent\(selectedIndex \+ 1\);/);
   assert.match(app, /if \(event\.detail > 0\) \{\s*event\.currentTarget\.blur\(\);/);
 
-  // Phones and coarse pointers keep the swipe; the overlay is a desktop hover.
-  // The band passes events through so covers under the wash (2nd/3rd from the
-  // edge) stay clickable; only the chevron is a hit target.
+  // Navigation lives in the ticker and keyboard arrows; the carousel's own
+  // edge chevrons and hover wash never render, at any breakpoint or input type.
   assert.match(css, /\.gallery-edge\s*\{[^}]*display:\s*none;/s);
-  assert.match(
-    css,
-    /@media \(min-width:\s*821px\)\s*\{[\s\S]*?@media \(hover: hover\) and \(pointer: fine\)\s*\{[\s\S]*?\.gallery-edge\s*\{[^}]*pointer-events:\s*none;/s,
-  );
-  assert.match(
-    css,
-    /@media \(min-width:\s*821px\)\s*\{[\s\S]*?@media \(hover: hover\) and \(pointer: fine\)\s*\{[\s\S]*?\.gallery-edge-button\s*\{[^}]*pointer-events:\s*auto;/s,
-  );
-  assert.match(
-    app,
-    /className="gallery-edge gallery-edge-start"[\s\S]*?onPointerEnter=\{\(event\) =>\s*hoverCard\(null, event\.pointerType\)/,
-  );
-  assert.match(
-    app,
-    /className="gallery-edge gallery-edge-end"[\s\S]*?onPointerEnter=\{\(event\) =>\s*hoverCard\(null, event\.pointerType\)/,
-  );
-  // Frost and wash snap in on hover instead of cross-fading, which read as
-  // an ugly, distracting animation.
-  assert.match(
-    css,
-    /\.gallery-edge::before\s*\{[^}]*backdrop-filter:\s*blur\(0px\);/s,
-  );
-  assert.match(css, /\.gallery-edge::after\s*\{[^}]*opacity:\s*0;/s);
-  assert.match(
-    css,
-    /\.gallery-edge-start::after\s*\{[^}]*background-image:\s*linear-gradient\(\s*to right,\s*var\(--color-surface\)/s,
-  );
-  assert.match(
-    css,
-    /\.gallery-edge-end::after\s*\{[^}]*background-image:\s*linear-gradient\(\s*to left,\s*var\(--color-surface\)/s,
-  );
-  assert.match(
-    app,
-    /className="gallery-edge-button bg-transparent p-0 text-muted"/,
-  );
-  assert.doesNotMatch(
-    css,
-    /\.gallery-edge-button\s*\{[^}]*color:\s*var\(--color-(?:body|ink|muted)\);/s,
-  );
-  assert.match(
-    css,
-    /\.gallery-edge-button svg\s*\{[^}]*width:\s*20px;[^}]*height:\s*20px;/s,
-  );
-  assert.match(css, /\.gallery-edge-button svg path\s*\{[^}]*stroke-width:\s*2;/s);
-  // Chevrons sit in the outer fade, not centered across the whole edge band.
-  assert.match(
-    css,
-    /\.gallery-edge\s*\{[^}]*z-index:\s*5;/s,
-  );
-  assert.match(
-    css,
-    /\.gallery-edge-start\s*\{[^}]*padding-left:\s*clamp\(8px, 0\.8vw, 14px\);/s,
-  );
-  assert.match(
-    css,
-    /\.gallery-edge-end\s*\{[^}]*padding-right:\s*clamp\(8px, 0\.8vw, 14px\);/s,
-  );
-  assert.match(
-    css,
-    /\.gallery-edge-button\s*\{[^}]*flex:\s*0 0 auto;[^}]*width:\s*44px;/s,
-  );
-  assert.doesNotMatch(
-    css,
-    /\.gallery-edge-button\s*\{[^}]*width:\s*100%;/s,
-  );
-  // Opacity on the wash and the button, not the blur layer or an ancestor, so
-  // backdrop-filter still samples the covers. Side / shelf hover shows the
-  // wash; the focused centre cover does not (is-center-hovered). Do not require
-  // hovering the edge for the wash. Viewport focus-within would stick after a
-  // click.
-  assert.doesNotMatch(
-    css,
-    /\.gallery-viewport:hover \.gallery-edge\s*\{[^}]*opacity:\s*1;/s,
-  );
-  assert.doesNotMatch(css, /\.gallery-viewport:focus-within/);
-  assert.doesNotMatch(
-    css,
-    /\.gallery-edge:hover:has\(\.gallery-edge-button:not\(:disabled\)\)::before/,
-  );
-  assert.match(
-    css,
-    /\.gallery-viewport:hover:not\(:has\(\.event-card\.is-center-hovered\)\)\s*\.gallery-edge::before,[\s\S]*?\.gallery-edge:has\(\.gallery-edge-button:focus-visible\)::before\s*\{[^}]*backdrop-filter:\s*blur\(8px\);/s,
-  );
-  assert.match(
-    css,
-    /\.gallery-viewport:hover:not\(:has\(\.event-card\.is-center-hovered\)\)\s*\.gallery-edge::after,[\s\S]*?\.gallery-edge:has\(\.gallery-edge-button:focus-visible\)::after\s*\{[^}]*opacity:\s*1;/s,
-  );
-  assert.match(
-    css,
-    /\.gallery-viewport:hover:not\(:has\(\.event-card\.is-center-hovered\)\)\s*\.gallery-edge-button:not\(:disabled\),[\s\S]*?\.gallery-edge-button:focus-visible:not\(:disabled\)\s*\{[^}]*opacity:\s*1;/s,
-  );
-  // Plain viewport:hover must not reveal the chrome — that lit the edges while
-  // the pointer sat on the focused centre cover.
-  assert.doesNotMatch(
-    css,
-    /\.gallery-viewport:hover \.gallery-edge::before/,
-  );
-  assert.doesNotMatch(
-    css,
-    /\.gallery-viewport:hover \.gallery-edge-button:not\(:disabled\)/,
-  );
-  assert.match(
-    css,
-    /\.gallery-edge-button:disabled\s*\{[^}]*pointer-events:\s*none;/s,
-  );
+  assert.doesNotMatch(css, /\.gallery-edge-button\s*\{/);
+  assert.doesNotMatch(css, /\.gallery-viewport:hover/);
 });
 
 test("gallery title and date live only in the detail section below", () => {

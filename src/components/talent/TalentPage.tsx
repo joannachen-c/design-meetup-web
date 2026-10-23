@@ -10,7 +10,6 @@ import { AdvisorWall } from "./AdvisorWall";
 import { LogoGlobe } from "./LogoGlobe";
 import { TalentContactForm } from "./TalentContactForm";
 import {
-  candidateSignals,
   dinnerRunOfShow,
   hubCities,
   networkFirstMonth,
@@ -116,26 +115,13 @@ export function TalentPage() {
         >
           <ScrollReveal className={styles.splitCopy}>
             <h2 className={sectionTitle} id="seniority-title">
-              Senior and up.
+              Design at all levels
             </h2>
             <p className={lede}>
-              The network is built for the hires that are hardest to make cold:
-              senior individual contributors, design engineers and the people
-              who lead design teams.
+              From product designers to staff ICs, design engineers and the
+              people who lead design teams, matched to the role you’re hiring
+              for.
             </p>
-            <ul className="m-0 flex list-none flex-col gap-3 p-0">
-              {candidateSignals.map((signal) => (
-                <li
-                  key={signal}
-                  className="flex items-start gap-2.5 text-base leading-[1.4] text-ink"
-                >
-                  <span className="mt-[3px] grid size-[18px] shrink-0 place-items-center rounded-full bg-accent-primary">
-                    <CheckIcon className="size-3" />
-                  </span>
-                  {signal}
-                </li>
-              ))}
-            </ul>
           </ScrollReveal>
           <ScrollReveal className={styles.splitAside} delay={80}>
             <ol className={styles.ladder} aria-label="Seniority levels">
@@ -270,12 +256,6 @@ export function TalentPage() {
                   only spend time on the conversations worth having.
                 </p>
               </div>
-              <p className={styles.processStat}>
-                <span className={styles.processStatValue}>~2 weeks</span>
-                <span className="text-base leading-[1.4] text-muted">
-                  from kickoff to your first shortlist
-                </span>
-              </p>
             </div>
             <ol className={styles.timeline}>
               {processSteps.map((step, index) => (

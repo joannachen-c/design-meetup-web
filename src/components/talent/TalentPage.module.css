@@ -81,23 +81,36 @@
 
 /* Logo wall */
 
-/* The heading and the companies share one type size, so the section reads
-   as a single sentence: "Where our network designs: OpenAI, Google…". */
 .wallBlock {
-  font-size: clamp(2.5rem, 5.4vw, 5.5rem);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 28px);
+  align-items: start;
   font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: -0.055em;
   color: var(--color-ink);
 }
 
+/* A step below the company names, and a shade lighter, so it reads as the
+   caption to the list; it holds level with the reading line while the
+   companies scroll past it. Tracking is set here rather than inherited: an
+   em value on the block would resolve against its 16px base, not this size. */
 .wallTitle {
-  margin: 0 0 0.3em;
-  font: inherit;
-  letter-spacing: inherit;
+  position: sticky;
+  top: calc(45vh - 0.6em);
+  grid-column: 1 / span 5;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 4.25rem);
+  font-weight: inherit;
+  line-height: 1.05;
+  letter-spacing: -0.055em;
+  color: var(--color-muted);
 }
 
 .wall {
+  grid-column: 6 / span 7;
+  font-size: clamp(2.5rem, 5.4vw, 5.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.055em;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -204,7 +217,6 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border-bottom: 1px solid var(--color-skeleton);
 }
 
 .rung {
@@ -213,7 +225,15 @@
   column-gap: clamp(16px, 2vw, 28px);
   align-items: center;
   padding-block: 22px;
+}
+
+/* Rules only between rungs, so the ladder has no frame at either end. */
+.rung + .rung {
   border-top: 1px solid var(--color-skeleton);
+}
+
+.rung:first-child {
+  padding-top: 0;
 }
 
 .rungMeter {
@@ -229,11 +249,12 @@
   background: var(--color-skeleton);
 }
 
-.rungMeter > span:nth-child(1) { height: 30%; }
-.rungMeter > span:nth-child(2) { height: 47%; }
-.rungMeter > span:nth-child(3) { height: 64%; }
-.rungMeter > span:nth-child(4) { height: 82%; }
-.rungMeter > span:nth-child(5) { height: 100%; }
+.rungMeter > span:nth-child(1) { height: 25%; }
+.rungMeter > span:nth-child(2) { height: 40%; }
+.rungMeter > span:nth-child(3) { height: 55%; }
+.rungMeter > span:nth-child(4) { height: 70%; }
+.rungMeter > span:nth-child(5) { height: 85%; }
+.rungMeter > span:nth-child(6) { height: 100%; }
 
 .rungMeter > span[data-on] {
   background: var(--color-ink);
@@ -363,22 +384,6 @@
   margin-top: -0.05em;
 }
 
-.processStat {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 0;
-  max-width: 16rem;
-}
-
-.processStatValue {
-  font-size: clamp(2.5rem, 4.4vw, 4rem);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.06em;
-  color: #000;
-}
-
 .timeline {
   --timeline-gap: clamp(16px, 2vw, 32px);
   --node-size: 48px;
@@ -435,10 +440,10 @@
   flex: none;
   place-items: center;
   border-radius: 999px;
-  background: var(--color-ink);
+  background: var(--color-surface-muted);
   font-size: 0.9375rem;
   font-variant-numeric: tabular-nums;
-  color: #fff;
+  color: var(--color-ink);
 }
 
 .timelineStep[data-milestone] .timelineNode {
@@ -504,8 +509,19 @@
 }
 
 @media (max-width: 820px) {
-  .grid {
+  .grid,
+  .wallBlock {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wallTitle {
+    position: static;
+    grid-column: 1;
+    margin-bottom: 0.4em;
+  }
+
+  .wall {
+    grid-column: 1;
   }
 
   .heroCopy,
@@ -561,8 +577,12 @@
 }
 
 @media (max-width: 520px) {
-  .wallBlock {
+  .wall {
     font-size: clamp(2rem, 9.6vw, 2.5rem);
+  }
+
+  .wallTitle {
+    font-size: clamp(1.75rem, 8vw, 2.125rem);
   }
 
   .rung {

@@ -68,7 +68,7 @@ export function AdvisorWall() {
   return (
     <div className={styles.wallBlock}>
       <h2 className={styles.wallTitle} id="network-title">
-        Where our network designs
+        Our network designs at
       </h2>
       <ul
         ref={listRef}

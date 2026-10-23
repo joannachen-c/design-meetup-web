@@ -6,13 +6,13 @@ import { Primary } from "../Primary";
 import { Select, type SelectOption } from "../Select";
 
 const roleOptions: SelectOption[] = [
-  { value: "designer", label: "a Designer" },
-  { value: "senior", label: "a Senior Product Designer" },
-  { value: "staff", label: "a Staff or Principal Designer" },
-  { value: "engineer", label: "a Design Engineer" },
-  { value: "lead", label: "a Design Lead or Manager" },
-  { value: "head", label: "a Head of Design" },
-  { value: "founding", label: "a Founding Designer" },
+  { value: "designer", label: "Designer" },
+  { value: "senior", label: "Senior Product Designer" },
+  { value: "staff", label: "Staff or Principal Designer" },
+  { value: "engineer", label: "Design Engineer" },
+  { value: "lead", label: "Design Lead or Manager" },
+  { value: "head", label: "Head of Design" },
+  { value: "founding", label: "Founding Designer" },
 ];
 
 const cityOptions: SelectOption[] = [
@@ -171,11 +171,12 @@ export function TalentContactForm() {
         />
       </div>
       <div className={row}>
-        <span>We’re hiring</span>
+        <span>We’d like to hire a</span>
         <label className="sr-only" htmlFor={`${fieldId}-role`}>
           Role you’re hiring for
         </label>
         <Select
+          className="min-w-[16rem] grow basis-[16rem] max-[640px]:min-w-0"
           id={`${fieldId}-role`}
           name="role"
           options={roleOptions}
@@ -185,34 +186,41 @@ export function TalentContactForm() {
             resetStatus();
           }}
         />
-        <span>in</span>
-        <label className="sr-only" htmlFor={`${fieldId}-city`}>
-          City
-        </label>
-        <Select
-          id={`${fieldId}-city`}
-          name="city"
-          options={cityOptions}
-          value={city}
-          onValueChange={(next) => {
-            setCity(next);
-            resetStatus();
-          }}
-        />
-        <span>through</span>
-        <label className="sr-only" htmlFor={`${fieldId}-format`}>
-          Format
-        </label>
-        <Select
-          id={`${fieldId}-format`}
-          name="format"
-          options={formatOptions}
-          value={format}
-          onValueChange={(next) => {
-            setFormat(next);
-            resetStatus();
-          }}
-        />
+        {/* Each connector word travels with its dropdown, so a wrapping row
+            never strands "in" or "through" at the end of a line. */}
+        <span className="flex flex-none items-center gap-3">
+          <span>in</span>
+          <label className="sr-only" htmlFor={`${fieldId}-city`}>
+            City
+          </label>
+          <Select
+            id={`${fieldId}-city`}
+            name="city"
+            options={cityOptions}
+            value={city}
+            onValueChange={(next) => {
+              setCity(next);
+              resetStatus();
+            }}
+          />
+        </span>
+        <span className="flex min-w-0 grow basis-[12rem] items-center gap-3">
+          <span>through</span>
+          <label className="sr-only" htmlFor={`${fieldId}-format`}>
+            Format
+          </label>
+          <Select
+            className="min-w-[8rem] grow basis-[8rem]"
+            id={`${fieldId}-format`}
+            name="format"
+            options={formatOptions}
+            value={format}
+            onValueChange={(next) => {
+              setFormat(next);
+              resetStatus();
+            }}
+          />
+        </span>
       </div>
       <label className="sr-only" htmlFor={`${fieldId}-note`}>
         Anything else

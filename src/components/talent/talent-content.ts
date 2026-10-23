@@ -7,6 +7,8 @@ export type AdvisorCompany = {
   background?: string;
   /** Share of the square a glyph fills, for marks much wider than tall. */
   size?: string;
+  /** Listed on the wall but left off the hero globe. */
+  hiddenOnGlobe?: boolean;
 };
 
 // Where members of the Board of Advisors design today. Names stay private:
@@ -23,7 +25,12 @@ export const advisorCompanies: AdvisorCompany[] = [
     fit: "glyph",
     size: "78%",
   },
-  { name: "Instagram", src: "/talent/logos/instagram.svg", fit: "tile" },
+  {
+    name: "Instagram",
+    src: "/talent/logos/instagram.svg",
+    fit: "tile",
+    hiddenOnGlobe: true,
+  },
   {
     name: "Ramp",
     src: "/partners/partner-4.png",
@@ -61,6 +68,11 @@ export const hubCities = [
 
 export const seniorityLevels = [
   {
+    level: "Designer",
+    positions: "Product Designer · Brand Designer",
+    track: "IC",
+  },
+  {
     level: "Senior",
     positions: "Senior Product Designer · Senior Brand Designer",
     track: "IC",
@@ -85,14 +97,6 @@ export const seniorityLevels = [
     positions: "Head of Design · Founding Designer",
     track: "Leadership",
   },
-] as const;
-
-export const candidateSignals = [
-  "6+ years shipping product",
-  "Technical, data-heavy or developer-facing products",
-  "Fluent in AI tools, prototypes in code",
-  "Builders of 0→1 surfaces and design systems",
-  "Actively or quietly open to a move",
 ] as const;
 
 export const networkFirstMonth = [

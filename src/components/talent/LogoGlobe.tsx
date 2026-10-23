@@ -2,14 +2,21 @@
 
 import { useEffect, useRef } from "react";
 import { type AdvisorCompany, advisorCompanies } from "./talent-content";
+
+const globeCompanies = advisorCompanies.filter(
+  (company) => !company.hiddenOnGlobe,
+);
 import styles from "./TalentPage.module.css";
 
 type Vec = [number, number, number];
+type TrailPoint = { xy: readonly [number, number]; hidden: boolean };
 
 const TILT = -0.32;
 const SPIN_PER_SECOND = 0.12;
 const GRID_STEP_DEG = 30;
 const ARC_CYCLE_MS = 7000;
+// Share of each visible arc, from the back, that breaks up into dots.
+const TRAIL_DOTTED_SHARE = 0.28;
 const INK = "20, 27, 38";
 
 const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -72,6 +79,39 @@ function rotate([x, y, z]: Vec, yaw: number, pitch: number): Vec {
   const cp = Math.cos(pitch);
   const sp = Math.sin(pitch);
   return [x1, y * cp - z1 * sp, y * sp + z1 * cp];
+}
+
+// How much of a card's face survives when it is seen edge-on, so cards at the
+// globe's rim stay legible slivers instead of collapsing to a line.
+const MIN_CARD_FACE = 0.22;
+// Card thickness as a share of its width, and how many outline copies fill
+// the edge so it reads as solid rather than stacked.
+const CARD_THICKNESS = 0.1;
+const CARD_EDGE_STEPS = 5;
+
+// A 2D canvas transform that lays a card flat on the sphere at view-space
+// point `n`: its right edge runs east along the surface, its top edge north,
+// both projected onto the screen. Cards on the far side are flipped back so
+// their logos never read mirrored.
+function surfaceTransform([nx, ny, nz]: Vec) {
+  const eastLength = Math.hypot(nz, nx);
+  let east: Vec =
+    eastLength > 1e-3 ? [nz / eastLength, 0, -nx / eastLength] : [1, 0, 0];
+  const north: Vec = [
+    ny * east[2] - nz * east[1],
+    nz * east[0] - nx * east[2],
+    nx * east[1] - ny * east[0],
+  ];
+  if (nz < 0) east = [-east[0], -east[1], -east[2]];
+
+  // Screen y runs down, so "up the card" is minus north.
+  const tilt = 1 - MIN_CARD_FACE;
+  return [
+    MIN_CARD_FACE + tilt * east[0],
+    tilt * -east[1],
+    tilt * -north[0],
+    MIN_CARD_FACE + tilt * north[1],
+  ] as const;
 }
 
 function gridLines(): Vec[][] {
@@ -150,15 +190,10 @@ function drawMark(
   const left = x - size / 2;
   const top = y - size / 2;
 
-  ctx.save();
-  ctx.shadowColor = "rgba(15, 15, 15, 0.14)";
-  ctx.shadowBlur = size * 0.35;
-  ctx.shadowOffsetY = size * 0.08;
   ctx.beginPath();
   ctx.roundRect(left, top, size, size, radius);
   ctx.fillStyle = company.background ?? "#fff";
   ctx.fill();
-  ctx.restore();
 
   if (!image.complete || !image.naturalWidth) return;
 
@@ -184,6 +219,51 @@ function drawMark(
   ctx.strokeStyle = "rgba(0, 0, 0, 0.06)";
   ctx.lineWidth = 1;
   ctx.stroke();
+
+  // Lit from above, like the home page's event covers: the top edge catches
+  // the light and the underside falls away into shade.
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(left, top, size, size, radius);
+  ctx.clip();
+  const sheen = ctx.createLinearGradient(0, top, 0, top + size);
+  sheen.addColorStop(0, "rgba(255, 255, 255, 0.55)");
+  sheen.addColorStop(0.06, "rgba(255, 255, 255, 0)");
+  sheen.addColorStop(0.9, "rgba(0, 0, 0, 0)");
+  sheen.addColorStop(1, "rgba(0, 0, 0, 0.08)");
+  ctx.fillStyle = sheen;
+  ctx.fillRect(left, top, size, size);
+  ctx.restore();
+}
+
+// The card's edge: copies of its outline stepped back toward the globe, so
+// it reads as a tile with a little thickness. The deepest copy carries the
+// drop shadow, which is what lifts the whole card off the surface.
+function drawCardEdge(
+  ctx: CanvasRenderingContext2D,
+  tilt: readonly [number, number, number, number],
+  x: number,
+  y: number,
+  size: number,
+  offsetX: number,
+  offsetY: number,
+) {
+  const radius = size * 0.24;
+  for (let step = CARD_EDGE_STEPS; step >= 1; step--) {
+    const share = step / CARD_EDGE_STEPS;
+    ctx.save();
+    ctx.transform(...tilt, x + offsetX * share, y + offsetY * share);
+    if (step === CARD_EDGE_STEPS) {
+      ctx.shadowColor = "rgba(15, 15, 15, 0.16)";
+      ctx.shadowBlur = size * 0.35;
+      ctx.shadowOffsetY = size * 0.06;
+    }
+    ctx.beginPath();
+    ctx.roundRect(-size / 2, -size / 2, size, size, radius);
+    ctx.fillStyle = share > 0.5 ? "#d4d8de" : "#e3e6ea";
+    ctx.fill();
+    ctx.restore();
+  }
 }
 
 export function LogoGlobe() {
@@ -195,10 +275,10 @@ export function LogoGlobe() {
     if (!canvas || !ctx) return;
 
     const grid = gridLines();
-    const nodes = fibonacciSphere(advisorCompanies.length);
+    const nodes = fibonacciSphere(globeCompanies.length);
     const arcs = sweepingArcs(nodes);
     const rings = orbits();
-    const images = advisorCompanies.map((company) => {
+    const images = globeCompanies.map((company) => {
       const image = new Image();
       image.decoding = "async";
       image.src = company.src;
@@ -273,6 +353,38 @@ export function LogoGlobe() {
         ctx.stroke(front);
       };
 
+      // Paints one arc like a brush stroke that runs dry: full-bodied at the
+      // leading end, thinning toward the back, then breaking into dots that
+      // shrink, fade and spread apart until the trail disappears.
+      const drawTrail = (points: TrailPoint[]) => {
+        const end = points.length - 1;
+        const solidFrom = Math.floor(end * TRAIL_DOTTED_SHARE);
+
+        for (let i = solidFrom; i < end; i++) {
+          const along = (i - solidFrom) / Math.max(1, end - solidFrom);
+          const a = points[i];
+          const b = points[i + 1];
+          const depth = a.hidden || b.hidden ? 0.2 : 1;
+          ctx.beginPath();
+          ctx.moveTo(a.xy[0], a.xy[1]);
+          ctx.lineTo(b.xy[0], b.xy[1]);
+          ctx.strokeStyle = `rgba(${INK}, ${((0.1 + 0.32 * along) * depth).toFixed(3)})`;
+          ctx.lineWidth = 0.5 + 1.1 * along;
+          ctx.stroke();
+        }
+
+        let step = 2.2;
+        for (let i = solidFrom; i >= 0; i -= step, step += 0.9) {
+          const point = points[Math.round(i)];
+          const along = i / Math.max(1, solidFrom);
+          const depth = point.hidden ? 0.2 : 1;
+          ctx.beginPath();
+          ctx.arc(point.xy[0], point.xy[1], 0.45 + 0.9 * along, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${INK}, ${((0.04 + 0.3 * along) * depth).toFixed(3)})`;
+          ctx.fill();
+        }
+      };
+
       ctx.clearRect(0, 0, width, height);
       ctx.lineCap = "round";
 
@@ -293,20 +405,13 @@ export function LogoGlobe() {
         const last = arc.points.length - 1;
         const from = Math.floor(tail * last);
         const to = Math.ceil(head * last);
-        if (to - from < 1) return;
-        strokeLine(arc.points.slice(from, to + 1), 0.34, 0.06, 1.1);
-
-        // A dot rides each moving end: the head as the line draws out, the
-        // tail as it retracts. Ends parked on a logo sit under its tile.
-        for (const end of [from, to]) {
-          const p = view(arc.points[end]);
-          if (occluded(p)) continue;
-          const [x, y] = project(p);
-          ctx.beginPath();
-          ctx.arc(x, y, 2.2, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${INK}, 0.6)`;
-          ctx.fill();
-        }
+        if (to - from < 2) return;
+        drawTrail(
+          arc.points.slice(from, to + 1).map((point) => {
+            const p = view(point);
+            return { xy: project(p), hidden: occluded(p) };
+          }),
+        );
       });
 
       const tile = radius * 0.2;
@@ -316,15 +421,20 @@ export function LogoGlobe() {
         .forEach(({ point, index }) => {
           const [x, y] = project(point);
           const front = clamp01((point[2] + 0.35) / 0.7);
+          const tilt = surfaceTransform(point);
+          const size = tile * (0.7 + 0.3 * front);
+          // The card's back sits deeper along the surface normal, which on
+          // screen points toward the globe's centre; a touch of drop keeps
+          // the underside showing even on cards that face us head-on.
+          const depth = size * CARD_THICKNESS;
+          const edgeX = -point[0] * depth;
+          const edgeY = point[1] * depth + size * 0.035;
           ctx.globalAlpha = 0.15 + 0.85 * front;
-          drawMark(
-            ctx,
-            advisorCompanies[index],
-            images[index],
-            x,
-            y,
-            tile * (0.7 + 0.3 * front),
-          );
+          drawCardEdge(ctx, tilt, x, y, size, edgeX, edgeY);
+          ctx.save();
+          ctx.transform(...tilt, x, y);
+          drawMark(ctx, globeCompanies[index], images[index], 0, 0, size);
+          ctx.restore();
         });
       ctx.globalAlpha = 1;
     };

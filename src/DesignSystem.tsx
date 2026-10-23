@@ -12,6 +12,7 @@ import { IconButton } from "./components/IconButton";
 import { Input } from "./components/Input";
 import { Link } from "./components/Link";
 import { PageLoader } from "./components/PageLoader";
+import { Pill } from "./components/Pill";
 import { Primary } from "./components/Primary";
 import { ScrollReveal } from "./components/ScrollReveal";
 import { Select } from "./components/Select";
@@ -1050,20 +1051,12 @@ export default function DesignSystem() {
             </h2>
             <div className="grid gap-8">
               <div>
-                <SpecimenLabel>section status pill</SpecimenLabel>
+                <SpecimenLabel>pill</SpecimenLabel>
                 <div className={`${specimenRowClassName} mt-4`}>
-                  <span className="inline-flex h-8 items-center rounded-full bg-surface-muted px-3.5 text-sm font-bold text-ink">
-                    Auto
-                  </span>
-                  <span className="inline-flex h-8 items-center rounded-full bg-red-50 px-3.5 text-sm font-bold text-red-700">
-                    Needs attention
-                  </span>
-                  <span className="inline-flex h-8 items-center rounded-full bg-surface-muted px-3.5 text-sm font-bold text-ink">
-                    In motion
-                  </span>
-                  <span className="inline-flex h-8 items-center rounded-full bg-surface-muted px-3.5 text-sm font-bold text-muted">
-                    Held / resolved
-                  </span>
+                  <Pill>Auto</Pill>
+                  <Pill variant="attention">Needs attention</Pill>
+                  <Pill>In motion</Pill>
+                  <Pill variant="muted">Held / resolved</Pill>
                 </div>
               </div>
               <div>

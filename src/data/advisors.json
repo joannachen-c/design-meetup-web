@@ -1012,5 +1012,26 @@
     "linkedin_url": "https://www.linkedin.com/in/vamsikbatchu",
     "x_url": "https://x.com/vamsibatchuk",
     "sort_order": 47
+  },
+  {
+    "slug": "kathy-zhou",
+    "first_name": "Kathy",
+    "last_name": "Zhou",
+    "title": "Designer",
+    "company": "OpenAI",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Kathy Zhou is a New York-based designer at OpenAI and a University of Chicago alum.",
+    "photo_url": "/advisors/kathy-zhou.jpg",
+    "website_url": null,
+    "linkedin_url": "https://www.linkedin.com/in/kathytzhou",
+    "x_url": null,
+    "sort_order": 48
   }
 ]

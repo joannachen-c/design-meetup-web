@@ -20,6 +20,9 @@ const INTEREST_ALIASES = {
   advisor: "advisor",
   "joining the board of advisors": "advisor",
   "board of advisors": "advisor",
+  talent: "talent",
+  "hiring through the talent network": "talent",
+  "talent network": "talent",
 };
 
 const CITY_ALIASES = {

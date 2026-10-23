@@ -436,12 +436,16 @@
    their middles run, and it is raised off the card so it reads as the deal
    rather than a footnote. */
 .formatTerms {
+  /* Outdented by its own padding so its text lines up with the card copy
+     above while the panel itself spreads into the card's margin. */
+  --terms-pad: clamp(18px, 2vw, 26px);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
   margin-top: auto;
-  padding: clamp(18px, 2vw, 26px);
+  margin-inline: calc(-1 * var(--terms-pad));
+  padding: var(--terms-pad);
   border-radius: 14px;
   background: #fff;
 }

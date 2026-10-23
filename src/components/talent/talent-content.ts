@@ -69,7 +69,7 @@ export const seniorityLevels = [
   },
   {
     level: "Design Engineering",
-    track: "Hybrid",
+    track: "IC",
   },
   {
     level: "Manager",
@@ -103,7 +103,7 @@ export const processSteps = [
   },
   {
     title: "Source",
-    body: "Designers apply with a portfolio and current status. We prioritize senior people who are active or open to a move.",
+    body: "Designers apply with a portfolio and current status. We prioritize designers who are active or open to a move.",
   },
   {
     title: "Shortlist",

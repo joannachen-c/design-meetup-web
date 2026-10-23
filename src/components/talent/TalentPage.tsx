@@ -155,19 +155,16 @@ export function TalentPage() {
           <div className={styles.formats}>
             <ScrollReveal className={`${styles.formatCard} bg-surface-muted`}>
               <div className="flex flex-col gap-4">
-                <Pill variant="white">Always on</Pill>
                 <h3 className={styles.formatTitle}>The Network</h3>
                 <p className="m-0 text-base leading-[1.6] text-muted">
-                  Ongoing access to a curated bench of senior designers,
-                  refreshed as your roles open. We shortlist, you choose, we
-                  make the warm intro.
+                  Access to a curated group of designers, refreshed as your
+                  roles open. We shortlist, you choose, we make the warm intro.
                 </p>
               </div>
               <ul className={styles.formatList}>
                 {[
                   "A shortlist of 5–8 vetted designers per role",
                   "Warm 1:1 intros with your design team",
-                  "Advisor input on role calibration",
                   "Pipeline refreshed until the role is filled",
                 ].map((item) => (
                   <li key={item}>
@@ -202,7 +199,6 @@ export function TalentPage() {
               delay={80}
             >
               <div className="flex flex-col gap-4">
-                <Pill variant="accent">Signature event</Pill>
                 <h3 className={styles.formatTitle}>The Hiring Dinner</h3>
                 <p className="m-0 text-base leading-[1.6] text-white/65">
                   An intimate dinner co-hosted with your team: pre-matched

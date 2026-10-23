@@ -105,7 +105,7 @@ function AdvisorCard({
         <CardTitle title={advisor.title} />
         <div className="flex flex-col items-start min-[520px]:flex-row min-[520px]:items-center min-[520px]:justify-between min-[520px]:gap-2">
           <div
-            className={`${cardCellClassName} w-full min-w-0 truncate text-ink min-[520px]:w-auto`}
+            className={`${cardCellClassName} line-clamp-2 w-full min-w-0 text-ink min-[520px]:w-auto`}
             title={[advisor.company, advisorLocationLabel(advisor)].filter(Boolean).join(" · ")}
           >
             {advisor.company}

@@ -199,7 +199,6 @@ export function TalentPage() {
               delay={80}
             >
               <div className="flex flex-col gap-4">
-                <Pill variant="accent">Signature event</Pill>
                 <h3 className={styles.formatTitle}>The Hiring Dinner</h3>
                 <p className="m-0 text-base leading-[1.6] text-white/65">
                   An intimate dinner co-hosted with your team: pre-matched

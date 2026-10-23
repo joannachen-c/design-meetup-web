@@ -8,7 +8,7 @@ type Vec = [number, number, number];
 
 const TILT = -0.32;
 const SPIN_PER_SECOND = 0.12;
-const GRID_STEP_DEG = 15;
+const GRID_STEP_DEG = 30;
 const ARC_CYCLE_MS = 7000;
 const INK = "20, 27, 38";
 
@@ -295,6 +295,18 @@ export function LogoGlobe() {
         const to = Math.ceil(head * last);
         if (to - from < 1) return;
         strokeLine(arc.points.slice(from, to + 1), 0.34, 0.06, 1.1);
+
+        // A dot rides each moving end: the head as the line draws out, the
+        // tail as it retracts. Ends parked on a logo sit under its tile.
+        for (const end of [from, to]) {
+          const p = view(arc.points[end]);
+          if (occluded(p)) continue;
+          const [x, y] = project(p);
+          ctx.beginPath();
+          ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${INK}, 0.6)`;
+          ctx.fill();
+        }
       });
 
       const tile = radius * 0.2;

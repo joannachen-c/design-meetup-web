@@ -306,20 +306,21 @@ test("tier sync fails clearly when the Member tier is missing", async () => {
   );
 });
 
-const NEW_MEMBER_EMAILS = [
+const PAID_OCT_15_EMAILS = [
   "katherine9wang@gmail.com",
   "hanswfu.design@gmail.com",
   "giangt.edu@gmail.com",
-  "alizahunbaev@gmail.com",
   "design.ginny@gmail.com",
   "justingainsley@gmail.com",
 ];
 
-test("comp signups are cohort 0 and allowlist signups are cohort 1", () => {
-  for (const email of NEW_MEMBER_EMAILS) {
-    assert.deepEqual(lumaCategoryForEmail(email), { name: "Cohort 0", color: "blue" });
+test("comp signups are cohort 0, the October intake cohort 2, other allowlist signups cohort 1", () => {
+  assert.deepEqual(lumaCategoryForEmail("mshuxy@gmail.com"), { name: "Cohort 0", color: "blue" });
+  assert.equal(lumaCategoryForEmail("alizahunbaev@gmail.com")?.name, "Cohort 0");
+  assert.equal(lumaCategoryForEmail("  MShuxy@gmail.com ")?.name, "Cohort 0");
+  for (const email of PAID_OCT_15_EMAILS) {
+    assert.deepEqual(lumaCategoryForEmail(email), { name: "Cohort 2", color: "green" }, email);
   }
-  assert.equal(lumaCategoryForEmail("  Katherine9Wang@gmail.com ")?.name, "Cohort 0");
   assert.equal(lumaCategoryForEmail("angelinawwu@ucla.edu")?.name, "Cohort 1");
   assert.equal(lumaCategoryForEmail("stranger@example.com"), null);
 });
@@ -365,11 +366,11 @@ test("signup adds a cohort 0 member to Luma and creates their category tag", asy
   const { calls, client } = signupLuma();
   const result = await registerSignedUpMemberOnLuma({
     client,
-    email: " Katherine9Wang@gmail.com ",
-    name: "Katherine Wang",
+    email: " MShuxy@gmail.com ",
+    name: "Shuxy",
   });
   assert.deepEqual(result, {
-    email: "katherine9wang@gmail.com",
+    email: "mshuxy@gmail.com",
     tierId: "calmemtier-member",
     added: true,
     tagId: "tag-created",
@@ -382,13 +383,13 @@ test("signup adds a cohort 0 member to Luma and creates their category tag", asy
   assert.deepEqual(
     calls.find((call) => call.path.endsWith("/contacts/import")).body,
     {
-      contacts: [{ email: "katherine9wang@gmail.com", name: "Katherine Wang" }],
+      contacts: [{ email: "mshuxy@gmail.com", name: "Shuxy" }],
       tags: ["tag-created"],
     },
   );
   assert.deepEqual(
     calls.find((call) => call.path.endsWith("/members/add")).body,
-    { email: "katherine9wang@gmail.com", membership_tier_id: "calmemtier-member" },
+    { email: "mshuxy@gmail.com", membership_tier_id: "calmemtier-member" },
   );
 });
 
@@ -396,8 +397,7 @@ test("signup reuses the cohort tag and still categorizes someone already on the 
   const { calls, client } = signupLuma({ existingTag: true, alreadyMember: true });
   const result = await registerSignedUpMemberOnLuma({
     client,
-    email: "hanswfu.design@gmail.com",
-    name: "Hanna Fu",
+    email: "si2227@nyu.edu",
   });
   assert.equal(result.added, false);
   assert.equal(result.tagId, "tag-cohort-0");

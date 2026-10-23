@@ -6,10 +6,15 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AvatarImage } from "@/components/portal/AvatarImage";
 import { logoutAction } from "@/lib/auth-actions";
 
-const nav = [
+const memberNav = [
   { href: "/portal", label: "Home" },
   { href: "/portal/community", label: "Community" },
-] as const;
+];
+// Only rendered for organizer sessions; /portal/planning is gated server-side too.
+const organizerNav = [
+  ...memberNav,
+  { href: "/portal/planning", label: "Planning" },
+];
 
 function Avatar({ url }: { url?: string | null }) {
   const [failed, setFailed] = useState<string | null>(null);
@@ -30,15 +35,18 @@ export function PortalHeader({
   displayName,
   avatarUrl,
   paid = true,
+  organizer = false,
 }: {
   displayName: string;
   avatarUrl?: string | null;
   paid?: boolean;
+  organizer?: boolean;
 }) {
   const pathname = usePathname();
   // Portal pages other than subscribe already redirect unpaid members, and the
   // layout can check access before a Checkout return has synced membership.
   const showMemberNav = paid || !pathname.startsWith("/portal/subscribe");
+  const nav = organizer ? organizerNav : memberNav;
   const navRef = useRef<HTMLElement>(null);
   const [pill, setPill] = useState<{ left: number; width: number } | null>(
     null,

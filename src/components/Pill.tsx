@@ -1,27 +1,37 @@
 import type { ReactNode } from "react";
 
 const variantClassName = {
-  default: "bg-surface-muted text-ink",
+  neutral: "bg-surface-muted text-gray-700",
+  white: "bg-white text-ink",
+  accent: "bg-accent-primary text-ink",
+  ink: "bg-ink text-white",
   muted: "bg-surface-muted text-muted",
   attention: "bg-red-50 text-red-700",
 } as const;
 
 export type PillVariant = keyof typeof variantClassName;
 
-export type PillProps = {
+/** Small, non-interactive label: a tag, status or category. */
+export function Pill({
+  children,
+  className = "",
+  variant = "neutral",
+}: {
   children: ReactNode;
-  variant?: PillVariant;
   className?: string;
-};
-
-export function Pill({ children, variant = "default", className = "" }: PillProps) {
-  const pillClassName = [
-    "inline-flex h-8 items-center rounded-full px-3.5 text-sm font-bold",
-    variantClassName[variant],
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return <span className={pillClassName}>{children}</span>;
+  variant?: PillVariant;
+}) {
+  return (
+    <span
+      className={[
+        "text-medium inline-flex w-fit shrink-0 items-center rounded-full px-2.5 py-1 text-sm leading-none",
+        variantClassName[variant],
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {children}
+    </span>
+  );
 }

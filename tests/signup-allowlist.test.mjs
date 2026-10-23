@@ -5,6 +5,7 @@ import {
   isApprovedSignupEmail,
   UNAPPROVED_SIGNUP_ERROR,
 } from "../src/lib/signup-allowlist.ts";
+import { isCompMembershipEmail } from "../src/lib/comp-membership.ts";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
@@ -27,12 +28,21 @@ test("comped emails can sign up even when missing from the allowlist", () => {
   assert.equal(isApprovedSignupEmail("si2227@nyu.edu"), true);
   assert.equal(isApprovedSignupEmail("Sabria.Islam@gmail.com"), true);
   assert.equal(isApprovedSignupEmail(" Inquiries@AdamHo.com "), true);
-  assert.equal(isApprovedSignupEmail("katherine9wang@gmail.com"), true);
-  assert.equal(isApprovedSignupEmail(" Hanswfu.Design@gmail.com "), true);
-  assert.equal(isApprovedSignupEmail("giangt.edu@gmail.com"), true);
+});
+
+test("the Oct 15 members can sign up but pay for membership, except Ali who is comped", () => {
+  for (const email of [
+    "katherine9wang@gmail.com",
+    " Hanswfu.Design@gmail.com ",
+    "giangt.edu@gmail.com",
+    "design.ginny@gmail.com",
+    "justingainsley@gmail.com",
+  ]) {
+    assert.equal(isApprovedSignupEmail(email), true, email);
+    assert.equal(isCompMembershipEmail(email), false, email);
+  }
   assert.equal(isApprovedSignupEmail("alizahunbaev@gmail.com"), true);
-  assert.equal(isApprovedSignupEmail("design.ginny@gmail.com"), true);
-  assert.equal(isApprovedSignupEmail("justingainsley@gmail.com"), true);
+  assert.equal(isCompMembershipEmail("alizahunbaev@gmail.com"), true);
 });
 
 test("unapproved signup error is shown under the email input", async () => {

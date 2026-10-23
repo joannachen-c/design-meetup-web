@@ -34,7 +34,7 @@ import { SoundOffIcon, SoundOnIcon } from "./icons/SoundIcons";
 import { IconButton } from "./IconButton";
 import { Link } from "./Link";
 import { PageLoader } from "./PageLoader";
-import { PartnerContactForm } from "./PartnerContactForm";
+import { PartnerContactForm, PartnerCopy } from "./PartnerContactForm";
 import { PhotoMarquee } from "./PhotoMarquee";
 import { Primary } from "./Primary";
 import { RecentEventsPanel } from "./RecentEventsPanel";
@@ -2219,7 +2219,7 @@ export default function HomePage({
           <p className="m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-ink">
             {showRecentEvents
               ? "We keep our Luma updated with all of our latest events. Stay tuned to be the first to hear about the next one!"
-              : "RSVP on Luma to join us at the next Design Meetup."}
+              : "RSVP on Luma to join us at the next Design Meetup!"}
           </p>
           <Primary
             className="gap-2"
@@ -2268,7 +2268,7 @@ export default function HomePage({
             >
               About
             </h2>
-            <div className="about-lede grid gap-5 text-base leading-[1.6] text-ink">
+            <div className="about-lede grid gap-5 text-base leading-[1.6] text-muted">
               <p className="m-0 text-pretty">
                 We are a community of the world’s most ambitious young creatives.
               </p>
@@ -2338,7 +2338,7 @@ export default function HomePage({
         id="sponsor"
         aria-labelledby="partner-cta-title"
       >
-        <ScrollReveal className="partner-copy">
+        <PartnerCopy>
           <h2
             className="m-0 max-w-[676px] text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="partner-cta-title"
@@ -2346,7 +2346,7 @@ export default function HomePage({
             Partner with us
           </h2>
           <PartnerContactForm />
-        </ScrollReveal>
+        </PartnerCopy>
         <ScrollReveal className="partner-logos" delay={80}>
           <ul
             className="partner-grid m-0 p-0"

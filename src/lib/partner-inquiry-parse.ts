@@ -20,6 +20,9 @@ const INTEREST_ALIASES = {
   advisor: "advisor",
   "joining the board of advisors": "advisor",
   "board of advisors": "advisor",
+  talent: "talent",
+  "hiring through the talent network": "talent",
+  "talent network": "talent",
 };
 
 const CITY_ALIASES = {
@@ -40,6 +43,7 @@ export type ParsedPartnerInquiry = {
   email: string;
   interest: (typeof INTEREST_ALIASES)[keyof typeof INTEREST_ALIASES];
   city: (typeof CITY_ALIASES)[keyof typeof CITY_ALIASES];
+  note: string;
   submittedAt: string | null;
   submissionId: string;
 };
@@ -106,7 +110,7 @@ export function parsePartnerInquiryEmail(
 
   const fields: Record<string, string> = {};
   for (const line of normalized.slice(start).split("\n")) {
-    const match = /^(Name|Email|Interest|City|Submitted):\s*(.*)$/i.exec(
+    const match = /^(Name|Email|Interest|City|Note|Submitted):\s*(.*)$/i.exec(
       line.trim(),
     );
     if (!match) continue;
@@ -132,6 +136,7 @@ export function parsePartnerInquiryEmail(
     email,
     interest,
     city,
+    note: (fields.note ?? "").trim().slice(0, 1000),
     submittedAt,
     submissionId: historicalInquiryId({
       email,

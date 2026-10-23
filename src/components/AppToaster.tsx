@@ -18,6 +18,17 @@ export function showSuccessToast(message: string) {
   );
 }
 
+export function showErrorToast(message: string) {
+  toast.custom(
+    () => (
+      <Toast variant="danger" className="whitespace-nowrap">
+        {message}
+      </Toast>
+    ),
+    { duration: 6000, unstyled: true, className: "flex w-max list-none" },
+  );
+}
+
 export function AppToaster() {
   return (
     <Toaster

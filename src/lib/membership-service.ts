@@ -413,6 +413,21 @@ export async function userHasPortalAccess(userId: string) {
   return (profile?.email || "").trim().toLowerCase() === DEMO_EMAIL;
 }
 
+export async function isOrganizer(userId: string) {
+  if (!(await supabaseMembershipTablesAvailable())) return false;
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("organizers")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) {
+    console.error("organizer lookup failed", { userId, error: error.message });
+    return false;
+  }
+  return Boolean(data);
+}
+
 export async function saveStripeCustomerId(userId: string, customerId: string) {
   if (await supabaseMembershipTablesAvailable()) {
     const admin = createAdminClient();

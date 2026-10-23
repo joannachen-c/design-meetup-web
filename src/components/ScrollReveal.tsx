@@ -1,4 +1,9 @@
-import { type ReactNode, useEffect, useRef } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useRef,
+} from "react";
 
 import { observeReplayReveal } from "../lib/replay-reveal";
 
@@ -6,15 +11,24 @@ export function ScrollReveal({
   children,
   delay = 0,
   className = "",
+  style,
   repeat = false,
+  elementRef,
 }: {
   children: ReactNode;
   delay?: number;
   className?: string;
+  style?: CSSProperties;
+  elementRef?: { current: HTMLDivElement | null };
   /** Replay the reveal on every pass instead of settling after the first. */
   repeat?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+
+  function assignRef(node: HTMLDivElement | null) {
+    ref.current = node;
+    if (elementRef) elementRef.current = node;
+  }
 
   useEffect(() => {
     const element = ref.current;
@@ -44,9 +58,9 @@ export function ScrollReveal({
 
   return (
     <div
-      ref={ref}
+      ref={assignRef}
       className={`scroll-reveal ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
+      style={{ transitionDelay: `${delay}ms`, ...style }}
     >
       {children}
     </div>

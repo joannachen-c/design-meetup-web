@@ -1,0 +1,746 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 28px);
+  align-items: start;
+}
+
+/* Hero */
+
+.hero {
+  row-gap: 40px;
+}
+
+/* Desktop: the hero fills the first screen under the header, so the cities
+   pinned to the bottom of the copy column always land above the fold. */
+@media (min-width: 821px) {
+  .hero {
+    min-height: calc(100svh - var(--site-header-height, 136px));
+    padding-bottom: clamp(64px, 9vh, 112px);
+    align-items: stretch;
+  }
+}
+
+.heroCopy {
+  grid-column: 1 / span 6;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+/* Centred in the space above the cities. */
+.heroIntro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+  margin-block: auto;
+}
+
+.heroGlobe {
+  grid-column: 7 / span 6;
+  grid-row: 1;
+  align-self: center;
+}
+
+/* The global h1 rule pins headings to an 8-column span at 900px. */
+.heroTitle {
+  max-width: none;
+  margin: 0;
+  font-size: clamp(3.5rem, 6.3vw, 6.75rem);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.065em;
+  color: #000;
+}
+
+.cityList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px clamp(36px, 3.8vw, 80px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Capped by the viewport too, so the globe never makes the hero taller than
+   the first screen. */
+.globe {
+  position: relative;
+  width: 100%;
+  max-width: min(640px, calc(100svh - 200px));
+  margin-inline: auto;
+  aspect-ratio: 1;
+}
+
+.globeCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The logo cards are real 3D tiles: the browser projects them with the same
+   camera distance the canvas uses for the wireframe, so each card sits on
+   the end of its arcs and foreshortens as the globe turns. */
+.globeCards {
+  position: absolute;
+  inset: 0;
+  perspective: var(--globe-focal, 1200px);
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.card3d {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--card-size, 48px);
+  height: var(--card-size, 48px);
+  margin: calc(var(--card-size, 48px) / -2) 0 0 calc(var(--card-size, 48px) / -2);
+  transform-style: preserve-3d;
+}
+
+/* Opacity sits on each plane, not the card: opacity on a 3D parent would
+   flatten it back into a picture of a card. */
+.card3d > span {
+  position: absolute;
+  inset: 0;
+  border-radius: 24%;
+  opacity: var(--fade, 1);
+}
+
+/* Stacked slices behind the face make the card's edge, so it reads as solid
+   from any angle and keeps its rounded corners while doing it. */
+.cardLayer {
+  background: #f3f4f6;
+  transform: translateZ(calc(var(--card-size, 48px) * -0.009 * var(--layer)));
+}
+
+.cardBack {
+  background: #f6f7f9;
+  backface-visibility: hidden;
+  transform: translateZ(calc(var(--card-size, 48px) * -0.04)) rotateY(180deg);
+}
+
+.cardFace {
+  display: grid;
+  overflow: hidden;
+  place-items: center;
+  background: #fff;
+  backface-visibility: hidden;
+}
+
+.cardFace img {
+  display: block;
+  width: var(--mark-size, 58%);
+  height: var(--mark-size, 58%);
+  object-fit: contain;
+}
+
+.cardFace[data-fit="tile"] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Lit from above-left: the top edge catches the light, the underside falls
+   into shade, and cards turned away from the light dim as a whole. */
+.cardFace::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.6),
+      rgb(255 255 255 / 0) 9%,
+      rgb(0 0 0 / 0) 90%,
+      rgb(0 0 0 / 0.04)
+    ),
+    rgb(0 0 0 / var(--shade, 0));
+  content: "";
+}
+
+.cityName {
+  font-size: clamp(1.5rem, 2.25vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.055em;
+  color: var(--color-tertiary);
+}
+
+/* Logo wall */
+
+.wallBlock {
+  /* The company names' size, which the heading also takes on phones. */
+  --wall-size: clamp(2.5rem, 4.8vw, 5rem);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 28px);
+  align-items: start;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+/* Styled like the page's other section headings; it holds level with the
+   reading line while the companies scroll past it. Tracking is set here
+   rather than inherited: an em value on the block would resolve against its
+   16px base, not this size. */
+.wallTitle {
+  position: sticky;
+  top: calc(45vh - 0.6em);
+  grid-column: 1 / span 6;
+  margin: 0;
+  /* Same scale as the page's section headings ("Design at all levels"). */
+  font-size: clamp(3.5rem, 6vw, 5rem);
+  font-weight: inherit;
+  line-height: 1.05;
+  letter-spacing: -0.06em;
+  color: #000;
+}
+
+.wall {
+  /* Shares the seniority ladder's columns so the two lists line up. */
+  grid-column: 7 / span 6;
+  font-size: var(--wall-size);
+  line-height: 1.12;
+  letter-spacing: -0.055em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.06em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wallItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24em;
+  white-space: nowrap;
+  opacity: 0.18;
+  transition: opacity 160ms ease-out;
+}
+
+/* Exactly one company is lit at a time: the one crossing the middle of the
+   viewport, or the one under the pointer. */
+.wallItem[data-active] {
+  opacity: 1;
+}
+
+/* Every mark sits on the same rounded square so glyphs, wordmarks and app
+   icons read as one set at display size. */
+.mark {
+  position: relative;
+  display: grid;
+  flex: none;
+  width: 0.76em;
+  height: 0.76em;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 24%;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(15 15 15 / 0.04),
+    0 6px 16px -6px rgb(15 15 15 / 0.12);
+}
+
+.mark::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.06);
+  content: "";
+  pointer-events: none;
+}
+
+.mark img {
+  display: block;
+  width: var(--mark-size, 58%);
+  height: var(--mark-size, 58%);
+  object-fit: contain;
+}
+
+.mark[data-fit="tile"] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Split sections: copy left, detail right */
+
+.splitCopy,
+.sectionIntro,
+.ctaCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.splitCopy {
+  grid-column: 1 / span 5;
+}
+
+.splitAside {
+  grid-column: 7 / span 6;
+}
+
+.sectionIntro {
+  grid-column: 1 / span 8;
+  margin-bottom: clamp(40px, 5vw, 72px);
+}
+
+/* Optical: display leading sits the glyph below the body text cap line. */
+.splitCopy > h2,
+.sectionIntro > h2,
+.ctaCopy > h2 {
+  margin-top: -0.05em;
+}
+
+/* Seniority ladder */
+
+.ladder {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rung {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: clamp(16px, 2vw, 28px);
+  align-items: center;
+}
+
+/* Every pill sits flush with the ladder's right edge. */
+.rung > :last-child {
+  justify-self: end;
+}
+
+/* No rules between rungs: space alone separates the levels. */
+.rung + .rung {
+  margin-top: clamp(48px, 5.2vw, 84px);
+}
+
+.rungMeter {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 28px;
+}
+
+.rungMeter > span {
+  width: 5px;
+  border-radius: 2px;
+  background: var(--color-skeleton);
+}
+
+.rungMeter > span:nth-child(1) { height: 25%; }
+.rungMeter > span:nth-child(2) { height: 40%; }
+.rungMeter > span:nth-child(3) { height: 55%; }
+.rungMeter > span:nth-child(4) { height: 70%; }
+.rungMeter > span:nth-child(5) { height: 85%; }
+.rungMeter > span:nth-child(6) { height: 100%; }
+
+.rungMeter > span[data-on] {
+  background: var(--color-ink);
+}
+
+.rungTitle {
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.05em;
+  color: var(--color-ink);
+}
+
+/* Formats */
+
+.formats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 1.4vw, 20px);
+  align-items: stretch;
+}
+
+.formatCard {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  height: 100%;
+  padding: clamp(24px, 3vw, 44px);
+  border-radius: 20px;
+}
+
+.formatCardInk {
+  background: var(--color-ink);
+  color: #fff;
+}
+
+.formatTitle {
+  margin: 0;
+  font-size: clamp(2.25rem, 3.6vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.formatList {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.formatList > li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.formatList svg {
+  margin-top: 2px;
+}
+
+.runOfShow {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.runOfShow > li {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  gap: 12px;
+  padding-block: 10px;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+  line-height: 1.35;
+}
+
+.runOfShowLight > li {
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  border-top-color: var(--color-skeleton);
+}
+
+/* The terms panel: what each format costs and what the company brings. It
+   sits on the card's floor so both cards end on the same line however long
+   their middles run, and it is raised off the card so it reads as the deal
+   rather than a footnote. */
+.formatTerms {
+  /* Outdented by its own padding so its text lines up with the card copy
+     above while the panel itself spreads into the card's margin. */
+  --terms-pad: clamp(18px, 2vw, 26px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: auto;
+  /* Pulled down by the same amount, so the card's border around the panel
+     is even on the sides and bottom. */
+  margin-inline: calc(-1 * var(--terms-pad));
+  margin-bottom: calc(-1 * var(--terms-pad));
+  padding: var(--terms-pad);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.formatCardInk .formatTerms {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.formatTermsLead {
+  margin: 0;
+  font-size: clamp(1.25rem, 1.7vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+/* Process */
+
+.processPanel {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(48px, 6vw, 88px);
+  padding: clamp(28px, 4.5vw, 72px);
+  border-radius: 28px;
+  background: #fff;
+  /* A light ring and an even glow define every edge, top included; the
+     last layer adds a gentle lift underneath. */
+  box-shadow:
+    0 0 0 1px rgb(15 15 15 / 0.03),
+    0 0 28px rgb(15 15 15 / 0.05),
+    0 12px 32px -16px rgb(15 15 15 / 0.08);
+}
+
+/* A marker stroke behind the word: low on the letters, a touch skewed and
+   tilted with uneven ends so it reads as drawn by hand. It sweeps in from
+   the left as the panel reveals. */
+.highlight {
+  position: relative;
+  z-index: 0;
+  white-space: nowrap;
+}
+
+.highlight::before {
+  position: absolute;
+  z-index: -1;
+  top: 0.44em;
+  right: -0.1em;
+  bottom: 0.04em;
+  left: -0.08em;
+  border-radius: 0.1em 0.28em 0.16em 0.34em;
+  background: var(--color-accent-primary);
+  content: "";
+  transform: rotate(-1.2deg) skewX(-8deg) scaleX(0);
+  transform-origin: left center;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1) 450ms;
+}
+
+:global(.is-visible) .highlight::before {
+  transform: rotate(-1.2deg) skewX(-8deg) scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlight::before {
+    transform: rotate(-1.2deg) skewX(-8deg);
+    transition: none;
+  }
+}
+
+.processHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px 48px;
+}
+
+.processHead h2 {
+  margin-top: -0.05em;
+}
+
+.timeline {
+  --timeline-gap: clamp(16px, 2vw, 32px);
+  --node-size: 48px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: var(--timeline-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timelineStep {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* The rail runs from each node to the next. The track is always there; the
+   ink fill draws across it, one step after another, as the panel reveals. */
+.timelineStep:not(:last-child)::before,
+.timelineStep:not(:last-child)::after {
+  position: absolute;
+  top: calc(var(--node-size) / 2 - 1px);
+  left: calc(var(--node-size) + 10px);
+  right: calc(10px - var(--timeline-gap));
+  height: 2px;
+  border-radius: 2px;
+  content: "";
+}
+
+.timelineStep:not(:last-child)::before {
+  background: rgb(0 0 0 / 0.03);
+}
+
+.timelineStep:not(:last-child)::after {
+  background: var(--color-skeleton);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(240ms + var(--step) * 160ms);
+}
+
+:global(.is-visible) .timelineStep::after {
+  transform: scaleX(1);
+}
+
+.timelineNode {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: var(--node-size);
+  height: var(--node-size);
+  flex: none;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.timelineStep[data-milestone] .timelineNode {
+  background: var(--color-accent-primary);
+  color: var(--color-ink);
+  box-shadow: 0 0 0 6px rgb(236 242 109 / 0.35);
+}
+
+.timelineTitle {
+  font-size: clamp(1.5rem, 2vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  color: var(--color-ink);
+}
+
+/* CTA */
+
+.ctaCopy {
+  grid-column: 1 / span 5;
+}
+
+.ctaForm {
+  grid-column: 7 / span 6;
+}
+
+@media (max-width: 1100px) {
+  .timeline {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 36px;
+  }
+
+  .timelineStep {
+    flex-direction: row;
+    gap: 20px;
+  }
+
+  /* Stacked, the rail drops from each node to the one below it. */
+  .timelineStep:not(:last-child)::before,
+  .timelineStep:not(:last-child)::after {
+    top: calc(var(--node-size) + 10px);
+    right: auto;
+    bottom: -26px;
+    left: calc(var(--node-size) / 2 - 1px);
+    width: 2px;
+    height: auto;
+  }
+
+  .timelineStep:not(:last-child)::after {
+    transform: scaleY(0);
+    transform-origin: center top;
+  }
+
+  :global(.is-visible) .timelineStep::after {
+    transform: scaleY(1);
+  }
+}
+
+@media (max-width: 820px) {
+  /* Stacked on phones, where three full names won't share a line. */
+  .cityList {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* Tighter panel on phones; its outdent follows, so the text stays aligned
+     with the card copy above. */
+  .formatTerms {
+    --terms-pad: 12px;
+  }
+
+  /* On phones the heading reads as the first line of the list. */
+  .wallTitle {
+    font-size: var(--wall-size);
+    letter-spacing: -0.055em;
+  }
+
+  .grid,
+  .wallBlock {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wallTitle {
+    position: static;
+    grid-column: 1;
+    margin-bottom: 0.4em;
+  }
+
+  .wall {
+    grid-column: 1;
+  }
+
+  .heroCopy,
+  .heroGlobe {
+    grid-row: auto;
+  }
+
+  .globe {
+    max-width: 420px;
+  }
+
+  .heroCopy,
+  .heroGlobe,
+  .splitCopy,
+  .splitAside,
+  .sectionIntro,
+  .formats,
+  .processPanel,
+  .ctaCopy,
+  .ctaForm {
+    grid-column: 1;
+  }
+
+  .splitCopy,
+  .ctaCopy {
+    margin-bottom: 40px;
+  }
+
+  .splitCopy > h2,
+  .sectionIntro > h2,
+  .processHead h2,
+  .ctaCopy > h2 {
+    margin-top: 0;
+  }
+
+  .heroTitle {
+    font-size: clamp(2.75rem, 11.5vw, 4.5rem);
+  }
+
+  .formats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .processPanel {
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .wallBlock {
+    --wall-size: clamp(2rem, 9.6vw, 2.5rem);
+  }
+
+  .timeline {
+    --node-size: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wallItem,
+  .timelineStep::after {
+    transition: none;
+  }
+}

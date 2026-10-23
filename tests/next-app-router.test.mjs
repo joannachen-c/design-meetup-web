@@ -76,7 +76,7 @@ test("root layout sets a shared Open Graph and Twitter preview image", async () 
   await access(new URL("public/og-preview.jpg", root));
   assert.match(layout, /metadataBase/);
   assert.match(layout, /from ["']@\/lib\/site["']/);
-  assert.match(site, /design-meetup-web\.vercel\.app/);
+  assert.match(site, /designmeetup\.info/);
   assert.match(layout, /openGraph/);
   assert.match(site, /og-preview\.jpg/);
   assert.match(layout, /summary_large_image/);
@@ -98,7 +98,7 @@ test("design-system page sets its own Open Graph preview image and is noindex", 
 test("robots and sitemap routes exist for search engines", async () => {
   const robots = await read("app/robots.ts");
   const sitemap = await read("app/sitemap.ts");
-  assert.match(robots, /disallow:\s*\[["']\/design-system["']\]/);
+  assert.match(robots, /disallow:\s*\[["']\/design-system["'], ["']\/talent["']\]/);
   assert.match(robots, /sitemap\.xml/);
   assert.match(sitemap, /siteUrl/);
   assert.match(sitemap, /priority:\s*1/);

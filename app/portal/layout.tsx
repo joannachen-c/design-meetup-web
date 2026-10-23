@@ -8,6 +8,7 @@ import {
   maybeUpgradeGraduatedStudent,
   userHasPortalAccess,
 } from "@/lib/membership-service";
+import { isOrganizerSession } from "@/lib/portal-access";
 import { originFromHeaders, siteUrl } from "@/lib/site";
 
 export default async function PortalLayout({
@@ -26,6 +27,7 @@ export default async function PortalLayout({
     profile?.displayName?.trim() ||
     displayNameFromEmail(user.email || "member");
   const paid = await userHasPortalAccess(user.id);
+  const organizer = await isOrganizerSession(user);
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface text-ink">
@@ -33,6 +35,7 @@ export default async function PortalLayout({
         displayName={displayName}
         avatarUrl={profile?.avatarUrl ?? null}
         paid={paid}
+        organizer={organizer}
       />
       {children}
     </div>

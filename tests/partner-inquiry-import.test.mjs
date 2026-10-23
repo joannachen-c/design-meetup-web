@@ -72,6 +72,7 @@ Submitted: 2026-08-12T15:04:05.000Z
   assert.equal(parsed?.email, "ada@example.com");
   assert.equal(parsed?.interest, "sponsor");
   assert.equal(parsed?.city, "sf");
+  assert.equal(parsed?.note, "");
   assert.equal(parsed?.submittedAt, "2026-08-12T15:04:05.000Z");
   assert.equal(
     parsed?.submissionId,
@@ -92,9 +93,37 @@ Submitted: 2026-08-12T15:04:05.000Z
   assert.equal(row.submission_id, parsed.submissionId);
   assert.equal(row.first_name, "Ada");
   assert.equal(row.email, "ada@example.com");
+  assert.equal(row.note, null);
   assert.equal(classifyInsertError(null), "ok");
   assert.equal(classifyInsertError({ code: "23505" }), "duplicate");
   assert.equal(classifyInsertError({ code: "42501" }), "failed");
+});
+
+test("optional notes round-trip without changing the historical id", () => {
+  const withoutNote = `New partner inquiry
+
+Name: Ada Lovelace
+Email: ada@example.com
+Interest: partnering on an event
+City: San Francisco
+Submitted: 2026-08-12T15:04:05.000Z
+`;
+  const withNote = `New partner inquiry
+
+Name: Ada Lovelace
+Email: ada@example.com
+Interest: partnering on an event
+City: San Francisco
+Note: We can host a dinner after the talk.
+Submitted: 2026-08-12T15:04:05.000Z
+`;
+  const parsed = parsePartnerInquiryEmail(withNote);
+  assert.equal(parsed?.note, "We can host a dinner after the talk.");
+  assert.equal(
+    parsed?.submissionId,
+    parsePartnerInquiryEmail(withoutNote)?.submissionId,
+  );
+  assert.equal(partnerInquiryRow(parsed).note, parsed.note);
 });
 
 test("historical aliases still map onto the current interest keys", () => {

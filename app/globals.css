@@ -10,6 +10,7 @@
   --color-skeleton: oklch(93.2% 0.004 264.542);
   --color-accent-primary: #ecf26d;
   --color-accent-hover: #e3e95f;
+  --shadow-sm: 0 1px 5px 0 rgb(0 0 0 / 0.1), 0 1px 3px -1px rgb(0 0 0 / 0.1);
 }
 
 :root {
@@ -167,6 +168,22 @@ html.is-loading body {
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* A Planning calendar entry settling into the day it was dropped on. */
+@keyframes planning-land {
+  0% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgb(236 242 109 / 0);
+  }
+  45% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 3px rgb(236 242 109 / 0.9);
+  }
+  100% {
+    transform: none;
+    box-shadow: 0 0 0 0 rgb(236 242 109 / 0);
   }
 }
 
@@ -353,195 +370,10 @@ h1 span {
   );
 }
 
-/* Desktop hover: a stronger white wash with blur, and chevrons on top. Hidden
-   on phones and coarse pointers, where the rail is already a swipe. Hovering
-   the viewport (side covers, empty shelf, edges) shows the wash; hovering the
-   focused centre cover does not — that hover is for the cover itself (Luma).
-
-   Frost and wash are separate layers. The blur ramps 0→8px on its own; the
-   white overlay fades via opacity. Fading an already-blurred backdrop-filter
-   through opacity composites two images (sharp covers + 8px frost) and reads
-   as a pop. Opacity stays off the blur layer and off the edge itself so the
-   filter still samples the covers.
-
-   The band itself passes events through so the second and third covers from
-   either edge stay clickable under the wash; only the chevron catches the
-   pointer. Clearing shelf hover on the edge still fires when the pointer
-   enters the button, which is the only hit target in the band. */
+/* Side navigation lives in the ticker and keyboard arrows; the carousel's own
+   edge chevrons and hover wash stay off at every breakpoint. */
 .gallery-edge {
   display: none;
-}
-
-@media (min-width: 821px) {
-  @media (hover: hover) and (pointer: fine) {
-    .gallery-edge {
-      position: absolute;
-      z-index: 5;
-      top: 0;
-      bottom: 0;
-      display: flex;
-      align-items: stretch;
-      width: clamp(88px, 14vw, 240px);
-      pointer-events: none;
-    }
-
-    .gallery-edge-start {
-      left: 0;
-      justify-content: flex-start;
-      padding-left: clamp(8px, 0.8vw, 14px);
-      /* The rail's extra bottom pad for the underhang sits the covers above
-         the viewport centre; match that so the chevron lands on the shelf. */
-      padding-bottom: var(--rail-underhang);
-    }
-
-    .gallery-edge-end {
-      right: 0;
-      justify-content: flex-end;
-      padding-right: clamp(8px, 0.8vw, 14px);
-      padding-bottom: var(--rail-underhang);
-    }
-
-    .gallery-edge::before,
-    .gallery-edge::after {
-      position: absolute;
-      z-index: 0;
-      inset: 0;
-      content: "";
-      pointer-events: none;
-    }
-
-    /* Rest at blur(0) so the filter interpolates; `none` and an 8px layer
-       faded through opacity both snap. */
-    .gallery-edge::before {
-      /* Safari skips backdrop-filter on a fully empty layer. */
-      background-image: linear-gradient(
-        color-mix(in oklab, var(--color-surface) 1%, transparent),
-        color-mix(in oklab, var(--color-surface) 1%, transparent)
-      );
-      backdrop-filter: blur(0px);
-      -webkit-backdrop-filter: blur(0px);
-      transition:
-        backdrop-filter 240ms ease-out,
-        -webkit-backdrop-filter 240ms ease-out;
-    }
-
-    .gallery-edge::after {
-      opacity: 0;
-      transition: opacity 240ms ease-out;
-    }
-
-    .gallery-edge-start::before,
-    .gallery-edge-start::after {
-      mask-image: linear-gradient(
-        to right,
-        #000 18%,
-        rgb(0 0 0 / 0.4) 58%,
-        transparent
-      );
-      -webkit-mask-image: linear-gradient(
-        to right,
-        #000 18%,
-        rgb(0 0 0 / 0.4) 58%,
-        transparent
-      );
-    }
-
-    .gallery-edge-start::after {
-      background-image: linear-gradient(
-        to right,
-        var(--color-surface),
-        color-mix(in oklab, var(--color-surface) 62%, transparent) 48%,
-        transparent
-      );
-    }
-
-    .gallery-edge-end::before,
-    .gallery-edge-end::after {
-      mask-image: linear-gradient(
-        to left,
-        #000 18%,
-        rgb(0 0 0 / 0.4) 58%,
-        transparent
-      );
-      -webkit-mask-image: linear-gradient(
-        to left,
-        #000 18%,
-        rgb(0 0 0 / 0.4) 58%,
-        transparent
-      );
-    }
-
-    .gallery-edge-end::after {
-      background-image: linear-gradient(
-        to left,
-        var(--color-surface),
-        color-mix(in oklab, var(--color-surface) 62%, transparent) 48%,
-        transparent
-      );
-    }
-
-    .gallery-edge-button {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      flex: 0 0 auto;
-      width: 44px;
-      min-height: 44px;
-      place-items: center;
-      border: 0;
-      cursor: pointer;
-      opacity: 0;
-      pointer-events: auto;
-      transition:
-        opacity 240ms ease-out,
-        transform 160ms ease-out,
-        color 150ms ease;
-    }
-
-    .gallery-edge-button:disabled {
-      pointer-events: none;
-    }
-
-    .gallery-edge-button svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    .gallery-edge-button svg path {
-      stroke-width: 2;
-    }
-
-    .gallery-edge-button:active:not(:disabled) {
-      transform: scale(0.96);
-    }
-
-    .gallery-edge-button:focus-visible {
-      outline: 2px solid var(--color-ink);
-      outline-offset: 2px;
-    }
-
-    /* is-center-hovered is JS-driven after a still center hover (same as the
-       Luma hint) so a cover scrolling under a parked pointer cannot flash the
-       edge chrome. */
-    .gallery-viewport:hover:not(:has(.event-card.is-center-hovered))
-      .gallery-edge::before,
-    .gallery-edge:has(.gallery-edge-button:focus-visible)::before {
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-
-    .gallery-viewport:hover:not(:has(.event-card.is-center-hovered))
-      .gallery-edge::after,
-    .gallery-edge:has(.gallery-edge-button:focus-visible)::after {
-      opacity: 1;
-    }
-
-    .gallery-viewport:hover:not(:has(.event-card.is-center-hovered))
-      .gallery-edge-button:not(:disabled),
-    .gallery-edge-button:focus-visible:not(:disabled) {
-      opacity: 1;
-    }
-  }
 }
 
 .gallery-ticker {
@@ -1752,6 +1584,42 @@ button.lightbox-arrow-next {
   align-items: flex-start;
   justify-content: center;
   gap: 28px;
+  /* Opacity and transform stay in step with .scroll-reveal; translate recenters
+     the block on the same curve as the note's height. */
+  transition:
+    opacity 420ms ease-out,
+    transform 420ms ease-out,
+    translate 520ms ease-in-out;
+}
+
+/* Cancels the form's gap-3 while closed, so the resting sentence does not
+   grow a blank row. The same offset stays while open; the panel's margin
+   is what reads as the gap. Height is set from the panel's scroll height
+   so the open eases instead of snapping the block. */
+.partner-note {
+  width: 0;
+  min-width: 100%;
+  height: 0;
+  margin-top: -0.75rem;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    height 520ms ease-in-out,
+    opacity 520ms ease-in-out;
+}
+
+.partner-note.is-open {
+  opacity: 1;
+}
+
+.partner-note-panel textarea {
+  margin-top: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-note {
+    transition: none;
+  }
 }
 
 .partner-logos {
@@ -2349,10 +2217,7 @@ footer {
   .view-toggle-thumb,
   .event-grid-cover,
   .recent-event-thumb,
-  .cover-luma-hint,
-  .gallery-edge::before,
-  .gallery-edge::after,
-  .gallery-edge-button {
+  .cover-luma-hint {
     transition: none;
   }
 

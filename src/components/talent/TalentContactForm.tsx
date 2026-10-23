@@ -171,23 +171,25 @@ export function TalentContactForm() {
         />
       </div>
       <div className={row}>
-        <span>We’d like to hire a</span>
-        <label className="sr-only" htmlFor={`${fieldId}-role`}>
-          Role you’re hiring for
-        </label>
-        <Select
-          className="min-w-[16rem] grow basis-[16rem] max-[640px]:min-w-0"
-          id={`${fieldId}-role`}
-          name="role"
-          options={roleOptions}
-          value={role}
-          onValueChange={(next) => {
-            setRole(next);
-            resetStatus();
-          }}
-        />
-        {/* Each connector word travels with its dropdown, so a wrapping row
-            never strands "in" or "through" at the end of a line. */}
+        {/* Each phrase travels with its dropdown, so a wrapping row never
+            strands "We'd like to hire a", "in" or "through" on its own. */}
+        <span className="flex min-w-0 grow basis-[26rem] items-center gap-3">
+          <span className="shrink-0">We’d like to hire a</span>
+          <label className="sr-only" htmlFor={`${fieldId}-role`}>
+            Role you’re hiring for
+          </label>
+          <Select
+            className="min-w-0 grow"
+            id={`${fieldId}-role`}
+            name="role"
+            options={roleOptions}
+            value={role}
+            onValueChange={(next) => {
+              setRole(next);
+              resetStatus();
+            }}
+          />
+        </span>
         <span className="flex flex-none items-center gap-3">
           <span>in</span>
           <label className="sr-only" htmlFor={`${fieldId}-city`}>

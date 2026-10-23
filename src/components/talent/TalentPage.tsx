@@ -88,10 +88,7 @@ export function TalentPage() {
             <ul className={styles.cityList} aria-label="Hub cities">
               {hubCities.map((city) => (
                 <li key={city.code} className={styles.cityName}>
-                  <span className={styles.cityFull}>{city.name}</span>
-                  <span className={styles.cityShort} aria-hidden="true">
-                    {city.code}
-                  </span>
+                  {city.name}
                 </li>
               ))}
             </ul>

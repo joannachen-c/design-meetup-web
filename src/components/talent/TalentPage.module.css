@@ -59,7 +59,7 @@
 .cityList {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px clamp(40px, 5vw, 96px);
+  gap: 4px clamp(36px, 3.8vw, 80px);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -171,11 +171,6 @@
   color: var(--color-tertiary);
 }
 
-/* Phones show the short codes; the full name stays for screen readers. */
-.cityShort {
-  display: none;
-}
-
 /* Logo wall */
 
 .wallBlock {
@@ -189,10 +184,10 @@
   color: var(--color-ink);
 }
 
-/* A step below the company names, and a shade lighter, so it reads as the
-   caption to the list; it holds level with the reading line while the
-   companies scroll past it. Tracking is set here rather than inherited: an
-   em value on the block would resolve against its 16px base, not this size. */
+/* Styled like the page's other section headings; it holds level with the
+   reading line while the companies scroll past it. Tracking is set here
+   rather than inherited: an em value on the block would resolve against its
+   16px base, not this size. */
 .wallTitle {
   position: sticky;
   top: calc(45vh - 0.6em);
@@ -203,7 +198,7 @@
   font-weight: inherit;
   line-height: 1.05;
   letter-spacing: -0.06em;
-  color: var(--color-muted);
+  color: #000;
 }
 
 .wall {
@@ -617,17 +612,10 @@
 }
 
 @media (max-width: 820px) {
-  .cityShort {
-    display: inline;
-  }
-
-  .cityFull {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+  /* Stacked on phones, where three full names won't share a line. */
+  .cityList {
+    flex-direction: column;
+    gap: 6px;
   }
 
   /* Tighter panel on phones; its outdent follows, so the text stays aligned

@@ -1072,28 +1072,28 @@ export default function DesignSystem() {
                   <span className="flex -space-x-2.5">
                     <Tooltip content="Michelle Liu">
                       <img
-                        className="relative size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:z-10 hover:-translate-y-0.5"
+                        className="relative size-8 rounded-full object-cover ring-2 ring-white ease-out [transition-property:transform,z-index] [transition-duration:150ms,0s] [transition-delay:0s,150ms] hover:z-10 hover:-translate-y-0.5 hover:[transition-delay:0s,0s]"
                         src="/team/michelle-liu.jpg"
                         alt="Michelle Liu"
                       />
                     </Tooltip>
                     <Tooltip content="Ilyssa Yan">
                       <img
-                        className="relative size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:z-10 hover:-translate-y-0.5"
+                        className="relative size-8 rounded-full object-cover ring-2 ring-white ease-out [transition-property:transform,z-index] [transition-duration:150ms,0s] [transition-delay:0s,150ms] hover:z-10 hover:-translate-y-0.5 hover:[transition-delay:0s,0s]"
                         src="/team/ilyssa-yan.jpg"
                         alt="Ilyssa Yan"
                       />
                     </Tooltip>
                     <Tooltip content="Brandon Lee">
                       <img
-                        className="relative size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:z-10 hover:-translate-y-0.5"
+                        className="relative size-8 rounded-full object-cover ring-2 ring-white ease-out [transition-property:transform,z-index] [transition-duration:150ms,0s] [transition-delay:0s,150ms] hover:z-10 hover:-translate-y-0.5 hover:[transition-delay:0s,0s]"
                         src="/team/brandon-lee.jpg"
                         alt="Brandon Lee"
                       />
                     </Tooltip>
                     <Tooltip content="Joanna Chen">
                       <img
-                        className="relative size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:z-10 hover:-translate-y-0.5"
+                        className="relative size-8 rounded-full object-cover ring-2 ring-white ease-out [transition-property:transform,z-index] [transition-duration:150ms,0s] [transition-delay:0s,150ms] hover:z-10 hover:-translate-y-0.5 hover:[transition-delay:0s,0s]"
                         src="/team/joanna-chen.jpg"
                         alt="Joanna Chen"
                       />

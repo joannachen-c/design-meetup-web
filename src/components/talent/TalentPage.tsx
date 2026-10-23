@@ -244,7 +244,9 @@ export function TalentPage() {
             <div className={styles.processHead}>
               <h2 className={sectionTitle} id="process-title">
                 From kickoff{" "}
-                <span className="min-[821px]:block">to shortlist</span>
+                <span className="min-[821px]:block">
+                  to <span className={styles.highlight}>shortlist</span>
+                </span>
               </h2>
             </div>
             <ol className={styles.timeline}>

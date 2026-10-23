@@ -57,32 +57,26 @@ export const hubCities = [
 export const seniorityLevels = [
   {
     level: "Designer",
-    positions: "Product Designer · Brand Designer",
     track: "IC",
   },
   {
     level: "Senior Designer",
-    positions: "Senior Product Designer · Senior Brand Designer",
     track: "IC",
   },
   {
     level: "Staff & Principal",
-    positions: "Staff Product Designer · Principal Designer",
     track: "IC",
   },
   {
     level: "Design Engineering",
-    positions: "Design Engineer · Creative Technologist",
     track: "Hybrid",
   },
   {
     level: "Manager",
-    positions: "Design Lead · Design Manager",
     track: "Leadership",
   },
   {
     level: "Head of Design",
-    positions: "Head of Design · Founding Designer",
     track: "Leadership",
   },
 ] as const;

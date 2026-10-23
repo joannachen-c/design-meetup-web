@@ -316,9 +316,14 @@
   align-items: center;
 }
 
+/* Every pill sits flush with the ladder's right edge. */
+.rung > :last-child {
+  justify-self: end;
+}
+
 /* No rules between rungs: space alone separates the levels. */
 .rung + .rung {
-  margin-top: clamp(36px, 3.6vw, 56px);
+  margin-top: clamp(48px, 5.2vw, 84px);
 }
 
 .rungMeter {
@@ -613,11 +618,6 @@
     gap: 6px;
   }
 
-  /* Phones keep each level to its title and pill. */
-  .rungPositions {
-    display: none;
-  }
-
   /* Tighter panel on phones; its outdent follows, so the text stays aligned
      with the card copy above. */
   .formatTerms {
@@ -694,16 +694,6 @@
 @media (max-width: 520px) {
   .wallBlock {
     --wall-size: clamp(2rem, 9.6vw, 2.5rem);
-  }
-
-  .rung {
-    grid-template-columns: auto minmax(0, 1fr);
-    row-gap: 10px;
-  }
-
-  .rung > :last-child {
-    grid-column: 2;
-    width: fit-content;
   }
 
   .timeline {

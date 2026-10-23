@@ -131,13 +131,8 @@ export function TalentPage() {
                       <span key={bar} data-on={bar <= index || undefined} />
                     ))}
                   </span>
-                  <span className="flex min-w-0 flex-col gap-1">
-                    <span className={styles.rungTitle}>{rung.level}</span>
-                    <span
-                      className={`${styles.rungPositions} text-base leading-[1.4] text-muted`}
-                    >
-                      {rung.positions}
-                    </span>
+                  <span className={`${styles.rungTitle} min-w-0`}>
+                    {rung.level}
                   </span>
                   <Pill>{rung.track}</Pill>
                 </li>

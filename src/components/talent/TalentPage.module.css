@@ -444,7 +444,10 @@
   align-items: flex-start;
   gap: 12px;
   margin-top: auto;
+  /* Pulled down by the same amount, so the card's border around the panel
+     is even on the sides and bottom. */
   margin-inline: calc(-1 * var(--terms-pad));
+  margin-bottom: calc(-1 * var(--terms-pad));
   padding: var(--terms-pad);
   border-radius: 14px;
   background: #fff;

@@ -111,7 +111,7 @@ function AdvisorCard({
             {advisor.company}
             {advisor.locations.length > 0 ? (
               <span className="text-subtle">
-                <span className="mx-[0.3em]">·</span>
+                {advisor.company ? <span className="mx-[0.3em]">·</span> : null}
                 {advisorLocationLabel(advisor)}
               </span>
             ) : null}

@@ -171,9 +171,16 @@
   color: var(--color-tertiary);
 }
 
+/* Phones show the short codes; the full name stays for screen readers. */
+.cityShort {
+  display: none;
+}
+
 /* Logo wall */
 
 .wallBlock {
+  /* The company names' size, which the heading also takes on phones. */
+  --wall-size: clamp(2.5rem, 4.8vw, 5rem);
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: clamp(16px, 2vw, 28px);
@@ -202,7 +209,7 @@
 .wall {
   /* Shares the seniority ladder's columns so the two lists line up. */
   grid-column: 7 / span 6;
-  font-size: clamp(2.5rem, 4.8vw, 5rem);
+  font-size: var(--wall-size);
   line-height: 1.12;
   letter-spacing: -0.055em;
   display: flex;
@@ -610,6 +617,31 @@
 }
 
 @media (max-width: 820px) {
+  .cityShort {
+    display: inline;
+  }
+
+  .cityFull {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Tighter panel on phones; its outdent follows, so the text stays aligned
+     with the card copy above. */
+  .formatTerms {
+    --terms-pad: 12px;
+  }
+
+  /* On phones the heading reads as the first line of the list. */
+  .wallTitle {
+    font-size: var(--wall-size);
+    letter-spacing: -0.055em;
+  }
+
   .grid,
   .wallBlock {
     grid-template-columns: minmax(0, 1fr);
@@ -672,12 +704,8 @@
 }
 
 @media (max-width: 520px) {
-  .wall {
-    font-size: clamp(2rem, 9.6vw, 2.5rem);
-  }
-
-  .wallTitle {
-    font-size: clamp(2.75rem, 12vw, 3.75rem);
+  .wallBlock {
+    --wall-size: clamp(2rem, 9.6vw, 2.5rem);
   }
 
   .rung {

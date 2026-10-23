@@ -51,7 +51,7 @@ export const advisorCompanies: AdvisorCompany[] = [
 export const hubCities = [
   { code: "SF", name: "San Francisco" },
   { code: "LA", name: "Los Angeles" },
-  { code: "NYC", name: "New York" },
+  { code: "NY", name: "New York" },
 ] as const;
 
 export const seniorityLevels = [

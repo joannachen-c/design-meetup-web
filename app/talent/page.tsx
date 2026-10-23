@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import { TalentPage } from "@/components/talent/TalentPage";
-import { siteOgImage } from "@/lib/site";
 
 const pageTitle = "Talent Network";
 const pageDescription =
-  "Hire vetted senior designers in San Francisco, Los Angeles and New York through Design Meetup’s Board of Advisors.";
+  "We match your team with vetted designers of all levels nationwide, through a trusted design community.";
+
+const ogImage = {
+  url: "/og-talent.jpg",
+  width: 1200,
+  height: 630,
+  alt: "Design Meetup Talent Network: a globe of the companies our network designs at",
+} as const;
 
 export const metadata: Metadata = {
   title: pageTitle,
@@ -21,13 +27,13 @@ export const metadata: Metadata = {
     title: `${pageTitle} · Design Meetup`,
     description: pageDescription,
     url: "/talent",
-    images: [siteOgImage],
+    images: [ogImage],
   },
   twitter: {
     card: "summary_large_image",
     title: `${pageTitle} · Design Meetup`,
     description: pageDescription,
-    images: [siteOgImage.url],
+    images: [ogImage.url],
   },
 };
 

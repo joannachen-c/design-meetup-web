@@ -184,6 +184,14 @@ export function TalentPage() {
                   ))}
                 </ol>
               </div>
+              <div className={styles.formatTerms}>
+                <span className="text-sm text-muted text-medium">
+                  How it works
+                </span>
+                <p className={styles.formatTermsLead}>
+                  Referral fee, paid only when you hire
+                </p>
+              </div>
             </ScrollReveal>
 
             <ScrollReveal
@@ -211,6 +219,14 @@ export function TalentPage() {
                     </li>
                   ))}
                 </ol>
+              </div>
+              <div className={styles.formatTerms}>
+                <span className="text-sm text-white/60 text-medium">
+                  How it works
+                </span>
+                <p className={styles.formatTermsLead}>
+                  Event partnership: you co-host, we curate the room
+                </p>
               </div>
             </ScrollReveal>
           </div>

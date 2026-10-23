@@ -114,12 +114,12 @@
 /* Stacked slices behind the face make the card's edge, so it reads as solid
    from any angle and keeps its rounded corners while doing it. */
 .cardLayer {
-  background: #e6e9ed;
+  background: #f3f4f6;
   transform: translateZ(calc(var(--card-size, 48px) * -0.009 * var(--layer)));
 }
 
 .cardBack {
-  background: #f1f3f5;
+  background: #f6f7f9;
   backface-visibility: hidden;
   transform: translateZ(calc(var(--card-size, 48px) * -0.04)) rotateY(180deg);
 }
@@ -130,8 +130,6 @@
   place-items: center;
   background: #fff;
   backface-visibility: hidden;
-  /* 3px at the 3x layout size the cards are drawn at: about 1px on screen. */
-  box-shadow: inset 0 0 0 3px rgb(0 0 0 / 0.06);
 }
 
 .cardFace img {

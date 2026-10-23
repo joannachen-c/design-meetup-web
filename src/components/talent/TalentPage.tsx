@@ -6,6 +6,7 @@ import { ScrollReveal } from "../ScrollReveal";
 import { SiteFooter } from "../SiteFooter";
 import { SiteHeader, type SiteHeaderLink } from "../SiteHeader";
 import { AdvisorWall } from "./AdvisorWall";
+import { LogoGlobe } from "./LogoGlobe";
 import { TalentContactForm } from "./TalentContactForm";
 import {
   ADVISOR_COUNT,
@@ -58,7 +59,10 @@ export function TalentPage() {
   return (
     <>
       <SiteHeader links={talentHeaderLinks} navAriaLabel="Talent Network" />
-      <main className="bg-surface text-ink">
+      {/* clip, not the global hidden: hidden makes main a scroll container,
+          which would pin the logo list's sticky caption to main instead of
+          the viewport. */}
+      <main className="bg-surface text-ink" style={{ overflow: "clip" }}>
         <section
           className={`${styles.grid} ${styles.hero} ${sectionPadding} pt-[clamp(32px,6vw,96px)] pb-[clamp(72px,9vw,140px)]`}
           aria-labelledby="talent-title"
@@ -75,20 +79,23 @@ export function TalentPage() {
               trust already rates.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Primary href="#get-matched">Get matched</Primary>
+              <Primary href="#get-matched" variant="ink">
+                Get matched
+              </Primary>
               <Primary href="#formats" variant="secondary">
                 See the formats
               </Primary>
             </div>
           </ScrollReveal>
 
+          <ScrollReveal className={styles.heroGlobe} delay={120}>
+            <LogoGlobe />
+          </ScrollReveal>
+
           <ScrollReveal className={styles.cities} delay={80}>
             <ul className={styles.cityList} aria-label="Hub cities">
               {hubCities.map((city) => (
                 <li key={city.code} className={styles.city}>
-                  <span className="text-sm tracking-[0.04em] text-subtle text-medium">
-                    {city.code}
-                  </span>
                   <span className={styles.cityName}>{city.name}</span>
                   <span className="text-base leading-[1.4] text-muted">
                     {city.scene}
@@ -104,17 +111,7 @@ export function TalentPage() {
           id="network"
           aria-labelledby="network-title"
         >
-          <ScrollReveal className={styles.wallHeader}>
-            <h2
-              className="m-0 text-base font-normal text-muted text-medium"
-              id="network-title"
-            >
-              Where our Board of Advisors designs
-            </h2>
-          </ScrollReveal>
-          <ScrollReveal delay={60}>
-            <AdvisorWall />
-          </ScrollReveal>
+          <AdvisorWall />
         </section>
 
         <section

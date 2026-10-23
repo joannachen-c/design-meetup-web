@@ -263,6 +263,7 @@ export function TalentContactForm() {
         />
         <Primary
           className="max-[640px]:w-full max-[640px]:justify-center"
+          variant="ink"
           type="submit"
           disabled={status === "sending"}
           loading={status === "sending"}

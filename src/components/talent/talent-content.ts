@@ -23,7 +23,7 @@ export const advisorCompanies: AdvisorCompany[] = [
     fit: "glyph",
     size: "78%",
   },
-  { name: "Instagram", src: "/talent/logos/instagram.svg", fit: "glyph" },
+  { name: "Instagram", src: "/talent/logos/instagram.svg", fit: "tile" },
   {
     name: "Ramp",
     src: "/partners/partner-4.png",

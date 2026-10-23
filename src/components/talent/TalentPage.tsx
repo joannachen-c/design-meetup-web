@@ -150,11 +150,6 @@ export function TalentPage() {
             <h2 className={sectionTitle} id="formats-title">
               Two ways to hire
             </h2>
-            <p className={lede}>
-              Keep the network on in the background, or bring the best
-              candidates to one table. Most teams start with one and add the
-              other.
-            </p>
           </ScrollReveal>
 
           <div className={styles.formats}>

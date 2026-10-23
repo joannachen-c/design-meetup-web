@@ -692,6 +692,27 @@
     "sort_order": 32
   },
   {
+    "slug": "kathy-zhou",
+    "first_name": "Kathy",
+    "last_name": "Zhou",
+    "title": "Designer",
+    "company": "OpenAI",
+    "relationship": "advisor",
+    "fields": [
+      "Product Design",
+      "AI"
+    ],
+    "locations": [
+      "NYC"
+    ],
+    "bio": "Kathy Zhou is a New York-based designer at OpenAI and a University of Chicago alum.",
+    "photo_url": "/advisors/kathy-zhou.jpg",
+    "website_url": null,
+    "linkedin_url": "https://www.linkedin.com/in/kathytzhou",
+    "x_url": null,
+    "sort_order": 33
+  },
+  {
     "slug": "kenneth-kuh",
     "first_name": "Kenneth",
     "last_name": "Kuh",
@@ -710,7 +731,7 @@
     "website_url": "https://kennethkuh.info",
     "linkedin_url": "https://www.linkedin.com/in/kennethkuh",
     "x_url": "https://x.com/kenneth_kuh",
-    "sort_order": 33
+    "sort_order": 34
   },
   {
     "slug": "laura-sandoval",
@@ -731,7 +752,7 @@
     "website_url": "https://lausandoval.com",
     "linkedin_url": "https://www.linkedin.com/in/laurasideral",
     "x_url": "https://x.com/laurasideral",
-    "sort_order": 34
+    "sort_order": 35
   },
   {
     "slug": "mareike-keller",
@@ -753,7 +774,7 @@
     "website_url": null,
     "linkedin_url": "https://www.linkedin.com/in/mareike-keller",
     "x_url": null,
-    "sort_order": 35
+    "sort_order": 36
   },
   {
     "slug": "mathurah-ravigulan",
@@ -775,7 +796,7 @@
     "website_url": "https://www.mathurah.com",
     "linkedin_url": "https://www.linkedin.com/in/mathurah-ravigulan",
     "x_url": "https://x.com/mathurahravi",
-    "sort_order": 36
+    "sort_order": 37
   },
   {
     "slug": "matthew-vernon",
@@ -797,7 +818,7 @@
     "website_url": "https://matthewvernon.co",
     "linkedin_url": "https://www.linkedin.com/in/matthew-vernon-7394b597",
     "x_url": "https://x.com/dApp_boi",
-    "sort_order": 37
+    "sort_order": 38
   },
   {
     "slug": "mrinali-kamath",
@@ -819,7 +840,7 @@
     "website_url": null,
     "linkedin_url": "https://www.linkedin.com/in/mrinalikamath",
     "x_url": "https://x.com/mrinalikamath",
-    "sort_order": 38
+    "sort_order": 39
   },
   {
     "slug": "muharrem-senyil",
@@ -841,7 +862,7 @@
     "website_url": "https://senyil.com",
     "linkedin_url": "https://www.linkedin.com/in/senyil",
     "x_url": "https://x.com/senyil",
-    "sort_order": 39
+    "sort_order": 40
   },
   {
     "slug": "resham-khanna",
@@ -863,7 +884,7 @@
     "website_url": "https://reshamkhanna.com",
     "linkedin_url": "https://www.linkedin.com/in/reshamkhanna",
     "x_url": "https://x.com/reshusaur",
-    "sort_order": 40
+    "sort_order": 41
   },
   {
     "slug": "rissa-kei-chua",
@@ -884,7 +905,7 @@
     "website_url": "https://rissakei.com",
     "linkedin_url": null,
     "x_url": "https://x.com/rissakeichua",
-    "sort_order": 41
+    "sort_order": 42
   },
   {
     "slug": "sam-gorman",
@@ -906,7 +927,7 @@
     "website_url": "https://rivet.design",
     "linkedin_url": "https://www.linkedin.com/in/gormansam",
     "x_url": "https://x.com/gormankind",
-    "sort_order": 42
+    "sort_order": 43
   },
   {
     "slug": "shaahana-naufal",
@@ -927,7 +948,7 @@
     "website_url": "https://www.shaahana.tech",
     "linkedin_url": "https://www.linkedin.com/in/shaahana-naufal",
     "x_url": "https://x.com/shaahana_naufal",
-    "sort_order": 43
+    "sort_order": 44
   },
   {
     "slug": "sophia-cassidy",
@@ -948,7 +969,7 @@
     "website_url": null,
     "linkedin_url": "https://www.linkedin.com/in/sophiacassidy",
     "x_url": "https://x.com/sophiaacassidy",
-    "sort_order": 44
+    "sort_order": 45
   },
   {
     "slug": "stephanie-zhou",
@@ -969,7 +990,7 @@
     "website_url": "http://stephaniezhou.design",
     "linkedin_url": "https://www.linkedin.com/in/stephanielanzhou",
     "x_url": null,
-    "sort_order": 45
+    "sort_order": 46
   },
   {
     "slug": "tise-alatise",
@@ -989,7 +1010,7 @@
     "website_url": "https://www.tisebuilds.com",
     "linkedin_url": "https://www.linkedin.com/in/tise-faith-alatise",
     "x_url": "https://x.com/tisebuilds",
-    "sort_order": 46
+    "sort_order": 47
   },
   {
     "slug": "vamsi-batchu",
@@ -1011,27 +1032,6 @@
     "website_url": "https://vibenbuild.vercel.app",
     "linkedin_url": "https://www.linkedin.com/in/vamsikbatchu",
     "x_url": "https://x.com/vamsibatchuk",
-    "sort_order": 47
-  },
-  {
-    "slug": "kathy-zhou",
-    "first_name": "Kathy",
-    "last_name": "Zhou",
-    "title": "Designer",
-    "company": "OpenAI",
-    "relationship": "advisor",
-    "fields": [
-      "Product Design",
-      "AI"
-    ],
-    "locations": [
-      "NYC"
-    ],
-    "bio": "Kathy Zhou is a New York-based designer at OpenAI and a University of Chicago alum.",
-    "photo_url": "/advisors/kathy-zhou.jpg",
-    "website_url": null,
-    "linkedin_url": "https://www.linkedin.com/in/kathytzhou",
-    "x_url": null,
     "sort_order": 48
   }
 ]

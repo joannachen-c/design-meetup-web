@@ -243,7 +243,8 @@ export function TalentPage() {
           <ScrollReveal className={styles.processPanel}>
             <div className={styles.processHead}>
               <h2 className={sectionTitle} id="process-title">
-                From kickoff to shortlist
+                From kickoff{" "}
+                <span className="min-[821px]:block">to shortlist</span>
               </h2>
             </div>
             <ol className={styles.timeline}>

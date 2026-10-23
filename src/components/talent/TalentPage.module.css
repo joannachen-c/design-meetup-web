@@ -476,9 +476,8 @@
   border-radius: 28px;
   background: #fff;
   box-shadow:
-    0 2px 4px rgb(15 15 15 / 0.02),
-    0 12px 24px -8px rgb(15 15 15 / 0.06),
-    0 48px 88px -24px rgb(15 15 15 / 0.14);
+    0 1px 2px rgb(15 15 15 / 0.03),
+    0 12px 32px -16px rgb(15 15 15 / 0.08);
 }
 
 .processHead {

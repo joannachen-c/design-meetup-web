@@ -873,27 +873,15 @@ export default function DesignSystem() {
             <h2 className={sectionTitleClassName} id="pills-title">
               pills
             </h2>
-            <div className="grid gap-8">
-              <div>
-                <SpecimenLabel>variants</SpecimenLabel>
-                <div className={`${specimenRowClassName} mt-4`}>
-                  <Pill>Neutral</Pill>
-                  <Pill variant="accent">Accent</Pill>
-                  <Pill variant="ink">Ink</Pill>
-                  <span className="inline-flex rounded-[10px] bg-surface-muted p-3">
-                    <Pill variant="white">White</Pill>
-                  </span>
-                </div>
-              </div>
-              <div>
-                <SpecimenLabel>in use</SpecimenLabel>
-                <div className={`${specimenRowClassName} mt-4`}>
-                  <Pill>IC</Pill>
-                  <Pill>Hybrid</Pill>
-                  <Pill>Leadership</Pill>
-                  <Pill variant="accent">5–8 per role</Pill>
-                  <Pill variant="accent">Signature event</Pill>
-                </div>
+            <div>
+              <SpecimenLabel>variants</SpecimenLabel>
+              <div className={`${specimenRowClassName} mt-4`}>
+                <Pill>Neutral</Pill>
+                <Pill variant="accent">Accent</Pill>
+                <Pill variant="ink">Ink</Pill>
+                <span className="inline-flex rounded-[10px] bg-surface-muted p-3">
+                  <Pill variant="white">White</Pill>
+                </span>
               </div>
             </div>
           </section>

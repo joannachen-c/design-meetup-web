@@ -6,12 +6,22 @@ import styles from "./TalentPage.module.css";
 
 type Vec = [number, number, number];
 
-const DOT_COUNT = 560;
 const TILT = -0.32;
-const SPIN_PER_SECOND = 0.14;
-const ARC_SAMPLES = 24;
-const ARC_LIFT = 0.14;
+const SPIN_PER_SECOND = 0.12;
+const GRID_STEP_DEG = 15;
 const INK = "20, 27, 38";
+
+const toRad = (deg: number) => (deg * Math.PI) / 180;
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+
+// Seeded so the arcs land in the same places on every load.
+function seededRandom(seed: number) {
+  let state = seed;
+  return () => {
+    state = (state * 1664525 + 1013904223) % 4294967296;
+    return state / 4294967296;
+  };
+}
 
 function fibonacciSphere(count: number): Vec[] {
   const golden = Math.PI * (3 - Math.sqrt(5));
@@ -22,27 +32,25 @@ function fibonacciSphere(count: number): Vec[] {
   });
 }
 
-const distance = (a: Vec, b: Vec) =>
-  (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+const fromLatLon = (lat: number, lon: number): Vec => [
+  Math.cos(lat) * Math.sin(lon),
+  Math.sin(lat),
+  Math.cos(lat) * Math.cos(lon),
+];
 
-// Each logo links to its two nearest neighbours, which spreads the arcs evenly
-// over the sphere instead of bunching them at the poles.
-function nearestLinks(points: Vec[], perNode: number) {
-  const links = new Map<string, [number, number]>();
-  points.forEach((point, i) => {
-    points
-      .map((other, j) => ({ j, d: distance(point, other) }))
-      .filter(({ j }) => j !== i)
-      .sort((a, b) => a.d - b.d)
-      .slice(0, perNode)
-      .forEach(({ j }) => {
-        links.set(i < j ? `${i}-${j}` : `${j}-${i}`, [
-          Math.min(i, j),
-          Math.max(i, j),
-        ]);
-      });
-  });
-  return [...links.values()];
+const dot = (a: Vec, b: Vec) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+
+function slerp(a: Vec, b: Vec, t: number, lift: number): Vec {
+  const omega = Math.acos(Math.min(1, Math.max(-1, dot(a, b))));
+  const s = Math.sin(omega) || 1;
+  const wa = Math.sin((1 - t) * omega) / s;
+  const wb = Math.sin(t * omega) / s;
+  const height = 1 + lift * Math.sin(Math.PI * t);
+  return [
+    (a[0] * wa + b[0] * wb) * height,
+    (a[1] * wa + b[1] * wb) * height,
+    (a[2] * wa + b[2] * wb) * height,
+  ];
 }
 
 function rotate([x, y, z]: Vec, yaw: number, pitch: number): Vec {
@@ -55,21 +63,69 @@ function rotate([x, y, z]: Vec, yaw: number, pitch: number): Vec {
   return [x1, y * cp - z1 * sp, y * sp + z1 * cp];
 }
 
-function slerp(a: Vec, b: Vec, t: number): Vec {
-  const dot = Math.min(1, Math.max(-1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
-  const omega = Math.acos(dot);
-  const s = Math.sin(omega) || 1;
-  const wa = Math.sin((1 - t) * omega) / s;
-  const wb = Math.sin(t * omega) / s;
-  const lift = 1 + ARC_LIFT * Math.sin(Math.PI * t);
-  return [
-    (a[0] * wa + b[0] * wb) * lift,
-    (a[1] * wa + b[1] * wb) * lift,
-    (a[2] * wa + b[2] * wb) * lift,
-  ];
+function gridLines(): Vec[][] {
+  const lines: Vec[][] = [];
+  for (let lat = -90 + GRID_STEP_DEG; lat < 90; lat += GRID_STEP_DEG) {
+    lines.push(
+      Array.from({ length: 97 }, (_, i) =>
+        fromLatLon(toRad(lat), toRad((i / 96) * 360)),
+      ),
+    );
+  }
+  for (let lon = 0; lon < 180; lon += GRID_STEP_DEG) {
+    lines.push(
+      Array.from({ length: 97 }, (_, i) =>
+        fromLatLon(toRad(-90 + (i / 96) * 360), toRad(lon)),
+      ),
+    );
+  }
+  return lines;
 }
 
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+// Long, sweeping hops between logos: each one reaches across a good part of
+// the globe and rises higher the farther it travels, like flight paths.
+function sweepingArcs(nodes: Vec[]) {
+  const random = seededRandom(7);
+  const seen = new Set<string>();
+  const arcs: { from: number; to: number; points: Vec[] }[] = [];
+  nodes.forEach((node, i) => {
+    const partners = nodes
+      .map((other, j) => ({ j, angle: Math.acos(dot(node, other)) }))
+      .filter(({ j, angle }) => j !== i && angle > toRad(55) && angle < toRad(150))
+      .sort(() => random() - 0.5)
+      .slice(0, 2);
+    for (const { j, angle } of partners) {
+      const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const lift = 0.04 + 0.2 * (angle / Math.PI);
+      arcs.push({
+        from: i,
+        to: j,
+        points: Array.from({ length: 65 }, (_, step) =>
+          slerp(node, nodes[j], step / 64, lift),
+        ),
+      });
+    }
+  });
+  return arcs;
+}
+
+// A few tilted rings just off the surface give the network its wrap-around
+// sweep without tying every line to a logo.
+function orbits(): Vec[][] {
+  const random = seededRandom(23);
+  return Array.from({ length: 5 }, () => {
+    const radius = 1.05 + random() * 0.1;
+    const tiltA = (random() - 0.5) * Math.PI;
+    const tiltB = random() * Math.PI;
+    return Array.from({ length: 145 }, (_, i) => {
+      const angle = (i / 144) * Math.PI * 2;
+      const flat: Vec = [Math.cos(angle) * radius, 0, Math.sin(angle) * radius];
+      return rotate(flat, tiltB, tiltA);
+    });
+  });
+}
 
 function drawMark(
   ctx: CanvasRenderingContext2D,
@@ -127,9 +183,10 @@ export function LogoGlobe() {
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    const dots = fibonacciSphere(DOT_COUNT);
+    const grid = gridLines();
     const nodes = fibonacciSphere(advisorCompanies.length);
-    const links = nearestLinks(nodes, 2);
+    const arcs = sweepingArcs(nodes);
+    const rings = orbits();
     const images = advisorCompanies.map((company) => {
       const image = new Image();
       image.decoding = "async";
@@ -166,83 +223,88 @@ export function LogoGlobe() {
       const cx = width / 2;
       const cy = height / 2;
       const radius = Math.min(width, height) * 0.36;
-      const pitch = TILT + tiltY;
       const turn = yaw + tiltX;
-      const project = (p: Vec) => {
-        const depth = 1 + p[2] * 0.12;
-        return [cx + p[0] * radius * depth, cy - p[1] * radius * depth] as const;
+      const pitch = TILT + tiltY;
+      const view = (p: Vec) => rotate(p, turn, pitch);
+      const project = (p: Vec) => [cx + p[0] * radius, cy - p[1] * radius] as const;
+      // Behind the sphere and inside its outline: hidden by the globe.
+      const occluded = (p: Vec) => p[2] < 0 && p[0] * p[0] + p[1] * p[1] < 1;
+
+      // Strokes a 3D polyline in two passes so the parts the globe hides can
+      // stay faint (or vanish) while the parts in front read clearly.
+      const strokeLine = (
+        points: Vec[],
+        frontAlpha: number,
+        backAlpha: number,
+        lineWidth: number,
+      ) => {
+        const front = new Path2D();
+        const back = new Path2D();
+        let previous: { p: Vec; xy: readonly [number, number]; hidden: boolean } | null =
+          null;
+        for (const point of points) {
+          const p = view(point);
+          const xy = project(p);
+          const hidden = occluded(p);
+          if (previous) {
+            const path = hidden || previous.hidden ? back : front;
+            path.moveTo(previous.xy[0], previous.xy[1]);
+            path.lineTo(xy[0], xy[1]);
+          }
+          previous = { p, xy, hidden };
+        }
+        ctx.lineWidth = lineWidth;
+        if (backAlpha > 0) {
+          ctx.strokeStyle = `rgba(${INK}, ${backAlpha})`;
+          ctx.stroke(back);
+        }
+        ctx.strokeStyle = `rgba(${INK}, ${frontAlpha})`;
+        ctx.stroke(front);
       };
 
       ctx.clearRect(0, 0, width, height);
+      ctx.lineCap = "round";
 
-      // Body: a soft lit sphere so the dots read as a surface, not a cloud.
-      const body = ctx.createRadialGradient(
-        cx - radius * 0.35,
-        cy - radius * 0.4,
-        radius * 0.1,
-        cx,
-        cy,
-        radius * 1.05,
-      );
-      body.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-      body.addColorStop(0.7, "rgba(243, 244, 246, 0.7)");
-      body.addColorStop(1, "rgba(229, 231, 235, 0.35)");
+      for (const line of grid) strokeLine(line, 0.1, 0, 1);
+
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = body;
-      ctx.fill();
+      ctx.strokeStyle = `rgba(${INK}, 0.14)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
-      for (const dot of dots) {
-        const p = rotate(dot, turn, pitch);
+      for (const ring of rings) strokeLine(ring, 0.12, 0.03, 1);
+
+      arcs.forEach((arc, index) => {
+        strokeLine(arc.points, 0.34, 0.06, 1.1);
+
+        const t = (time / 3200 + index * 0.37) % 1;
+        const p = view(arc.points[Math.round(t * (arc.points.length - 1))]);
+        if (occluded(p)) return;
         const [x, y] = project(p);
-        const alpha = p[2] > 0 ? 0.08 + 0.2 * p[2] : 0.05 * (1 + p[2]);
-        ctx.fillStyle = `rgba(${INK}, ${alpha.toFixed(3)})`;
-        ctx.fillRect(x - 0.8, y - 0.8, 1.6, 1.6);
-      }
-
-      const rotated = nodes.map((node) => rotate(node, turn, pitch));
-
-      links.forEach(([a, b], index) => {
-        const from = rotated[a];
-        const to = rotated[b];
-        const front = clamp01(((from[2] + to[2]) / 2 + 0.6) / 1.2);
         ctx.beginPath();
-        for (let step = 0; step <= ARC_SAMPLES; step++) {
-          const [x, y] = project(slerp(from, to, step / ARC_SAMPLES));
-          if (step === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.strokeStyle = `rgba(${INK}, ${(0.06 + 0.34 * front).toFixed(3)})`;
-        ctx.lineWidth = 1.1;
-        ctx.stroke();
-
-        if (front > 0.45) {
-          const t = (time / 2600 + index * 0.37) % 1;
-          const [x, y] = project(slerp(from, to, t));
-          ctx.beginPath();
-          ctx.arc(x, y, 2.2, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${INK}, ${(0.75 * front).toFixed(3)})`;
-          ctx.fill();
-        }
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${INK}, 0.7)`;
+        ctx.fill();
       });
 
-      const order = rotated
-        .map((point, index) => ({ point, index }))
-        .sort((a, b) => a.point[2] - b.point[2]);
       const tile = radius * 0.2;
-      for (const { point, index } of order) {
-        const [x, y] = project(point);
-        const front = clamp01((point[2] + 0.35) / 0.7);
-        ctx.globalAlpha = 0.18 + 0.82 * front;
-        drawMark(
-          ctx,
-          advisorCompanies[index],
-          images[index],
-          x,
-          y,
-          tile * (0.7 + 0.3 * front),
-        );
-      }
+      nodes
+        .map((node, index) => ({ point: view(node), index }))
+        .sort((a, b) => a.point[2] - b.point[2])
+        .forEach(({ point, index }) => {
+          const [x, y] = project(point);
+          const front = clamp01((point[2] + 0.35) / 0.7);
+          ctx.globalAlpha = 0.15 + 0.85 * front;
+          drawMark(
+            ctx,
+            advisorCompanies[index],
+            images[index],
+            x,
+            y,
+            tile * (0.7 + 0.3 * front),
+          );
+        });
       ctx.globalAlpha = 1;
     };
 

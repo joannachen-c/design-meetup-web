@@ -146,6 +146,7 @@ const sections = [
   { id: "inputs", label: "inputs" },
   { id: "tooltips", label: "tooltips" },
   { id: "toasts", label: "toasts" },
+  { id: "planning", label: "planning" },
 ] as const;
 
 const spacingScale = [
@@ -1057,6 +1058,66 @@ export default function DesignSystem() {
                   <Toast variant="danger">
                     couldn&apos;t start checkout. please try again.
                   </Toast>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="planning"
+            className={sectionClassName}
+            aria-labelledby="planning-title"
+          >
+            <h2 className={sectionTitleClassName} id="planning-title">
+              planning
+            </h2>
+            <div className="grid gap-8">
+              <div>
+                <SpecimenLabel>pill</SpecimenLabel>
+                <div className={`${specimenRowClassName} mt-4`}>
+                  <Pill>Auto</Pill>
+                  <Pill variant="attention">Needs attention</Pill>
+                  <Pill>In motion</Pill>
+                  <Pill variant="muted">Held / resolved</Pill>
+                </div>
+              </div>
+              <div>
+                <SpecimenLabel>assignee stack</SpecimenLabel>
+                <div className={`${specimenRowClassName} mt-4`}>
+                  <span className="flex -space-x-2.5">
+                    <Tooltip content="Michelle Liu">
+                      <img
+                        className="relative z-[1] size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-0.5"
+                        src="/team/michelle-liu.jpg"
+                        alt="Michelle Liu"
+                      />
+                    </Tooltip>
+                    <Tooltip content="Ilyssa Yan">
+                      <img
+                        className="relative z-[2] size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-0.5"
+                        src="/team/ilyssa-yan.jpg"
+                        alt="Ilyssa Yan"
+                      />
+                    </Tooltip>
+                    <Tooltip content="Brandon Lee">
+                      <img
+                        className="relative z-[3] size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-0.5"
+                        src="/team/brandon-lee.jpg"
+                        alt="Brandon Lee"
+                      />
+                    </Tooltip>
+                    <Tooltip content="Joanna Chen">
+                      <img
+                        className="relative z-[4] size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-0.5"
+                        src="/team/joanna-chen.jpg"
+                        alt="Joanna Chen"
+                      />
+                    </Tooltip>
+                  </span>
+                  <span className="text-sm text-muted">
+                    Team photos from /team at 32px, overlapped 10px with a 2px
+                    white ring.
+                  </span>
                 </div>
               </div>
             </div>

@@ -5,6 +5,8 @@ const variantClassName = {
   white: "bg-white text-ink",
   accent: "bg-accent-primary text-ink",
   ink: "bg-ink text-white",
+  muted: "bg-surface-muted text-muted",
+  attention: "bg-red-50 text-red-700",
 } as const;
 
 export type PillVariant = keyof typeof variantClassName;

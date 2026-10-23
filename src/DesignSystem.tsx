@@ -12,6 +12,7 @@ import { IconButton } from "./components/IconButton";
 import { Input } from "./components/Input";
 import { Link } from "./components/Link";
 import { PageLoader } from "./components/PageLoader";
+import { Pill } from "./components/Pill";
 import { Primary } from "./components/Primary";
 import { ScrollReveal } from "./components/ScrollReveal";
 import { Select } from "./components/Select";
@@ -140,6 +141,7 @@ const sections = [
   { id: "strokes", label: "strokes" },
   { id: "shadows", label: "shadows" },
   { id: "buttons", label: "buttons" },
+  { id: "pills", label: "pills" },
   { id: "links", label: "links" },
   { id: "inputs", label: "inputs" },
   { id: "tooltips", label: "tooltips" },
@@ -859,6 +861,27 @@ export default function DesignSystem() {
                     <ArrowIcon />
                   </IconButton>
                 </div>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="pills"
+            className={sectionClassName}
+            aria-labelledby="pills-title"
+          >
+            <h2 className={sectionTitleClassName} id="pills-title">
+              pills
+            </h2>
+            <div>
+              <SpecimenLabel>variants</SpecimenLabel>
+              <div className={`${specimenRowClassName} mt-4`}>
+                <Pill>Neutral</Pill>
+                <Pill variant="accent">Accent</Pill>
+                <Pill variant="ink">Ink</Pill>
+                <span className="inline-flex rounded-[10px] bg-surface-muted p-3">
+                  <Pill variant="white">White</Pill>
+                </span>
               </div>
             </div>
           </section>

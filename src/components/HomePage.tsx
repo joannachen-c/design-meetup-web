@@ -33,6 +33,7 @@ import { GalleryViewToggle, type GalleryView } from "./GalleryViewToggle";
 import { SoundOffIcon, SoundOnIcon } from "./icons/SoundIcons";
 import { IconButton } from "./IconButton";
 import { Link } from "./Link";
+import { MembershipOverview } from "./MembershipOverview";
 import { PageLoader } from "./PageLoader";
 import { PartnerContactForm, PartnerCopy } from "./PartnerContactForm";
 import { PhotoMarquee } from "./PhotoMarquee";
@@ -2386,12 +2387,13 @@ export default function HomePage({
             className="m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]"
             id="apply-cta-title"
           >
-            Applications are open
+            Apply
           </h2>
           <div className="grid w-full max-w-[54ch] gap-5 text-base leading-[1.6] text-ink">
             <p className="m-0 text-pretty">
               Applications are now open for the next Design Meetup member cohort! If you&apos;re a student or early career designer, we&apos;d love to meet you.
             </p>
+            <MembershipOverview />
             <p className="m-0 text-pretty">
               Follow us on Instagram and Substack to stay updated!
             </p>

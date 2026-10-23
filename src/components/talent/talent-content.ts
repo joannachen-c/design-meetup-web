@@ -61,7 +61,7 @@ export const seniorityLevels = [
     track: "IC",
   },
   {
-    level: "Senior",
+    level: "Senior Designer",
     positions: "Senior Product Designer · Senior Brand Designer",
     track: "IC",
   },

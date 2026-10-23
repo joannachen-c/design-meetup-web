@@ -20,6 +20,14 @@ test("talent page is shared by link only, never indexed", () => {
   assert.match(robots, /disallow: \[[^\]]*"\/talent"/);
 });
 
+test("talent page shares its own 1200x630 preview image", async () => {
+  assert.match(route, /url: "\/og-talent\.jpg"/);
+  assert.match(route, /width: 1200,\s*height: 630/);
+  assert.match(route, /images: \[ogImage\]/);
+  assert.match(route, /images: \[ogImage\.url\]/);
+  await access(new URL("../public/og-talent.jpg", import.meta.url));
+});
+
 test("talent page keeps advisors anonymous", () => {
   for (const source of [page, form, content]) {
     assert.doesNotMatch(source, /board-of-advisors/);

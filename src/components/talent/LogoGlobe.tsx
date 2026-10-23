@@ -320,7 +320,7 @@ export function LogoGlobe() {
           ctx.beginPath();
           ctx.moveTo(a.xy[0], a.xy[1]);
           ctx.lineTo(b.xy[0], b.xy[1]);
-          ctx.strokeStyle = `rgba(${INK}, ${(0.42 * along ** 1.4 * depth).toFixed(3)})`;
+          ctx.strokeStyle = `rgba(${INK}, ${(0.24 * along ** 1.4 * depth).toFixed(3)})`;
           ctx.lineWidth = 0.4 + 1.2 * along;
           ctx.stroke();
         }
@@ -330,7 +330,7 @@ export function LogoGlobe() {
         if (!drawingOut || head.hidden) return;
         ctx.beginPath();
         ctx.arc(head.xy[0], head.xy[1], 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${INK}, 0.6)`;
+        ctx.fillStyle = `rgba(${INK}, 0.35)`;
         ctx.fill();
       };
 

@@ -431,40 +431,6 @@
   border-top-color: var(--color-skeleton);
 }
 
-/* The terms panel: what each format costs and what the company brings. It
-   sits on the card's floor so both cards end on the same line however long
-   their middles run, and it is raised off the card so it reads as the deal
-   rather than a footnote. */
-.formatTerms {
-  /* Outdented by its own padding so its text lines up with the card copy
-     above while the panel itself spreads into the card's margin. */
-  --terms-pad: clamp(18px, 2vw, 26px);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  margin-top: auto;
-  /* Pulled down by the same amount, so the card's border around the panel
-     is even on the sides and bottom. */
-  margin-inline: calc(-1 * var(--terms-pad));
-  margin-bottom: calc(-1 * var(--terms-pad));
-  padding: var(--terms-pad);
-  border-radius: 14px;
-  background: #fff;
-}
-
-.formatCardInk .formatTerms {
-  background: rgb(255 255 255 / 0.08);
-}
-
-.formatTermsLead {
-  margin: 0;
-  font-size: clamp(1.25rem, 1.7vw, 1.5rem);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.04em;
-}
-
 /* Process */
 
 .processPanel {
@@ -653,12 +619,6 @@
   .cityList {
     flex-direction: column;
     gap: 6px;
-  }
-
-  /* Tighter panel on phones; its outdent follows, so the text stays aligned
-     with the card copy above. */
-  .formatTerms {
-    --terms-pad: 12px;
   }
 
   /* On phones the heading reads as the first line of the list. */

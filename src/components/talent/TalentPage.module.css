@@ -81,35 +81,23 @@
 
 /* Logo wall */
 
-.wallLayout {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: clamp(16px, 2vw, 28px);
-  align-items: start;
-  padding-top: 18px;
-  border-top: 1px solid var(--color-skeleton);
+/* The heading and the companies share one type size, so the section reads
+   as a single sentence: "Where our network designs: OpenAI, Google…". */
+.wallBlock {
+  font-size: clamp(2.5rem, 5.4vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.055em;
+  color: var(--color-ink);
 }
 
-/* Sticks beside the list while it scrolls, so the caption and counter stay
-   with the company that is lit. */
-.wallAside {
-  position: sticky;
-  top: 45vh;
-  grid-column: 1 / span 4;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.wallCounter {
-  margin: 0;
-  font-size: 1rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-subtle);
+.wallTitle {
+  margin: 0 0 0.3em;
+  font: inherit;
+  letter-spacing: inherit;
 }
 
 .wall {
-  grid-column: 5 / span 8;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -117,11 +105,6 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: clamp(2.5rem, 5.4vw, 5.5rem);
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: -0.055em;
-  color: var(--color-ink);
 }
 
 .wallItem {
@@ -130,7 +113,13 @@
   gap: 0.24em;
   white-space: nowrap;
   opacity: 0.18;
-  transition: opacity 220ms ease-out;
+  transition: opacity 160ms ease-out;
+}
+
+/* Holds "& more" on the same left edge as the company names. */
+.markSpacer {
+  flex: none;
+  width: 0.76em;
 }
 
 /* Exactly one company is lit at a time: the one crossing the middle of the
@@ -310,8 +299,7 @@
   margin-top: 2px;
 }
 
-.runOfShow,
-.themes {
+.runOfShow {
   display: grid;
   margin: 0;
   padding: 0;
@@ -330,16 +318,6 @@
 .runOfShowLight > li {
   grid-template-columns: 4.5rem minmax(0, 1fr);
   border-top-color: var(--color-skeleton);
-}
-
-.themes {
-  gap: 14px;
-}
-
-.themes > li {
-  display: grid;
-  gap: 2px;
-  line-height: 1.45;
 }
 
 /* The price line sits on the card's floor so both cards end on the same
@@ -433,11 +411,11 @@
 }
 
 .timelineStep:not(:last-child)::before {
-  background: var(--color-skeleton);
+  background: rgb(0 0 0 / 0.03);
 }
 
 .timelineStep:not(:last-child)::after {
-  background: var(--color-ink);
+  background: var(--color-skeleton);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -530,19 +508,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .wallLayout {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 28px;
-  }
-
-  .wallAside {
-    position: static;
-  }
-
-  .wallCounter {
-    display: none;
-  }
-
   .heroCopy,
   .heroGlobe {
     grid-row: auto;
@@ -555,8 +520,6 @@
   .heroCopy,
   .heroGlobe,
   .cities,
-  .wallAside,
-  .wall,
   .splitCopy,
   .splitAside,
   .sectionIntro,
@@ -598,9 +561,8 @@
 }
 
 @media (max-width: 520px) {
-  .wall {
+  .wallBlock {
     font-size: clamp(2rem, 9.6vw, 2.5rem);
-    column-gap: 0.36em;
   }
 
   .rung {

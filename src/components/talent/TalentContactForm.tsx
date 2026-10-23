@@ -6,6 +6,7 @@ import { Primary } from "../Primary";
 import { Select, type SelectOption } from "../Select";
 
 const roleOptions: SelectOption[] = [
+  { value: "designer", label: "a Designer" },
   { value: "senior", label: "a Senior Product Designer" },
   { value: "staff", label: "a Staff or Principal Designer" },
   { value: "engineer", label: "a Design Engineer" },
@@ -24,7 +25,7 @@ const cityOptions: SelectOption[] = [
 const formatOptions: SelectOption[] = [
   { value: "network", label: "the Network" },
   { value: "dinner", label: "a Hiring Dinner" },
-  { value: "both", label: "both, or not sure yet" },
+  { value: "both", label: "both formats" },
 ];
 
 // Organization and note are packed into the contact note, which the API caps
@@ -62,7 +63,7 @@ export function TalentContactForm() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [organization, setOrganization] = useState("");
-  const [role, setRole] = useState(roleOptions[0].value);
+  const [role, setRole] = useState("senior");
   const [city, setCity] = useState(cityOptions[0].value);
   const [format, setFormat] = useState(formatOptions[0].value);
   const [email, setEmail] = useState("");
@@ -198,9 +199,7 @@ export function TalentContactForm() {
             resetStatus();
           }}
         />
-      </div>
-      <div className={row}>
-        <span>We’d like to try</span>
+        <span>through</span>
         <label className="sr-only" htmlFor={`${fieldId}-format`}>
           Format
         </label>

@@ -48,7 +48,7 @@ test("packed note stays under the contact route's 1000 character cap", () => {
   const organization = Number(form.match(/MAX_ORGANIZATION_LENGTH = (\d+)/)[1]);
   const note = Number(form.match(/MAX_NOTE_LENGTH = (\d+)/)[1]);
   const longestRole = "a Staff or Principal Designer".length;
-  const longestFormat = "both, or not sure yet".length;
+  const longestFormat = "both formats".length;
   const labels = "Company: · Hiring: · Format: · Message: ".length;
   assert.ok(organization + note + longestRole + longestFormat + labels < 1000);
 });

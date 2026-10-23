@@ -111,21 +111,6 @@ export const dinnerRunOfShow = [
   { time: "8:30", item: "Close" },
 ] as const;
 
-export const dinnerThemes = [
-  {
-    title: "Design at the Frontier",
-    blurb: "Designing AI-native, technical products with no established patterns yet.",
-  },
-  {
-    title: "Taste Isn’t Outsourced",
-    blurb: "Craft and judgment in the age of AI tools, and how senior designers defend their choices.",
-  },
-  {
-    title: "Users Surprised Us",
-    blurb: "Each guest brings a design decision where real behavior beat what users said they wanted.",
-  },
-] as const;
-
 export const processSteps = [
   {
     when: "Day 1",

@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { Pill } from "../Pill";
 import { Primary } from "../Primary";
 import { ScrollReveal } from "../ScrollReveal";
 import { SiteFooter } from "../SiteFooter";
@@ -12,13 +13,11 @@ import {
   ADVISOR_COUNT,
   candidateSignals,
   dinnerRunOfShow,
-  dinnerThemes,
   hubCities,
   networkFirstMonth,
   processSteps,
   seniorityLevels,
 } from "./talent-content";
-import { siteEmail } from "@/lib/site";
 import styles from "./TalentPage.module.css";
 
 const talentHeaderLinks: SiteHeaderLink[] = [
@@ -64,7 +63,7 @@ export function TalentPage() {
           the viewport. */}
       <main className="bg-surface text-ink" style={{ overflow: "clip" }}>
         <section
-          className={`${styles.grid} ${styles.hero} ${sectionPadding} pt-[clamp(32px,6vw,96px)] pb-[clamp(72px,9vw,140px)]`}
+          className={`${styles.grid} ${styles.hero} ${sectionPadding} pt-8 pb-[clamp(72px,9vw,140px)] min-[821px]:pt-0`}
           aria-labelledby="talent-title"
         >
           <ScrollReveal className={styles.heroCopy}>
@@ -157,9 +156,7 @@ export function TalentPage() {
                       {rung.positions}
                     </span>
                   </span>
-                  <span className="rounded-full border border-gray-200 px-2.5 py-1 text-sm leading-none text-muted">
-                    {rung.track}
-                  </span>
+                  <Pill>{rung.track}</Pill>
                 </li>
               ))}
             </ol>
@@ -185,9 +182,7 @@ export function TalentPage() {
           <div className={styles.formats}>
             <ScrollReveal className={`${styles.formatCard} bg-surface-muted`}>
               <div className="flex flex-col gap-4">
-                <span className="w-fit rounded-full bg-white px-3 py-1.5 text-sm leading-none text-ink text-medium">
-                  Always on
-                </span>
+                <Pill variant="white">Always on</Pill>
                 <h3 className={styles.formatTitle}>The Network</h3>
                 <p className="m-0 text-base leading-[1.6] text-muted">
                   Ongoing access to a curated bench of senior designers,
@@ -232,9 +227,7 @@ export function TalentPage() {
               delay={80}
             >
               <div className="flex flex-col gap-4">
-                <span className="w-fit rounded-full bg-accent-primary px-3 py-1.5 text-sm leading-none text-ink text-medium">
-                  Signature event
-                </span>
+                <Pill variant="accent">Signature event</Pill>
                 <h3 className={styles.formatTitle}>The Hiring Dinner</h3>
                 <p className="m-0 text-base leading-[1.6] text-white/65">
                   An intimate dinner co-hosted with your team: pre-matched
@@ -254,17 +247,6 @@ export function TalentPage() {
                     </li>
                   ))}
                 </ol>
-              </div>
-              <div className="grid gap-3">
-                <span className="text-sm text-white/50">Sample themes</span>
-                <ul className={styles.themes}>
-                  {dinnerThemes.map((theme) => (
-                    <li key={theme.title}>
-                      <span className="text-medium">{theme.title}</span>
-                      <span className="text-white/60">{theme.blurb}</span>
-                    </li>
-                  ))}
-                </ul>
               </div>
               <div className={styles.formatFoot}>
                 <span className="text-sm text-white/50">How it works</span>
@@ -314,9 +296,7 @@ export function TalentPage() {
                     <span className={styles.timelineWhen}>{step.when}</span>
                     <span className={styles.timelineTitle}>{step.title}</span>
                     {"milestone" in step ? (
-                      <span className="rounded-full bg-accent-primary px-2.5 py-1 text-sm leading-none text-ink text-medium">
-                        {step.milestone}
-                      </span>
+                      <Pill variant="accent">{step.milestone}</Pill>
                     ) : null}
                     <span className="text-base leading-[1.55] text-muted">
                       {step.body}
@@ -340,15 +320,6 @@ export function TalentPage() {
             <p className={lede}>
               Tell us about the role. We’ll reply with how we’d run the search
               and which format fits your team.
-            </p>
-            <p className="m-0 text-base leading-[1.6] text-muted">
-              Senior designer looking for your next role?{" "}
-              <a
-                className="text-ink text-medium underline decoration-gray-300 underline-offset-4 hover:decoration-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-                href={`mailto:${siteEmail}?subject=${encodeURIComponent("Talent Network — designer")}`}
-              >
-                Join the network
-              </a>
             </p>
           </ScrollReveal>
           <ScrollReveal className={styles.ctaForm} delay={80}>

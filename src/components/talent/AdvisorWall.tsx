@@ -1,10 +1,17 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type PointerEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { advisorCompanies } from "./talent-content";
 import styles from "./TalentPage.module.css";
 
-const pad = (value: number) => String(value).padStart(2, "0");
+// The row nearest this line (as a share of the viewport) is the one lit.
+const READING_LINE = 0.45;
 
 export function AdvisorWall() {
   const listRef = useRef<HTMLUListElement>(null);
@@ -12,40 +19,57 @@ export function AdvisorWall() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const activeIndex = hoveredIndex ?? scrolledIndex;
 
-  // A one-pixel band just above the middle of the viewport: whichever company
-  // crosses it is the one lit, so the highlight moves down the list at exactly
-  // the pace the reader scrolls it.
+  // Measured once per frame rather than by an observer: a fast touch fling
+  // can skip a thin observer band entirely, which left the highlight stuck and
+  // then jumping several rows at once on phones.
   useEffect(() => {
-    const items = listRef.current?.children;
-    if (!items) return;
+    const list = listRef.current;
+    if (!list) return;
+    const items = Array.from(list.children) as HTMLElement[];
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          setScrolledIndex(Number((entry.target as HTMLElement).dataset.index));
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const line = window.innerHeight * READING_LINE;
+      let nearest = 0;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+      items.forEach((item, index) => {
+        const rect = item.getBoundingClientRect();
+        const distance = Math.abs(rect.top + rect.height / 2 - line);
+        if (distance < nearestDistance) {
+          nearest = index;
+          nearestDistance = distance;
         }
-      },
-      { rootMargin: "-45% 0px -55% 0px" },
-    );
-    for (const item of Array.from(items)) observer.observe(item);
-    return () => observer.disconnect();
+      });
+      setScrolledIndex(nearest);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
   }, []);
 
+  const itemProps = (index: number) => ({
+    className: styles.wallItem,
+    "data-active": index === activeIndex || undefined,
+    onPointerEnter: (event: PointerEvent) => {
+      if (event.pointerType === "mouse") setHoveredIndex(index);
+    },
+  });
+
   return (
-    <div className={styles.wallLayout}>
-      <div className={styles.wallAside}>
-        <h2
-          className="m-0 text-base font-normal text-muted text-medium"
-          id="network-title"
-        >
-          Where our Board of Advisors designs
-        </h2>
-        <p className={styles.wallCounter} aria-hidden="true">
-          <span className="text-ink">{pad(activeIndex + 1)}</span> /{" "}
-          {pad(advisorCompanies.length)}
-        </p>
-      </div>
+    <div className={styles.wallBlock}>
+      <h2 className={styles.wallTitle} id="network-title">
+        Where our network designs
+      </h2>
       <ul
         ref={listRef}
         className={styles.wall}
@@ -53,15 +77,7 @@ export function AdvisorWall() {
         onPointerLeave={() => setHoveredIndex(null)}
       >
         {advisorCompanies.map((company, index) => (
-          <li
-            key={company.name}
-            className={styles.wallItem}
-            data-index={index}
-            data-active={index === activeIndex || undefined}
-            onPointerEnter={(event) => {
-              if (event.pointerType === "mouse") setHoveredIndex(index);
-            }}
-          >
+          <li key={company.name} {...itemProps(index)}>
             <span
               className={styles.mark}
               data-fit={company.fit}
@@ -84,6 +100,9 @@ export function AdvisorWall() {
             {company.name}
           </li>
         ))}
+        <li {...itemProps(advisorCompanies.length)}>
+          <span className={styles.markSpacer} aria-hidden="true" />& more
+        </li>
       </ul>
     </div>
   );

@@ -9,10 +9,21 @@ type Vec = [number, number, number];
 const TILT = -0.32;
 const SPIN_PER_SECOND = 0.12;
 const GRID_STEP_DEG = 15;
+const ARC_CYCLE_MS = 7000;
 const INK = "20, 27, 38";
 
 const toRad = (deg: number) => (deg * Math.PI) / 180;
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+const easeOut = (t: number) => 1 - (1 - t) ** 3;
+const easeIn = (t: number) => t ** 3;
+
+// Each arc draws out from its first logo to the second, holds, then retracts
+// into the second, so the network reads as live connections being made.
+function arcWindow(phase: number) {
+  const head = easeOut(clamp01(phase / 0.4));
+  const tail = easeIn(clamp01((phase - 0.65) / 0.35));
+  return [tail, head] as const;
+}
 
 // Seeded so the arcs land in the same places on every load.
 function seededRandom(seed: number) {
@@ -276,16 +287,14 @@ export function LogoGlobe() {
       for (const ring of rings) strokeLine(ring, 0.12, 0.03, 1);
 
       arcs.forEach((arc, index) => {
-        strokeLine(arc.points, 0.34, 0.06, 1.1);
-
-        const t = (time / 3200 + index * 0.37) % 1;
-        const p = view(arc.points[Math.round(t * (arc.points.length - 1))]);
-        if (occluded(p)) return;
-        const [x, y] = project(p);
-        ctx.beginPath();
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${INK}, 0.7)`;
-        ctx.fill();
+        const [tail, head] = reduceMotion
+          ? [0, 1]
+          : arcWindow((time / ARC_CYCLE_MS + index * 0.29) % 1);
+        const last = arc.points.length - 1;
+        const from = Math.floor(tail * last);
+        const to = Math.ceil(head * last);
+        if (to - from < 1) return;
+        strokeLine(arc.points.slice(from, to + 1), 0.34, 0.06, 1.1);
       });
 
       const tile = radius * 0.2;

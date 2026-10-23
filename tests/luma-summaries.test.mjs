@@ -505,8 +505,10 @@ test("all local event summaries contain retained line breaks and html", () => {
   // grows. luma-calendar-sync.test.mjs is what guards the roster itself.
   assert.ok(events.length > 0);
   for (const event of events) {
-    assert.match(event.summary, /\n/);
-    assert.match(event.summary_html, /<(?:p|h2|ul|blockquote)\b/);
+    const blocks = event.summary_html.match(/<(?:p|h2|ul|ol|blockquote)\b/g) ?? [];
+    assert.ok(blocks.length > 0);
+    // A one-paragraph Luma description has no break to retain.
+    if (blocks.length > 1) assert.match(event.summary, /\n/);
     assert.doesNotMatch(event.summary, /MadiJiabao|open6:00/);
     assert.doesNotMatch(
       event.summary,

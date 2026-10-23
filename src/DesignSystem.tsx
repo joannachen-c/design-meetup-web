@@ -144,7 +144,7 @@ const sections = [
   { id: "inputs", label: "inputs" },
   { id: "tooltips", label: "tooltips" },
   { id: "toasts", label: "toasts" },
-  { id: "pipeline", label: "pipeline" },
+  { id: "planning", label: "planning" },
 ] as const;
 
 const spacingScale = [
@@ -1041,12 +1041,12 @@ export default function DesignSystem() {
           </section>
 
           <section
-            id="pipeline"
+            id="planning"
             className={sectionClassName}
-            aria-labelledby="pipeline-title"
+            aria-labelledby="planning-title"
           >
-            <h2 className={sectionTitleClassName} id="pipeline-title">
-              pipeline
+            <h2 className={sectionTitleClassName} id="planning-title">
+              planning
             </h2>
             <div className="grid gap-8">
               <div>
@@ -1070,26 +1070,34 @@ export default function DesignSystem() {
                 <SpecimenLabel>assignee stack</SpecimenLabel>
                 <div className={`${specimenRowClassName} mt-4`}>
                   <span className="flex -space-x-2.5">
-                    <img
-                      className="size-8 rounded-full object-cover ring-2 ring-white"
-                      src="/team/michelle-liu.jpg"
-                      alt="Michelle Liu"
-                    />
-                    <img
-                      className="size-8 rounded-full object-cover ring-2 ring-white"
-                      src="/team/ilyssa-yan.jpg"
-                      alt="Ilyssa Yan"
-                    />
-                    <img
-                      className="size-8 rounded-full object-cover ring-2 ring-white"
-                      src="/team/brandon-lee.jpg"
-                      alt="Brandon Lee"
-                    />
-                    <img
-                      className="size-8 rounded-full object-cover ring-2 ring-white"
-                      src="/team/joanna-chen.jpg"
-                      alt="Joanna Chen"
-                    />
+                    <Tooltip content="Michelle Liu">
+                      <img
+                        className="size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-1"
+                        src="/team/michelle-liu.jpg"
+                        alt="Michelle Liu"
+                      />
+                    </Tooltip>
+                    <Tooltip content="Ilyssa Yan">
+                      <img
+                        className="size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-1"
+                        src="/team/ilyssa-yan.jpg"
+                        alt="Ilyssa Yan"
+                      />
+                    </Tooltip>
+                    <Tooltip content="Brandon Lee">
+                      <img
+                        className="size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-1"
+                        src="/team/brandon-lee.jpg"
+                        alt="Brandon Lee"
+                      />
+                    </Tooltip>
+                    <Tooltip content="Joanna Chen">
+                      <img
+                        className="size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-1"
+                        src="/team/joanna-chen.jpg"
+                        alt="Joanna Chen"
+                      />
+                    </Tooltip>
                   </span>
                   <span className="text-sm text-muted">
                     Team photos from /team at 32px, overlapped 10px with a 2px

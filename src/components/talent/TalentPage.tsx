@@ -242,15 +242,9 @@ export function TalentPage() {
         >
           <ScrollReveal className={styles.processPanel}>
             <div className={styles.processHead}>
-              <div className="flex flex-col items-start gap-5">
-                <h2 className={sectionTitle} id="process-title">
-                  From kickoff to shortlist
-                </h2>
-                <p className={lede}>
-                  Five steps, run with your design team and our advisors. You
-                  only spend time on the conversations worth having.
-                </p>
-              </div>
+              <h2 className={sectionTitle} id="process-title">
+                From kickoff to shortlist
+              </h2>
             </div>
             <ol className={styles.timeline}>
               {processSteps.map((step, index) => (

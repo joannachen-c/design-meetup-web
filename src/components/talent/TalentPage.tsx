@@ -133,7 +133,9 @@ export function TalentPage() {
                   </span>
                   <span className="flex min-w-0 flex-col gap-1">
                     <span className={styles.rungTitle}>{rung.level}</span>
-                    <span className="text-base leading-[1.4] text-muted">
+                    <span
+                      className={`${styles.rungPositions} text-base leading-[1.4] text-muted`}
+                    >
                       {rung.positions}
                     </span>
                   </span>

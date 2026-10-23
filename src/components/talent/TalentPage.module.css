@@ -613,6 +613,11 @@
     gap: 6px;
   }
 
+  /* Phones keep each level to its title and pill. */
+  .rungPositions {
+    display: none;
+  }
+
   /* Tighter panel on phones; its outdent follows, so the text stays aligned
      with the card copy above. */
   .formatTerms {

@@ -115,13 +115,6 @@ export function TalentPage() {
           <ScrollReveal delay={60}>
             <AdvisorWall />
           </ScrollReveal>
-          <ScrollReveal delay={100}>
-            <p className="m-0 mt-[clamp(28px,3vw,44px)] max-w-[60ch] text-pretty text-base leading-[1.6] text-muted">
-              Our advisors stay anonymous here and open doors in person. They
-              help calibrate your roles, vouch for the people we shortlist and
-              join the room at hiring dinners.
-            </p>
-          </ScrollReveal>
         </section>
 
         <section

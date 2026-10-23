@@ -475,10 +475,47 @@
   padding: clamp(28px, 4.5vw, 72px);
   border-radius: 28px;
   background: #fff;
+  /* A light ring and an even glow define every edge, top included; the
+     last layer adds a gentle lift underneath. */
   box-shadow:
-    0 2px 4px rgb(15 15 15 / 0.02),
-    0 12px 24px -8px rgb(15 15 15 / 0.06),
-    0 48px 88px -24px rgb(15 15 15 / 0.14);
+    0 0 0 1px rgb(15 15 15 / 0.03),
+    0 0 28px rgb(15 15 15 / 0.05),
+    0 12px 32px -16px rgb(15 15 15 / 0.08);
+}
+
+/* A marker stroke behind the word: low on the letters, a touch skewed and
+   tilted with uneven ends so it reads as drawn by hand. It sweeps in from
+   the left as the panel reveals. */
+.highlight {
+  position: relative;
+  z-index: 0;
+  white-space: nowrap;
+}
+
+.highlight::before {
+  position: absolute;
+  z-index: -1;
+  top: 0.44em;
+  right: -0.1em;
+  bottom: 0.04em;
+  left: -0.08em;
+  border-radius: 0.1em 0.28em 0.16em 0.34em;
+  background: var(--color-accent-primary);
+  content: "";
+  transform: rotate(-1.2deg) skewX(-8deg) scaleX(0);
+  transform-origin: left center;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1) 450ms;
+}
+
+:global(.is-visible) .highlight::before {
+  transform: rotate(-1.2deg) skewX(-8deg) scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlight::before {
+    transform: rotate(-1.2deg) skewX(-8deg);
+    transition: none;
+  }
 }
 
 .processHead {

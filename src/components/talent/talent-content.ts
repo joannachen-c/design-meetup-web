@@ -40,7 +40,6 @@ export const advisorCompanies: AdvisorCompany[] = [
   { name: "fal", src: "/talent/logos/fal.png", fit: "tile" },
 ];
 
-export const ADVISOR_COUNT = 43;
 
 export const hubCities = [
   {

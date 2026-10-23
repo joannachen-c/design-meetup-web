@@ -10,7 +10,6 @@ import { AdvisorWall } from "./AdvisorWall";
 import { LogoGlobe } from "./LogoGlobe";
 import { TalentContactForm } from "./TalentContactForm";
 import {
-  ADVISOR_COUNT,
   candidateSignals,
   dinnerRunOfShow,
   hubCities,
@@ -71,11 +70,8 @@ export function TalentPage() {
               Talent Network
             </h1>
             <p className={`${lede} text-[1.125rem]`}>
-              We match your team with vetted Senior, Staff and Principal
-              designers in San Francisco, Los Angeles and New York. Every one
-              comes through a community of 10,000+ and a Board of Advisors of{" "}
-              {ADVISOR_COUNT} design leaders, so you meet people someone you
-              trust already rates.
+              We match your team with vetted designers of all levels
+              nationwide. Every one comes through a trusted design community.
             </p>
             <div className="flex flex-wrap gap-3">
               <Primary href="#get-matched" variant="ink">

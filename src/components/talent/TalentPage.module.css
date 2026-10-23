@@ -8,17 +8,35 @@
 /* Hero */
 
 .hero {
-  row-gap: clamp(56px, 7vw, 112px);
+  row-gap: 40px;
+}
+
+/* Desktop: the hero fills the first screen under the header, so the cities
+   pinned to the bottom of the copy column always land above the fold. */
+@media (min-width: 821px) {
+  .hero {
+    min-height: calc(100svh - var(--site-header-height, 136px));
+    padding-bottom: clamp(64px, 9vh, 112px);
+    align-items: stretch;
+  }
 }
 
 .heroCopy {
   grid-column: 1 / span 6;
   grid-row: 1;
-  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+/* Centred in the space above the cities. */
+.heroIntro {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 28px;
+  margin-block: auto;
 }
 
 .heroGlobe {
@@ -38,29 +56,21 @@
   color: #000;
 }
 
-.cities {
-  grid-column: 1 / -1;
-}
-
 .cityList {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: clamp(16px, 2vw, 28px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px clamp(40px, 5vw, 96px);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.city {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
+/* Capped by the viewport too, so the globe never makes the hero taller than
+   the first screen. */
 .globe {
   position: relative;
   width: 100%;
-  max-width: 640px;
+  max-width: min(640px, calc(100svh - 200px));
   margin-inline: auto;
   aspect-ratio: 1;
 }
@@ -71,12 +81,96 @@
   height: 100%;
 }
 
+/* The logo cards are real 3D tiles: the browser projects them with the same
+   camera distance the canvas uses for the wireframe, so each card sits on
+   the end of its arcs and foreshortens as the globe turns. */
+.globeCards {
+  position: absolute;
+  inset: 0;
+  perspective: var(--globe-focal, 1200px);
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.card3d {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--card-size, 48px);
+  height: var(--card-size, 48px);
+  margin: calc(var(--card-size, 48px) / -2) 0 0 calc(var(--card-size, 48px) / -2);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Opacity sits on each plane, not the card: opacity on a 3D parent would
+   flatten it back into a picture of a card. */
+.card3d > span {
+  position: absolute;
+  inset: 0;
+  border-radius: 24%;
+  opacity: var(--fade, 1);
+}
+
+/* Stacked slices behind the face make the card's edge, so it reads as solid
+   from any angle and keeps its rounded corners while doing it. */
+.cardLayer {
+  background: #e6e9ed;
+  transform: translateZ(calc(var(--card-size, 48px) * -0.011 * var(--layer)));
+}
+
+.cardBack {
+  background: #f1f3f5;
+  backface-visibility: hidden;
+  transform: translateZ(calc(var(--card-size, 48px) * -0.075)) rotateY(180deg);
+}
+
+.cardFace {
+  display: grid;
+  overflow: hidden;
+  place-items: center;
+  background: #fff;
+  backface-visibility: hidden;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.06);
+}
+
+.cardFace img {
+  display: block;
+  width: var(--mark-size, 58%);
+  height: var(--mark-size, 58%);
+  object-fit: contain;
+}
+
+.cardFace[data-fit="tile"] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Lit from above-left: the top edge catches the light, the underside falls
+   into shade, and cards turned away from the light dim as a whole. */
+.cardFace::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.6),
+      rgb(255 255 255 / 0) 9%,
+      rgb(0 0 0 / 0) 90%,
+      rgb(0 0 0 / 0.04)
+    ),
+    rgb(0 0 0 / var(--shade, 0));
+  content: "";
+}
+
 .cityName {
-  font-size: clamp(2rem, 3.6vw, 3.5rem);
+  font-size: clamp(1.5rem, 2.25vw, 2.25rem);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.055em;
-  color: var(--color-ink);
+  color: var(--color-tertiary);
 }
 
 /* Logo wall */
@@ -97,18 +191,20 @@
 .wallTitle {
   position: sticky;
   top: calc(45vh - 0.6em);
-  grid-column: 1 / span 5;
+  grid-column: 1 / span 6;
   margin: 0;
-  font-size: clamp(2rem, 4vw, 4.25rem);
+  /* Same scale as the page's section headings ("Design at all levels"). */
+  font-size: clamp(3.5rem, 6vw, 5rem);
   font-weight: inherit;
   line-height: 1.05;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.06em;
   color: var(--color-muted);
 }
 
 .wall {
-  grid-column: 6 / span 7;
-  font-size: clamp(2.5rem, 5.4vw, 5.5rem);
+  /* Shares the seniority ladder's columns so the two lists line up. */
+  grid-column: 7 / span 6;
+  font-size: clamp(2.5rem, 4.8vw, 5rem);
   line-height: 1.12;
   letter-spacing: -0.055em;
   display: flex;
@@ -127,12 +223,6 @@
   white-space: nowrap;
   opacity: 0.18;
   transition: opacity 160ms ease-out;
-}
-
-/* Holds "& more" on the same left edge as the company names. */
-.markSpacer {
-  flex: none;
-  width: 0.76em;
 }
 
 /* Exactly one company is lit at a time: the one crossing the middle of the
@@ -341,19 +431,31 @@
   border-top-color: var(--color-skeleton);
 }
 
-/* The price line sits on the card's floor so both cards end on the same
-   baseline however long their middles run. */
-.formatFoot {
+/* The terms panel: what each format costs and what the company brings. It
+   sits on the card's floor so both cards end on the same line however long
+   their middles run, and it is raised off the card so it reads as the deal
+   rather than a footnote. */
+.formatTerms {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: flex-start;
+  gap: 12px;
   margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid var(--color-skeleton);
+  padding: clamp(18px, 2vw, 26px);
+  border-radius: 14px;
+  background: #fff;
 }
 
-.formatCardInk .formatFoot {
-  border-top-color: rgb(255 255 255 / 0.15);
+.formatCardInk .formatTerms {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.formatTermsLead {
+  margin: 0;
+  font-size: clamp(1.375rem, 2vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
 }
 
 /* Process */
@@ -535,7 +637,6 @@
 
   .heroCopy,
   .heroGlobe,
-  .cities,
   .splitCopy,
   .splitAside,
   .sectionIntro,
@@ -562,11 +663,6 @@
     font-size: clamp(2.75rem, 11.5vw, 4.5rem);
   }
 
-  .cityList {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 22px;
-  }
-
   .formats {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -582,7 +678,7 @@
   }
 
   .wallTitle {
-    font-size: clamp(1.75rem, 8vw, 2.125rem);
+    font-size: clamp(2.75rem, 12vw, 3.75rem);
   }
 
   .rung {

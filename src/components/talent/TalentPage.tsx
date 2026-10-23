@@ -28,6 +28,9 @@ const talentHeaderLinks: SiteHeaderLink[] = [
 
 const sectionPadding = "px-[clamp(20px,6vw,96px)]";
 
+// The breathing room above the two list sections, shared so they stay in step.
+const sectionGap = "pt-[clamp(120px,14vw,220px)]";
+
 const sectionTitle =
   "m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]";
 
@@ -65,43 +68,39 @@ export function TalentPage() {
           aria-labelledby="talent-title"
         >
           <ScrollReveal className={styles.heroCopy}>
-            <h1 className={styles.heroTitle} id="talent-title">
-              Talent Network
-            </h1>
-            <p className={`${lede} text-[1.125rem]`}>
-              We match your team with vetted designers of all levels
-              nationwide. Every one comes through a trusted design community.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Primary href="#get-matched" variant="ink">
-                Get matched
-              </Primary>
-              <Primary href="#formats" variant="secondary">
-                See the formats
-              </Primary>
+            <div className={styles.heroIntro}>
+              <h1 className={styles.heroTitle} id="talent-title">
+                Talent Network
+              </h1>
+              <p className={`${lede} text-[1.125rem]`}>
+                We match your team with vetted designers of all levels
+                nationwide. Every one comes through a trusted design community.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Primary href="#get-matched" variant="ink">
+                  Get matched
+                </Primary>
+                <Primary href="#formats" variant="secondary">
+                  See the formats
+                </Primary>
+              </div>
             </div>
+            <ul className={styles.cityList} aria-label="Hub cities">
+              {hubCities.map((city) => (
+                <li key={city.code} className={styles.cityName}>
+                  {city.name}
+                </li>
+              ))}
+            </ul>
           </ScrollReveal>
 
           <ScrollReveal className={styles.heroGlobe} delay={120}>
             <LogoGlobe />
           </ScrollReveal>
-
-          <ScrollReveal className={styles.cities} delay={80}>
-            <ul className={styles.cityList} aria-label="Hub cities">
-              {hubCities.map((city) => (
-                <li key={city.code} className={styles.city}>
-                  <span className={styles.cityName}>{city.name}</span>
-                  <span className="text-base leading-[1.4] text-muted">
-                    {city.scene}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </ScrollReveal>
         </section>
 
         <section
-          className={`${sectionPadding} pb-[clamp(80px,10vw,160px)]`}
+          className={`${sectionPadding} ${sectionGap}`}
           id="network"
           aria-labelledby="network-title"
         >
@@ -109,7 +108,7 @@ export function TalentPage() {
         </section>
 
         <section
-          className={`${styles.grid} ${sectionPadding} pb-[clamp(80px,10vw,160px)]`}
+          className={`${styles.grid} ${sectionPadding} ${sectionGap} pb-[clamp(80px,10vw,160px)]`}
           id="seniority"
           aria-labelledby="seniority-title"
         >
@@ -196,11 +195,13 @@ export function TalentPage() {
                   ))}
                 </ol>
               </div>
-              <div className={styles.formatFoot}>
-                <span className="text-sm text-subtle">How it works</span>
-                <span className="text-base text-ink text-medium">
-                  Referral fee, paid only when you hire
+              <div className={styles.formatTerms}>
+                <span className="text-sm text-muted text-medium">
+                  How it works
                 </span>
+                <p className={styles.formatTermsLead}>
+                  Referral fee, paid only when you hire
+                </p>
               </div>
             </ScrollReveal>
 
@@ -230,11 +231,13 @@ export function TalentPage() {
                   ))}
                 </ol>
               </div>
-              <div className={styles.formatFoot}>
-                <span className="text-sm text-white/50">How it works</span>
-                <span className="text-base text-white text-medium">
-                  Event partnership, invite-only guest list
+              <div className={styles.formatTerms}>
+                <span className="text-sm text-white/60 text-medium">
+                  How it works
                 </span>
+                <p className={styles.formatTermsLead}>
+                  Event partnership: you co-host, we curate the room
+                </p>
               </div>
             </ScrollReveal>
           </div>

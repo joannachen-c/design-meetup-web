@@ -68,7 +68,7 @@ export function AdvisorWall() {
   return (
     <div className={styles.wallBlock}>
       <h2 className={styles.wallTitle} id="network-title">
-        Our network designs at
+        Designers from
       </h2>
       <ul
         ref={listRef}
@@ -101,7 +101,7 @@ export function AdvisorWall() {
           </li>
         ))}
         <li {...itemProps(advisorCompanies.length)}>
-          <span className={styles.markSpacer} aria-hidden="true" />& more
+          & more
         </li>
       </ul>
     </div>

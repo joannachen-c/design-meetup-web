@@ -67,16 +67,8 @@ export function TalentPage() {
           aria-labelledby="talent-title"
         >
           <ScrollReveal className={styles.heroCopy}>
-            <p className={`${eyebrow} inline-flex items-center gap-2`}>
-              <span
-                className="size-2 rounded-full bg-accent-primary shadow-[0_0_0_3px_rgb(236_242_109/0.35)]"
-                aria-hidden="true"
-              />
-              Design Meetup Talent Network
-            </p>
             <h1 className={styles.heroTitle} id="talent-title">
-              <span>Hire the senior designers</span>{" "}
-              <span>our advisors would hire.</span>
+              Talent Network
             </h1>
             <p className={`${lede} text-[1.125rem]`}>
               We match your team with vetted Senior, Staff and Principal

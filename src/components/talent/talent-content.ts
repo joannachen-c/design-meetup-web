@@ -1,29 +1,43 @@
 export type AdvisorCompany = {
   name: string;
   src: string;
-  /** "tile" marks are app icons that already carry their own square. */
+  /** "tile" marks fill their square instead of sitting inset on white. */
   fit: "glyph" | "tile";
+  /** Paints the square behind a tile mark so its edges disappear into it. */
+  background?: string;
+  /** Share of the square a glyph fills, for marks much wider than tall. */
+  size?: string;
 };
 
 // Where members of the Board of Advisors design today. Names stay private:
 // the wall only ever shows the company.
 export const advisorCompanies: AdvisorCompany[] = [
+  { name: "OpenAI", src: "/talent/logos/openai.svg", fit: "glyph" },
   { name: "Google", src: "/partners/google.png", fit: "glyph" },
+  { name: "Apple", src: "/partners/apple.png", fit: "glyph" },
+  { name: "Meta", src: "/talent/logos/meta.svg", fit: "glyph" },
   { name: "Figma", src: "/partners/figma.png", fit: "glyph" },
-  { name: "Cursor", src: "/partners/cursor.png", fit: "glyph" },
+  {
+    name: "SpaceXAI",
+    src: "/talent/logos/spacex.svg",
+    fit: "glyph",
+    size: "78%",
+  },
   { name: "Instagram", src: "/talent/logos/instagram.svg", fit: "glyph" },
-  { name: "Ramp", src: "/partners/partner-4.png", fit: "tile" },
+  {
+    name: "Ramp",
+    src: "/partners/partner-4.png",
+    fit: "tile",
+    background: "#e4f323",
+  },
   { name: "Notion", src: "/partners/notion.png", fit: "glyph" },
   { name: "Adobe", src: "/talent/logos/adobe.svg", fit: "glyph" },
   { name: "Cognition", src: "/talent/logos/cognition.svg", fit: "glyph" },
   { name: "DoorDash", src: "/talent/logos/doordash.svg", fit: "glyph" },
   { name: "Google DeepMind", src: "/talent/logos/deepmind.svg", fit: "glyph" },
   { name: "Framer", src: "/partners/framer.png", fit: "glyph" },
+  { name: "Clay", src: "/partners/partner-9.png", fit: "glyph" },
   { name: "fal", src: "/talent/logos/fal.png", fit: "tile" },
-  { name: "Riffle", src: "/talent/logos/riffle.png", fit: "tile" },
-  { name: "Wonder", src: "/talent/logos/wonder.png", fit: "glyph" },
-  { name: "Rivet", src: "/talent/logos/rivet.png", fit: "tile" },
-  { name: "Paradigm", src: "/talent/logos/paradigm.svg", fit: "tile" },
 ];
 
 export const ADVISOR_COUNT = 43;
@@ -46,26 +60,6 @@ export const hubCities = [
   },
 ] as const;
 
-export const headlineStats = [
-  {
-    value: String(ADVISOR_COUNT),
-    label: "design leaders on our Board of Advisors",
-  },
-  {
-    value: String(advisorCompanies.length),
-    label: "companies where they design, from Google to Cursor",
-  },
-  {
-    value: "$100B+",
-    label: "combined valuation of the private startups on the wall",
-    note: "Last announced rounds of Ramp, Cursor, Cognition, Notion, fal and Framer.",
-  },
-  {
-    value: "10,000+",
-    label: "people at Design Meetup events across NYC, LA and the Bay Area",
-  },
-] as const;
-
 export const seniorityLevels = [
   {
     level: "Senior",
@@ -83,7 +77,7 @@ export const seniorityLevels = [
     track: "Hybrid",
   },
   {
-    level: "Lead & Manager",
+    level: "Manager",
     positions: "Design Lead · Design Manager",
     track: "Leadership",
   },
@@ -134,63 +128,29 @@ export const dinnerThemes = [
 
 export const processSteps = [
   {
+    when: "Day 1",
     title: "Calibrate",
     body: "A 30-minute kickoff with your design team to pin down must-haves, portfolio signals and dealbreakers for each role.",
   },
   {
+    when: "Week 1",
     title: "Source",
     body: "Designers apply with a portfolio and current status. We prioritize senior people who are active or open to a move.",
   },
   {
+    when: "Week 2",
     title: "Shortlist",
-    body: "You get 5–8 vetted candidates per role, each with a one-line note on why they fit.",
+    body: "You get vetted candidates per role, each with a one-line note on why they fit.",
+    milestone: "5–8 per role",
   },
   {
+    when: "Week 3",
     title: "Match",
     body: "You pick who to meet. We set up warm 1:1 intros, or seat them across from you at dinner.",
   },
   {
+    when: "Until filled",
     title: "Follow through",
     body: "We track every intro to an outcome and refresh the pipeline until the role is filled.",
-  },
-] as const;
-
-// Illustrative only: no real candidate is described here.
-export const sampleShortlist = [
-  {
-    role: "Staff Product Designer",
-    years: 9,
-    city: "New York",
-    why: "Built the design system behind a developer-facing data product",
-  },
-  {
-    role: "Senior Product Designer",
-    years: 7,
-    city: "SF → NYC",
-    why: "Took an AI-native product from 0→1 and prototypes in code",
-  },
-  {
-    role: "Design Engineer",
-    years: 6,
-    city: "New York",
-    why: "React and motion; owns the seam between design and engineering",
-  },
-  {
-    role: "Principal Designer",
-    years: 12,
-    city: "San Francisco",
-    why: "Led design for technical, data-heavy enterprise tools",
-  },
-  {
-    role: "Design Lead",
-    years: 10,
-    city: "New York",
-    why: "Grew a team of six while staying hands-on in Figma",
-  },
-  {
-    role: "Senior Product Designer",
-    years: 8,
-    city: "Los Angeles",
-    why: "Consumer craft with a sharp eye for systems",
   },
 ] as const;

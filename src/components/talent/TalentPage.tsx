@@ -1,21 +1,20 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { Primary } from "../Primary";
 import { ScrollReveal } from "../ScrollReveal";
 import { SiteFooter } from "../SiteFooter";
 import { SiteHeader, type SiteHeaderLink } from "../SiteHeader";
+import { AdvisorWall } from "./AdvisorWall";
 import { TalentContactForm } from "./TalentContactForm";
 import {
   ADVISOR_COUNT,
-  advisorCompanies,
   candidateSignals,
   dinnerRunOfShow,
   dinnerThemes,
-  headlineStats,
   hubCities,
   networkFirstMonth,
   processSteps,
-  sampleShortlist,
   seniorityLevels,
 } from "./talent-content";
 import { siteEmail } from "@/lib/site";
@@ -33,8 +32,6 @@ const sectionPadding = "px-[clamp(20px,6vw,96px)]";
 
 const sectionTitle =
   "m-0 text-balance text-[clamp(3.5rem,6vw,5rem)] font-bold leading-[1.05] tracking-[-0.06em] text-black max-[520px]:text-[clamp(2.75rem,12vw,3.75rem)]";
-
-const eyebrow = "m-0 text-base text-subtle text-medium";
 
 const lede = "m-0 max-w-[54ch] text-pretty text-base leading-[1.6] text-muted";
 
@@ -114,32 +111,9 @@ export function TalentPage() {
             >
               Where our Board of Advisors designs
             </h2>
-            <p className="m-0 text-base text-subtle">
-              {ADVISOR_COUNT} advisors · {advisorCompanies.length} companies ·
-              SF / LA / NYC
-            </p>
           </ScrollReveal>
           <ScrollReveal delay={60}>
-            <ul
-              className={styles.wall}
-              aria-label="Companies where our Board of Advisors design"
-            >
-              {advisorCompanies.map((company) => (
-                <li key={company.name} className={styles.wallItem}>
-                  <span className={styles.mark} data-fit={company.fit}>
-                    <img
-                      src={company.src}
-                      alt=""
-                      width={96}
-                      height={96}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </span>
-                  {company.name}
-                </li>
-              ))}
-            </ul>
+            <AdvisorWall />
           </ScrollReveal>
           <ScrollReveal delay={100}>
             <p className="m-0 mt-[clamp(28px,3vw,44px)] max-w-[60ch] text-pretty text-base leading-[1.6] text-muted">
@@ -148,29 +122,6 @@ export function TalentPage() {
               join the room at hiring dinners.
             </p>
           </ScrollReveal>
-        </section>
-
-        <section
-          className={`${styles.grid} ${sectionPadding} pb-[clamp(80px,10vw,160px)]`}
-          aria-label="Talent Network by the numbers"
-        >
-          <ul className={styles.stats}>
-            {headlineStats.map((stat, index) => (
-              <li key={stat.value} className={styles.statItem}>
-                <ScrollReveal className={styles.stat} delay={index * 60}>
-                  <span className={styles.statValue}>{stat.value}</span>
-                  <span className="text-base leading-[1.45] text-ink">
-                    {stat.label}
-                  </span>
-                  {"note" in stat ? (
-                    <span className="text-sm leading-[1.45] text-subtle">
-                      {stat.note}
-                    </span>
-                  ) : null}
-                </ScrollReveal>
-              </li>
-            ))}
-          </ul>
         </section>
 
         <section
@@ -340,107 +291,55 @@ export function TalentPage() {
           id="process"
           aria-labelledby="process-title"
         >
-          <ScrollReveal className={styles.sectionIntro}>
-            <h2 className={sectionTitle} id="process-title">
-              From kickoff to shortlist
-            </h2>
-            <p className={lede}>
-              Five steps, and your first shortlist lands in about two weeks.
-            </p>
-          </ScrollReveal>
-          <ol className={styles.steps}>
-            {processSteps.map((step, index) => (
-              <li key={step.title}>
-                <ScrollReveal className={styles.step} delay={index * 60}>
-                  <span className={styles.stepNumber}>
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="text-xl font-bold tracking-[-0.04em] text-ink">
-                    {step.title}
-                  </span>
-                  <span className="text-base leading-[1.55] text-muted">
-                    {step.body}
-                  </span>
-                </ScrollReveal>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section
-          className={`${styles.grid} ${styles.matches} ${sectionPadding} pb-[clamp(80px,10vw,160px)]`}
-          aria-labelledby="matches-title"
-        >
-          <ScrollReveal className={styles.matchCopy}>
-            <p className={eyebrow}>What you get, per open role</p>
-            <h2 className={styles.matchNumber} id="matches-title">
-              <span>5–8</span>
-              <span className={styles.matchUnit}>vetted matches</span>
-            </h2>
-            <ul className={styles.matchFacts}>
-              <li>
-                <span className="text-medium text-ink">1 line</span>
-                <span>on why each person fits your role</span>
-              </li>
-              <li>
-                <span className="text-medium text-ink">1:1</span>
-                <span>warm intros, never a cold résumé dump</span>
-              </li>
-              <li>
-                <span className="text-medium text-ink">Every</span>
-                <span>intro tracked to an outcome</span>
-              </li>
-            </ul>
-          </ScrollReveal>
-
-          <ScrollReveal className={styles.shortlistSlot} delay={80}>
-            <figure className={styles.shortlist}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex min-w-0 flex-col gap-1">
-                  <span className="text-sm text-subtle">Sample shortlist</span>
-                  <span className="text-lg font-bold tracking-[-0.03em] text-ink">
-                    Senior Product Designer · New York
-                  </span>
-                </div>
-                <span className="shrink-0 rounded-full bg-accent-primary px-2.5 py-1 text-sm leading-none text-ink text-medium">
-                  {sampleShortlist.length} matches
-                </span>
+          <ScrollReveal className={styles.processPanel}>
+            <div className={styles.processHead}>
+              <div className="flex flex-col items-start gap-5">
+                <h2 className={sectionTitle} id="process-title">
+                  From kickoff to shortlist
+                </h2>
+                <p className={lede}>
+                  Five steps, run with your design team and our advisors. You
+                  only spend time on the conversations worth having.
+                </p>
               </div>
-              <ol className={styles.shortlistRows}>
-                {sampleShortlist.map((candidate, index) => (
-                  <li key={`${candidate.role}-${index}`}>
-                    <span
-                      className={styles.monogram}
-                      data-top={index === 0 || undefined}
-                      aria-hidden="true"
-                    >
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className="truncate text-base text-ink text-medium">
-                        {candidate.role}
+              <p className={styles.processStat}>
+                <span className={styles.processStatValue}>~2 weeks</span>
+                <span className="text-base leading-[1.4] text-muted">
+                  from kickoff to your first shortlist
+                </span>
+              </p>
+            </div>
+            <ol className={styles.timeline}>
+              {processSteps.map((step, index) => (
+                <li
+                  key={step.title}
+                  className={styles.timelineStep}
+                  data-milestone={"milestone" in step || undefined}
+                  style={{ "--step": index } as CSSProperties}
+                >
+                  <span className={styles.timelineNode} aria-hidden="true">
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                  </span>
+                  <span className="flex min-w-0 flex-col items-start gap-2.5">
+                    <span className={styles.timelineWhen}>{step.when}</span>
+                    <span className={styles.timelineTitle}>{step.title}</span>
+                    {"milestone" in step ? (
+                      <span className="rounded-full bg-accent-primary px-2.5 py-1 text-sm leading-none text-ink text-medium">
+                        {step.milestone}
                       </span>
-                      <span className="text-sm leading-[1.4] text-muted">
-                        {candidate.why}
-                      </span>
+                    ) : null}
+                    <span className="text-base leading-[1.55] text-muted">
+                      {step.body}
                     </span>
-                    <span className={styles.shortlistMeta}>
-                      <span>{candidate.years} yrs</span>
-                      <span>{candidate.city}</span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <figcaption className="text-sm leading-[1.45] text-subtle">
-                Illustrative example. Real shortlists arrive with portfolios and
-                a warm intro.
-              </figcaption>
-            </figure>
+                  </span>
+                </li>
+              ))}
+            </ol>
           </ScrollReveal>
         </section>
 
         <section
-          className={`${styles.grid} ${styles.cta} ${sectionPadding} pb-[clamp(96px,11vw,180px)]`}
+          className={`${styles.grid} ${sectionPadding} pb-[clamp(96px,11vw,180px)]`}
           id="get-matched"
           aria-labelledby="get-matched-title"
         >

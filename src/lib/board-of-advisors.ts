@@ -45,6 +45,11 @@ const BOARD_OF_ADVISORS_EMAILS = new Set<string>([
   "vamsibatchuk@gmail.com",
   "bennett.w.huffman@gmail.com",
   "kathytzhou@gmail.com",
+  "jgt@meta.com",
+  "heyresham@gmail.com",
+  "m@senyil.com",
+  "ahmed@falcon.so",
+  "hi@jessyin.world",
 ]);
 
 export function boardOfAdvisorsEmails() {

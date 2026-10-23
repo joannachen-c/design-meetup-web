@@ -7,7 +7,7 @@ import {
 
 test("the Board of Advisors list is normalized and unique", () => {
   const emails = boardOfAdvisorsEmails();
-  assert.equal(emails.length, 44);
+  assert.equal(emails.length, 49);
   assert.equal(new Set(emails).size, emails.length);
   for (const email of emails) {
     assert.equal(email, email.trim().toLowerCase());

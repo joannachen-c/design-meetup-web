@@ -23,7 +23,11 @@ const FOCAL_RADII = 4.5;
 // Card width as a share of the globe's radius, and the layers that build its
 // edge: enough that the side reads as solid at a glancing angle.
 const CARD_SIZE_RADII = 0.27;
-const CARD_EDGE_LAYERS = 6;
+const CARD_EDGE_LAYERS = 4;
+// Cards are laid out this many times larger than they appear and scaled down
+// in their 3D matrix, so the browser rasterises their logos sharply instead
+// of stretching a small bitmap as the perspective brings a card forward.
+const CARD_RASTER = 3;
 // The highest a card floats off the surface, as a share of the radius.
 const CARD_FLOAT_MAX = 0.12;
 // Light from above, left and in front; cards facing it are brightest.
@@ -122,10 +126,11 @@ function cardMatrix(n: Vec, x: number, y: number, z: number) {
     n[2] * east[0] - n[0] * east[2],
     n[0] * east[1] - n[1] * east[0],
   ];
+  const s = 1 / CARD_RASTER;
   return `matrix3d(${[
-    east[0], -east[1], east[2], 0,
-    -north[0], north[1], -north[2], 0,
-    n[0], -n[1], n[2], 0,
+    east[0] * s, -east[1] * s, east[2] * s, 0,
+    -north[0] * s, north[1] * s, -north[2] * s, 0,
+    n[0] * s, -n[1] * s, n[2] * s, 0,
     x, y, z, 1,
   ]
     .map((value) => value.toFixed(4))
@@ -244,7 +249,10 @@ export function LogoGlobe() {
       canvas.height = Math.round(height * ratio);
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       shell.style.setProperty("--globe-focal", `${focal}px`);
-      shell.style.setProperty("--card-size", `${radius * CARD_SIZE_RADII}px`);
+      shell.style.setProperty(
+        "--card-size",
+        `${radius * CARD_SIZE_RADII * CARD_RASTER}px`,
+      );
     };
 
     const draw = (time: number) => {

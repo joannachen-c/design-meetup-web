@@ -104,28 +104,23 @@ export const dinnerRunOfShow = [
 
 export const processSteps = [
   {
-    when: "Day 1",
     title: "Calibrate",
     body: "A 30-minute kickoff with your design team to pin down must-haves, portfolio signals and dealbreakers for each role.",
   },
   {
-    when: "Week 1",
     title: "Source",
     body: "Designers apply with a portfolio and current status. We prioritize senior people who are active or open to a move.",
   },
   {
-    when: "Week 2",
     title: "Shortlist",
     body: "You get vetted candidates per role, each with a one-line note on why they fit.",
     milestone: "5–8 per role",
   },
   {
-    when: "Week 3",
     title: "Match",
     body: "You pick who to meet. We set up warm 1:1 intros, or seat them across from you at dinner.",
   },
   {
-    when: "Until filled",
     title: "Follow through",
     body: "We track every intro to an outcome and refresh the pipeline until the role is filled.",
   },

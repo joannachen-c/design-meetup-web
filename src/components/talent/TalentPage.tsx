@@ -272,7 +272,6 @@ export function TalentPage() {
                     <span>{String(index + 1).padStart(2, "0")}</span>
                   </span>
                   <span className="flex min-w-0 flex-col items-start gap-2.5">
-                    <span className={styles.timelineWhen}>{step.when}</span>
                     <span className={styles.timelineTitle}>{step.title}</span>
                     {"milestone" in step ? (
                       <Pill variant="accent">{step.milestone}</Pill>

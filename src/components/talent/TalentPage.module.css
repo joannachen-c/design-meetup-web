@@ -459,7 +459,7 @@
 
 .formatTermsLead {
   margin: 0;
-  font-size: clamp(1.375rem, 2vw, 1.75rem);
+  font-size: clamp(1.25rem, 1.7vw, 1.5rem);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.04em;

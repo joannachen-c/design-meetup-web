@@ -328,13 +328,21 @@ export async function registerSignedUpMemberOnLuma({
   client,
   email,
   name,
+  cohort,
 }: {
   client: LumaClient;
   email: string;
   name?: string | null;
+  /** Pass when already resolved (it can come from Supabase); otherwise read from the code lists. */
+  cohort?: Cohort | null;
 }) {
   const normalized = normalizeEmail(email);
-  const category = lumaCategoryForEmail(normalized);
+  const category =
+    cohort === undefined
+      ? lumaCategoryForEmail(normalized)
+      : cohort == null
+        ? null
+        : LUMA_COHORT_TAGS[cohort];
   if (!normalized || normalized === DEMO_EMAIL || !category) return null;
 
   const tagId = await client.ensureContactTag(category.name, category.color);
@@ -352,6 +360,7 @@ export async function registerSignedUpMemberOnLuma({
 export async function syncSignedUpMemberToLuma(input: {
   email: string;
   name?: string | null;
+  cohort?: Cohort | null;
   client?: LumaClient;
 }) {
   let client = input.client ?? null;
@@ -365,6 +374,7 @@ export async function syncSignedUpMemberToLuma(input: {
       client,
       email: input.email,
       name: input.name,
+      cohort: input.cohort,
     });
   } catch (error) {
     console.error("[luma] signup member sync failed", error);

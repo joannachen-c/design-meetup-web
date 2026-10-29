@@ -1,3 +1,4 @@
+import { listApprovedSignupEmails } from "./approved-signups-store";
 import { createAdminClient } from "./auth";
 import { supabaseAuthConfigured } from "./auth-session";
 import { boardOfAdvisorsEmails } from "./board-of-advisors";
@@ -557,14 +558,15 @@ export async function listStudentMemberIds() {
 
 /**
  * Everyone who counts as a Design Meetup member: paying members with portal
- * access, both founding cohorts, the comp whitelist, and the Board of
- * Advisors. All but the first are members whether or not they have made a
+ * access, both founding cohorts, signups approved from the portal, the comp
+ * whitelist, and the Board of Advisors. All but the first are members whether or not they have made a
  * portal account.
  */
 export async function listMemberEmails() {
   const emails = new Set([
     ...(await listPortalMemberEmails()),
     ...cohortEmails(),
+    ...(await listApprovedSignupEmails()),
     ...compMembershipEmails(),
     ...boardOfAdvisorsEmails(),
   ]);

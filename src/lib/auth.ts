@@ -20,6 +20,7 @@ import {
   isApprovedSignupEmail,
   UNAPPROVED_SIGNUP_ERROR,
 } from "./signup-allowlist";
+import { isAddedApprovedSignup } from "./approved-signups-store";
 import { publicAppUrl } from "./site";
 
 /** Server-only admin client. Never import from client components. */
@@ -436,7 +437,7 @@ export async function passwordSignIn(email: string, password: string) {
 }
 
 export async function passwordSignUp(email: string, password: string) {
-  if (!isApprovedSignupEmail(email)) {
+  if (!isApprovedSignupEmail(email) && !(await isAddedApprovedSignup(email))) {
     return { ok: false as const, error: UNAPPROVED_SIGNUP_ERROR };
   }
   if (!supabaseAuthConfigured()) {

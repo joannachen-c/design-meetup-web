@@ -45,3 +45,13 @@ export async function planningActor(request: Request) {
   if (!user || !(await isOrganizerSession(user))) return null;
   return user.email || user.id;
 }
+
+/** Who may approve signups: "sheets" for the Google Sheets token, the organizer's email, or null. */
+export async function approvalsActor(request: Request) {
+  if (isPlanningApiToken(request.headers.get("authorization"), process.env.MEMBER_APPROVALS_TOKEN)) {
+    return "sheets";
+  }
+  const user = await getSessionUser();
+  if (!user || !(await isOrganizerSession(user))) return null;
+  return user.email || user.id;
+}

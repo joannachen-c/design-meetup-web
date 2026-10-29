@@ -263,9 +263,12 @@ function ResizeHandle({
 export function PlanningBoard({
   initialItems,
   initialColumnWidths,
+  children,
 }: {
   initialItems: PlanningItem[];
   initialColumnWidths: ColumnWidths;
+  /** Organizer tools shown under the title, above the calendar. */
+  children?: ReactNode;
 }) {
   const [items, setItems] = useState(initialItems);
   const [view, setView] = useState<View>(DEFAULT_VIEW);
@@ -515,6 +518,8 @@ export function PlanningBoard({
         </button>
         </div>
       </div>
+
+      {children}
 
       <div className="mt-10">
         <PlanningCalendar

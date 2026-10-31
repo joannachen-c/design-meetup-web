@@ -13,6 +13,7 @@ import {
   ensureProfile,
   userHasPortalAccess,
 } from "@/lib/membership-service";
+import { cohortForMember } from "@/lib/approved-signups-store";
 import { syncSignedUpMemberToLuma } from "@/lib/luma-member-approvals";
 import { originFromHeaders, siteUrl } from "@/lib/site";
 import { sendWelcomeEmail } from "@/lib/welcome-email";
@@ -88,7 +89,11 @@ export async function signupAction(
     firstName,
     origin: originFromHeaders(await headers()) ?? siteUrl,
   });
-  await syncSignedUpMemberToLuma({ email, name: displayName });
+  await syncSignedUpMemberToLuma({
+    email,
+    name: displayName,
+    cohort: await cohortForMember(email),
+  });
 
   redirect(next.includes("subscribe") ? next : "/portal/subscribe");
 }

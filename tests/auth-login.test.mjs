@@ -50,3 +50,13 @@ test("signup stores a confirmed supabase user so they can log in later", async (
   assert.match(auth, /admin\.auth\.admin\.createUser/);
   assert.match(auth, /email_confirm:\s*true/);
 });
+
+test("unsigned local sessions are ignored wherever Supabase auth is configured", async () => {
+  const auth = await read("src/lib/auth.ts");
+  const getSessionUser = auth.slice(auth.indexOf("export async function getSessionUser"));
+  assert.match(
+    getSessionUser,
+    /if \(!supabaseAuthConfigured\(\)\) \{\s*const local = decodeLocalSession\(access\) \|\| decodeLocalSession\(refresh\);\s*if \(local\) return localUser\(local\);\s*\}/,
+  );
+  assert.equal(getSessionUser.match(/decodeLocalSession\(/g)?.length, 2);
+});

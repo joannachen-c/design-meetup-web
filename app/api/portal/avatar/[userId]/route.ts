@@ -1,28 +1,37 @@
 import { NextResponse } from "next/server";
 import sharp from "sharp";
-import { getAvatarForUser } from "@/lib/membership-service";
+import { getSessionUser } from "@/lib/auth";
+import { getAvatarForUser, userHasPortalAccess } from "@/lib/membership-service";
 
 export const runtime = "nodejs";
 
 /** Thumbnail widths the directory asks for; originals can be several MB. */
 const THUMBNAIL_WIDTHS = [64, 128, 256] as const;
 
+function notFound() {
+  return new NextResponse(null, {
+    status: 404,
+    headers: { "Cache-Control": "no-store" },
+  });
+}
+
+/** Members see each other in the directory; anyone else signed in only sees their own photo. */
+async function canViewAvatar(userId: string) {
+  const viewer = await getSessionUser();
+  if (!viewer) return false;
+  return viewer.id === userId || userHasPortalAccess(viewer.id);
+}
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ userId: string }> },
 ) {
   const { userId } = await context.params;
-  if (!userId) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  // Same 404 as a missing photo, so the route does not reveal which ids exist.
+  if (!userId || !(await canViewAvatar(userId))) return notFound();
 
   const avatar = await getAvatarForUser(userId);
-  if (!avatar) {
-    return new NextResponse(null, {
-      status: 404,
-      headers: { "Cache-Control": "no-store" },
-    });
-  }
+  if (!avatar) return notFound();
 
   const requested = Number(new URL(request.url).searchParams.get("w"));
   const width = requested > 0 ? THUMBNAIL_WIDTHS.find((size) => size >= requested) : undefined;

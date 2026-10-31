@@ -55,7 +55,6 @@ import {
   LUMA_CALENDAR_EMBED_SRC,
   LUMA_PROFILE_URL,
   eventLinkPlatform,
-  type LumaEvent,
 } from "@/lib/luma";
 import type { MeetupEvent } from "@/lib/supabase";
 
@@ -634,7 +633,7 @@ export type HomePageProps = {
   initialEvents: MeetupEvent[];
   initialError: string | null;
   // Only populated when the Luma calendar has no upcoming events.
-  recentEvents: LumaEvent[];
+  recentEvents: MeetupEvent[];
 };
 
 export default function HomePage({

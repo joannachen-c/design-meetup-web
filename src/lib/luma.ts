@@ -1,9 +1,11 @@
 // The Luma calendar embed only ever renders upcoming events — when the calendar
 // is empty it shows its own "No Upcoming Events" card. luma.com/designmeetup
-// falls back to the past events list instead, so we read the same public
-// calendar feed the Luma site uses and render that fallback ourselves.
-const LUMA_CALENDAR_API_ID = "cal-HH5XBdHyWPt0yhB";
-const LUMA_ITEMS_ENDPOINT = "https://api.lu.ma/calendar/get-items";
+// falls back to the past events list instead, so we check the calendar's public
+// iCal feed for anything upcoming and render that fallback ourselves. The JSON
+// feed the Luma site uses rate-limits server requests; the iCal feed is meant
+// for calendar apps and serves them.
+const LUMA_ICS_URL =
+  "https://api.lu.ma/ics/get?entity=calendar&id=cal-HH5XBdHyWPt0yhB";
 
 const LUMA_INVITE_CODE = "ilyssayan";
 const LUMA_HOSTS = new Set(["luma.com", "www.luma.com", "lu.ma", "www.lu.ma"]);
@@ -49,122 +51,44 @@ export const LUMA_PAST_EVENTS_URL = withLumaInvite(
 export const LUMA_CALENDAR_EMBED_SRC =
   "https://luma.com/embed/calendar/cal-HH5XBdHyWPt0yhB/events?lt=light";
 
-export type LumaEvent = {
-  id: string;
-  name: string;
-  url: string;
-  coverUrl: string | null;
-  startAt: string;
-  dateLabel: string;
-  location: string | null;
-  hosts: string | null;
-};
-
-type LumaApiEntry = {
-  event?: {
-    api_id?: string;
-    name?: string;
-    url?: string;
-    cover_url?: string | null;
-    start_at?: string;
-    timezone?: string | null;
-    location_type?: string | null;
-    geo_address_info?: {
-      city_state?: string | null;
-      city?: string | null;
-      region?: string | null;
-      country?: string | null;
-    } | null;
-  } | null;
-  hosts?: Array<{ name?: string | null }> | null;
-};
-
-function formatDateLabel(startAt: string, timezone: string | null | undefined) {
-  const date = new Date(startAt);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  try {
-    return new Intl.DateTimeFormat("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-      timeZone: timezone ?? "UTC",
-    }).format(date);
-  } catch {
-    return new Intl.DateTimeFormat("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-      timeZone: "UTC",
-    }).format(date);
-  }
+// iCal timestamps look like 20261025T210000Z. Luma always writes UTC.
+function parseIcsTimestamp(value: string): number {
+  const match = /^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})Z?)?$/.exec(
+    value.trim(),
+  );
+  if (!match) return Number.NaN;
+  const [, y, mo, d, h = "0", mi = "0", se = "0"] = match;
+  return Date.UTC(+y, +mo - 1, +d, +h, +mi, +se);
 }
 
-function formatLocation(event: NonNullable<LumaApiEntry["event"]>) {
-  if (event.location_type === "online" || event.location_type === "virtual") {
-    return "Online";
-  }
-
-  const geo = event.geo_address_info;
-  return geo?.city_state ?? geo?.city ?? geo?.region ?? null;
-}
-
-function formatHosts(hosts: LumaApiEntry["hosts"]) {
-  const names = (hosts ?? [])
-    .map((host) => host?.name?.trim())
-    .filter((name): name is string => Boolean(name));
-
-  if (names.length === 0) return null;
-  if (names.length === 1) return names[0];
-  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
-}
-
-function normalize(entry: LumaApiEntry): LumaEvent | null {
-  const event = entry.event;
-  if (!event?.api_id || !event.name || !event.url || !event.start_at) {
-    return null;
-  }
-
-  return {
-    id: event.api_id,
-    name: event.name,
-    url: withLumaInvite(`https://luma.com/${event.url}`),
-    coverUrl: event.cover_url ?? null,
-    startAt: event.start_at,
-    dateLabel: formatDateLabel(event.start_at, event.timezone),
-    location: formatLocation(event),
-    hosts: formatHosts(entry.hosts),
-  };
+// An event counts until it ends, matching the embed, which keeps listing an
+// event while it is happening.
+export function icsHasUpcomingEvent(ics: string, now = Date.now()): boolean {
+  return ics
+    .split("BEGIN:VEVENT")
+    .slice(1)
+    .some((block) => {
+      const field = (name: string) =>
+        new RegExp(`^${name}(?:;[^:\\r\\n]*)?:(.+)$`, "m").exec(block)?.[1];
+      const end = parseIcsTimestamp(field("DTEND") ?? field("DTSTART") ?? "");
+      return end > now;
+    });
 }
 
 // Never throws. Returns null when Luma could not be reached, which is different
-// from an empty list: only a confirmed empty calendar should replace the embed.
-export async function fetchLumaCalendarEvents(
-  period: "future" | "past",
-  limit = 4,
-): Promise<LumaEvent[] | null> {
-  const params = new URLSearchParams({
-    calendar_api_id: LUMA_CALENDAR_API_ID,
-    period,
-    pagination_limit: String(limit),
-  });
-
+// from false: only a confirmed empty calendar should replace the embed.
+export async function fetchLumaHasUpcomingEvents(): Promise<boolean | null> {
   try {
-    const response = await fetch(`${LUMA_ITEMS_ENDPOINT}?${params}`, {
-      headers: { accept: "application/json" },
+    const response = await fetch(LUMA_ICS_URL, {
       next: { revalidate: 300 },
       signal: AbortSignal.timeout(8_000),
     });
 
     if (!response.ok) return null;
 
-    const payload = (await response.json()) as { entries?: LumaApiEntry[] };
-    return (payload.entries ?? [])
-      .map(normalize)
-      .filter((event): event is LumaEvent => event !== null)
-      .slice(0, limit);
+    const ics = await response.text();
+    if (!ics.includes("BEGIN:VCALENDAR")) return null;
+    return icsHasUpcomingEvent(ics);
   } catch {
     return null;
   }

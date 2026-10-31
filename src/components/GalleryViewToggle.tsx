@@ -40,7 +40,7 @@ function CarouselViewIcon({ filled }: { filled: boolean }) {
   );
 }
 
-function GridViewIcon({ filled }: { filled: boolean }) {
+export function GridViewIcon({ filled }: { filled: boolean }) {
   const square = solidShapeProps(filled);
 
   return (

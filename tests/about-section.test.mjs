@@ -8,10 +8,10 @@ const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8
 const aboutSection =
   app.match(/<section\s+className="[^"]*about-section[\s\S]*?<\/section>/)?.[0] ?? "";
 
-test("about section appears immediately before the partner section", () => {
+test("about section is followed by the advisors slot, then the partner section", () => {
   assert.match(
     app,
-    /<section[\s\S]*className="[^"]*\babout-section\b[^"]*"[\s\S]*id="about"[\s\S]*>\s*[\s\S]*>\s*About\s*<\/h2>[\s\S]*<\/section>\s*<section[\s\S]*className="[^"]*\bpartner-cta\b/,
+    /<section[\s\S]*className="[^"]*\babout-section\b[^"]*"[\s\S]*id="about"[\s\S]*>\s*[\s\S]*>\s*About\s*<\/h2>[\s\S]*<\/section>\s*\{advisorsSection\}\s*<section[\s\S]*className="[^"]*\bpartner-cta\b/,
   );
 });
 

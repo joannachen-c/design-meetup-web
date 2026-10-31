@@ -1,0 +1,192 @@
+"use client";
+
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+
+import { ArrowUpRightIcon } from "@/components/icons/ArrowUpRightIcon";
+
+import { advisorFullName, type Advisor } from "./advisors";
+import {
+  AdvisorEmptyState,
+  Portrait,
+  SocialLinks,
+  advisorLocationLabel,
+  advisorPhotoLayoutId,
+  monoCellClassName,
+  monoLabelClassName,
+  photoMorphTransition,
+  polaroidFrameClassName,
+  polaroidPaddingClassName,
+} from "./directory-ui";
+
+// Below 1024px the photo spans the stacked name/title/company/links rows instead of sitting beside the name only.
+const rowGridClassName =
+  "grid grid-cols-[76px_minmax(0,1fr)] content-center gap-x-4 gap-y-1 min-[1024px]:grid-cols-[40px_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.8fr)_88px] min-[1024px]:gap-x-5 min-[1024px]:gap-y-0";
+
+function SpotlightContent({ advisor }: { advisor: Advisor }) {
+  return (
+    <>
+      <a
+        className={`${polaroidFrameClassName} ${polaroidPaddingClassName} mx-auto block w-[min(100%,calc(clamp(200px,20vw,300px)*1.03))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
+        href={advisor.href}
+        target={advisor.href === "#" ? undefined : "_blank"}
+        rel={advisor.href === "#" ? undefined : "noreferrer"}
+        aria-label={advisorFullName(advisor)}
+      >
+        <Portrait
+          advisor={advisor}
+          className="aspect-[4/5] w-full rounded-[2px] text-6xl tracking-[-0.06em]"
+          grayscale={false}
+        />
+      </a>
+      <div className="grid gap-2 pt-[clamp(28px,2.8vw,44px)]">
+        <p className="m-0 text-balance text-[clamp(1.75rem,2.6vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.06em] text-ink">
+          {advisorFullName(advisor)}
+        </p>
+        <p className="m-0 text-base leading-[1.7] text-ink">{advisor.title}</p>
+        <p className="m-0 font-mono text-sm leading-[1.5] text-muted">
+          {advisor.company}
+          {advisor.locations.length > 0 ? (
+            <span className="text-subtle">
+              {advisor.company ? <span className="mx-[0.3em]">·</span> : null}
+              {advisorLocationLabel(advisor)}
+            </span>
+          ) : null}
+        </p>
+        <SocialLinks advisor={advisor} className="-ml-1.5 pt-1" />
+      </div>
+    </>
+  );
+}
+
+// Every panel shares one grid cell so the aside is as tall as the tallest advisor and swaps are pure opacity fades.
+function SpotlightPanel({ rows, activeSlug }: { rows: Advisor[]; activeSlug: string | undefined }) {
+  return (
+    <aside className="hidden min-[821px]:grid" aria-live="polite" aria-label="Selected advisor">
+      {rows.map((advisor) => {
+        const active = advisor.slug === activeSlug;
+        return (
+          <div
+            key={advisor.slug}
+            className={`[grid-area:1/1] transition-[opacity,visibility] duration-200 ease-out motion-reduce:transition-none ${active ? "visible opacity-100" : "invisible opacity-0"}`}
+            aria-hidden={active ? undefined : true}
+          >
+            <SpotlightContent advisor={advisor} />
+          </div>
+        );
+      })}
+    </aside>
+  );
+}
+
+function TableRow({
+  advisor,
+  active,
+  morph,
+  onActivate,
+}: {
+  advisor: Advisor;
+  active: boolean;
+  morph: boolean;
+  onActivate: () => void;
+}) {
+  return (
+    <li
+      className={`${rowGridClassName} group/row items-center rounded-[6px] px-2 py-3 transition-colors duration-150 ease-out motion-reduce:transition-none min-[1024px]:py-2 ${advisor.href === "#" ? "" : "cursor-pointer"} ${active ? "min-[821px]:bg-surface-muted" : ""}`}
+      onMouseEnter={onActivate}
+      onFocus={(event) => {
+        if (event.target.matches(":focus-visible")) onActivate();
+      }}
+      onClick={(event) => {
+        if (advisor.href === "#" || (event.target as HTMLElement).closest("a")) return;
+        window.open(advisor.href, "_blank", "noopener,noreferrer");
+      }}
+      data-active={active ? "" : undefined}
+    >
+      <motion.span
+        layoutId={advisorPhotoLayoutId(advisor)}
+        transition={{ layout: morph ? photoMorphTransition : { duration: 0 } }}
+        className="row-span-4 flex w-[76px] self-center rounded-[3px] bg-white p-1 pb-[5px] shadow-[0_1px_2px_rgba(15,23,42,0.1),0_4px_12px_rgba(15,23,42,0.1)] min-[1024px]:row-span-1 min-[1024px]:w-10 min-[1024px]:p-[2px] min-[1024px]:pb-[3px] min-[1024px]:shadow-[0_1px_2px_rgba(15,23,42,0.08),0_3px_8px_rgba(15,23,42,0.08)]"
+      >
+        <Portrait
+          advisor={advisor}
+          className="aspect-[4/5] w-full rounded-[1px] text-lg transition-[filter] duration-200 ease-out motion-reduce:transition-none min-[1024px]:text-[10px]"
+          grayscale={!active}
+        />
+      </motion.span>
+      {advisor.href === "#" ? (
+        <span className="min-w-0 truncate text-base font-bold leading-tight text-ink">
+          {advisorFullName(advisor)}
+        </span>
+      ) : (
+        <a
+          className="group inline-flex min-w-0 items-center gap-1 self-center text-base font-bold leading-tight text-ink no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          href={advisor.href}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span className="truncate">{advisorFullName(advisor)}</span>
+          <ArrowUpRightIcon className="size-3.5 shrink-0 text-muted opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover:-translate-y-px group-hover:translate-x-px group-hover/row:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none" />
+        </a>
+      )}
+      <span
+        className={`${monoCellClassName} col-start-2 min-[1024px]:col-start-auto min-[1024px]:truncate`}
+        title={advisor.title}
+      >
+        {advisor.title}
+      </span>
+      <span
+        className={`${monoCellClassName} col-start-2 text-ink min-[1024px]:col-start-auto min-[1024px]:truncate`}
+        title={advisor.company}
+      >
+        {advisor.company}
+      </span>
+      <SocialLinks
+        advisor={advisor}
+        className="col-start-2 -ml-1.5 min-[1024px]:col-start-auto min-[1024px]:ml-0 min-[1024px]:justify-end"
+      />
+    </li>
+  );
+}
+
+export function AdvisorTableView({ rows, morph }: { rows: Advisor[]; morph: boolean }) {
+  const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [scrolled, setScrolled] = useState(false);
+  const activeAdvisor = rows.find((advisor) => advisor.slug === activeSlug) ?? rows[0];
+
+  useEffect(() => {
+    if (activeSlug && !rows.some((advisor) => advisor.slug === activeSlug)) {
+      setActiveSlug(null);
+    }
+  }, [rows, activeSlug]);
+
+  return (
+    // Left track mirrors the events grid view's detail column: 5/12 of the full-bleed width minus its page padding on both sides.
+    <div className="grid min-w-0 gap-[clamp(24px,3vw,40px)] min-[821px]:grid-cols-[calc((100%+2*clamp(20px,6vw,96px))*5/12-2*clamp(20px,6vw,96px))_minmax(0,1fr)]">
+      <SpotlightPanel rows={rows} activeSlug={activeAdvisor?.slug} />
+      <div className="relative min-w-0">
+        {rows.length === 0 ? (
+          <AdvisorEmptyState />
+        ) : (
+          <motion.ol
+            layoutScroll
+            className="m-0 list-none p-0 [--list-fade-top:0px] [transition:--list-fade-top_200ms_ease-out] data-[scrolled]:[--list-fade-top:56px] motion-reduce:[transition:none] min-[821px]:absolute min-[821px]:inset-0 min-[821px]:overflow-y-auto min-[821px]:overscroll-contain min-[821px]:pb-16 min-[821px]:[mask-image:linear-gradient(to_bottom,transparent,black_var(--list-fade-top),black_calc(100%-56px),transparent)] min-[821px]:[scrollbar-width:thin]"
+            aria-label="Board of Advisors table"
+            data-scrolled={scrolled ? "" : undefined}
+            onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}
+          >
+            {rows.map((advisor) => (
+              <TableRow
+                key={advisor.slug}
+                advisor={advisor}
+                active={advisor.slug === activeAdvisor?.slug}
+                morph={morph}
+                onActivate={() => setActiveSlug(advisor.slug)}
+              />
+            ))}
+          </motion.ol>
+        )}
+      </div>
+    </div>
+  );
+}

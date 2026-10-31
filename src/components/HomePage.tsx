@@ -647,8 +647,9 @@ export default function HomePage({
   // first frame, with covers tucked behind the focused one on both sides. An
   // archive too short to have a sixth cover opens on the newest instead of the
   // oldest: the covers then run to the right, which is the end the entrance sweep
-  // starts from and the end a reader scrolls towards.
-  const initialIndex = initialFocusIndex(initialEvents.length);
+  // starts from and the end a reader scrolls towards. An event without photos
+  // passes the opening slot on to the next one to its right that has some.
+  const initialIndex = initialFocusIndex(initialEvents);
   const firstPaintCovers = useMemo(
     () => firstPaintCoverImages(events, initialIndex),
     [events, initialIndex],

@@ -11,7 +11,7 @@ export function RecentEventsPanel({ events }: { events: MeetupEvent[] }) {
         {events.map((event) => (
           <li key={event.id}>
             <a
-              className="recent-event-row group grid items-center gap-[clamp(18px,2.4vw,28px)] rounded-[10px] px-3 py-3.5 no-underline transition-colors duration-150 hover:bg-gray-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              className="recent-event-row group grid items-center gap-[clamp(18px,2.4vw,28px)] rounded-[10px] px-[18px] py-3.5 no-underline transition-colors duration-150 hover:bg-gray-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
               href={event.luma_url ?? LUMA_PAST_EVENTS_URL}
               target="_blank"
               rel="noreferrer"
@@ -45,7 +45,7 @@ export function RecentEventsPanel({ events }: { events: MeetupEvent[] }) {
         ))}
       </ul>
       <Link
-        className="mt-auto inline-flex items-center gap-1.5 px-3 pt-2.5 pb-2"
+        className="mt-auto inline-flex items-center gap-1.5 px-[18px] pt-2.5 pb-2"
         href={LUMA_PAST_EVENTS_URL}
         target="_blank"
         rel="noreferrer"

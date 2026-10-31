@@ -11,7 +11,6 @@
     "seed:events": "node scripts/seed-events.mjs",
     "seed:galleries": "node scripts/seed-galleries.mjs",
     "upload:gallery": "node scripts/upload-event-gallery.mjs",
-    "import:figma-gallery": "node scripts/import-figma-gallery.mjs",
     "refresh:summaries": "node scripts/refresh-event-summaries.mjs",
     "sync:luma": "node scripts/sync-luma-events.mjs",
     "luma:webhook": "node --experimental-strip-types scripts/register-luma-webhook.mjs",

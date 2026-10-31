@@ -156,3 +156,13 @@ test("portal-approved signups count as cohort 1 and as pending until they sign u
     "Approved signup",
   ]);
 });
+
+test("directory links are written out and never underlined", async () => {
+  const { linkLabel } = await import("../src/lib/directory.ts");
+  assert.equal(linkLabel("https://www.liumichelle.com/"), "liumichelle.com");
+  assert.equal(linkLabel("http://example.com/work"), "example.com/work");
+  const client = await read("src/components/portal/MemberDirectory.tsx");
+  assert.doesNotMatch(client, /(?<!no-)underline|decoration-/);
+  assert.doesNotMatch(client, />\s*Portfolio\s*</);
+  assert.match(client, /linkLabel\(card\.links\.website\)/);
+});

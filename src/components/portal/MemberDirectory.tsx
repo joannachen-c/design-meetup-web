@@ -21,6 +21,7 @@ import {
   REGIONS,
   disciplineLabel,
   filterDirectory,
+  linkLabel,
   type DirectoryFilters,
   type DirectoryKind,
   type DirectoryLinks,
@@ -132,17 +133,17 @@ function DirectoryCard({ card, own }: { card: MemberCard; own: boolean }) {
       <div className="mt-auto flex min-h-9 items-center gap-1">
         {card.links.website ? (
           <a
-            className="mr-auto inline-flex items-center gap-1 rounded-[8px] py-1.5 text-base font-medium text-ink underline decoration-ink/20 underline-offset-4 transition-colors hover:decoration-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            className="mr-auto inline-flex min-w-0 items-center gap-1 rounded-[8px] py-1.5 text-base font-bold text-ink no-underline transition-colors hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             href={card.links.website}
             target="_blank"
             rel="noreferrer"
           >
-            Portfolio
+            <span className="truncate">{linkLabel(card.links.website)}</span>
             <ArrowUpRightIcon />
           </a>
         ) : own ? (
           <a
-            className="mr-auto py-1.5 text-base text-muted underline decoration-muted/30 underline-offset-4 hover:text-ink"
+            className="mr-auto py-1.5 text-base text-muted no-underline hover:text-ink"
             href="/portal/profile"
           >
             Add your portfolio
@@ -249,7 +250,7 @@ function TeamTable({ rows }: { rows: TeamRow[] }) {
                 </span>
               </td>
               <td className="px-4 py-2.5">
-                <a className="text-ink underline decoration-ink/20 underline-offset-4 hover:decoration-ink" href={`mailto:${row.email}`}>
+                <a className="text-ink no-underline hover:text-muted" href={`mailto:${row.email}`}>
                   {row.email}
                 </a>
               </td>
@@ -272,12 +273,12 @@ function TeamTable({ rows }: { rows: TeamRow[] }) {
               <td className="px-4 py-2.5">
                 {row.links.website ? (
                   <a
-                    className="inline-flex items-center gap-1 text-ink underline decoration-ink/20 underline-offset-4 hover:decoration-ink"
+                    className="inline-flex items-center gap-1 font-bold whitespace-nowrap text-ink no-underline hover:text-muted"
                     href={row.links.website}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Open
+                    {linkLabel(row.links.website)}
                     <ArrowUpRightIcon />
                   </a>
                 ) : (
@@ -431,8 +432,9 @@ export function MemberDirectory(props: MemberDirectoryProps) {
       {nudge ? (
         <p className="m-0 mt-8 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[14px] bg-accent-primary px-4 py-3 text-base text-ink">
           Add your role, website, and city so members can find you.
-          <a className="font-medium underline underline-offset-4" href="/portal/profile">
+          <a className="inline-flex items-center gap-1 font-bold text-ink no-underline" href="/portal/profile">
             Complete your profile
+            <ArrowUpRightIcon />
           </a>
         </p>
       ) : null}

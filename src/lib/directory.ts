@@ -54,6 +54,11 @@ export function regionsForLocation(location: string | null | undefined): Region[
   return matched.length ? matched : ["elsewhere"];
 }
 
+/** A link written out for display: "liumichelle.com", not "https://www.liumichelle.com/". */
+export function linkLabel(href: string) {
+  return href.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "");
+}
+
 export type DirectoryLinks = {
   website: string | null;
   instagram: string | null;

@@ -95,7 +95,7 @@ test("first-paint covers are the focused slot plus the visible radius", () => {
   const events = Array.from({ length: 12 }, (_, index) => ({
     image_url: LUMA_COVER.replace("cover.png", `cover-${index}.png`),
   }));
-  const focus = initialFocusIndex(events.length);
+  const focus = initialFocusIndex(events);
   assert.equal(focus, DEFAULT_FOCUS_SLOT);
   const covers = firstPaintCoverImages(events, focus);
   assert.equal(covers.length, VISIBLE_COVER_RADIUS * 2 + 1);
@@ -106,6 +106,20 @@ test("first-paint covers are the focused slot plus the visible radius", () => {
 
 test("a short archive still preloads every cover around the opening slot", () => {
   const events = [{ image_url: LUMA_COVER }, { image_url: LUMA_COVER }];
-  assert.equal(initialFocusIndex(events.length), 0);
+  assert.equal(initialFocusIndex(events), 0);
   assert.equal(firstPaintCoverImages(events, 0).length, 2);
+});
+
+test("the opening slot steps right past events without photos of their own", () => {
+  const photos = [{ image_url: "https://cdn.example.com/recap.jpg" }];
+  const placeholders = [{ image_url: "https://cdn.example.com/placeholders/1.jpg" }];
+  const events = Array.from({ length: 10 }, () => ({ gallery_images: [] }));
+  events[DEFAULT_FOCUS_SLOT] = { gallery_images: placeholders };
+  events[DEFAULT_FOCUS_SLOT + 2] = { gallery_images: photos };
+  events[DEFAULT_FOCUS_SLOT - 1] = { gallery_images: photos };
+  assert.equal(initialFocusIndex(events), DEFAULT_FOCUS_SLOT + 2);
+
+  // Nothing to the right has photos: keep the default slot.
+  events[DEFAULT_FOCUS_SLOT + 2] = { gallery_images: [] };
+  assert.equal(initialFocusIndex(events), DEFAULT_FOCUS_SLOT);
 });

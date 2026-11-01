@@ -12,7 +12,7 @@ const RECENT_EVENT_COUNT = 4;
 function preloadFirstPaintCovers(events: MeetupEvent[]) {
   for (const cover of firstPaintCoverImages(
     events,
-    initialFocusIndex(events.length),
+    initialFocusIndex(events),
   )) {
     preload(cover.src, {
       as: "image",

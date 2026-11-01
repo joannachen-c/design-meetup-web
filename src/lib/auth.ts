@@ -350,8 +350,13 @@ export async function getSessionUser(): Promise<User | null> {
   const refresh = jar.get(REFRESH_COOKIE)?.value;
   if (!access && !refresh) return null;
 
-  const local = decodeLocalSession(access) || decodeLocalSession(refresh);
-  if (local) return localUser(local);
+  // Local sessions are unsigned, so they only count where this app issues them:
+  // a checkout without the Supabase service role. Anywhere else, anyone could
+  // write one for any member's id.
+  if (!supabaseAuthConfigured()) {
+    const local = decodeLocalSession(access) || decodeLocalSession(refresh);
+    if (local) return localUser(local);
+  }
 
   if (!supabasePublishableOrServiceKey()) return null;
 

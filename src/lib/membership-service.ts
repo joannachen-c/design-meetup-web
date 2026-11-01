@@ -4,6 +4,8 @@ import { supabaseAuthConfigured } from "./auth-session";
 import { boardOfAdvisorsEmails } from "./board-of-advisors";
 import { cohortEmails } from "./cohort";
 import { compMembershipEmails } from "./comp-membership";
+import { normalizeDisciplines } from "./directory";
+import { listPreviewRecords, type PreviewRecord } from "./portfolio-previews";
 import { hasGraduated, persistGraduation } from "./graduation";
 import {
   displayNameFromEmail,
@@ -21,6 +23,7 @@ import {
   ensureLocalProfile,
   getLocalMembership,
   getLocalProfile,
+  listLocalDirectoryRows,
   listLocalMemberships,
   listLocalStudentUserIds,
   readAvatarFile,
@@ -32,6 +35,9 @@ import {
 import { sendGraduationUpgradeEmail } from "./welcome-email";
 
 const DEMO_EMAIL = "demo@designmeetup.info";
+
+const PROFILE_COLUMNS =
+  "id,email,display_name,avatar_url,school,year,company,position,location,website,instagram,x,linkedin,youtube,github,disciplines,stripe_customer_id,created_at,updated_at";
 
 const TABLES_RECHECK_MS = 30_000;
 let supabaseTablesReady: boolean | null = null;
@@ -72,13 +78,14 @@ export async function ensureProfile(user: {
     user.displayName?.trim() || displayNameFromEmail(email);
   if (await supabaseMembershipTablesAvailable()) {
     const admin = createAdminClient();
-    const { data: existing } = await admin
+    const { data: existing, error } = await admin
       .from("profiles")
-      .select(
-        "id,email,display_name,avatar_url,school,year,company,position,location,website,instagram,x,linkedin,youtube,github,stripe_customer_id,created_at,updated_at",
-      )
+      .select(PROFILE_COLUMNS)
       .eq("id", user.id)
       .maybeSingle();
+    // A failed read is not a missing profile: upserting here would blank the
+    // member's saved photo and name (e.g. a column added before its migration ran).
+    if (error) throw new Error(`Could not load profile: ${error.message}`);
     if (existing) {
       const mapped = mapProfile(existing);
       if (
@@ -143,6 +150,7 @@ function mapProfile(row: {
   linkedin?: string | null;
   youtube?: string | null;
   github?: string | null;
+  disciplines?: string[] | null;
   stripe_customer_id?: string | null;
   stripeCustomerId?: string | null;
   created_at?: string;
@@ -166,6 +174,7 @@ function mapProfile(row: {
     linkedin: row.linkedin ?? null,
     youtube: row.youtube ?? null,
     github: row.github ?? null,
+    disciplines: normalizeDisciplines(row.disciplines),
     stripeCustomerId: row.stripe_customer_id ?? row.stripeCustomerId ?? null,
     createdAt: row.created_at ?? row.createdAt ?? new Date().toISOString(),
     updatedAt: row.updated_at ?? row.updatedAt ?? new Date().toISOString(),
@@ -177,9 +186,7 @@ export async function getProfile(userId: string) {
     const admin = createAdminClient();
     const { data } = await admin
       .from("profiles")
-      .select(
-        "id,email,display_name,avatar_url,school,year,company,position,location,website,instagram,x,linkedin,youtube,github,stripe_customer_id,created_at,updated_at",
-      )
+      .select(PROFILE_COLUMNS)
       .eq("id", userId)
       .maybeSingle();
     return data ? mapProfile(data) : null;
@@ -202,6 +209,7 @@ export async function updateProfile(input: {
   linkedin?: string | null;
   youtube?: string | null;
   github?: string | null;
+  disciplines?: string[];
   avatarBytes?: Buffer | null;
   avatarContentType?: string | null;
 }) {
@@ -220,6 +228,8 @@ export async function updateProfile(input: {
   const linkedin = input.linkedin?.trim().replace(/^\/?in\//, "") || null;
   const youtube = input.youtube?.trim().replace(/^@/, "") || null;
   const github = input.github?.trim().replace(/^@/, "") || null;
+  const disciplines =
+    input.disciplines === undefined ? undefined : normalizeDisciplines(input.disciplines);
   let avatarUrl: string | null | undefined;
 
   if (input.avatarBytes && input.avatarContentType) {
@@ -255,6 +265,7 @@ export async function updateProfile(input: {
     if (input.linkedin !== undefined) patch.linkedin = linkedin;
     if (input.youtube !== undefined) patch.youtube = youtube;
     if (input.github !== undefined) patch.github = github;
+    if (disciplines !== undefined) patch.disciplines = disciplines;
     await admin.from("profiles").update(patch).eq("id", input.userId);
     return getProfile(input.userId);
   }
@@ -275,6 +286,7 @@ export async function updateProfile(input: {
     linkedin: input.linkedin !== undefined ? linkedin : undefined,
     youtube: input.youtube !== undefined ? youtube : undefined,
     github: input.github !== undefined ? github : undefined,
+    disciplines,
   });
 }
 
@@ -572,6 +584,55 @@ export async function listMemberEmails() {
   ]);
   emails.delete(DEMO_EMAIL);
   return [...emails];
+}
+
+export type DirectoryRow = {
+  profile: ProfileRecord;
+  membership: Pick<MembershipRecord, "tier" | "status">;
+  preview?: PreviewRecord | null;
+};
+
+/** Everyone who can open the portal, with their profile. Same rule as userHasPortalAccess. */
+export async function listDirectoryRows(): Promise<DirectoryRow[]> {
+  if (!(await supabaseMembershipTablesAvailable())) {
+    const rows = await listLocalDirectoryRows();
+    return rows.filter((row) => hasPortalAccess(row.membership.status));
+  }
+  const admin = createAdminClient();
+  const [{ data, error }, previews] = await Promise.all([
+    admin
+      .from("memberships")
+      .select(`tier,status,stripe_subscription_id,profiles(${PROFILE_COLUMNS})`),
+    // Previews are decoration: the directory still loads if they cannot.
+    listPreviewRecords(admin).catch((previewError) => {
+      console.error("portfolio previews unavailable", previewError);
+      return new Map<string, PreviewRecord>();
+    }),
+  ]);
+  if (error) throw new Error(`Could not load the directory: ${error.message}`);
+  return (data ?? []).flatMap((row) => {
+    const joined = row.profiles as unknown;
+    const profile = (Array.isArray(joined) ? joined[0] : joined) as
+      | Parameters<typeof mapProfile>[0]
+      | null;
+    const status = normalizeMembershipStatus(row.status);
+    if (
+      !profile ||
+      profile.email === DEMO_EMAIL ||
+      !hasPortalAccess(status) ||
+      !isLiveStripeSubscriptionId(row.stripe_subscription_id)
+    ) {
+      return [];
+    }
+    const mapped = mapProfile(profile);
+    return [
+      {
+        profile: mapped,
+        membership: { tier: row.tier as Tier, status },
+        preview: previews.get(mapped.id) ?? null,
+      },
+    ];
+  });
 }
 
 async function listPortalMemberEmails() {

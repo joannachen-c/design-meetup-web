@@ -9,6 +9,7 @@ import { logoutAction } from "@/lib/auth-actions";
 const memberNav = [
   { href: "/portal", label: "Home" },
   { href: "/portal/community", label: "Community" },
+  { href: "/portal/directory", label: "Directory" },
 ];
 // Only rendered for organizer sessions; /portal/planning is gated server-side too.
 const organizerNav = [
@@ -95,7 +96,7 @@ export function PortalHeader({
   }, [pathname]);
 
   return (
-    <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 bg-surface px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
+    <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 bg-surface max-[640px]:grid-cols-[auto_1fr] max-[640px]:gap-y-3 px-[clamp(20px,6vw,96px)] py-[clamp(16px,2vw,24px)]">
       <Link
         href="/"
         className="w-fit leading-[0] no-underline"
@@ -113,7 +114,8 @@ export function PortalHeader({
       {showMemberNav ? (
         <nav
           ref={navRef}
-          className="relative flex gap-1"
+          // Phones put the tabs on their own row so the logo and account menu keep their room.
+          className="relative flex gap-1 max-[640px]:col-span-2 max-[640px]:row-start-2 max-[640px]:overflow-x-auto max-[640px]:[scrollbar-width:none]"
           aria-label="Member portal"
         >
           {pill ? (

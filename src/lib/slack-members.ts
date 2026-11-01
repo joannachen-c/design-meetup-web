@@ -10,15 +10,17 @@ export const LOCAL_SLACK_MEMBERS_PATH = path.join(
   "slack-members.json",
 );
 
-async function localSlackJoinedAt(email: string) {
+async function localSlackRows() {
   try {
-    const rows = JSON.parse(
-      await readFile(LOCAL_SLACK_MEMBERS_PATH, "utf8"),
-    ) as SlackJoinDate[];
-    return rows.find((row) => row.email === email)?.joinedAt ?? null;
+    return JSON.parse(await readFile(LOCAL_SLACK_MEMBERS_PATH, "utf8")) as SlackJoinDate[];
   } catch {
-    return null;
+    return [];
   }
+}
+
+async function localSlackJoinedAt(email: string) {
+  const rows = await localSlackRows();
+  return rows.find((row) => row.email === email)?.joinedAt ?? null;
 }
 
 /** When this email joined the Design Meetup Slack, filled by `npm run import:slack-members`. */
@@ -39,4 +41,24 @@ export async function getSlackJoinedAt(email: string | null | undefined) {
     }
   }
   return localSlackJoinedAt(normalized);
+}
+
+/** Every known Slack join date, keyed by lowercase email. */
+export async function listSlackJoinDates() {
+  const dates = new Map<string, string>();
+  if (supabaseAuthConfigured()) {
+    try {
+      const { data, error } = await createAdminClient()
+        .from("slack_members")
+        .select("email,joined_at");
+      if (!error) {
+        for (const row of data ?? []) dates.set(row.email as string, row.joined_at as string);
+        return dates;
+      }
+    } catch {
+      // Table not migrated yet; fall through to the local file.
+    }
+  }
+  for (const row of await localSlackRows()) dates.set(row.email, row.joinedAt);
+  return dates;
 }

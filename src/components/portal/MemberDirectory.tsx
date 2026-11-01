@@ -99,70 +99,113 @@ function Tag({ children, tone = "plain" }: { children: ReactNode; tone?: "plain"
   );
 }
 
+const SHOT_FRAME =
+  "block aspect-[16/10] max-w-full overflow-hidden rounded-[14px] no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
+const SHOT_PANEL = `${SHOT_FRAME} grid place-items-center bg-skeleton p-4 text-center text-[15px] text-muted`;
+
+/** The top of the card: the member's site as it looks, cofolios-style. */
+function PortfolioShot({ card, own }: { card: MemberCard; own: boolean }) {
+  const [failed, setFailed] = useState(false);
+  const site = card.links.website;
+  if (site && card.previewUrl && !failed) {
+    return (
+      <a
+        className={`${SHOT_FRAME} bg-white shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_10px_28px_-12px_rgb(0_0_0/0.28)] transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-[3px] hover:shadow-[0_0_0_1px_rgb(0_0_0/0.08),0_16px_36px_-14px_rgb(0_0_0/0.36)] motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
+        href={site}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={`Open ${linkLabel(site)}`}
+      >
+        <img
+          className="block size-full object-cover object-top"
+          src={card.previewUrl}
+          alt=""
+          width={800}
+          height={500}
+          loading="lazy"
+          onError={() => setFailed(true)}
+        />
+      </a>
+    );
+  }
+  if (site) {
+    return (
+      <a className={`${SHOT_PANEL} hover:text-ink`} href={site} target="_blank" rel="noreferrer">
+        <span className="min-w-0 text-[clamp(18px,2vw,22px)] font-bold tracking-[-0.03em] break-words text-ink">
+          {linkLabel(site)}
+        </span>
+      </a>
+    );
+  }
+  return own ? (
+    <a className={`${SHOT_PANEL} hover:text-ink`} href="/portal/profile">
+      Add your portfolio so it shows here
+    </a>
+  ) : (
+    <div className={SHOT_PANEL}>No portfolio linked yet</div>
+  );
+}
+
 function DirectoryCard({ card, own }: { card: MemberCard; own: boolean }) {
   const socials = SOCIALS.filter((social) => card.links[social.key]);
   return (
     <article
-      className={`flex min-w-0 flex-col gap-4 rounded-[20px] bg-surface-muted p-5 ${own ? "ring-2 ring-ink/10" : ""}`}
+      className={`flex min-w-0 flex-col gap-4 rounded-[24px] bg-surface-muted p-4 pb-3.5 ${own ? "ring-2 ring-ink/10" : ""}`}
     >
-      <div className="flex items-start gap-3.5">
-        <Avatar card={card} size="lg" />
-        <div className="min-w-0 flex-1 pt-0.5">
-          <h2 className="m-0 truncate text-lg font-bold leading-tight tracking-[-0.03em]">
-            {card.name}
-          </h2>
-          {card.role ? (
-            <p className="m-0 mt-1 line-clamp-2 text-[15px] leading-snug text-pretty">{card.role}</p>
-          ) : null}
-          {card.location ? (
-            <p className="m-0 mt-1 truncate text-sm text-muted">{card.location}</p>
-          ) : null}
+      <PortfolioShot card={card} own={own} />
+      <div className="flex flex-1 flex-col gap-3.5 px-1">
+        <div className="flex items-start gap-3.5">
+          <Avatar card={card} size="lg" />
+          <div className="min-w-0 flex-1 pt-0.5">
+            <h2 className="m-0 truncate text-lg font-bold leading-tight tracking-[-0.03em]">
+              {card.name}
+            </h2>
+            {card.role ? (
+              <p className="m-0 mt-1 line-clamp-2 text-[15px] leading-snug text-pretty">{card.role}</p>
+            ) : null}
+            {card.location ? (
+              <p className="m-0 mt-1 truncate text-sm text-muted">{card.location}</p>
+            ) : null}
+          </div>
         </div>
-      </div>
 
-      {card.advisor || own || card.disciplines.length ? (
-        <div className="flex flex-wrap gap-1.5">
-          {own ? <Tag tone="ink">You</Tag> : null}
-          {card.advisor ? <Tag tone="ink">Advisor</Tag> : null}
-          {card.disciplines.map((discipline) => (
-            <Tag key={discipline}>{disciplineLabel(discipline)}</Tag>
+        {card.advisor || own || card.disciplines.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {own ? <Tag tone="ink">You</Tag> : null}
+            {card.advisor ? <Tag tone="ink">Advisor</Tag> : null}
+            {card.disciplines.map((discipline) => (
+              <Tag key={discipline}>{disciplineLabel(discipline)}</Tag>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="mt-auto flex min-h-9 items-center gap-1">
+          {card.links.website ? (
+            <a
+              className="mr-auto inline-flex min-w-0 items-center gap-1 rounded-[8px] py-1.5 text-base font-bold text-ink no-underline transition-colors hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              href={card.links.website}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span className="truncate">{linkLabel(card.links.website)}</span>
+              <ArrowUpRightIcon />
+            </a>
+          ) : (
+            <span className="mr-auto" />
+          )}
+          {socials.map((social) => (
+            <a
+              key={social.key}
+              className="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-gray-200 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              href={card.links[social.key] ?? undefined}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`${card.name} on ${social.label}`}
+            >
+              {social.icon}
+            </a>
           ))}
         </div>
-      ) : null}
-
-      <div className="mt-auto flex min-h-9 items-center gap-1">
-        {card.links.website ? (
-          <a
-            className="mr-auto inline-flex min-w-0 items-center gap-1 rounded-[8px] py-1.5 text-base font-bold text-ink no-underline transition-colors hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-            href={card.links.website}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span className="truncate">{linkLabel(card.links.website)}</span>
-            <ArrowUpRightIcon />
-          </a>
-        ) : own ? (
-          <a
-            className="mr-auto py-1.5 text-base text-muted no-underline hover:text-ink"
-            href="/portal/profile"
-          >
-            Add your portfolio
-          </a>
-        ) : (
-          <span className="mr-auto" />
-        )}
-        {socials.map((social) => (
-          <a
-            key={social.key}
-            className="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-gray-200 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-            href={card.links[social.key] ?? undefined}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`${card.name} on ${social.label}`}
-          >
-            {social.icon}
-          </a>
-        ))}
       </div>
     </article>
   );
@@ -489,7 +532,7 @@ export function MemberDirectory(props: MemberDirectoryProps) {
           <TeamTable rows={shown as TeamRow[]} />
         </div>
       ) : (
-        <div className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-4">
+        <div className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-5">
           {shown.map((card) => (
             <DirectoryCard key={card.id} card={card} own={card.id === viewerId} />
           ))}

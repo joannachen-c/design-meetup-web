@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import sharp from "sharp";
-import { getSessionUser } from "@/lib/auth";
-import { getAvatarForUser, userHasPortalAccess } from "@/lib/membership-service";
+import { getAvatarForUser } from "@/lib/membership-service";
+import { canViewMemberMedia } from "@/lib/portal-access";
 
 export const runtime = "nodejs";
 
@@ -15,20 +15,13 @@ function notFound() {
   });
 }
 
-/** Members see each other in the directory; anyone else signed in only sees their own photo. */
-async function canViewAvatar(userId: string) {
-  const viewer = await getSessionUser();
-  if (!viewer) return false;
-  return viewer.id === userId || userHasPortalAccess(viewer.id);
-}
-
 export async function GET(
   request: Request,
   context: { params: Promise<{ userId: string }> },
 ) {
   const { userId } = await context.params;
   // Same 404 as a missing photo, so the route does not reveal which ids exist.
-  if (!userId || !(await canViewAvatar(userId))) return notFound();
+  if (!userId || !(await canViewMemberMedia(userId))) return notFound();
 
   const avatar = await getAvatarForUser(userId);
   if (!avatar) return notFound();

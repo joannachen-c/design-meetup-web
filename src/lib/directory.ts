@@ -80,6 +80,8 @@ export type MemberCard = {
   location: string | null;
   regions: Region[];
   disciplines: Discipline[];
+  /** Screenshot of the member's portfolio site, when one is current. */
+  previewUrl: string | null;
   links: DirectoryLinks;
 };
 
@@ -141,6 +143,7 @@ export function filterDirectory<T extends MemberCard>(cards: T[], filters: Direc
 
 function richness(card: MemberCard) {
   return (
+    (card.previewUrl ? 3 : 0) +
     (card.avatarUrl ? 2 : 0) +
     (card.role ? 1 : 0) +
     (card.links.website ? 1 : 0) +
@@ -148,7 +151,7 @@ function richness(card: MemberCard) {
   );
 }
 
-/** Fuller profiles first so the grid opens on faces, then alphabetical. */
+/** Fuller profiles first so the grid opens on portfolios and faces, then alphabetical. */
 export function sortDirectory<T extends MemberCard>(cards: T[]) {
   return [...cards].sort(
     (a, b) => richness(b) - richness(a) || a.name.localeCompare(b.name),

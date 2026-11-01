@@ -5,6 +5,7 @@ import { boardOfAdvisorsEmails } from "./board-of-advisors";
 import { cohortEmails } from "./cohort";
 import { compMembershipEmails } from "./comp-membership";
 import { normalizeDisciplines } from "./directory";
+import { listPreviewRecords, type PreviewRecord } from "./portfolio-previews";
 import { hasGraduated, persistGraduation } from "./graduation";
 import {
   displayNameFromEmail,
@@ -588,6 +589,7 @@ export async function listMemberEmails() {
 export type DirectoryRow = {
   profile: ProfileRecord;
   membership: Pick<MembershipRecord, "tier" | "status">;
+  preview?: PreviewRecord | null;
 };
 
 /** Everyone who can open the portal, with their profile. Same rule as userHasPortalAccess. */
@@ -597,9 +599,16 @@ export async function listDirectoryRows(): Promise<DirectoryRow[]> {
     return rows.filter((row) => hasPortalAccess(row.membership.status));
   }
   const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("memberships")
-    .select(`tier,status,stripe_subscription_id,profiles(${PROFILE_COLUMNS})`);
+  const [{ data, error }, previews] = await Promise.all([
+    admin
+      .from("memberships")
+      .select(`tier,status,stripe_subscription_id,profiles(${PROFILE_COLUMNS})`),
+    // Previews are decoration: the directory still loads if they cannot.
+    listPreviewRecords(admin).catch((previewError) => {
+      console.error("portfolio previews unavailable", previewError);
+      return new Map<string, PreviewRecord>();
+    }),
+  ]);
   if (error) throw new Error(`Could not load the directory: ${error.message}`);
   return (data ?? []).flatMap((row) => {
     const joined = row.profiles as unknown;
@@ -615,7 +624,14 @@ export async function listDirectoryRows(): Promise<DirectoryRow[]> {
     ) {
       return [];
     }
-    return [{ profile: mapProfile(profile), membership: { tier: row.tier as Tier, status } }];
+    const mapped = mapProfile(profile);
+    return [
+      {
+        profile: mapped,
+        membership: { tier: row.tier as Tier, status },
+        preview: previews.get(mapped.id) ?? null,
+      },
+    ];
   });
 }
 

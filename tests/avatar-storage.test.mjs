@@ -44,9 +44,10 @@ test("the avatar route only reads Supabase Storage when it is configured", async
 
 test("member photos are only served to the owner or members with portal access", async () => {
   const route = await read("app/api/portal/avatar/[userId]/route.ts");
-  assert.match(route, /const viewer = await getSessionUser\(\);\s*if \(!viewer\) return false;/);
-  assert.match(route, /viewer\.id === userId \|\| userHasPortalAccess\(viewer\.id\)/);
-  const check = route.indexOf("canViewAvatar(userId)");
+  const access = await read("src/lib/portal-access.ts");
+  assert.match(access, /const viewer = await getSessionUser\(\);\s*if \(!viewer\) return false;/);
+  assert.match(access, /viewer\.id === userId \|\| userHasPortalAccess\(viewer\.id\)/);
+  const check = route.indexOf("canViewMemberMedia(userId)");
   const download = route.indexOf("getAvatarForUser(userId)");
   assert.ok(check > 0 && check < download, "access is checked before the photo is read");
 });

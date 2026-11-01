@@ -16,11 +16,13 @@ import {
   type ProfileRecord,
   type Tier,
 } from "./membership.ts";
+import { previewUrl, type PreviewRecord } from "./portfolio-previews.ts";
 import { memberSinceLabel } from "./slack-join-dates.ts";
 
 type Row = {
   profile: ProfileRecord;
   membership: { tier: Tier; status: MembershipStatus };
+  preview?: PreviewRecord | null;
 };
 
 /** "Product Designer at Figma", "Designer", "UCLA '27", or null. */
@@ -35,7 +37,7 @@ export function roleLine(profile: Pick<ProfileRecord, "position" | "company" | "
   return year ? `${school} '${year.slice(2)}` : school;
 }
 
-export function toMemberCard({ profile, membership }: Row): MemberCard {
+export function toMemberCard({ profile, membership, preview }: Row): MemberCard {
   return {
     id: profile.id,
     name: profile.displayName?.trim() || displayNameFromEmail(profile.email),
@@ -47,6 +49,7 @@ export function toMemberCard({ profile, membership }: Row): MemberCard {
     location: profile.location?.trim() || null,
     regions: regionsForLocation(profile.location),
     disciplines: normalizeDisciplines(profile.disciplines),
+    previewUrl: previewUrl(profile.id, profile.website, preview),
     links: {
       website: socialHref("website", profile.website),
       instagram: socialHref("instagram", profile.instagram),

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { icsHasUpcomingEvent } from "../src/lib/luma.ts";
 
 const app = await readFile(new URL("../src/components/HomePage.tsx", import.meta.url), "utf8");
 const header = await readFile(
@@ -58,16 +59,12 @@ test("Luma calendar embed clips to rounded corners", () => {
 });
 
 test("Empty Luma calendar falls back to the past events list", () => {
-  assert.match(luma, /calendar_api_id: LUMA_CALENDAR_API_ID/);
-  assert.match(luma, /period,/);
-  assert.match(page, /fetchLumaCalendarEvents\("future"\)/);
+  assert.match(luma, /https:\/\/api\.lu\.ma\/ics\/get\?entity=calendar&id=cal-HH5XBdHyWPt0yhB/);
+  assert.match(page, /fetchLumaHasUpcomingEvents\(\)/);
   // Only a confirmed empty calendar swaps the embed out: an unreachable Luma
   // returns null, which must leave the embed in place.
   assert.match(luma, /if \(!response\.ok\) return null;/);
-  assert.match(
-    page,
-    /upcomingEvents\?\.length === 0\s*\?\s*\(\(await fetchLumaCalendarEvents\("past"\)\) \?\? \[\]\)\s*:\s*\[\]/s,
-  );
+  assert.match(page, /hasUpcomingEvents === false\s*\?\s*\[\.\.\.pastResult\.events\]/);
   assert.match(app, /const showRecentEvents = recentEvents\.length > 0;/);
   assert.match(
     app,
@@ -76,6 +73,40 @@ test("Empty Luma calendar falls back to the past events list", () => {
   assert.match(panel, /href=\{LUMA_PAST_EVENTS_URL\}/);
   assert.match(luma, /https:\/\/luma\.com\/designmeetup\?period=past/);
   assert.doesNotMatch(panel, />\s*Past events\s*</);
+});
+
+test("Luma iCal feed counts an event as upcoming until it ends", () => {
+  const ics = (...events) =>
+    [
+      "BEGIN:VCALENDAR",
+      ...events.flatMap(([start, end]) => [
+        "BEGIN:VEVENT",
+        `DTSTART:${start}`,
+        ...(end ? [`DTEND:${end}`] : []),
+        "END:VEVENT",
+      ]),
+      "END:VCALENDAR",
+    ].join("\r\n");
+  const now = Date.UTC(2026, 9, 31, 12);
+
+  assert.equal(icsHasUpcomingEvent(ics(), now), false);
+  assert.equal(
+    icsHasUpcomingEvent(ics(["20261025T210000Z", "20261025T230000Z"]), now),
+    false,
+  );
+  assert.equal(
+    icsHasUpcomingEvent(
+      ics(["20261025T210000Z", "20261025T230000Z"], ["20261107T020000Z", "20261107T040000Z"]),
+      now,
+    ),
+    true,
+  );
+  // Happening right now still belongs to the embed.
+  assert.equal(
+    icsHasUpcomingEvent(ics(["20261031T110000Z", "20261031T130000Z"]), now),
+    true,
+  );
+  assert.equal(icsHasUpcomingEvent(ics(["20261101T000000Z"]), now), true);
 });
 
 test("Past events fallback holds the embed's block in the layout", () => {

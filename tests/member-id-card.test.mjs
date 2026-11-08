@@ -73,7 +73,7 @@ test("the cohort follows Member ID in the masthead after a bullet", async () => 
   assert.doesNotMatch(tsx, /styles\.cohort\b/);
   assert.match(css, /\.masthead\s*\{[^}]*align-items:\s*center/s);
   assert.match(css, /\.footer\s*\{[^}]*margin-top:\s*auto/s);
-  assert.match(page, /const cohort = cohortForEmail\(memberEmail\)/);
+  assert.match(page, /const cohort = await cohortForMember\(memberEmail\)/);
   assert.match(page, /cohort=\{cohort\}/);
 });
 

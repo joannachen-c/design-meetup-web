@@ -2,20 +2,22 @@ import { preload } from "react-dom";
 
 import { fetchAdvisors, type AdvisorsResult } from "./advisors";
 import { firstPaintCoverImages, initialFocusIndex } from "./image";
-import { fetchLumaCalendarEvents, type LumaEvent } from "./luma";
+import { fetchLumaHasUpcomingEvents } from "./luma";
 import { fetchPastEvents, type MeetupEvent } from "./supabase";
 
 export type HomePageData = {
   initialEvents: MeetupEvent[];
   initialError: string | null;
-  recentEvents: LumaEvent[];
+  recentEvents: MeetupEvent[];
   advisors: AdvisorsResult;
 };
+
+const RECENT_EVENT_COUNT = 4;
 
 function preloadFirstPaintCovers(events: MeetupEvent[]) {
   for (const cover of firstPaintCoverImages(
     events,
-    initialFocusIndex(events.length),
+    initialFocusIndex(events),
   )) {
     preload(cover.src, {
       as: "image",
@@ -28,7 +30,7 @@ function preloadFirstPaintCovers(events: MeetupEvent[]) {
 export async function loadHomePageData(): Promise<HomePageData> {
   // Run Supabase + Luma in parallel so a slow calendar feed doesn't block the
   // event shelf (and vice versa) on cold localhost loads.
-  const [pastResult, upcomingEvents, advisors] = await Promise.all([
+  const [pastResult, hasUpcomingEvents, advisors] = await Promise.all([
     fetchPastEvents()
       .then((events) => ({ events, error: null as string | null }))
       .catch((error: unknown) => ({
@@ -36,7 +38,7 @@ export async function loadHomePageData(): Promise<HomePageData> {
         error:
           error instanceof Error ? error.message : "Unable to load events.",
       })),
-    fetchLumaCalendarEvents("future"),
+    fetchLumaHasUpcomingEvents(),
     fetchAdvisors(),
   ]);
   if (advisors.error) console.warn(`[advisors] using bundled data: ${advisors.error}`);
@@ -47,12 +49,14 @@ export async function loadHomePageData(): Promise<HomePageData> {
   preloadFirstPaintCovers(pastResult.events);
 
   // The Luma embed can only render upcoming events, so when the calendar is
-  // empty we show the recent past ones instead of Luma's empty card. Anything
-  // other than a confirmed empty calendar — including a failed lookup — leaves
-  // the embed in place.
+  // empty we show the most recent past ones instead of Luma's empty card.
+  // Anything other than a confirmed empty calendar — including a failed lookup —
+  // leaves the embed in place.
   const recentEvents =
-    upcomingEvents?.length === 0
-      ? ((await fetchLumaCalendarEvents("past")) ?? [])
+    hasUpcomingEvents === false
+      ? [...pastResult.events]
+          .sort((a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at))
+          .slice(0, RECENT_EVENT_COUNT)
       : [];
 
   return {

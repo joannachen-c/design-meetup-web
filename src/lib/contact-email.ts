@@ -28,6 +28,10 @@ export const contactInterestOptions = {
     label: "joining the Board of Advisors",
     subject: "Joining the Board of Advisors",
   },
+  talent: {
+    label: "hiring through the Talent Network",
+    subject: "Talent Network inquiry",
+  },
 } as const;
 
 export const contactCityOptions = {

@@ -388,7 +388,7 @@ test("hovering a cover never pulls its sliver out from under the pointer", () =>
 // from the first frame.
 test("the rail opens on the sixth cover, or the newest when there is no sixth", () => {
   assert.match(image, /export const DEFAULT_FOCUS_SLOT = 5;/);
-  assert.match(app, /const initialIndex = initialFocusIndex\(initialEvents\.length\);/);
+  assert.match(app, /const initialIndex = initialFocusIndex\(initialEvents\);/);
   // The shelf, the ticker and the detail all read the selection from here, so
   // none of them can open on a different cover than the others.
   assert.match(app, /useState\(initialIndex\)/);

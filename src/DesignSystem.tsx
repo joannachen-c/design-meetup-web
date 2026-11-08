@@ -12,6 +12,7 @@ import { IconButton } from "./components/IconButton";
 import { Input } from "./components/Input";
 import { Link } from "./components/Link";
 import { PageLoader } from "./components/PageLoader";
+import { Pill } from "./components/Pill";
 import { Primary } from "./components/Primary";
 import { ScrollReveal } from "./components/ScrollReveal";
 import { Select } from "./components/Select";
@@ -140,10 +141,12 @@ const sections = [
   { id: "strokes", label: "strokes" },
   { id: "shadows", label: "shadows" },
   { id: "buttons", label: "buttons" },
+  { id: "pills", label: "pills" },
   { id: "links", label: "links" },
   { id: "inputs", label: "inputs" },
   { id: "tooltips", label: "tooltips" },
   { id: "toasts", label: "toasts" },
+  { id: "planning", label: "planning" },
 ] as const;
 
 const spacingScale = [
@@ -864,6 +867,27 @@ export default function DesignSystem() {
           </section>
 
           <section
+            id="pills"
+            className={sectionClassName}
+            aria-labelledby="pills-title"
+          >
+            <h2 className={sectionTitleClassName} id="pills-title">
+              pills
+            </h2>
+            <div>
+              <SpecimenLabel>variants</SpecimenLabel>
+              <div className={`${specimenRowClassName} mt-4`}>
+                <Pill>Neutral</Pill>
+                <Pill variant="accent">Accent</Pill>
+                <Pill variant="ink">Ink</Pill>
+                <span className="inline-flex rounded-[10px] bg-surface-muted p-3">
+                  <Pill variant="white">White</Pill>
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <section
             id="links"
             className={`${sectionClassName} md:items-end`}
             aria-labelledby="links-title"
@@ -1034,6 +1058,66 @@ export default function DesignSystem() {
                   <Toast variant="danger">
                     couldn&apos;t start checkout. please try again.
                   </Toast>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="planning"
+            className={sectionClassName}
+            aria-labelledby="planning-title"
+          >
+            <h2 className={sectionTitleClassName} id="planning-title">
+              planning
+            </h2>
+            <div className="grid gap-8">
+              <div>
+                <SpecimenLabel>pill</SpecimenLabel>
+                <div className={`${specimenRowClassName} mt-4`}>
+                  <Pill>Auto</Pill>
+                  <Pill variant="attention">Needs attention</Pill>
+                  <Pill>In motion</Pill>
+                  <Pill variant="muted">Held / resolved</Pill>
+                </div>
+              </div>
+              <div>
+                <SpecimenLabel>assignee stack</SpecimenLabel>
+                <div className={`${specimenRowClassName} mt-4`}>
+                  <span className="flex -space-x-2.5">
+                    <Tooltip content="Michelle Liu">
+                      <img
+                        className="relative z-[1] size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-0.5"
+                        src="/team/michelle-liu.jpg"
+                        alt="Michelle Liu"
+                      />
+                    </Tooltip>
+                    <Tooltip content="Ilyssa Yan">
+                      <img
+                        className="relative z-[2] size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-0.5"
+                        src="/team/ilyssa-yan.jpg"
+                        alt="Ilyssa Yan"
+                      />
+                    </Tooltip>
+                    <Tooltip content="Brandon Lee">
+                      <img
+                        className="relative z-[3] size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-0.5"
+                        src="/team/brandon-lee.jpg"
+                        alt="Brandon Lee"
+                      />
+                    </Tooltip>
+                    <Tooltip content="Joanna Chen">
+                      <img
+                        className="relative z-[4] size-8 rounded-full object-cover ring-2 ring-white transition-transform duration-150 ease-out hover:-translate-y-0.5"
+                        src="/team/joanna-chen.jpg"
+                        alt="Joanna Chen"
+                      />
+                    </Tooltip>
+                  </span>
+                  <span className="text-sm text-muted">
+                    Team photos from /team at 32px, overlapped 10px with a 2px
+                    white ring.
+                  </span>
                 </div>
               </div>
             </div>

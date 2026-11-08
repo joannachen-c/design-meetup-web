@@ -148,8 +148,25 @@ export const VISIBLE_COVER_RADIUS = 4;
 // different set than the one that deals in after the loader.
 export const DEFAULT_FOCUS_SLOT = 5;
 
-export function initialFocusIndex(eventCount: number) {
-  return eventCount > DEFAULT_FOCUS_SLOT ? DEFAULT_FOCUS_SLOT : 0;
+type FocusCandidate = { gallery_images?: Array<{ image_url: string }> | null };
+
+// Shared seed placeholders live under /placeholders/ in storage, so they don't
+// count as an event's own photos.
+function hasOwnPhotos(event: FocusCandidate) {
+  return (event.gallery_images ?? []).some(
+    (image) => !image.image_url.includes("/placeholders/"),
+  );
+}
+
+// The landing event should never open on "Photos coming soon": from the
+// default slot, step right to the first event that has photos of its own. If
+// nothing to the right has any, stay on the default slot.
+export function initialFocusIndex(events: FocusCandidate[]) {
+  const slot = events.length > DEFAULT_FOCUS_SLOT ? DEFAULT_FOCUS_SLOT : 0;
+  for (let index = slot; index < events.length; index += 1) {
+    if (hasOwnPhotos(events[index])) return index;
+  }
+  return slot;
 }
 
 export function eventCoverImage(url: string | null | undefined): SizedImage {

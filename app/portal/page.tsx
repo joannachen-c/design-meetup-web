@@ -6,7 +6,8 @@ import { MemberIdCard } from "@/components/portal/MemberIdCard";
 import { SlackJoinCard } from "@/components/portal/SlackJoinCard";
 import { SubscribeButtons } from "@/components/portal/SubscribeButtons";
 import { requireUser } from "@/lib/auth";
-import { cohortForEmail, cohortJoinedAt } from "@/lib/cohort";
+import { cohortForMember } from "@/lib/approved-signups-store";
+import { cohortJoinedAt } from "@/lib/cohort";
 import { shouldApplyCompCoupon } from "@/lib/comp-membership";
 import {
   TIER_CATALOG,
@@ -64,7 +65,7 @@ export default async function PortalHomePage({
     displayNameFromEmail(user.email || "member");
   const firstName = firstNameFromDisplay(displayName, user.email || "member");
   const memberEmail = profile?.email || user.email;
-  const cohort = cohortForEmail(memberEmail);
+  const cohort = await cohortForMember(memberEmail);
   const joinedAt =
     cohortJoinedAt(cohort) ?? (await getSlackJoinedAt(memberEmail));
   const memberSince = memberSinceLabel(joinedAt, profile?.createdAt);

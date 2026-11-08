@@ -1,5 +1,7 @@
 /** Server-only. 100% Stripe coupon applied at checkout for listed emails. */
 
+import { boardOfAdvisorsEmails, isBoardOfAdvisorsEmail } from "./board-of-advisors.ts";
+
 export const COMP_MEMBERSHIP_SHEET =
   "https://docs.google.com/spreadsheets/d/1fT3s72MVCAxb8gXrE6YXfBrMEHxTbL6jG8LQI8l5hlM/edit?gid=0#gid=0";
 
@@ -123,9 +125,15 @@ export function isDirectorySheetEmail(email: string) {
   return COMP_MEMBERSHIP_EMAILS.has(email.trim().toLowerCase());
 }
 
-/** Everyone on the comp whitelist: the directory sheet plus STRIPE_COMP_EMAILS. */
+/** Everyone on the comp whitelist: the directory sheet, the Board of Advisors, plus STRIPE_COMP_EMAILS. */
 export function compMembershipEmails(rawList = process.env.STRIPE_COMP_EMAILS) {
-  return [...new Set([...COMP_MEMBERSHIP_EMAILS, ...parseCompEmails(rawList)])];
+  return [
+    ...new Set([
+      ...COMP_MEMBERSHIP_EMAILS,
+      ...boardOfAdvisorsEmails(),
+      ...parseCompEmails(rawList),
+    ]),
+  ];
 }
 
 export function isCompMembershipEmail(
@@ -135,6 +143,7 @@ export function isCompMembershipEmail(
   const normalized = email.trim().toLowerCase();
   return (
     COMP_MEMBERSHIP_EMAILS.has(normalized) ||
+    isBoardOfAdvisorsEmail(normalized) ||
     parseCompEmails(rawList).has(normalized)
   );
 }

@@ -15,6 +15,7 @@
     "sync:luma": "node scripts/sync-luma-events.mjs",
     "luma:webhook": "node --experimental-strip-types scripts/register-luma-webhook.mjs",
     "seed:sponsors": "node scripts/seed-sponsors.mjs",
+    "seed:advisors": "node scripts/seed-advisors.mjs",
     "trim:sponsor-logos": "node scripts/trim-sponsor-logos.mjs",
     "upload:sponsor-logos": "node scripts/upload-sponsor-logos.mjs",
     "import:partner-inquiries": "node --experimental-strip-types scripts/import-partner-inquiries.mjs",
@@ -34,6 +35,7 @@
   "dependencies": {
     "@blossom-carousel/react": "^1.5.2",
     "@mux/mux-player-react": "^3.13.2",
+    "@radix-ui/react-popover": "^1.2.0",
     "@radix-ui/react-select": "^2.3.7",
     "@radix-ui/react-tooltip": "^1.2.16",
     "@supabase/ssr": "^0.12.7",

@@ -1,5 +1,6 @@
 /** Server-only. Which founding cohort a member's email belongs to. */
 
+import { isBoardOfAdvisorsEmail } from "./board-of-advisors.ts";
 import { directorySheetEmails, isDirectorySheetEmail } from "./comp-membership.ts";
 import { approvedSignupEmails, isApprovedSignupEmail } from "./signup-allowlist.ts";
 
@@ -31,6 +32,8 @@ export function cohortForEmail(email: string | null | undefined): Cohort | null 
   const normalized = (email || "").trim().toLowerCase();
   if (!normalized) return null;
   if (isDirectorySheetEmail(normalized)) return 0;
+  // Advisors are comped members but not part of a founding cohort.
+  if (isBoardOfAdvisorsEmail(normalized)) return null;
   if (!isApprovedSignupEmail(normalized)) return null;
   return COHORT_2_EMAILS.has(normalized) ? 2 : 1;
 }

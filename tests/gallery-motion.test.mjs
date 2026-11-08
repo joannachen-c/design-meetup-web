@@ -9,7 +9,7 @@ const loader = await readFile(
   new URL("../src/components/PageLoader.tsx", import.meta.url),
   "utf8",
 );
-const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+const page = await readFile(new URL("../src/lib/home-page-data.ts", import.meta.url), "utf8");
 const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
 test("cards retain perspective through the list wrapper", () => {

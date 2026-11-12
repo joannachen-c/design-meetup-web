@@ -33,7 +33,7 @@ const APPROVED_SIGNUP_EMAILS = new Set<string>([
   "designwithjonathan@gmail.com",
   "xuefeiw1031@gmail.com",
   "chloebeckmeyer2203@gmail.com",
-  "design@adriancordova.com",
+  "toadriancordova@gmail.com",
   "hz.helenzhou@gmail.com",
   "fionafang1025@gmail.com",
   "mavis.lohw@gmail.com",

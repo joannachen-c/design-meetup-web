@@ -13,6 +13,7 @@ Repo → **Settings → Secrets and variables → Actions**:
 | `VERCEL_TOKEN` | [vercel.com/account/tokens](https://vercel.com/account/tokens) → Create (scope: full account or this team) |
 | `VERCEL_ORG_ID` | `.vercel/project.json` → `orgId` (already linked locally) |
 | `VERCEL_PROJECT_ID` | `.vercel/project.json` → `projectId` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → `service_role` key (used by `Sync Luma events`) |
 
 Only someone on the Vercel project needs to create/rotate `VERCEL_TOKEN`. Collaborators never need Vercel access.
 
@@ -24,12 +25,13 @@ Only someone on the Vercel project needs to create/rotate `VERCEL_TOKEN`. Collab
 | `Vercel Preview` | Non-draft PRs from this repo | Preview deploy + PR comment with URL |
 | `Vercel Production` | Push to `main` | Production deploy, then import Gmail partner inquiries |
 | `Import partner inquiries` | Manual dispatch, or daily at 06:00 UTC | POSTs `/api/contact/import` on production. Gmail secrets stay on Vercel (Sensitive env cannot be pulled into Actions). |
+| `Sync Luma events` | Manual dispatch, or daily at 14:00 UTC (07:00 PT) | Runs `npm run sync:luma` to add every ended Luma calendar event to `past-events.json`, publishes with `npm run seed:events`, and commits the data to `main`. The homepage picks it up within 5 minutes; no deploy needed. Hide an event with `HIDDEN_EVENT_IDS` in `src/lib/supabase.ts`. |
 
 Fork PRs skip the preview deploy (secrets are unavailable). Same-repo collaborator branches work normally.
 
 ## One-time setup checklist
 
-1. Add the three secrets above.
+1. Add the secrets above.
 2. Merge this branch so the workflows land on `main`.
 3. Open a test PR from a collaborator account that is **not** on Vercel — confirm CI is green and the preview comment appears.
 4. Optional: under branch protection, require the **CI** check (not a Vercel Git check).

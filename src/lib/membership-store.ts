@@ -383,11 +383,18 @@ export async function listLocalStudentUserIds() {
 
 export async function listLocalMemberships() {
   const store = await readStore();
-  return store.memberships.map((membership) => ({
-    status: membership.status,
-    email:
-      store.profiles.find((profile) => profile.id === membership.userId)?.email ?? null,
-  }));
+  return store.memberships.map((membership) => {
+    const profile = store.profiles.find((p) => p.id === membership.userId);
+    return {
+      status: membership.status,
+      email: profile?.email ?? null,
+      name: profile?.displayName ?? null,
+      tier: membership.tier,
+      cancelAtPeriodEnd: membership.cancelAtPeriodEnd,
+      currentPeriodEnd: membership.currentPeriodEnd,
+      updatedAt: membership.updatedAt,
+    };
+  });
 }
 
 export function upsertLocalMembership(input: {

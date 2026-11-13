@@ -2,6 +2,11 @@ import { listApprovedSignupEmails } from "./approved-signups-store";
 import { createAdminClient } from "./auth";
 import { supabaseAuthConfigured } from "./auth-session";
 import { boardOfAdvisorsEmails } from "./board-of-advisors";
+import {
+  pickCanceledMembers,
+  type CanceledMember,
+  type MembershipRow,
+} from "./canceled-members";
 import { cohortEmails } from "./cohort";
 import { compMembershipEmails } from "./comp-membership";
 import { hasGraduated, persistGraduation } from "./graduation";
@@ -596,6 +601,43 @@ async function listPortalMemberEmails() {
   return rows
     .filter((row) => hasPortalAccess(normalizeMembershipStatus(row.status)))
     .flatMap((row) => (row.email?.trim() ? [row.email.trim().toLowerCase()] : []));
+}
+
+/** Portal members who canceled or are set to cancel, for organizers. */
+export async function listCanceledMembers(): Promise<CanceledMember[]> {
+  let rows: MembershipRow[];
+  if (await supabaseMembershipTablesAvailable()) {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("memberships")
+      .select(
+        "tier,status,cancel_at_period_end,current_period_end,updated_at,profiles(email,display_name)",
+      )
+      .or("status.eq.canceled,cancel_at_period_end.eq.true");
+    if (error) throw new Error(`Could not load canceled members: ${error.message}`);
+    rows = (data ?? []).map((row) => {
+      const joined = row.profiles as
+        | { email?: string | null; display_name?: string | null }
+        | { email?: string | null; display_name?: string | null }[]
+        | null;
+      const profile = Array.isArray(joined) ? joined[0] : joined;
+      return {
+        email: profile?.email ?? null,
+        name: profile?.display_name ?? null,
+        tier: row.tier as Tier,
+        status: normalizeMembershipStatus(row.status as string | null),
+        cancelAtPeriodEnd: Boolean(row.cancel_at_period_end),
+        currentPeriodEnd: (row.current_period_end as string | null) ?? null,
+        updatedAt: row.updated_at as string,
+      };
+    });
+  } else {
+    rows = (await listLocalMemberships()).map((row) => ({
+      ...row,
+      status: normalizeMembershipStatus(row.status),
+    }));
+  }
+  return pickCanceledMembers(rows).filter((member) => member.email !== DEMO_EMAIL);
 }
 
 /** Activate membership from a completed Checkout Session (works without webhooks). */

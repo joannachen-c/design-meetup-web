@@ -67,6 +67,7 @@ export default async function ProfilePage({
             initialLinkedin={profile?.linkedin ?? ""}
             initialYoutube={profile?.youtube ?? ""}
             initialGithub={profile?.github ?? ""}
+            initialDisciplines={profile?.disciplines ?? []}
           />
         </div>
       </div>

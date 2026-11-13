@@ -85,6 +85,7 @@ function normalize(parsed: Partial<StoreShape>): StoreShape {
           linkedin: profile.linkedin ?? null,
           youtube: profile.youtube ?? null,
           github: profile.github ?? null,
+          disciplines: profile.disciplines ?? [],
         }))
       : [],
     memberships: Array.isArray(parsed.memberships) ? parsed.memberships : [],
@@ -303,6 +304,7 @@ export function ensureLocalProfile(input: {
       linkedin: null,
       youtube: null,
       github: null,
+      disciplines: [],
       stripeCustomerId: null,
       createdAt: now,
       updatedAt: now,
@@ -333,6 +335,7 @@ export function updateLocalProfile(input: {
   linkedin?: string | null;
   youtube?: string | null;
   github?: string | null;
+  disciplines?: string[];
 }) {
   return mutateStore((store) => {
     const profile = store.profiles.find((p) => p.id === input.userId);
@@ -351,6 +354,7 @@ export function updateLocalProfile(input: {
     if (input.linkedin !== undefined) profile.linkedin = input.linkedin;
     if (input.youtube !== undefined) profile.youtube = input.youtube;
     if (input.github !== undefined) profile.github = input.github;
+    if (input.disciplines !== undefined) profile.disciplines = input.disciplines;
     profile.updatedAt = new Date().toISOString();
     return profile;
   });
@@ -379,6 +383,14 @@ export async function listLocalStudentUserIds() {
   return store.memberships
     .filter((membership) => membership.tier === "student")
     .map((membership) => membership.userId);
+}
+
+export async function listLocalDirectoryRows() {
+  const store = await readStore();
+  return store.memberships.flatMap((membership) => {
+    const profile = store.profiles.find((item) => item.id === membership.userId);
+    return profile ? [{ profile, membership }] : [];
+  });
 }
 
 export async function listLocalMemberships() {

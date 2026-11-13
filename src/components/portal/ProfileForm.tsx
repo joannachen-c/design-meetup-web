@@ -28,6 +28,7 @@ import {
 } from "@/components/portal/SocialIcons";
 import { AvatarImage } from "@/components/portal/AvatarImage";
 import { PersonSilhouette } from "@/components/portal/PersonSilhouette";
+import { DISCIPLINES } from "@/lib/directory";
 
 type ProfileFormProps = {
   initialName: string;
@@ -44,6 +45,7 @@ type ProfileFormProps = {
   initialLinkedin?: string;
   initialYoutube?: string;
   initialGithub?: string;
+  initialDisciplines?: string[];
 };
 
 type FieldErrors = { firstName?: string; email?: string };
@@ -150,6 +152,7 @@ export function ProfileForm({
   initialLinkedin = "",
   initialYoutube = "",
   initialGithub = "",
+  initialDisciplines = [],
 }: ProfileFormProps) {
   const idPrefix = useId();
   const router = useRouter();
@@ -421,6 +424,36 @@ export function ProfileForm({
             />
           </Field>
         </div>
+
+        <section className="grid gap-4" aria-labelledby={fieldId("disciplines")}>
+          <div className="grid gap-1">
+            <h2
+              id={fieldId("disciplines")}
+              className="m-0 text-xl font-bold tracking-[-0.04em]"
+            >
+              What you do
+            </h2>
+            <p className="m-0 text-sm text-muted">
+              Pick any that fit. Members filter the directory by these.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {DISCIPLINES.map((discipline) => (
+              <label key={discipline.value} className="cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="disciplines"
+                  value={discipline.value}
+                  defaultChecked={initialDisciplines.includes(discipline.value)}
+                  className="peer sr-only"
+                />
+                <span className="inline-flex min-h-10 items-center rounded-full bg-surface-muted px-4 text-base text-ink transition-[background-color,color] duration-150 ease-out select-none hover:bg-gray-200 peer-checked:bg-ink peer-checked:text-white peer-checked:hover:bg-gray-700 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink">
+                  {discipline.label}
+                </span>
+              </label>
+            ))}
+          </div>
+        </section>
 
         <section className="grid gap-5">
           <h2 className="m-0 text-xl font-bold tracking-[-0.04em]">

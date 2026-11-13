@@ -52,23 +52,6 @@ export default async function PortalCommunityPage() {
           />
         </div>
       </section>
-
-      <section
-        className="mt-[clamp(64px,10vw,120px)]"
-        aria-labelledby="member-directory-title"
-      >
-        <h2
-          id="member-directory-title"
-          className="m-0 text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.06em]"
-        >
-          Member directory
-        </h2>
-        <div className="upcoming-events-frame mt-8 grid place-items-center rounded-[20px] bg-gray-200">
-          <p className="m-0 text-base tracking-[-0.04em] text-muted">
-            Coming soon! ;)
-          </p>
-        </div>
-      </section>
     </main>
   );
 }

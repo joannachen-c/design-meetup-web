@@ -64,6 +64,7 @@ export async function POST(request: Request) {
   let linkedin = "";
   let youtube = "";
   let github = "";
+  let disciplines: string[] | undefined;
   let avatarBytes: Buffer | null = null;
   let avatarContentType: string | null = null;
 
@@ -92,6 +93,7 @@ export async function POST(request: Request) {
     linkedin = optionalField(form.get("linkedin"));
     youtube = optionalField(form.get("youtube"));
     github = optionalField(form.get("github"));
+    disciplines = form.getAll("disciplines").map(String);
     const file = form.get("avatar");
     if (file && typeof file !== "string" && file.size > 0) {
       if (file.size > MAX_AVATAR_BYTES) {
@@ -139,6 +141,8 @@ export async function POST(request: Request) {
       linkedin = String(body.linkedin || "").trim();
       youtube = String(body.youtube || "").trim();
       github = String(body.github || "").trim();
+      const picked = (body as Record<string, unknown>).disciplines;
+      if (Array.isArray(picked)) disciplines = picked.map(String);
     } catch {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
@@ -170,6 +174,7 @@ export async function POST(request: Request) {
       linkedin,
       youtube,
       github,
+      disciplines,
       avatarBytes,
       avatarContentType,
     });

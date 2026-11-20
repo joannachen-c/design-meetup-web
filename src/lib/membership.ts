@@ -34,6 +34,7 @@ export type ProfileRecord = {
   linkedin: string | null;
   youtube: string | null;
   github: string | null;
+  disciplines: string[];
   stripeCustomerId: string | null;
   createdAt: string;
   updatedAt: string;

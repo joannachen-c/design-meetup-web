@@ -1,0 +1,50 @@
+name: Capture portfolio previews
+
+# Screenshots members' portfolio sites for the directory cards. Chrome cannot
+# run on Vercel, so the runner takes the screenshots and hands them to
+# /api/cron/portfolio-previews, which stores them with the app's own Supabase
+# access. Only members whose preview is missing, a week old, or for an old
+# website are captured, so most runs are short.
+on:
+  workflow_dispatch:
+    inputs:
+      all:
+        description: Re-capture every member with a website
+        type: boolean
+        default: false
+  schedule:
+    - cron: "0 8 * * *"
+
+concurrency:
+  group: portfolio-previews
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    name: Capture previews
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check required secrets
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Capture
+        run: npm run capture:previews -- --origin https://design-meetup-web.vercel.app ${{ inputs.all && '--all' || '' }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

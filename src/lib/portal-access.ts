@@ -55,3 +55,10 @@ export async function approvalsActor(request: Request) {
   if (!user || !(await isOrganizerSession(user))) return null;
   return user.email || user.id;
 }
+
+/** Members see each other's photos and portfolio previews; anyone else signed in only sees their own. */
+export async function canViewMemberMedia(userId: string) {
+  const viewer = await getSessionUser();
+  if (!viewer) return false;
+  return viewer.id === userId || userHasPortalAccess(viewer.id);
+}

@@ -801,8 +801,8 @@
     "slug": "mathurah-ravigulan",
     "first_name": "Mathurah",
     "last_name": "Ravigulan",
-    "title": "Design Engineer, Gen AI",
-    "company": "Netflix",
+    "title": "Design Engineer",
+    "company": "Trajectory AI",
     "relationship": "advisor",
     "fields": [
       "Design Engineering",
@@ -812,7 +812,7 @@
     "locations": [
       "SF"
     ],
-    "bio": "Mathurah Ravigulan is a design engineer at Netflix building prototypes and AI-evaluation tools for Gen AI experiences, and founded Design Eng Club.",
+    "bio": "Mathurah Ravigulan is a design engineer at Trajectory AI, previously built prototypes and AI-evaluation tools for Gen AI at Netflix, and founded Design Eng Club.",
     "photo_url": "/advisors/mathurah-ravigulan.jpg",
     "website_url": "https://www.mathurah.com",
     "linkedin_url": "https://www.linkedin.com/in/mathurah-ravigulan",
@@ -823,7 +823,7 @@
     "slug": "matthew-vernon",
     "first_name": "Matthew",
     "last_name": "Vernon",
-    "title": "Head of Design",
+    "title": "Member of Technical Staff",
     "company": "Cosmos",
     "relationship": "advisor",
     "fields": [
@@ -834,7 +834,7 @@
     "locations": [
       "NYC"
     ],
-    "bio": "Matthew Vernon is head of design at Cosmos and co-founded Foundation Labs, where he led design for the NFT platform Foundation and the social app Rodeo.",
+    "bio": "Matthew Vernon is a member of technical staff at Cosmos and co-founded Foundation Labs, where he led design for the NFT platform Foundation and the social app Rodeo.",
     "photo_url": "/advisors/matthew-vernon.jpg",
     "website_url": "https://matthewvernon.co",
     "linkedin_url": "https://www.linkedin.com/in/matthew-vernon-7394b597",
